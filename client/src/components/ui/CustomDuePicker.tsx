@@ -1,4 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  Check,
+  X,
+} from "lucide-react";
+import { getLocalTodayStr } from "../../utils/date";
 
 // ==========================================
 // COMPONENT: CustomDuePicker (Bộ Chọn Giờ & Phút Bằng 2 Thanh Kéo Thả Trực Quan)
@@ -37,7 +46,7 @@ export const CustomDuePicker: React.FC<CustomDuePickerProps> = ({
     if (value && value.includes("-")) {
       return value.split(" ")[0];
     }
-    return now.toISOString().split("T")[0];
+    return getLocalTodayStr(now);
   });
 
   const [selectedHour, setSelectedHour] = useState<number>(() => {

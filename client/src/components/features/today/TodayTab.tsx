@@ -18,6 +18,8 @@ import {
   Plus,
 } from "lucide-react";
 
+import { getLocalTodayStr, isTaskForDate } from "../../../utils/date";
+
 // ==========================================
 // COMPONENT: TodayTab (Gọn Gàng - Icon Hiện Đại)
 // ==========================================
@@ -37,7 +39,7 @@ export const TodayTab: React.FC = () => {
   } = useAppStore();
 
   const now = new Date();
-  const todayStr = now.toISOString().split("T")[0];
+  const todayStr = getLocalTodayStr(now);
 
   const [newTitle, setNewTitle] = useState("");
   const [newDueTime, setNewDueTime] = useState<string | undefined>(undefined);
@@ -62,7 +64,7 @@ export const TodayTab: React.FC = () => {
     const finalDueDate = newDueTime ? `${todayStr} ${newDueTime}` : `${todayStr}`;
 
     addTask({
-      title: newTitle,
+      title: newTitle.trim(),
       dueDate: finalDueDate,
       tag: selectedTag,
       notebookId: selectedNotebookId || undefined,
@@ -94,9 +96,9 @@ export const TodayTab: React.FC = () => {
     })),
   ];
 
+  // Lọc task của Hôm nay: Bao gồm task có dueDate trùng ngày hôm nay HOẶC task không gán ngày
   const todayTasks = tasks.filter((task) => {
-    if (!task.dueDate) return true;
-    return task.dueDate.includes(todayStr);
+    return isTaskForDate(task.dueDate, todayStr);
   });
 
   const filteredTasks = todayTasks.filter((task) => {

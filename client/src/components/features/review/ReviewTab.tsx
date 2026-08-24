@@ -13,6 +13,7 @@ import {
   X,
   Sparkles,
 } from "lucide-react";
+import { getLocalTodayStr } from "../../../utils/date";
 
 // ==========================================
 // COMPONENT: ReviewTab (Tổng Kết & Thói Quen - Nâng Cấp Icon Hiện Đại)
@@ -58,8 +59,8 @@ export const ReviewTab: React.FC = () => {
     for (let i = 0; i < 7; i++) {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
-      const dateStr = d.toISOString().split("T")[0];
-      const isToday = now.toISOString().split("T")[0] === dateStr;
+      const dateStr = getLocalTodayStr(d);
+      const isToday = getLocalTodayStr(now) === dateStr;
 
       days.push({
         label: DAY_LABELS[i],
@@ -72,7 +73,7 @@ export const ReviewTab: React.FC = () => {
   };
 
   const weekDays = getCurrentWeekDates();
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = getLocalTodayStr();
   const todayMood = dailyMoods[todayStr];
 
   const handleAddHabit = (e: React.FormEvent) => {

@@ -26,6 +26,8 @@ import {
 const DAY_NAMES = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"];
 const SHORT_DAY_NAMES = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
+import { getLocalTodayStr } from "../../../utils/date";
+
 export const PlannerTab: React.FC = () => {
   const {
     tasks,
@@ -42,7 +44,7 @@ export const PlannerTab: React.FC = () => {
   } = useAppStore();
 
   const now = new Date();
-  const todayStr = now.toISOString().split("T")[0];
+  const todayStr = getLocalTodayStr(now);
 
   const [viewMode, setViewMode] = useState<"month" | "week">("month");
   const [isCalendarCollapsed, setIsCalendarCollapsed] = useState<boolean>(false);
@@ -73,7 +75,7 @@ export const PlannerTab: React.FC = () => {
     for (let i = 0; i < 7; i++) {
       const d = new Date(baseMonday);
       d.setDate(baseMonday.getDate() + i);
-      const dateStr = d.toISOString().split("T")[0];
+      const dateStr = getLocalTodayStr(d);
       const dayNum = d.getDate();
       const monthNum = d.getMonth() + 1;
       const formattedDate = `${String(dayNum).padStart(2, "0")}/${String(monthNum).padStart(2, "0")}`;
