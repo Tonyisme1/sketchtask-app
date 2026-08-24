@@ -469,6 +469,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.setItem(`${STORAGE_KEY}_reflection`, weeklyReflection);
   }, [weeklyReflection]);
 
+  // Ref lưu dữ liệu mới nhất để push/pull an toàn mà không làm re-trigger hooks
+  const appDataRef = useRef({
+    tasks,
+    notebooks,
+    stickyNotes,
+    habits,
+    dailyMoods,
+    weeklyReflection,
+    tags,
+    isSignedIn: user.isSignedIn,
+  });
+
+  useEffect(() => {
+    appDataRef.current = {
+      tasks,
+      notebooks,
+      stickyNotes,
+      habits,
+      dailyMoods,
+      weeklyReflection,
+      tags,
+      isSignedIn: user.isSignedIn,
+    };
+  }, [
+    tasks,
+    notebooks,
+    stickyNotes,
+    habits,
+    dailyMoods,
+    weeklyReflection,
+    tags,
+    user.isSignedIn,
+  ]);
+
   // Online / Offline Detection
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -490,16 +524,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const pushDataToServer = useCallback(
     async (overrideData?: any) => {
       const token = authStorage.getToken();
-      if (!user.isSignedIn || !token || !isOnline) return;
+      if (!appDataRef.current.isSignedIn || !token) return;
 
+      const current = appDataRef.current;
       const payload = overrideData || {
-        tasks,
-        notebooks,
-        stickyNotes,
-        habits,
-        dailyMoods,
-        weeklyReflection,
-        tags,
+        tasks: current.tasks,
+        notebooks: current.notebooks,
+        stickyNotes: current.stickyNotes,
+        habits: current.habits,
+        dailyMoods: current.dailyMoods,
+        weeklyReflection: current.weeklyReflection,
+        tags: current.tags,
       };
 
       setSyncStatus("syncing");
@@ -520,17 +555,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setSyncStatus("error");
       }
     },
-    [
-      user.isSignedIn,
-      isOnline,
-      tasks,
-      notebooks,
-      stickyNotes,
-      habits,
-      dailyMoods,
-      weeklyReflection,
-      tags,
-    ]
+    []
   );
 
   // Auto Debounced Sync khi có thay đổi dữ liệu
@@ -624,7 +649,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     return Boolean(result);
   };
 
-  // --- XỬ LÝ KHỞI TẠO VÀ WEBSOCKET REALTIME ---
+  // --- XỬ LÝ KHỞI TẠO VÀ WEBSOCKET REALTIME (CHỈ CHẠY 1 LẦN KHI MOUNT) ---
   useEffect(() => {
     const token = authStorage.getToken();
     if (token) {
@@ -683,7 +708,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       unsubscribeSync();
       syncSocket.disconnect();
     };
-  }, [pullDataFromServer]);
+  }, []);
 
   // --- AUTH METHODS THỰC TẾ ---
   const registerWithCredentials = async (
