@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/app.ts",
-    "build": "prisma db push --skip-generate && tsc",
+    "build": "node node_modules/prisma/build/index.js db push --skip-generate && tsc",
     "start": "node dist/app.js",
-    "prisma:generate": "prisma generate",
-    "prisma:push": "prisma db push --skip-generate"
+    "prisma:generate": "node node_modules/prisma/build/index.js generate",
+    "prisma:push": "node node_modules/prisma/build/index.js db push --skip-generate"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",
