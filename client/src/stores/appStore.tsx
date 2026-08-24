@@ -304,8 +304,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   // --- Profile state ---
   const [user, setUser] = useState<UserProfile>(() => {
     try {
+      const savedToken = authStorage.getToken();
       const saved = localStorage.getItem(`${STORAGE_KEY}_user`);
-      return saved ? JSON.parse(saved) : INITIAL_USER;
+      if (saved && savedToken) {
+        return JSON.parse(saved);
+      }
+      return INITIAL_USER;
     } catch {
       return INITIAL_USER;
     }
@@ -485,7 +489,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   // --- HÀM ĐỒNG BỘ ĐẨY DỮ LIỆU LÊN SERVER ---
   const pushDataToServer = useCallback(
     async (overrideData?: any) => {
-      if (!user.isSignedIn || !isOnline) return;
+      const token = authStorage.getToken();
+      if (!user.isSignedIn || !token || !isOnline) return;
 
       const payload = overrideData || {
         tasks,

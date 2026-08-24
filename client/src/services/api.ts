@@ -1,25 +1,22 @@
 // ==========================================
-// CLIENT API SERVICE (Hỗ trợ Cloud Production & Local Dev)
+// CLIENT API SERVICE (Hỗ trợ Vite Proxy, Localhost & Cloud Deployment)
 // ==========================================
 
 const getApiBaseUrl = () => {
-  // 1. Ưu tiên biến môi trường khi deploy lên Internet (Vercel / Cloud)
+  // 1. Ưu tiên biến môi trường khi deploy lên Cloud (Vercel / Production)
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL.replace(/\/$/, "");
   }
 
-  // 2. Chế độ Localhost / Wi-Fi Dev
-  if (typeof window !== "undefined") {
-    const hostname = window.location.hostname || "localhost";
-    return `http://${hostname}:5000/api/v1`;
-  }
-  return "http://localhost:5000/api/v1";
+  // 2. Chế độ Dev: Dùng relative path qua Vite Proxy (Cổng 5173 chuyển tiếp sang 5000)
+  // Giúp điện thoại qua Wi-Fi kết nối mượt mà 100% không bị tường lửa Windows chặn cổng 5000
+  return "/api/v1";
 };
 
 export const getWsUrl = (token?: string) => {
   const tokenQuery = token ? `?token=${encodeURIComponent(token)}` : "";
 
-  // 1. Nếu có VITE_WS_URL hoặc từ VITE_API_URL
+  // 1. Biến môi trường Cloud
   if (import.meta.env.VITE_WS_URL) {
     return `${import.meta.env.VITE_WS_URL.replace(/\/$/, "")}/ws${tokenQuery}`;
   }
@@ -33,12 +30,13 @@ export const getWsUrl = (token?: string) => {
     return `${wsBase}/ws${tokenQuery}`;
   }
 
-  // 2. Chế độ Localhost / Wi-Fi Dev
+  // 2. Chế độ Dev: Tự động lấy ws:// theo host hiện tại của trình duyệt (cổng 5173 qua Vite Proxy)
   if (typeof window !== "undefined") {
-    const hostname = window.location.hostname || "localhost";
-    return `ws://${hostname}:5000/ws${tokenQuery}`;
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const host = window.location.host; // e.g. 192.168.2.7:5173 hoặc localhost:5173
+    return `${protocol}//${host}/ws${tokenQuery}`;
   }
-  return `ws://localhost:5000/ws${tokenQuery}`;
+  return `ws://localhost:5173/ws${tokenQuery}`;
 };
 
 const TOKEN_KEY = "sketchtask_jwt_token";
@@ -70,6 +68,14 @@ async function request<T>(
       ...options,
       headers,
     });
+
+    if (res.status === 401) {
+      authStorage.removeToken();
+      return {
+        success: false,
+        message: "Phiên đăng nhập đã hết hạn hoặc chưa đăng nhập.",
+      };
+    }
 
     const json = await res.json();
     return json;
