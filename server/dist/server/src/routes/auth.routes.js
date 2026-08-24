@@ -1,0 +1,10 @@
+import { Router } from "express";
+import { AuthController } from "../controllers/auth.controller.js";
+import { authenticate } from "../middlewares/authenticate.js";
+const authRoutes = Router();
+authRoutes.post("/register", AuthController.register);
+authRoutes.post("/login", AuthController.login);
+authRoutes.post("/google", AuthController.googleAuth);
+authRoutes.get("/me", authenticate, AuthController.getMe);
+authRoutes.patch("/profile", authenticate, AuthController.updateProfile);
+export default authRoutes;
