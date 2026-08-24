@@ -9,6 +9,7 @@ import React, {
 import { TaskDto, NotebookDto, HabitDto, TaskStatus } from "../types";
 import { api, authStorage } from "../services/api";
 import { syncSocket } from "../services/syncSocket";
+import { smartMergeAppData } from "../utils/syncMerge";
 
 // ==========================================
 // STORE: AppStore (Offline-First + Realtime WebSocket Sync Engine)
@@ -585,7 +586,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     [pushDataToServer]
   );
 
-  // --- HÀM KÉO DỮ LIỆU TỪ SERVER VỀ CLIENT ---
+  // --- HÀM KÉO VÀ HỢP NHẤT DỮ LIỆU TỪ SERVER VỀ CLIENT (SMART MERGE) ---
   const pullDataFromServer = useCallback(async (): Promise<boolean> => {
     if (!authStorage.getToken()) return false;
 
@@ -594,27 +595,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       const res = await api.sync.pull();
       if (res.success && res.data) {
         const serverData = res.data;
-        const hasServerData =
-          serverData.tasks?.length > 0 ||
-          serverData.notebooks?.length > 0 ||
-          serverData.habits?.length > 0 ||
-          serverData.stickyNotes?.length > 0;
-
         isApplyingRemoteSync.current = true;
 
-        if (hasServerData) {
-          // Server có dữ liệu -> Áp dụng dữ liệu từ server
-          setTasks(serverData.tasks || []);
-          setNotebooks(serverData.notebooks || []);
-          setStickyNotes(serverData.stickyNotes || []);
-          setHabits(serverData.habits || []);
-          setDailyMoods(serverData.dailyMoods || {});
-          setWeeklyReflection(serverData.weeklyReflection || "");
-          if (serverData.tags?.length > 0) setTags(serverData.tags);
-        } else {
-          // Server trống -> Tự động đẩy dữ liệu local hiện tại lên server
-          pushDataToServer();
-        }
+        // Hợp nhất thông minh dữ liệu Local đang có với dữ liệu trên Server
+        const currentLocal = appDataRef.current;
+        const merged = smartMergeAppData(
+          {
+            tasks: currentLocal.tasks,
+            notebooks: currentLocal.notebooks,
+            stickyNotes: currentLocal.stickyNotes,
+            habits: currentLocal.habits,
+            dailyMoods: currentLocal.dailyMoods,
+            weeklyReflection: currentLocal.weeklyReflection,
+            tags: currentLocal.tags,
+          },
+          serverData
+        );
+
+        setTasks(merged.tasks);
+        setNotebooks(merged.notebooks);
+        setStickyNotes(merged.stickyNotes);
+        setHabits(merged.habits);
+        setDailyMoods(merged.dailyMoods);
+        setWeeklyReflection(merged.weeklyReflection);
+        setTags(merged.tags);
+
+        // Đẩy bản hợp nhất lên server để hoàn thiện đồng bộ 2 chiều
+        await pushDataToServer(merged);
 
         setTimeout(() => {
           isApplyingRemoteSync.current = false;
