@@ -5,10 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/app.ts",
-    "build": "tsc",
+    "build": "prisma db push --skip-generate && tsc",
     "start": "node dist/app.js",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:push": "prisma db push --skip-generate"
   },
   "dependencies": {
     "@prisma/client": "^5.19.1",
@@ -17,6 +17,7 @@
     "dotenv": "^16.6.1",
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.3",
+    "prisma": "^5.19.1",
     "ws": "^8.21.3"
   },
   "devDependencies": {
@@ -26,7 +27,6 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.16.5",
     "@types/ws": "^8.18.1",
-    "prisma": "^5.19.1",
     "tsx": "^4.19.0",
     "typescript": "^5.5.4"
   }
