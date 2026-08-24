@@ -1,0 +1,114 @@
+// Prisma Schema cho My_Task_App (SQLite Offline-First & Realtime Sync)
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                String             @id @default(uuid())
+  email             String             @unique
+  passwordHash      String?
+  name              String
+  avatar            String?            @default("lucide:User")
+  avatarBg          String?            @default("#BBF7D0")
+  googleId          String?            @unique
+  tasks             Task[]
+  notebooks         Notebook[]
+  stickyNotes       StickyNote[]
+  habits            Habit[]
+  dailyMoods        DailyMood[]
+  weeklyReflections WeeklyReflection[]
+  tags              Tag[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  completed   Boolean   @default(false)
+  dueDate     String?
+  tag         String?
+  priority    String?   @default("medium")
+  status      String    @default("todo")
+  notebookId  String?
+  notebook    Notebook? @relation(fields: [notebookId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Notebook {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  color       String   @default("yellow")
+  icon        String?  @default("lucide:BookOpen")
+  tasks       Task[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model StickyNote {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  color     String   @default("yellow")
+  tilt      String   @default("none")
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Habit {
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String
+  frequency         String   @default("daily")
+  targetDaysPerWeek Int?     @default(7)
+  completedDates    String   @default("[]") // JSON string list of YYYY-MM-DD
+  streak            Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model DailyMood {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dateStr   String // YYYY-MM-DD
+  moodEmoji String // e.g. "lucide:Smile"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, dateStr])
+}
+
+model WeeklyReflection {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tag {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, name])
+}
