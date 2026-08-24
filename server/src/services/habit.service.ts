@@ -1,4 +1,4 @@
-import { HabitDto, CreateHabitRequest } from "../../../api-contract/habits.contract.js";
+import { HabitDto, CreateHabitRequest } from "../types/index.js";
 
 let mockHabits: HabitDto[] = [
   {

@@ -1,4 +1,4 @@
-import { TaskDto, CreateTaskRequest, UpdateTaskRequest } from "../../../api-contract/tasks.contract.js";
+import { TaskDto, CreateTaskRequest, UpdateTaskRequest } from "../types/index.js";
 
 // In-memory mock service sẵn sàng chuyển sang Prisma
 let mockTasks: TaskDto[] = [

@@ -1,4 +1,8 @@
-import { NotebookDto, CreateNotebookRequest, UpdateNotebookRequest } from "../../../api-contract/notebooks.contract.js";
+import {
+  NotebookDto,
+  CreateNotebookRequest,
+  UpdateNotebookRequest,
+} from "../types/index.js";
 
 let mockNotebooks: NotebookDto[] = [
   {
