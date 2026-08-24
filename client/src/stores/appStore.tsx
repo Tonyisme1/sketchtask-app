@@ -6,7 +6,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { TaskDto, NotebookDto, HabitDto } from "../types";
+import { TaskDto, NotebookDto, HabitDto, TaskStatus } from "../types";
 import { api, authStorage } from "../services/api";
 import { syncSocket } from "../services/syncSocket";
 
@@ -558,35 +558,32 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     []
   );
 
-  // Auto Debounced Sync khi có thay đổi dữ liệu
-  useEffect(() => {
-    if (isApplyingRemoteSync.current || !user.isSignedIn || !isOnline) {
-      return;
-    }
+  // Kích hoạt Debounced Sync chỉ khi người dùng có thao tác cục bộ
+  const triggerDebouncedPush = useCallback(
+    (partialData?: any) => {
+      const token = authStorage.getToken();
+      if (!appDataRef.current.isSignedIn || !token) return;
 
-    if (syncDebounceTimer.current) {
-      clearTimeout(syncDebounceTimer.current);
-    }
+      if (syncDebounceTimer.current) {
+        clearTimeout(syncDebounceTimer.current);
+      }
 
-    syncDebounceTimer.current = setTimeout(() => {
-      pushDataToServer();
-    }, 1200);
-
-    return () => {
-      if (syncDebounceTimer.current) clearTimeout(syncDebounceTimer.current);
-    };
-  }, [
-    tasks,
-    notebooks,
-    stickyNotes,
-    habits,
-    dailyMoods,
-    weeklyReflection,
-    tags,
-    user.isSignedIn,
-    isOnline,
-    pushDataToServer,
-  ]);
+      syncDebounceTimer.current = setTimeout(() => {
+        const current = appDataRef.current;
+        const fullPayload = {
+          tasks: partialData?.tasks ?? current.tasks,
+          notebooks: partialData?.notebooks ?? current.notebooks,
+          stickyNotes: partialData?.stickyNotes ?? current.stickyNotes,
+          habits: partialData?.habits ?? current.habits,
+          dailyMoods: partialData?.dailyMoods ?? current.dailyMoods,
+          weeklyReflection: partialData?.weeklyReflection ?? current.weeklyReflection,
+          tags: partialData?.tags ?? current.tags,
+        };
+        pushDataToServer(fullPayload);
+      }, 500);
+    },
+    [pushDataToServer]
+  );
 
   // --- HÀM KÉO DỮ LIỆU TỪ SERVER VỀ CLIENT ---
   const pullDataFromServer = useCallback(async (): Promise<boolean> => {
@@ -848,7 +845,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // --- CÁC HÀM CRUD DATA (OFFLINE-FIRST) ---
+  // --- CÁC HÀM CRUD DATA (OFFLINE-FIRST + AUTO SYNC TRỰC TIẾP KHI USER THAO TÁC) ---
   const addTask = (taskData: {
     title: string;
     dueDate?: string;
@@ -868,11 +865,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       updatedAt: new Date().toISOString(),
     };
 
-    setTasks((prev) => [newTask, ...prev]);
+    setTasks((prev) => {
+      const next = [newTask, ...prev];
+      triggerDebouncedPush({ tasks: next });
+      return next;
+    });
 
     if (taskData.notebookId) {
-      setNotebooks((prev) =>
-        prev.map((nb) =>
+      setNotebooks((prev) => {
+        const next = prev.map((nb) =>
           nb.id === taskData.notebookId
             ? {
                 ...nb,
@@ -880,35 +881,44 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
                 updatedAt: new Date().toISOString(),
               }
             : nb
-        )
-      );
+        );
+        triggerDebouncedPush({ notebooks: next });
+        return next;
+      });
     }
 
     return newTask;
   };
 
   const toggleTask = (id: string) => {
-    setTasks((prev) =>
-      prev.map((t) => {
+    setTasks((prev) => {
+      const next = prev.map((t) => {
         if (t.id !== id) return t;
         const newCompleted = !t.completed;
+        const newStatus: TaskStatus = newCompleted ? "completed" : "todo";
         return {
           ...t,
           completed: newCompleted,
-          status: newCompleted ? "completed" : "todo",
+          status: newStatus,
           updatedAt: new Date().toISOString(),
         };
-      })
-    );
+      });
+      triggerDebouncedPush({ tasks: next });
+      return next;
+    });
   };
 
   const deleteTask = (id: string) => {
     const taskToDelete = tasks.find((t) => t.id === id);
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+    setTasks((prev) => {
+      const next = prev.filter((t) => t.id !== id);
+      triggerDebouncedPush({ tasks: next });
+      return next;
+    });
 
     if (taskToDelete?.notebookId) {
-      setNotebooks((prev) =>
-        prev.map((nb) =>
+      setNotebooks((prev) => {
+        const next = prev.map((nb) =>
           nb.id === taskToDelete.notebookId
             ? {
                 ...nb,
@@ -916,14 +926,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
                 updatedAt: new Date().toISOString(),
               }
             : nb
-        )
-      );
+        );
+        triggerDebouncedPush({ notebooks: next });
+        return next;
+      });
     }
   };
 
   const moveTaskToTomorrow = (id: string) => {
-    setTasks((prev) =>
-      prev.map((t) =>
+    setTasks((prev) => {
+      const next = prev.map((t) =>
         t.id === id
           ? {
               ...t,
@@ -931,13 +943,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
               updatedAt: new Date().toISOString(),
             }
           : t
-      )
-    );
+      );
+      triggerDebouncedPush({ tasks: next });
+      return next;
+    });
   };
 
   const moveTaskToToday = (id: string) => {
-    setTasks((prev) =>
-      prev.map((t) =>
+    setTasks((prev) => {
+      const next = prev.map((t) =>
         t.id === id
           ? {
               ...t,
@@ -945,19 +959,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
               updatedAt: new Date().toISOString(),
             }
           : t
-      )
-    );
+      );
+      triggerDebouncedPush({ tasks: next });
+      return next;
+    });
   };
 
   const addTag = (tag: string) => {
     const trimmed = tag.trim();
     if (trimmed && !tags.includes(trimmed)) {
-      setTags((prev) => [...prev, trimmed]);
+      setTags((prev) => {
+        const next = [...prev, trimmed];
+        triggerDebouncedPush({ tags: next });
+        return next;
+      });
     }
   };
 
   const deleteTag = (tag: string) => {
-    setTags((prev) => prev.filter((t) => t !== tag));
+    setTags((prev) => {
+      const next = prev.filter((t) => t !== tag);
+      triggerDebouncedPush({ tags: next });
+      return next;
+    });
   };
 
   const addNotebook = (data: {
@@ -976,25 +1000,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    setNotebooks((prev) => [...prev, newNb]);
+    setNotebooks((prev) => {
+      const next = [...prev, newNb];
+      triggerDebouncedPush({ notebooks: next });
+      return next;
+    });
     return newNb;
   };
 
   const updateNotebook = (id: string, updates: Partial<NotebookDto>) => {
-    setNotebooks((prev) =>
-      prev.map((nb) =>
+    setNotebooks((prev) => {
+      const next = prev.map((nb) =>
         nb.id === id
           ? { ...nb, ...updates, updatedAt: new Date().toISOString() }
           : nb
-      )
-    );
+      );
+      triggerDebouncedPush({ notebooks: next });
+      return next;
+    });
   };
 
   const deleteNotebook = (id: string) => {
-    setNotebooks((prev) => prev.filter((nb) => nb.id !== id));
-    setTasks((prev) =>
-      prev.map((t) => (t.notebookId === id ? { ...t, notebookId: undefined } : t))
-    );
+    setNotebooks((prev) => {
+      const next = prev.filter((nb) => nb.id !== id);
+      triggerDebouncedPush({ notebooks: next });
+      return next;
+    });
+    setTasks((prev) => {
+      const next = prev.map((t) =>
+        t.notebookId === id ? { ...t, notebookId: undefined } : t
+      );
+      triggerDebouncedPush({ tasks: next });
+      return next;
+    });
   };
 
   const addStickyNote = (
@@ -1012,17 +1050,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       isPinned: false,
       createdAt: new Date().toISOString(),
     };
-    setStickyNotes((prev) => [newNote, ...prev]);
+    setStickyNotes((prev) => {
+      const next = [newNote, ...prev];
+      triggerDebouncedPush({ stickyNotes: next });
+      return next;
+    });
   };
 
   const togglePinStickyNote = (id: string) => {
-    setStickyNotes((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isPinned: !n.isPinned } : n))
-    );
+    setStickyNotes((prev) => {
+      const next = prev.map((n) =>
+        n.id === id ? { ...n, isPinned: !n.isPinned } : n
+      );
+      triggerDebouncedPush({ stickyNotes: next });
+      return next;
+    });
   };
 
   const deleteStickyNote = (id: string) => {
-    setStickyNotes((prev) => prev.filter((n) => n.id !== id));
+    setStickyNotes((prev) => {
+      const next = prev.filter((n) => n.id !== id);
+      triggerDebouncedPush({ stickyNotes: next });
+      return next;
+    });
   };
 
   const convertNoteToTask = (id: string) => {
@@ -1060,12 +1110,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    setHabits((prev) => [...prev, newHabit]);
+    setHabits((prev) => {
+      const next = [...prev, newHabit];
+      triggerDebouncedPush({ habits: next });
+      return next;
+    });
   };
 
   const toggleHabitDay = (habitId: string, dateStr: string) => {
-    setHabits((prev) =>
-      prev.map((h) => {
+    setHabits((prev) => {
+      const next = prev.map((h) => {
         if (h.id !== habitId) return h;
         const exists = h.completedDates.includes(dateStr);
         const newDates = exists
@@ -1078,19 +1132,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           streak: newDates.length,
           updatedAt: new Date().toISOString(),
         };
-      })
-    );
+      });
+      triggerDebouncedPush({ habits: next });
+      return next;
+    });
   };
 
   const deleteHabit = (id: string) => {
-    setHabits((prev) => prev.filter((h) => h.id !== id));
+    setHabits((prev) => {
+      const next = prev.filter((h) => h.id !== id);
+      triggerDebouncedPush({ habits: next });
+      return next;
+    });
+  };
+  const setDailyMood = (dateStr: string, moodEmoji: string) => {
+    setDailyMoods((prev) => {
+      const next = {
+        ...prev,
+        [dateStr]: moodEmoji,
+      };
+      triggerDebouncedPush({ dailyMoods: next });
+      return next;
+    });
   };
 
-  const setDailyMood = (dateStr: string, moodEmoji: string) => {
-    setDailyMoods((prev) => ({
-      ...prev,
-      [dateStr]: moodEmoji,
-    }));
+  const handleSetWeeklyReflection = (text: string) => {
+    setWeeklyReflection(text);
+    triggerDebouncedPush({ weeklyReflection: text });
   };
 
   return (
@@ -1143,7 +1211,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         dailyMoods,
         setDailyMood,
         weeklyReflection,
-        setWeeklyReflection,
+        setWeeklyReflection: handleSetWeeklyReflection,
       }}
     >
       {children}
