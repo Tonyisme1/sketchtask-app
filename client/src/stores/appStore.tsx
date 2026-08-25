@@ -508,6 +508,44 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [paperStyle]);
 
+  // --- PIN Lock Security ---
+  const [pinCode, setPinCodeState] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(`${STORAGE_KEY}_pin_code`);
+    } catch {
+      return null;
+    }
+  });
+
+  const [isPinLocked, setIsPinLocked] = useState<boolean>(() => {
+    try {
+      const savedPin = localStorage.getItem(`${STORAGE_KEY}_pin_code`);
+      return Boolean(savedPin);
+    } catch {
+      return false;
+    }
+  });
+
+  const setPinCode = (newPin: string | null) => {
+    setPinCodeState(newPin);
+    if (newPin) {
+      localStorage.setItem(`${STORAGE_KEY}_pin_code`, newPin);
+    } else {
+      localStorage.removeItem(`${STORAGE_KEY}_pin_code`);
+      setIsPinLocked(false);
+    }
+  };
+
+  const unlockWithPin = () => {
+    setIsPinLocked(false);
+  };
+
+  const lockApp = () => {
+    if (pinCode) {
+      setIsPinLocked(true);
+    }
+  };
+
   const triggerHaptic = () => {};
 
   // --- Main Data States (bắt đầu trống nếu chưa có data) ---
