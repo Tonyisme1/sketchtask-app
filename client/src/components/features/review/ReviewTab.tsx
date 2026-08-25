@@ -166,43 +166,50 @@ export const ReviewTab: React.FC = () => {
 
             {/* 4 Thẻ Chỉ Số Nhanh */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              <div className="p-2 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626]">
-                <span className="text-[10px] text-[#78716C] flex items-center gap-1">
-                  <Target size={11} className="text-emerald-700" />
-                  <span>Tỷ lệ hoàn thành</span>
+              <div className="p-2 sm:p-2.5 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex flex-col justify-between min-h-[60px]">
+                <span className="text-[10px] text-[#78716C] font-medium flex items-center gap-1">
+                  <Target size={11} className="text-emerald-700 shrink-0" />
+                  <span>Tỷ lệ xong</span>
                 </span>
                 <p className="font-mono font-bold text-base text-[#1C1917] mt-0.5">
                   {completionRate}%
                 </p>
               </div>
 
-              <div className="p-2 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626]">
-                <span className="text-[10px] text-[#78716C] flex items-center gap-1">
-                  <Zap size={11} className="text-amber-600" />
-                  <span>Ngày tốt nhất</span>
+              <div className="p-2 sm:p-2.5 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex flex-col justify-between min-h-[60px]">
+                <span className="text-[10px] text-[#78716C] font-medium flex items-center gap-1">
+                  <Zap size={11} className="text-amber-600 shrink-0" />
+                  <span>Ngày cao nhất</span>
                 </span>
-                <p className="font-mono font-bold text-sm text-[#1C1917] mt-0.5 truncate">
-                  {bestDayStat && bestDayStat.completedCount > 0 ? `${bestDayStat.label} (${bestDayStat.completedCount} việc)` : "Chưa có"}
+                <p className="font-mono font-bold text-xs sm:text-sm text-[#1C1917] mt-0.5 leading-tight">
+                  {bestDayStat && bestDayStat.completedCount > 0 ? (
+                    <span>
+                      <span className="text-sm font-black">{bestDayStat.label}</span>{" "}
+                      <span className="text-[10.5px] text-[#78716C]">({bestDayStat.completedCount} việc)</span>
+                    </span>
+                  ) : (
+                    <span className="text-[11px] text-[#78716C]">Chưa có</span>
+                  )}
                 </p>
               </div>
 
-              <div className="p-2 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626]">
-                <span className="text-[10px] text-[#78716C] flex items-center gap-1">
-                  <Flame size={11} className="text-orange-600" />
-                  <span>Chuỗi thói quen</span>
+              <div className="p-2 sm:p-2.5 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex flex-col justify-between min-h-[60px]">
+                <span className="text-[10px] text-[#78716C] font-medium flex items-center gap-1">
+                  <Flame size={11} className="text-orange-600 shrink-0" />
+                  <span>Thói quen</span>
                 </span>
                 <p className="font-mono font-bold text-base text-[#1C1917] mt-0.5">
-                  {totalHabitChecks} lượt
+                  {totalHabitChecks} <span className="text-[10px] text-[#78716C] font-normal">lượt</span>
                 </p>
               </div>
 
-              <div className="p-2 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626]">
-                <span className="text-[10px] text-[#78716C] flex items-center gap-1">
-                  <TrendingUp size={11} className="text-indigo-700" />
+              <div className="p-2 sm:p-2.5 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex flex-col justify-between min-h-[60px]">
+                <span className="text-[10px] text-[#78716C] font-medium flex items-center gap-1">
+                  <TrendingUp size={11} className="text-indigo-700 shrink-0" />
                   <span>Đánh giá</span>
                 </span>
-                <p className="font-bold text-xs text-[#1C1917] mt-1 truncate">
-                  {productivityScore >= 80 ? "Xuất sắc! 🔥" : productivityScore >= 50 ? "Khá tốt! ✨" : "Cố lên nhé! 🌱"}
+                <p className="font-bold text-xs text-[#1C1917] mt-0.5 leading-tight">
+                  {productivityScore >= 80 ? "Xuất sắc! 🔥" : productivityScore >= 50 ? "Khá tốt! ✨" : "Cố lên! 🌱"}
                 </p>
               </div>
             </div>
