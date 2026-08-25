@@ -6,7 +6,10 @@ import { TaskDto } from "../types";
 // ==========================================
 
 export const isNativePlatform = (): boolean => {
-  return typeof (window as any).Capacitor !== "undefined" && (window as any).Capacitor.isNativePlatform();
+  return (
+    typeof (window as any).Capacitor !== "undefined" &&
+    (window as any).Capacitor.isNativePlatform()
+  );
 };
 
 /**
@@ -75,12 +78,15 @@ export const notificationService = {
               id: Date.now() % 100000,
               schedule: { at: new Date(Date.now() + 500) },
               sound: "beep.wav",
-              smallIcon: "ic_launcher_foreground",
-              iconColor: "#FFE066",
+              smallIcon: "ic_stat_sketchtask",
+              iconColor: "#FEF08A",
             },
           ],
         });
-      } else if ("Notification" in window && Notification.permission === "granted") {
+      } else if (
+        "Notification" in window &&
+        Notification.permission === "granted"
+      ) {
         new Notification(title, {
           body,
           icon: "/pwa-192x192.svg",
@@ -128,11 +134,13 @@ export const notificationService = {
             {
               id: notifId,
               title: `⏰ Nhắc việc: ${task.title}`,
-              body: task.description || "Đến giờ thực hiện công việc rồi, hãy kiểm tra danh sách của bạn nhé!",
+              body:
+                task.description ||
+                "Đến giờ thực hiện công việc rồi, hãy kiểm tra danh sách của bạn nhé!",
               schedule: { at: targetDate },
               sound: "beep.wav",
-              smallIcon: "ic_launcher_foreground",
-              iconColor: "#FFE066",
+              smallIcon: "ic_stat_sketchtask",
+              iconColor: "#FEF08A",
               actionTypeId: "TASK_REMINDER",
               extra: { taskId: task.id },
             },
@@ -143,9 +151,14 @@ export const notificationService = {
         const msUntil = targetDate.getTime() - now.getTime();
         if (msUntil > 0 && msUntil < 86400000) {
           setTimeout(() => {
-            if ("Notification" in window && Notification.permission === "granted") {
+            if (
+              "Notification" in window &&
+              Notification.permission === "granted"
+            ) {
               new Notification(`⏰ Nhắc việc: ${task.title}`, {
-                body: task.description || "Đến giờ thực hiện công việc của bạn rồi!",
+                body:
+                  task.description ||
+                  "Đến giờ thực hiện công việc của bạn rồi!",
                 icon: "/pwa-192x192.svg",
               });
             }
@@ -180,7 +193,9 @@ export const notificationService = {
       try {
         const pending = await LocalNotifications.getPending();
         if (pending.notifications.length > 0) {
-          await LocalNotifications.cancel({ notifications: pending.notifications });
+          await LocalNotifications.cancel({
+            notifications: pending.notifications,
+          });
         }
       } catch (e) {
         console.warn("Lỗi hủy toàn bộ thông báo:", e);
@@ -202,4 +217,3 @@ export const notificationService = {
     }
   },
 };
-

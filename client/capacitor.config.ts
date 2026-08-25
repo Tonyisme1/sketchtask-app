@@ -9,6 +9,14 @@ const config: CapacitorConfig = {
   },
   android: {
     backgroundColor: '#FBF9F4',
+    allowMixedContent: true,
+  },
+  plugins: {
+    LocalNotifications: {
+      smallIcon: 'ic_stat_sketchtask',
+      iconColor: '#FEF08A',
+      sound: 'beep.wav',
+    },
   },
 };
 
