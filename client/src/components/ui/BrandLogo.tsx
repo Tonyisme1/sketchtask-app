@@ -37,17 +37,20 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           viewBox="0 0 24 24"
           fill="none"
           stroke="#1C1917"
-          strokeWidth="2"
+          strokeWidth="1.8"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="w-[68%] h-[68%]"
+          className="w-[72%] h-[72%]"
         >
-          {/* Cuốn Sổ Tay Gáy Lò Xo */}
-          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
-          <path d="M6 2v20" />
-          {/* Ngòi Bút Vẽ & Dấu Tick */}
-          <path d="m11 11 2 2 4-4" strokeWidth="2.5" />
-          <line x1="10" y1="17" x2="16" y2="17" strokeWidth="2" />
+          {/* Cuốn Sổ Tay Bìa Gập */}
+          <rect x="3" y="3" width="18" height="18" rx="2" fill="#FEF08A" stroke="#1C1917" strokeWidth="1.8" />
+          {/* Dải Gáy Sổ & Khoen Lò Xo */}
+          <line x1="7.5" y1="3" x2="7.5" y2="21" stroke="#1C1917" strokeWidth="1.6" />
+          <circle cx="5.2" cy="7" r="0.8" fill="#1C1917" />
+          <circle cx="5.2" cy="12" r="0.8" fill="#1C1917" />
+          <circle cx="5.2" cy="17" r="0.8" fill="#1C1917" />
+          {/* Dấu Tick Hoàn Thành Vẽ Tay */}
+          <path d="M10.5 12 L13 14.5 L18 8" stroke="#1C1917" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
 
