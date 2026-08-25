@@ -12,6 +12,8 @@ import {
   BellOff,
 } from "lucide-react";
 
+import { notificationService } from "../../services/notificationService";
+
 // ==========================================
 // COMPONENT: NotificationBell (Thông Báo Thực Từ Dữ Liệu Ứng Dụng)
 // ==========================================
@@ -38,7 +40,26 @@ export const NotificationBell: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const [hasSystemPerm, setHasSystemPerm] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Kiểm tra quyền thông báo khi mở popover
+  useEffect(() => {
+    notificationService.checkPermission().then((granted) => {
+      setHasSystemPerm(granted);
+    });
+  }, [isOpen]);
+
+  const handleRequestSystemPermission = async () => {
+    const granted = await notificationService.requestPermission();
+    setHasSystemPerm(granted);
+    if (granted) {
+      notificationService.sendInstant(
+        "🎉 SketchTask",
+        "Đã bật thông báo thành công! Bạn sẽ nhận được nhắc nhở khi đến giờ hẹn."
+      );
+    }
+  };
 
   const todayStr = new Date().toISOString().split("T")[0];
 
@@ -249,7 +270,7 @@ export const NotificationBell: React.FC = () => {
                   type="button"
                   onClick={handleMarkAllAsRead}
                   title="Đánh dấu tất cả đã đọc"
-                  className="text-[10px] text-[#78716C] hover:text-[#1C1917] font-bold px-1.5 py-0.5 bg-white border border-[#D4CEBF] rounded flex items-center gap-1"
+                  className="text-[10px] text-[#78716C] hover:text-[#1C1917] font-bold px-1.5 py-0.5 bg-white border border-[#D4CEBF] rounded flex items-center gap-1 active:translate-x-[0.5px] active:translate-y-[0.5px]"
                 >
                   <CheckCheck size={11} />
                   <span>Đã đọc</span>
@@ -264,6 +285,27 @@ export const NotificationBell: React.FC = () => {
               </button>
             </div>
           </div>
+
+          {/* Banner Bật Thông Báo Ngoài Màn Hình (Nếu chưa cấp quyền) */}
+          {!hasSystemPerm && (
+            <div className="p-2 bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-bold text-[#1C1917] leading-tight">
+                  Nhận nhắc việc ra màn hình khóa
+                </p>
+                <p className="text-[9.5px] text-[#78716C] leading-tight mt-0.5">
+                  Chuông & rung đúng giờ hẹn
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleRequestSystemPermission}
+                className="px-2 py-1 bg-white border border-[#262626] rounded text-[10px] font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none whitespace-nowrap"
+              >
+                Bật ngay
+              </button>
+            </div>
+          )}
 
           {/* Danh Sách Thông Báo */}
           <div className="space-y-1.5 max-h-60 overflow-y-auto no-scrollbar pr-0.5">

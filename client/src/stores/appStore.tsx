@@ -10,6 +10,7 @@ import { TaskDto, NotebookDto, HabitDto, TaskStatus } from "../types";
 import { api, authStorage } from "../services/api";
 import { syncSocket } from "../services/syncSocket";
 import { smartMergeAppData } from "../utils/syncMerge";
+import { notificationService } from "../services/notificationService";
 
 // ==========================================
 // STORE: AppStore (Offline-First + Realtime WebSocket Sync Engine)
@@ -49,10 +50,27 @@ export type SyncStatus = "idle" | "syncing" | "synced" | "offline" | "error";
 export interface AppContextType {
   // User Profile & Auth
   user: UserProfile;
-  login: (name: string, email: string, avatar?: string, avatarBg?: string) => void;
-  loginWithCredentials: (email: string, password?: string) => Promise<{ success: boolean; message?: string }>;
-  registerWithCredentials: (name: string, email: string, password?: string) => Promise<{ success: boolean; message?: string }>;
-  loginWithGoogle: (data: { email: string; name: string; avatar?: string; avatarBg?: string }) => Promise<{ success: boolean; message?: string }>;
+  login: (
+    name: string,
+    email: string,
+    avatar?: string,
+    avatarBg?: string,
+  ) => void;
+  loginWithCredentials: (
+    email: string,
+    password?: string,
+  ) => Promise<{ success: boolean; message?: string }>;
+  registerWithCredentials: (
+    name: string,
+    email: string,
+    password?: string,
+  ) => Promise<{ success: boolean; message?: string }>;
+  loginWithGoogle: (data: {
+    email: string;
+    name: string;
+    avatar?: string;
+    avatarBg?: string;
+  }) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   updateUserProfile: (data: Partial<UserProfile>) => void;
 
@@ -161,7 +179,8 @@ const INITIAL_NOTEBOOKS: NotebookDto[] = [
   {
     id: "nb-1",
     name: "Dự Án Web Task App",
-    description: "Sổ tay thiết kế UI/UX và phát triển kiến trúc Digital Sketchbook với bộ icon Lucide đồng bộ",
+    description:
+      "Sổ tay thiết kế UI/UX và phát triển kiến trúc Digital Sketchbook với bộ icon Lucide đồng bộ",
     color: "#FEF08A" as any,
     icon: "lucide:Rocket",
     taskCount: 5,
@@ -171,7 +190,8 @@ const INITIAL_NOTEBOOKS: NotebookDto[] = [
   {
     id: "nb-2",
     name: "Học Tập & Kiến Trúc Hệ Thống",
-    description: "Ghi chép chuyên sâu về Frontend Architecture, IndexedDB Engine, Service Worker và Delta Sync",
+    description:
+      "Ghi chép chuyên sâu về Frontend Architecture, IndexedDB Engine, Service Worker và Delta Sync",
     color: "#DDD6FE" as any,
     icon: "lucide:Brain",
     taskCount: 3,
@@ -181,7 +201,8 @@ const INITIAL_NOTEBOOKS: NotebookDto[] = [
   {
     id: "nb-3",
     name: "Sức Khỏe & Thể Thao",
-    description: "Kế hoạch dinh dưỡng, chạy bộ hàng ngày, bài tập thể lực và theo dõi giấc ngủ",
+    description:
+      "Kế hoạch dinh dưỡng, chạy bộ hàng ngày, bài tập thể lực và theo dõi giấc ngủ",
     color: "#BBF7D0" as any,
     icon: "lucide:Heart",
     taskCount: 2,
@@ -191,7 +212,8 @@ const INITIAL_NOTEBOOKS: NotebookDto[] = [
   {
     id: "nb-4",
     name: "Tài Chính & Đầu Tư",
-    description: "Theo dõi dòng tiền, phân bổ danh mục tích lũy và quản trị ngân sách cá nhân",
+    description:
+      "Theo dõi dòng tiền, phân bổ danh mục tích lũy và quản trị ngân sách cá nhân",
     color: "#BAE6FD" as any,
     icon: "lucide:TrendingUp",
     taskCount: 2,
@@ -201,7 +223,8 @@ const INITIAL_NOTEBOOKS: NotebookDto[] = [
   {
     id: "nb-5",
     name: "Đọc Sách & Phát Triển Bản Thân",
-    description: "Đúc kết những trang sách hay, rèn luyện tư duy phản biện và thói quen tích cực",
+    description:
+      "Đúc kết những trang sách hay, rèn luyện tư duy phản biện và thói quen tích cực",
     color: "#FECDD3" as any,
     icon: "lucide:BookOpen",
     taskCount: 3,
@@ -213,7 +236,8 @@ const INITIAL_NOTEBOOKS: NotebookDto[] = [
 const INITIAL_TASKS: TaskDto[] = [
   {
     id: "task-1",
-    title: "Nghiên cứu tài liệu Design System và chuẩn bị quy chuẩn viền mực 1.5px chống nhòe",
+    title:
+      "Nghiên cứu tài liệu Design System và chuẩn bị quy chuẩn viền mực 1.5px chống nhòe",
     dueDate: `${todayStr} 08:30`,
     tag: "Học tập" as any,
     completed: true,
@@ -225,7 +249,8 @@ const INITIAL_TASKS: TaskDto[] = [
   },
   {
     id: "task-2",
-    title: "Rà soát và tối ưu hóa hiệu năng render danh sách công việc khi dữ liệu phình to",
+    title:
+      "Rà soát và tối ưu hóa hiệu năng render danh sách công việc khi dữ liệu phình to",
     dueDate: `${todayStr} 10:15`,
     tag: "Dự án Web" as any,
     completed: false,
@@ -237,7 +262,8 @@ const INITIAL_TASKS: TaskDto[] = [
   },
   {
     id: "task-3",
-    title: "Uống đủ 2.5 lít nước khoáng và thực hiện bài tập giãn cơ cổ vai gáy",
+    title:
+      "Uống đủ 2.5 lít nước khoáng và thực hiện bài tập giãn cơ cổ vai gáy",
     dueDate: `${todayStr} 11:30`,
     tag: "Cá nhân" as any,
     completed: false,
@@ -252,7 +278,8 @@ const INITIAL_TASKS: TaskDto[] = [
 const INITIAL_STICKY_NOTES: StickyNoteItem[] = [
   {
     id: "sn-1",
-    content: "Ý tưởng: Thêm hiệu ứng âm thanh lật trang giấy nhẹ nhàng khi chuyển tab",
+    content:
+      "Ý tưởng: Thêm hiệu ứng âm thanh lật trang giấy nhẹ nhàng khi chuyển tab",
     color: "yellow",
     tilt: "left",
     isPinned: true,
@@ -260,7 +287,8 @@ const INITIAL_STICKY_NOTES: StickyNoteItem[] = [
   },
   {
     id: "sn-2",
-    content: "Ghi chú nhanh: Tìm hiểu thêm về IndexedDB Dexie.js để lưu dữ liệu offline lâu dài",
+    content:
+      "Ghi chú nhanh: Tìm hiểu thêm về IndexedDB Dexie.js để lưu dữ liệu offline lâu dài",
     color: "mint",
     tilt: "right",
     isPinned: false,
@@ -322,7 +350,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     return localStorage.getItem(`${STORAGE_KEY}_last_synced`);
   });
   const [isOnline, setIsOnline] = useState<boolean>(
-    typeof navigator !== "undefined" ? navigator.onLine : true
+    typeof navigator !== "undefined" ? navigator.onLine : true,
   );
 
   // --- First visit onboarding ---
@@ -438,7 +466,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     localStorage.setItem(
       `${STORAGE_KEY}_hide_completed`,
-      JSON.stringify(hideCompletedTasks)
+      JSON.stringify(hideCompletedTasks),
     );
   }, [hideCompletedTasks]);
 
@@ -522,42 +550,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   // --- HÀM ĐỒNG BỘ ĐẨY DỮ LIỆU LÊN SERVER ---
-  const pushDataToServer = useCallback(
-    async (overrideData?: any) => {
-      const token = authStorage.getToken();
-      if (!appDataRef.current.isSignedIn || !token) return;
+  const pushDataToServer = useCallback(async (overrideData?: any) => {
+    const token = authStorage.getToken();
+    if (!appDataRef.current.isSignedIn || !token) return;
 
-      const current = appDataRef.current;
-      const payload = overrideData || {
-        tasks: current.tasks,
-        notebooks: current.notebooks,
-        stickyNotes: current.stickyNotes,
-        habits: current.habits,
-        dailyMoods: current.dailyMoods,
-        weeklyReflection: current.weeklyReflection,
-        tags: current.tags,
-      };
+    const current = appDataRef.current;
+    const payload = overrideData || {
+      tasks: current.tasks,
+      notebooks: current.notebooks,
+      stickyNotes: current.stickyNotes,
+      habits: current.habits,
+      dailyMoods: current.dailyMoods,
+      weeklyReflection: current.weeklyReflection,
+      tags: current.tags,
+    };
 
-      setSyncStatus("syncing");
-      try {
-        const res = await api.sync.push(payload);
-        if (res.success) {
-          const nowStr = new Date().toLocaleTimeString("vi-VN", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-          setSyncStatus("synced");
-          setLastSyncedAt(nowStr);
-          localStorage.setItem(`${STORAGE_KEY}_last_synced`, nowStr);
-        } else {
-          setSyncStatus("error");
-        }
-      } catch {
+    setSyncStatus("syncing");
+    try {
+      const res = await api.sync.push(payload);
+      if (res.success) {
+        const nowStr = new Date().toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        setSyncStatus("synced");
+        setLastSyncedAt(nowStr);
+        localStorage.setItem(`${STORAGE_KEY}_last_synced`, nowStr);
+      } else {
         setSyncStatus("error");
       }
-    },
-    []
-  );
+    } catch {
+      setSyncStatus("error");
+    }
+  }, []);
 
   // Kích hoạt Debounced Sync chỉ khi người dùng có thao tác cục bộ
   const triggerDebouncedPush = useCallback(
@@ -577,13 +602,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           stickyNotes: partialData?.stickyNotes ?? current.stickyNotes,
           habits: partialData?.habits ?? current.habits,
           dailyMoods: partialData?.dailyMoods ?? current.dailyMoods,
-          weeklyReflection: partialData?.weeklyReflection ?? current.weeklyReflection,
+          weeklyReflection:
+            partialData?.weeklyReflection ?? current.weeklyReflection,
           tags: partialData?.tags ?? current.tags,
         };
         pushDataToServer(fullPayload);
       }, 500);
     },
-    [pushDataToServer]
+    [pushDataToServer],
   );
 
   // --- HÀM KÉO VÀ HỢP NHẤT DỮ LIỆU TỪ SERVER VỀ CLIENT (SMART MERGE) ---
@@ -609,7 +635,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             weeklyReflection: currentLocal.weeklyReflection,
             tags: currentLocal.tags,
           },
-          serverData
+          serverData,
         );
 
         setTasks(merged.tasks);
@@ -718,7 +744,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const registerWithCredentials = async (
     name: string,
     email: string,
-    password?: string
+    password?: string,
   ) => {
     setSyncStatus("syncing");
     const res = await api.auth.register(name, email, password);
@@ -792,7 +818,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     name: string,
     email: string,
     avatar = "lucide:User",
-    avatarBg = "#BBF7D0"
+    avatarBg = "#BBF7D0",
   ) => {
     loginWithCredentials(email, "123456").catch(() => {
       // Fallback local
@@ -878,6 +904,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       return next;
     });
 
+    // Lên lịch thông báo ngoài màn hình nếu task có ngày giờ hẹn
+    if (newTask.dueDate) {
+      notificationService.scheduleTask(newTask);
+    }
+
     if (taskData.notebookId) {
       setNotebooks((prev) => {
         const next = prev.map((nb) =>
@@ -887,7 +918,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
                 taskCount: (nb.taskCount || 0) + 1,
                 updatedAt: new Date().toISOString(),
               }
-            : nb
+            : nb,
         );
         triggerDebouncedPush({ notebooks: next });
         return next;
@@ -903,12 +934,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         if (t.id !== id) return t;
         const newCompleted = !t.completed;
         const newStatus: TaskStatus = newCompleted ? "completed" : "todo";
-        return {
+        const updatedTask = {
           ...t,
           completed: newCompleted,
           status: newStatus,
           updatedAt: new Date().toISOString(),
         };
+
+        if (newCompleted) {
+          notificationService.cancelTask(id);
+        } else if (updatedTask.dueDate) {
+          notificationService.scheduleTask(updatedTask);
+        }
+
+        return updatedTask;
       });
       triggerDebouncedPush({ tasks: next });
       return next;
@@ -917,6 +956,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const deleteTask = (id: string) => {
     const taskToDelete = tasks.find((t) => t.id === id);
+    notificationService.cancelTask(id);
+
     setTasks((prev) => {
       const next = prev.filter((t) => t.id !== id);
       triggerDebouncedPush({ tasks: next });
@@ -932,7 +973,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
                 taskCount: Math.max(0, (nb.taskCount || 1) - 1),
                 updatedAt: new Date().toISOString(),
               }
-            : nb
+            : nb,
         );
         triggerDebouncedPush({ notebooks: next });
         return next;
@@ -949,7 +990,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
               dueDate: tomorrowStr,
               updatedAt: new Date().toISOString(),
             }
-          : t
+          : t,
       );
       triggerDebouncedPush({ tasks: next });
       return next;
@@ -965,7 +1006,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
               dueDate: todayStr,
               updatedAt: new Date().toISOString(),
             }
-          : t
+          : t,
       );
       triggerDebouncedPush({ tasks: next });
       return next;
@@ -1020,7 +1061,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       const next = prev.map((nb) =>
         nb.id === id
           ? { ...nb, ...updates, updatedAt: new Date().toISOString() }
-          : nb
+          : nb,
       );
       triggerDebouncedPush({ notebooks: next });
       return next;
@@ -1035,7 +1076,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     });
     setTasks((prev) => {
       const next = prev.map((t) =>
-        t.notebookId === id ? { ...t, notebookId: undefined } : t
+        t.notebookId === id ? { ...t, notebookId: undefined } : t,
       );
       triggerDebouncedPush({ tasks: next });
       return next;
@@ -1044,7 +1085,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const addStickyNote = (
     content: string,
-    color: StickyNoteItem["color"] = "yellow"
+    color: StickyNoteItem["color"] = "yellow",
   ) => {
     const tilts: StickyNoteItem["tilt"][] = ["left", "right", "none"];
     const randomTilt = tilts[Math.floor(Math.random() * tilts.length)];
@@ -1067,7 +1108,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const togglePinStickyNote = (id: string) => {
     setStickyNotes((prev) => {
       const next = prev.map((n) =>
-        n.id === id ? { ...n, isPinned: !n.isPinned } : n
+        n.id === id ? { ...n, isPinned: !n.isPinned } : n,
       );
       triggerDebouncedPush({ stickyNotes: next });
       return next;

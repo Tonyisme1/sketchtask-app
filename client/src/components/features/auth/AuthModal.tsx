@@ -432,7 +432,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       setName(e.target.value);
                       if (errorMessage) setErrorMessage("");
                     }}
-                    autoFocus
                   />
                 </div>
               )}
@@ -449,7 +448,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     setEmail(e.target.value);
                     if (errorMessage) setErrorMessage("");
                   }}
-                  autoFocus={authMode === "signin"}
                 />
               </div>
 
