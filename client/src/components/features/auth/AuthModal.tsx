@@ -129,6 +129,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       );
     },
   });
+
   const handleGoogleClick = () => {
     setIsSubmitting(true);
     setErrorMessage("");
@@ -140,6 +141,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }, 2500);
     } catch (err: any) {
       console.warn("Google OAuth trigger failed:", err);
+      setErrorMessage("Vui lòng đăng ký/đăng nhập bằng Email & Mật khẩu bên trên.");
       setIsSubmitting(false);
       setErrorMessage("Vui lòng nhập Email & Mật khẩu bên trên để đăng nhập nhanh chóng!");
     }

@@ -49,6 +49,7 @@ export const TodayTab: React.FC = () => {
 
   const [newTitle, setNewTitle] = useState("");
   const [newDueTime, setNewDueTime] = useState<string | undefined>(undefined);
+  const [selectedPriority, setSelectedPriority] = useState<"high" | "medium" | "low">("medium");
   const [selectedTag, setSelectedTag] = useState<string>(tags[0] || "Công việc");
   const [selectedNotebookId, setSelectedNotebookId] = useState<string>("");
   const [inputError, setInputError] = useState(false);
@@ -77,10 +78,12 @@ export const TodayTab: React.FC = () => {
       dueDate: finalDueDate,
       tag: selectedTag,
       notebookId: selectedNotebookId || undefined,
+      priority: selectedPriority,
     });
 
     setNewTitle("");
     setNewDueTime(undefined);
+    setSelectedPriority("medium");
     setInputError(false);
   };
 
@@ -336,13 +339,56 @@ export const TodayTab: React.FC = () => {
                   className="w-full"
                 />
               </div>
+
+              {/* Chọn Mức Độ Ưu Tiên Khi Tạo Task */}
+              <div className="flex items-center gap-2 pt-1 border-t border-[#D4CEBF]/40">
+                <span className="text-[11px] font-bold text-[#78716C] shrink-0">Ưu tiên:</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {[
+                    { key: "high", label: "🔴 Gấp", activeClass: "bg-rose-100 text-rose-800 border-rose-400 font-bold shadow-[1px_1px_0px_#262626]" },
+                    { key: "medium", label: "🟡 Vừa", activeClass: "bg-amber-100 text-amber-800 border-amber-400 font-bold shadow-[1px_1px_0px_#262626]" },
+                    { key: "low", label: "🟢 Thấp", activeClass: "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold shadow-[1px_1px_0px_#262626]" },
+                  ].map((p) => (
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => setSelectedPriority(p.key as any)}
+                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                        selectedPriority === p.key
+                          ? p.activeClass
+                          : "border-[#D4CEBF] bg-[#FBF9F4] text-[#78716C] hover:text-[#1C1917]"
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>
       </form>
 
-      {/* 3. Filter Bar 1 Hàng Cuộn Ngang Mượt Mà (Giải phóng diện tích) */}
+      {/* 3. Filter Bar 1 Hàng Cuộn Ngang Mượt Mà & Dễ Dàng Mở Rộng */}
       <div className="p-1.5 bg-white border border-[#D4CEBF] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs select-none">
+        {/* Nút Xóa / Đặt lại bộ lọc nếu đang áp dụng lọc */}
+        {(statusFilter !== "all" || dueFilter !== "all" || priorityFilter !== "all" || tagFilter !== "all") && (
+          <button
+            type="button"
+            onClick={() => {
+              setStatusFilter("all");
+              setDueFilter("all");
+              setPriorityFilter("all");
+              setTagFilter("all");
+            }}
+            title="Đặt lại toàn bộ lọc"
+            className="px-2 py-0.5 rounded-[3px] bg-rose-50 border border-rose-300 text-rose-700 text-[11px] font-bold shrink-0 flex items-center gap-1 hover:bg-rose-100 active:translate-y-[0.5px]"
+          >
+            <X size={11} strokeWidth={2.5} />
+            <span>Xóa lọc</span>
+          </button>
+        )}
+
         {/* Lọc Trạng Thái */}
         <div className="flex items-center gap-1 shrink-0">
           {[
@@ -502,6 +548,18 @@ export const TodayTab: React.FC = () => {
                               <Calendar size={10} strokeWidth={2.2} className="text-emerald-700" />
                             )}
                             <span>{dueInfo.label}</span>
+                          </span>
+                        )}
+
+                        {/* Badge Mức Độ Ưu Tiên */}
+                        {task.priority === "high" && !task.completed && (
+                          <span className="px-1.5 py-0.5 rounded border border-rose-300 bg-rose-50 text-rose-700 font-bold font-mono">
+                            🔴 Gấp
+                          </span>
+                        )}
+                        {task.priority === "low" && !task.completed && (
+                          <span className="px-1.5 py-0.5 rounded border border-emerald-300 bg-emerald-50 text-emerald-700 font-mono">
+                            🟢 Thấp
                           </span>
                         )}
 
