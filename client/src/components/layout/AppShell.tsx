@@ -13,7 +13,8 @@ import { isNativePlatform } from "../../services/notificationService";
 import { BrandLogo } from "../ui/BrandLogo";
 import { DynamicIcon } from "../ui/DynamicIcon";
 import { NotificationBell } from "../ui/NotificationBell";
-import { User, Settings, KeyRound, LogOut, Search, Sparkles } from "lucide-react";
+import { PinLockModal } from "../features/auth/PinLockModal";
+import { User, Settings, KeyRound, LogOut, Search, Sparkles, Lock } from "lucide-react";
 
 // ==========================================
 // COMPONENT: AppShell (Topbar với BrandLogo & Menu Avatar Hiện Đại)
@@ -30,7 +31,16 @@ export const AppShell: React.FC<AppShellProps> = ({
   onTabChange,
   children,
 }) => {
-  const { user, logout, isTiltEnabled, isFirstVisit } = useAppStore();
+  const {
+    user,
+    logout,
+    isTiltEnabled,
+    isFirstVisit,
+    pinCode,
+    isPinLocked,
+    unlockWithPin,
+    lockApp,
+  } = useAppStore();
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -195,6 +205,21 @@ export const AppShell: React.FC<AppShellProps> = ({
                       <span>Giới thiệu & Hướng dẫn</span>
                     </button>
 
+                    {/* Mục Khóa Ứng Dụng khi đã bật mã PIN */}
+                    {pinCode && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsAvatarMenuOpen(false);
+                          lockApp();
+                        }}
+                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[3px] bg-white hover:bg-amber-50 text-[#1C1917] border border-[#D4CEBF] text-left transition-colors font-bold shadow-[1px_1px_0px_#262626]"
+                      >
+                        <Lock size={14} className="text-amber-700" strokeWidth={2.2} />
+                        <span>Khóa màn hình ngay</span>
+                      </button>
+                    )}
+
                     {/* Nút Mở Đăng Nhập / Tạo Tài Khoản */}
                     <button
                       type="button"
@@ -269,6 +294,16 @@ export const AppShell: React.FC<AppShellProps> = ({
           isOpen={isOnboardingOpen || isFirstVisit}
           onClose={() => setIsOnboardingOpen(false)}
         />
+
+        {/* Màn Hình Khóa Mã PIN Bảo Vệ Sổ Tay */}
+        {pinCode && isPinLocked && (
+          <PinLockModal
+            isOpen={true}
+            mode="unlock"
+            currentPinHash={pinCode}
+            onSuccess={unlockWithPin}
+          />
+        )}
 
         {/* Main Content Area với hiệu ứng Lật Trang Êm Ái khi đổi Tab */}
         <main

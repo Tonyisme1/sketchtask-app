@@ -26,7 +26,11 @@ import {
   Database,
   Archive,
   Sparkles,
+  Lock,
+  Shield,
+  Key,
 } from "lucide-react";
+import { PinLockModal } from "../auth/PinLockModal";
 
 // ==========================================
 // COMPONENT: SettingsModal (Cài Đặt Hệ Thống Pro)
@@ -67,6 +71,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setSoundVolume,
     paperStyle,
     setPaperStyle,
+    pinCode,
+    setPinCode,
     loadSampleData,
     archiveOldTasks,
     tasks,
@@ -84,6 +90,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   );
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const [confirmArchiveOpen, setConfirmArchiveOpen] = useState(false);
+  const [pinModalMode, setPinModalMode] = useState<"setup" | "change" | "disable" | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -577,6 +584,58 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </button>
                 </div>
               </div>
+
+              {/* BẢO MẬT & MÃ PIN (APP LOCK) */}
+              <div className="p-3 bg-white border border-[#D4CEBF] rounded-[6px] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
+                    <Lock size={13} className="text-amber-700" strokeWidth={2.2} />
+                    <span>KHÓA MÃ PIN BẢO VỆ:</span>
+                  </span>
+                  <span
+                    className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                      pinCode
+                        ? "bg-[#BBF7D0] text-emerald-900 border-[#262626]"
+                        : "bg-[#F3EFE6] text-[#78716C] border-[#D4CEBF]"
+                    }`}
+                  >
+                    {pinCode ? "Đã bật bảo vệ" : "Chưa cài đặt"}
+                  </span>
+                </div>
+
+                <p className="text-[10px] text-[#78716C] leading-relaxed">
+                  Khóa ứng dụng bằng mã PIN 4 số để bảo vệ sổ tay và ghi chú ý tưởng của bạn.
+                </p>
+
+                <div className="flex items-center gap-2 pt-1">
+                  {pinCode ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setPinModalMode("change")}
+                        className="flex-1 py-1.5 bg-[#FBF9F4] hover:bg-[#FEF08A] border border-[#262626] rounded text-xs font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
+                      >
+                        Đổi mã PIN
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPinModalMode("disable")}
+                        className="py-1.5 px-3 bg-white hover:bg-rose-50 text-rose-600 border border-rose-300 rounded text-xs font-bold active:translate-y-[0.5px]"
+                      >
+                        Tắt khóa
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setPinModalMode("setup")}
+                      className="w-full py-1.5 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded text-xs font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
+                    >
+                      + Thiết lập mã PIN (4 số)
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
@@ -839,6 +898,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         onConfirm={handlePerformArchive}
         onCancel={() => setConfirmArchiveOpen(false)}
       />
+
+      {/* Modal Thiết Lập / Đổi / Tắt Mã PIN */}
+      {pinModalMode && (
+        <PinLockModal
+          isOpen={true}
+          mode={pinModalMode}
+          currentPinHash={pinCode || ""}
+          onSuccess={(newPin) => {
+            if (pinModalMode === "setup" && newPin) {
+              setPinCode(newPin);
+              setPinModalMode(null);
+              showToast("✓ Đã thiết lập mã PIN bảo vệ thành công!");
+            } else if (pinModalMode === "change" && newPin) {
+              setPinCode(newPin);
+              setPinModalMode(null);
+              showToast("✓ Đã đổi mã PIN thành công!");
+            } else if (pinModalMode === "disable") {
+              setPinCode(null);
+              setPinModalMode(null);
+              showToast("✓ Đã tắt khóa mã PIN!");
+            }
+          }}
+          onCancel={() => setPinModalMode(null)}
+        />
+      )}
     </div>,
     document.body,
   );
