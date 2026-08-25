@@ -123,18 +123,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     },
     onError: (error) => {
       console.warn("Google OAuth Error:", error);
+      setIsSubmitting(false);
       setErrorMessage(
-        "Cửa sổ Google bị chặn trên ứng dụng. Bạn có thể đăng nhập bằng Email & Mật khẩu bên trên rất nhanh chóng!"
+        "Cửa sổ Google bị hạn chế trên môi trường hiện tại. Bạn vui lòng nhập Email & Mật khẩu bên trên để đăng nhập trong 2 giây!"
       );
     },
   });
-
   const handleGoogleClick = () => {
+    setIsSubmitting(true);
+    setErrorMessage("");
     try {
       triggerGoogleOAuth();
+      // Nếu sau 2.5s không thấy phản hồi (do WebView chặn ngầm)
+      setTimeout(() => {
+        setIsSubmitting(false);
+      }, 2500);
     } catch (err: any) {
       console.warn("Google OAuth trigger failed:", err);
-      setErrorMessage("Vui lòng đăng ký/đăng nhập bằng Email & Mật khẩu bên trên.");
+      setIsSubmitting(false);
+      setErrorMessage("Vui lòng nhập Email & Mật khẩu bên trên để đăng nhập nhanh chóng!");
     }
   };
 

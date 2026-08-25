@@ -11,7 +11,7 @@ registerSW({ immediate: true });
 
 const googleClientId =
   import.meta.env.VITE_GOOGLE_CLIENT_ID ||
-  "1084227318721-sampleclientidforexample.apps.googleusercontent.com";
+  "355465717765-7rnpgg2m270563ohcskprnqiej2duaco.apps.googleusercontent.com";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
