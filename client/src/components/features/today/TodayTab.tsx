@@ -174,7 +174,7 @@ export const TodayTab: React.FC = () => {
   const selectedNotebook = notebooks.find((n) => n.id === selectedNotebookId);
 
   return (
-    <div className="max-w-2xl mx-auto space-y-3">
+    <div className="max-w-3xl lg:max-w-4xl mx-auto space-y-3.5">
       {/* 1. Header & Tiến độ */}
       <div className="pb-2 border-b border-[#262626] space-y-1.5">
         <div className="flex items-center justify-between gap-2">

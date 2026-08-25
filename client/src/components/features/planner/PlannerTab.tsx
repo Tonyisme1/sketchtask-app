@@ -239,7 +239,7 @@ export const PlannerTab: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-3.5 max-w-2xl mx-auto">
+    <div className="space-y-3.5 max-w-3xl lg:max-w-6xl mx-auto">
       {/* 1. Header */}
       <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
         <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1917]">
@@ -272,99 +272,167 @@ export const PlannerTab: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Lịch Tháng */}
-      {viewMode === "month" && (
-        <div className="p-3 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2.5px_2.5px_0px_#262626] space-y-2">
-          <div className="flex items-center justify-between pb-1 border-b border-[#D4CEBF]">
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => setMonthOffset(monthOffset - 1)}
-                className="px-2 py-0.5 bg-[#FBF9F4] border border-[#262626] rounded text-xs font-bold"
-              >
-                ←
-              </button>
-              <span className="font-bold text-xs sm:text-sm text-[#1C1917]">
-                {monthLabel}
-              </span>
-              <button
-                onClick={() => setMonthOffset(monthOffset + 1)}
-                className="px-2 py-0.5 bg-[#FBF9F4] border border-[#262626] rounded text-xs font-bold"
-              >
-                →
-              </button>
+      {/* BỐ CỤC 2 CỘT TRÊN DESKTOP (Lịch Trái - Chi Tiết Phải) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
+        {/* CỘT TRÁI (Lịch Tháng / Tuần) */}
+        <div className="lg:col-span-5 space-y-3 lg:sticky lg:top-16">
+          {/* 2. Lịch Tháng */}
+          {viewMode === "month" && (
+            <div className="p-3 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2.5px_2.5px_0px_#262626] space-y-2">
+              <div className="flex items-center justify-between pb-1 border-b border-[#D4CEBF]">
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setMonthOffset(monthOffset - 1)}
+                    className="px-2 py-0.5 bg-[#FBF9F4] border border-[#262626] rounded text-xs font-bold hover:bg-white"
+                  >
+                    ←
+                  </button>
+                  <span className="font-bold text-xs sm:text-sm text-[#1C1917]">
+                    {monthLabel}
+                  </span>
+                  <button
+                    onClick={() => setMonthOffset(monthOffset + 1)}
+                    className="px-2 py-0.5 bg-[#FBF9F4] border border-[#262626] rounded text-xs font-bold hover:bg-white"
+                  >
+                    →
+                  </button>
 
-              {monthOffset !== 0 && (
+                  {monthOffset !== 0 && (
+                    <button
+                      onClick={() => {
+                        setMonthOffset(0);
+                        setSelectedDateStr(todayStr);
+                      }}
+                      className="px-1.5 py-0.5 bg-[#FEF08A] border border-[#262626] rounded text-[10px] font-bold"
+                    >
+                      Hôm nay
+                    </button>
+                  )}
+                </div>
+
                 <button
-                  onClick={() => {
-                    setMonthOffset(0);
-                    setSelectedDateStr(todayStr);
-                  }}
-                  className="px-1.5 py-0.5 bg-[#FEF08A] border border-[#262626] rounded text-[10px] font-bold"
+                  type="button"
+                  onClick={() => setIsCalendarCollapsed(!isCalendarCollapsed)}
+                  className="px-2 py-0.5 bg-[#F3EFE6] border border-[#D4CEBF] rounded text-[11px] font-medium text-[#78716C] lg:hidden"
                 >
-                  Hôm nay
+                  {isCalendarCollapsed ? "▾ Mở lịch" : "▴ Thu gọn"}
                 </button>
+              </div>
+
+              {(!isCalendarCollapsed || window.innerWidth >= 1024) && (
+                <div className="space-y-1 animate-in fade-in">
+                  <div className="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-[#78716C]">
+                    {SHORT_DAY_NAMES.map((d) => (
+                      <div key={d}>{d}</div>
+                    ))}
+                  </div>
+
+                  <div className="grid grid-cols-7 gap-1 select-none">
+                    {monthMatrix.map((item) => {
+                      const isSelected = selectedDateStr === item.dateStr;
+                      const isToday = todayStr === item.dateStr;
+                      const dayTaskCount = tasks.filter(
+                        (t) => t.dueDate?.includes(item.dateStr) || (isToday && !t.dueDate)
+                      ).length;
+
+                      return (
+                        <button
+                          key={item.dateStr}
+                          type="button"
+                          onClick={() => setSelectedDateStr(item.dateStr)}
+                          className={`min-h-[34px] sm:min-h-[38px] p-0.5 rounded-[3px] border flex flex-col justify-between items-center transition-all ${
+                            isSelected
+                              ? "bg-[#FEF08A] border-[#262626] shadow-[1.5px_1.5px_0px_#262626] font-bold z-10"
+                              : isToday
+                              ? "bg-white border-[#262626]"
+                              : item.isCurrentMonth
+                              ? "bg-[#FBF9F4] border-[#D4CEBF] text-[#1C1917] hover:bg-white"
+                              : "border-transparent text-[#A8A29E]"
+                          }`}
+                        >
+                          <span
+                            className={`font-mono text-[11px] ${
+                              isToday && !isSelected ? "underline decoration-[#FEF08A] font-bold" : ""
+                            }`}
+                          >
+                            {item.dayNum}
+                          </span>
+
+                          {dayTaskCount > 0 ? (
+                            <span
+                              className={`text-[9px] font-mono font-bold px-1 rounded-[2px] border border-[#262626] leading-none py-0.2 ${
+                                isSelected ? "bg-white text-[#1C1917]" : "bg-[#BBF7D0] text-[#1C1917]"
+                              }`}
+                            >
+                              {dayTaskCount}v
+                            </span>
+                          ) : (
+                            <span className="h-2" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
             </div>
+          )}
 
-            <button
-              type="button"
-              onClick={() => setIsCalendarCollapsed(!isCalendarCollapsed)}
-              className="px-2 py-0.5 bg-[#F3EFE6] border border-[#D4CEBF] rounded text-[11px] font-medium text-[#78716C]"
-            >
-              {isCalendarCollapsed ? "▾ Mở lịch" : "▴ Thu gọn"}
-            </button>
-          </div>
-
-          {!isCalendarCollapsed && (
-            <div className="space-y-1 animate-in fade-in">
-              <div className="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-[#78716C]">
-                {SHORT_DAY_NAMES.map((d) => (
-                  <div key={d}>{d}</div>
-                ))}
+          {/* Lịch Tuần */}
+          {viewMode === "week" && (
+            <div className="p-3 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2.5px_2.5px_0px_#262626] space-y-2">
+              <div className="flex items-center justify-between pb-1 border-b border-[#D4CEBF]">
+                <button
+                  onClick={() => setWeekOffset(weekOffset - 1)}
+                  className="px-2 py-0.5 bg-white border border-[#262626] rounded text-xs font-bold hover:bg-[#FBF9F4]"
+                >
+                  ← Trước
+                </button>
+                <span className="font-bold text-xs font-mono">
+                  Tuần {weekOffset === 0 ? "này" : `${weekOffset > 0 ? `+${weekOffset}` : weekOffset}`}
+                </span>
+                <button
+                  onClick={() => setWeekOffset(weekOffset + 1)}
+                  className="px-2 py-0.5 bg-white border border-[#262626] rounded text-xs font-bold hover:bg-[#FBF9F4]"
+                >
+                  Sau →
+                </button>
               </div>
 
               <div className="grid grid-cols-7 gap-1 select-none">
-                {monthMatrix.map((item) => {
-                  const isSelected = selectedDateStr === item.dateStr;
-                  const isToday = todayStr === item.dateStr;
+                {weekDays.map((col) => {
+                  const isSelected = selectedDateStr === col.dateStr;
+                  const isToday = todayStr === col.dateStr;
                   const dayTaskCount = tasks.filter(
-                    (t) => t.dueDate?.includes(item.dateStr) || (isToday && !t.dueDate)
+                    (t) => t.dueDate?.includes(col.dateStr) || (isToday && !t.dueDate)
                   ).length;
 
                   return (
                     <button
-                      key={item.dateStr}
+                      key={col.dateStr}
                       type="button"
-                      onClick={() => setSelectedDateStr(item.dateStr)}
-                      className={`min-h-[34px] sm:min-h-[38px] p-0.5 rounded-[3px] border flex flex-col justify-between items-center transition-all ${
+                      onClick={() => setSelectedDateStr(col.dateStr)}
+                      className={`flex flex-col items-center justify-center p-1 rounded-[4px] border-[1.5px] min-h-[50px] transition-all ${
                         isSelected
-                          ? "bg-[#FEF08A] border-[#262626] shadow-[1.5px_1.5px_0px_#262626] font-bold z-10"
-                          : isToday
-                          ? "bg-white border-[#262626]"
-                          : item.isCurrentMonth
-                          ? "bg-[#FBF9F4] border-[#D4CEBF] text-[#1C1917] hover:bg-white"
-                          : "border-transparent text-[#A8A29E]"
+                          ? "bg-[#FEF08A] border-[#262626] shadow-[2px_2px_0px_#262626] -translate-y-[1px]"
+                          : "bg-white border-[#262626] text-[#78716C] hover:bg-[#FBF9F4]"
                       }`}
                     >
-                      <span
-                        className={`font-mono text-[11px] ${
-                          isToday && !isSelected ? "underline decoration-[#FEF08A] font-bold" : ""
-                        }`}
-                      >
-                        {item.dayNum}
+                      <span className={`text-[10px] font-bold ${isSelected ? "text-[#1C1917]" : "text-[#78716C]"}`}>
+                        {col.shortDayName}
                       </span>
-
-                      {dayTaskCount > 0 ? (
-                        <span
-                          className={`text-[9px] font-mono font-bold px-1 rounded-[2px] border border-[#262626] leading-none py-0.2 ${
-                            isSelected ? "bg-white text-[#1C1917]" : "bg-[#BBF7D0] text-[#1C1917]"
-                          }`}
-                        >
-                          {dayTaskCount}v
-                        </span>
-                      ) : (
-                        <span className="h-2" />
-                      )}
+                      <span className="font-mono text-xs sm:text-sm font-bold text-[#1C1917]">
+                        {col.dayNum}
+                      </span>
+                      <div className="h-1.5 flex items-center justify-center">
+                        {dayTaskCount > 0 && (
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full border border-[#262626] ${
+                              isSelected ? "bg-[#1C1917]" : "bg-[#BBF7D0]"
+                            }`}
+                          />
+                        )}
+                      </div>
                     </button>
                   );
                 })}
@@ -372,82 +440,19 @@ export const PlannerTab: React.FC = () => {
             </div>
           )}
         </div>
-      )}
 
-      {/* Lịch Tuần */}
-      {viewMode === "week" && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setWeekOffset(weekOffset - 1)}
-              className="px-2 py-0.5 bg-white border border-[#262626] rounded text-xs font-bold"
-            >
-              ← Trước
-            </button>
-            <span className="font-bold text-xs font-mono">
-              Tuần {weekOffset === 0 ? "này" : `${weekOffset > 0 ? `+${weekOffset}` : weekOffset}`}
+        {/* CỘT PHẢI (Khung Chi Tiết Kế Hoạch & Command Center) */}
+        <div className="lg:col-span-7 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2.5px_2.5px_0px_#262626] p-3 sm:p-4 space-y-2.5">
+          <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
+            <h3 className="font-bold text-xs sm:text-sm text-[#1C1917] flex items-center gap-1.5">
+              <CalendarIcon size={15} strokeWidth={2.2} />
+              <span>{getDayFormattedTitle()}</span>
+            </h3>
+
+            <span className="font-mono text-xs font-bold bg-[#F3EFE6] px-2 py-0.5 rounded-[2px] border border-[#D4CEBF]">
+              {selectedDayTasks.filter((t) => t.completed).length}/{selectedDayTasks.length} Xong
             </span>
-            <button
-              onClick={() => setWeekOffset(weekOffset + 1)}
-              className="px-2 py-0.5 bg-white border border-[#262626] rounded text-xs font-bold"
-            >
-              Sau →
-            </button>
           </div>
-
-          <div className="grid grid-cols-7 gap-1 select-none">
-            {weekDays.map((col) => {
-              const isSelected = selectedDateStr === col.dateStr;
-              const isToday = todayStr === col.dateStr;
-              const dayTaskCount = tasks.filter(
-                (t) => t.dueDate?.includes(col.dateStr) || (isToday && !t.dueDate)
-              ).length;
-
-              return (
-                <button
-                  key={col.dateStr}
-                  type="button"
-                  onClick={() => setSelectedDateStr(col.dateStr)}
-                  className={`flex flex-col items-center justify-center p-1 rounded-[4px] border-[1.5px] min-h-[50px] transition-all ${
-                    isSelected
-                      ? "bg-[#FEF08A] border-[#262626] shadow-[2px_2px_0px_#262626] -translate-y-[1px]"
-                      : "bg-white border-[#262626] text-[#78716C]"
-                  }`}
-                >
-                  <span className={`text-[10px] font-bold ${isSelected ? "text-[#1C1917]" : "text-[#78716C]"}`}>
-                    {col.shortDayName}
-                  </span>
-                  <span className="font-mono text-xs sm:text-sm font-bold text-[#1C1917]">
-                    {col.dayNum}
-                  </span>
-                  <div className="h-1.5 flex items-center justify-center">
-                    {dayTaskCount > 0 && (
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full border border-[#262626] ${
-                          isSelected ? "bg-[#1C1917]" : "bg-[#BBF7D0]"
-                        }`}
-                      />
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 3. Khung Chi Tiết Kế Hoạch */}
-      <div className="bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2.5px_2.5px_0px_#262626] p-3 sm:p-4 space-y-2.5">
-        <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
-          <h3 className="font-bold text-xs sm:text-sm text-[#1C1917] flex items-center gap-1.5">
-            <CalendarIcon size={15} strokeWidth={2.2} />
-            <span>{getDayFormattedTitle()}</span>
-          </h3>
-
-          <span className="font-mono text-xs font-bold bg-[#F3EFE6] px-2 py-0.5 rounded-[2px] border border-[#D4CEBF]">
-            {selectedDayTasks.filter((t) => t.completed).length}/{selectedDayTasks.length} Xong
-          </span>
-        </div>
 
         {/* Quick Add Form */}
         <form onSubmit={handleAddDayTask} className="p-2.5 bg-[#FBF9F4] border border-[#262626] rounded-[4px] space-y-2">
@@ -919,6 +924,7 @@ export const PlannerTab: React.FC = () => {
             })
           )}
         </div>
+      </div>
       </div>
 
       {/* Confirm Delete Modal */}

@@ -2,6 +2,7 @@ import React from "react";
 import { TabKey, TabConfig } from "../../types";
 import { useAppStore } from "../../stores/appStore";
 import { BrandLogo } from "../ui/BrandLogo";
+import { CURRENT_APP_VERSION } from "../../services/updateService";
 import {
   Sun,
   Calendar,
@@ -91,7 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
         <div className="flex items-center justify-between pb-4 mb-4 border-b border-[#D4CEBF]">
           <BrandLogo size="md" />
           <span className="text-[10px] font-mono text-[#78716C] bg-white px-1.5 py-0.5 rounded border border-[#D4CEBF]">
-            v1.0
+            v{CURRENT_APP_VERSION}
           </span>
         </div>
 
