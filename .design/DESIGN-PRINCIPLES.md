@@ -8,111 +8,52 @@ It combines the warmth and personality of a personal handwritten notebook with t
 
 The interface should feel:
 
-- Human
-- Warm
-- Playful
-- Creative
-- Organized
-- Personal
-
-The design should feel handcrafted, not chaotic.
-
-Hand-drawn elements are used as a visual language, not as a replacement for usability, structure, or clarity.
+- **Human:** Natural lines, subtle organic tilts, ink-strike completion effects.
+- **Warm:** Warm paper canvas (`#FBF9F4`), muted notebook highlighter accents.
+- **Calm & Encouraging:** Clear tactile buttons, zero stressful visual noise.
+- **Dependable:** Fast response, offline-first sync, crisp type hierarchy.
 
 ---
 
-## 2. Product Personality
-
-The product should feel like a thoughtful personal companion rather than a strict productivity manager.
-
-Its personality is:
-
-- Friendly
-- Calm
-- Encouraging
-- Playful
-- Thoughtful
-
-### Personality Principles
-
-- The app should guide, not command.
-- The app should encourage, not pressure.
-- The app should inform, not overwhelm.
-- The app should be playful without becoming distracting.
-- The app should acknowledge progress without excessive praise.
-- The app should communicate clearly and naturally.
-
-Personality should enhance the experience, never obstruct it.
-
-- The interface may be expressive, but important information must always remain clear.
-- The interface may be playful, but it should never become noisy.
-- The app may encourage the user, but it should never create guilt or pressure.
-
----
-
-## 3. Core Design Principles
+## 2. Core Design Principles
 
 1. **Clarity First:** Every visual decision must preserve or improve clarity. Task readability and interaction speed always override decoration.
-2. **Handcrafted, Not Chaotic:** Imperfections must be intentional and mathematically constrained (bounded rotation, consistent stroke width).
-3. **Information Hierarchy:** Distinct visual weights for Primary (Task Name), Secondary (Due Date/Status), and Tertiary (Metadata/Tags).
-4. **Whitespace Is Functional:** Whitespace acts as breathing room to reduce cognitive load and simulate a clean notebook page.
-5. **Progressive Disclosure:** Simple by default, powerful when needed. Secondary options remain tucked away until requested.
-6. **Functional Decoration:** Scribbles, doodles, and highlighters must direct attention or communicate status, never exist merely as noise.
-7. **Consistency Over Novelty:** Reuse existing component patterns before inventing new visual formats.
-
-### Guiding Principle
-
-The product should feel like a beautifully organized personal notebook: expressive enough to feel human, structured enough to be dependable, and quiet enough to let the user's work remain the focus.
+2. **Handcrafted, Not Chaotic:** Imperfections must be intentional and mathematically constrained (bounded rotation: `-1deg` to `+1deg`, consistent `1.5px` ink borders).
+3. **Mobile Ergonomics & Bottom Sheet:** Modals on mobile slide naturally from the bottom as warm sheets with rounded tops (`rounded-t-[22px]`) and tactile grab handles.
+4. **Progressive Disclosure:** Simple by default, powerful when needed. Advanced filtering options remain neatly tucked away in an expandable command drawer.
+5. **Zero-Flash Startup (0ms Splash):** App must load instantly with no 1-second white flashes using embedded root splash placeholders and native Android 12+ SplashScreen API.
+6. **Tactile Feedback:** Every clickable button, card, and checkbox responds physically with a 1.5px offset press and hard shadow collapse.
+7. **Single Source of Truth:** Versions, tokens, and data contracts are defined centrally to avoid divergent implementations.
 
 ---
 
-## 4. Visual Language & Tiered Application
+## 3. Visual Language & Tiered Application
 
-To maintain usability, hand-drawn styles are categorized into 3 strict tiers:
+To maintain peak usability and aesthetic coherence, UI elements belong to 3 strict tiers:
 
 - **Tier 1 - Core UI (Minimal Hand-Drawn):**
-  - Target: Input fields, data tables, main task rows, calendar grids.
-  - Rules: Straight structural lines, 1px-1.5px ink border, static border-radius (4px–6px), maximum contrast and legibility.
+  - *Target:* Input fields, data tables, main task rows, calendar grids, search bars.
+  - *Rules:* Straight structural lines, `1.5px` ink border (`#262626`), `rotate-0`, radius `4px–6px`, high contrast and optimal legibility.
 - **Tier 2 - Expressive Elements (Moderate Hand-Drawn):**
-  - Target: Task cards, sticky notes, tags, modals, badges.
-  - Rules: Subtle organic borders (`rough border`), bounded rotation (`-1deg` to `+1deg`), hard offset shadow (`2px 2px 0px #000`).
+  - *Target:* Task cards, sticky notes, priority badges, bottom sheets, filter drawers.
+  - *Rules:* Bounded tilt (`-1deg` to `+1deg`), hard offset shadow (`shadow-[2px_2px_0px_#262626]`), ink-pressed active state.
 - **Tier 3 - Decorations & Accents (High Hand-Drawn):**
-  - Target: Empty state illustrations, highlighter strokes, scribble underlines, corner tape.
-  - Rules: Used strictly outside dense interactive areas.
-
-### Typography
-
-- **UI / Body Text:** Clean sans-serif (Inter, Geist, or Plus Jakarta Sans).
-- **Headings:** Solid structured sans-serif or modern serif.
-- **Handwritten Accent:** Legible script font (Caveat or Patrick Hand) — restricted to short notes, sticky annotations, and small micro-copy.
+  - *Target:* Empty state doodles, ink strike-through lines, highlighter underlines, habit streak badges.
+  - *Rules:* Placed strictly outside dense interaction zones.
 
 ---
 
-## 5. Information Hierarchy
+## 4. Typography Hierarchy
 
-- **3-Second Scan:** A card must be readable top-to-bottom: Title -> Timing/State -> Context/Tag.
-- **Color Balance (80/20):** 80% neutral paper canvas (Cream/Off-white or Dark Slate) and ink; 20% accent colors (highlighter yellow, ink blue, muted amber/red).
-- **Visual Weight Control:** Primary actions must use solid fill or distinct border; secondary actions use outlines or subtle text buttons.
-
----
-
-## 6. Intentional Imperfection
-
-- **Rotation Constraints:** Text blocks and scrollable lists MUST stay at `0deg`. Container elements may only pick from fixed sets: `[-1deg, -0.5deg, 0deg, 0.5deg, 1deg]`.
-- **Predictable Radius:** Asymmetric border-radius must follow uniform CSS variable tokens, not random inline styles.
-- **Hard Shadows:** Use sharp offset shadows (`box-shadow: Xpx Ypx 0px #000`) instead of Gaussian blur to replicate physical layered paper.
+- **UI / Body Text:** Clean sans-serif (Inter / Plus Jakarta Sans) for task titles, forms, and tables.
+- **Code / Time / Dates:** Crisp Monospace (`font-mono`) for exact deadlines, time pickers, and version badges.
+- **Handwritten Accent:** Script font (`--font-hand` - Caveat / Patrick Hand) restricted to Sticky Notes, personal reflections, and small micro-copy tags.
 
 ---
 
-## 7. Usability Over Decoration
+## 5. Negative Constraints (Anti-Slop Directives)
 
-- **Tactile Feedback:** Interactive elements must press down on click/tap (`active: translate(2px, 2px)` with shadow reset).
-- **State Completeness:** Every interactive component must define 6 states: Default, Hover, Active/Focus, Disabled, Empty, Error.
-- **Accessibility:** Minimum contrast ratio must meet WCAG AA (4.5:1 for body text) across both Light and Dark themes.
-
----
-
-## 8. Cross-Platform Philosophy
-
-- **Mobile:** Reduce expressive decoration. Prioritize touch targets (minimum 44x44px), single-column flow, and fast entry sheets.
-- **Desktop:** Expand canvas to an open notebook spread. Support keyboard shortcuts, drag-and-drop interactions, and multi-panel split views (Sidebar, Board, Detail Inspector).
+- ❌ Never use generic AI gradients (`from-purple-500 to-indigo-500`).
+- ❌ Never use soft Gaussian blur shadows (`shadow-xl`). Always use **Hard Offset Shadows** (`shadow-[2px_2px_0px_#262626]`).
+- ❌ Never rotate inputs, tables, scrollable containers, or calendar matrices.
+- ❌ Never display desktop-only shortcut hints (e.g., "Press ESC to close") on mobile screens.

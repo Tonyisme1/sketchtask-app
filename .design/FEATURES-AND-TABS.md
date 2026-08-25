@@ -1,55 +1,63 @@
 # FEATURES-AND-TABS.md
 
-Tài liệu này đặc tả chi tiết kiến trúc và luồng tương tác của **5 Tab Chức Năng Chính** trong ứng dụng **SketchTask (Digital Sketchbook)**.
+Tài liệu mô tả chức năng và cấu trúc phân bổ trải nghiệm qua 5 Tab chính của ứng dụng **SketchTask App** (Phiên bản 1.6.0).
 
 ---
 
-## 1. Tab 1: Hôm nay (Today) - Trang Nhật ký Trọng tâm
+## 1. Tab 1: Hôm Nay (TodayTab - Thao Tác Trọng Tâm)
 
-- **Mục tiêu:** Giúp người dùng tập trung vào các đầu việc cần giải quyết trong ngày mà không bị ngợp.
-- **Thành phần chính:**
-  1. **Daily Progress (Tiến độ vẽ tay):** Thanh hiển thị số lượng task đã xong và tỷ lệ hoàn thành dạng nét mực trên nền giấy.
-  2. **Quick Add Bar (Tier 1 Core UI):** Ô nhập liệu nhanh với phím Enter, hỗ trợ gán nhanh Tag (`Công việc`, `Cá nhân`, `Ý tưởng`, `Học tập`) và giờ hẹn.
-  3. **Tactical Filter Pills:** Bộ lọc trạng thái (_Tất cả_, _Cần làm_, _Đã xong_) và bộ lọc theo Tag.
-  4. **Task Cards (Tier 2 Expressive):** Thẻ task viền nét mực `1.5px`, Hard shadow `2px 2px 0px #262626`, góc xoay nhẹ luân phiên `[-0.5deg, 0deg, 0.5deg]`, nút xóa và checkmark vẽ tay.
-  5. **Quiet Motivational Sticky Note:** Lời nhắn nhẹ nhàng, không gây cảm giác tội lỗi.
+- **Mục đích:** Giúp người dùng tập trung hoàn thành các công việc trong ngày mà không bị phân tâm bởi các kế hoạch xa xôi.
+- **Tính năng chủ đạo:**
+  - Ô thêm việc nhanh 1 chạm: Hỗ trợ gán giờ hẹn, nhãn `#Tag`, sổ tay và chọn mức độ ưu tiên `🔴 Gấp` / `🟡 Vừa` / `🟢 Thấp`.
+  - Bộ Lọc Nhanh 2 Tầng: Lọc Trạng thái (`Cần làm` / `Đã xong`), Ưu tiên (`🔴 Gấp`), Hạn chót (`Quá hạn` / `Hôm nay`), và Nhãn `#Tag`.
+  - Tự động cảnh báo quá hạn bằng huy hiệu đỏ nhấp nháy tinh tế.
 
 ---
 
-## 2. Tab 2: Kế hoạch (Planner) - Weekly Spread
+## 2. Tab 2: Kế Hoạch (PlannerTab - Trung Tâm Điều Khiển Task Toàn Diện)
 
-- **Mục tiêu:** Mô phỏng trang đôi trải dài 7 ngày trong tuần của sổ tay kế hoạch.
-- **Thành phần chính:**
-  1. **Week Navigator:** Điều hướng _Tuần trước_, _Tuần này_, _Tuần sau_ hiển thị số thứ tự tuần trong năm.
-  2. **7-Day Grid (Tier 1 Core UI):** Lưới 7 cột (Thứ 2 -> Chủ nhật) giữ góc phẳng `rotate-0` để đảm bảo khả năng đọc.
-  3. **Day Action & Task List:** Hiển thị các công việc có hạn chót rơi vào ngày đó, kèm nút `+ Thêm việc` cho từng ngày cụ thể.
-
----
-
-## 3. Tab 3: Sổ tay & Dự án (Notebooks) - Kệ Sổ Chuyên biệt
-
-- **Mục tiêu:** Phân chia không gian công việc theo từng dự án hoặc chủ đề cuộc sống.
-- **Thành phần chính:**
-  1. **Notebooks Grid (Kệ sổ tay):** Hiển thị các cuốn sổ dạng bìa cứng với màu sắc từ bảng Token (`yellow`, `coral`, `mint`, `sky`, `lavender`), icon sketch và số lượng task.
-  2. **Modal Tạo Sổ mới:** Dialog vẽ tay cho phép chọn tên sổ, mô tả, màu bìa và icon.
-  3. **Drill-down Detail View:** Khi nhấp vào cuốn sổ, chuyển sang chế độ xem chi tiết cuốn sổ đó, liệt kê riêng các task thuộc cuốn sổ và có form thêm task trực tiếp vào sổ.
+- **Mục đích:** Task Command Center — Nơi quản lý, lên lịch và điều phối toàn bộ công việc theo ngày, tuần, tháng.
+- **Tính năng chủ đạo:**
+  - Chuyển đổi linh hoạt giữa **Lịch Tháng** (Month Matrix) và **Lịch Tuần** (Week Strip).
+  - Khung Điều Khiển Bộ Lọc Đa Chiều (Super Command Filter):
+    - 🎯 Lọc theo Mức độ ưu tiên (`🔴 Gấp` / `🟡 Vừa` / `🟢 Thấp`).
+    - 📚 Lọc theo từng Cuốn Sổ Tay riêng biệt (`📘 Sổ A`, `📙 Sổ B`, `📂 Chưa gán sổ`).
+    - ⏰ Lọc theo Thời gian (`Có giờ hẹn cụ thể` / `Cả ngày`).
+    - 🏷️ Lọc theo Nhãn dự án `#Tag`.
+  - Chuyển việc nhanh: Dời việc sang ngày mai, kéo việc về hôm nay chỉ bằng 1 nút bấm.
 
 ---
 
-## 4. Tab 4: Brain Dump - Bảng Gom nhặt Ý tưởng Tự do
+## 3. Tab 3: Sổ Tay (NotebooksTab - Quản Lý Dự Án Theo Chủ Đề)
 
-- **Mục tiêu:** Nơi người dùng ghi nhanh mọi suy nghĩ ngẫu hứng mà không cần bận tâm về cấu trúc hay hạn chót.
-- **Thành phần chính:**
-  1. **Quick Note Form:** Ô nhập liệu ý tưởng kèm nút chọn màu giấy dán.
-  2. **Sticky Notes Canvas:** Lưới các tờ giấy note dán băng keo tape ở mép trên, xoay nhẹ `-1deg` hoặc `1deg`.
-  3. **Hành động Chuyển đổi (Action: Convert to Task):** Nút `[ ➔ Chuyển thành việc hôm nay ]` giúp đưa ý tưởng thành một task chính thức ở Tab Hôm nay.
+- **Mục đích:** Kệ sách phân loại công việc theo từng cuốn sổ chủ đề (Công việc, Học tập, Gia đình, Dự án khởi nghiệp...).
+- **Tính năng chủ đạo:**
+  - Tạo và cá nhân hóa cuốn sổ với bìa màu pastel ấm và biểu tượng vẽ tay phong phú.
+  - Drill-down xem danh sách việc bên trong từng cuốn sổ với thanh tiến độ hoàn thành trực quan.
+  - Hỗ trợ chuyển đổi nhanh ghi chú từ Brain Dump thành việc trong sổ tay.
 
 ---
 
-## 5. Tab 5: Tổng kết & Thói quen (Review & Habit Tracker)
+## 4. Tab 4: Brain Dump (StickyNotesTab - Không Gian Xả Não)
 
-- **Mục tiêu:** Theo dõi tính kỷ luật hàng ngày và nhìn lại bài học sau mỗi tuần.
-- **Thành phần chính:**
-  1. **Habit Tracker Table:** Bảng điểm danh thói quen 7 ngày trong tuần với dấu tích vẽ tay SVG và tự động tính chuỗi (streak).
-  2. **Form Thêm Thói quen:** Nhập tên thói quen mới cần rèn luyện.
-  3. **Weekly Wrap-up Journal:** Khung ghi chép cảm nhận tuần dạng giấy kẻ dòng, tự động lưu trữ ghi chú.
+- **Mục đích:** Nơi ghi nhanh các suy nghĩ vụn vặt, ý tưởng bất chợt chưa cần lên lịch ngay.
+- **Tính năng chủ đạo:**
+  - Bảng giấy nhớ dán tường với hiệu ứng xoay tự nhiên `-1deg` đến `1deg` và ghim băng keo thủ công.
+  - Chuyển đổi 1 chạm: Biến ghi chú thành Task trong Hôm Nay hoặc đưa vào Cuốn Sổ Tay chỉ định.
+
+---
+
+## 5. Tab 5: Nhìn Lại & Năng Suất (ReviewTab - Nhật Ký Trưởng Thành)
+
+- **Mục đích:** Tổng kết năng suất, theo dõi chuỗi thói quen và ghi nhận cảm xúc.
+- **Tính năng chủ đạo:**
+  - **Productivity Sketch Chart:** Biểu đồ cột nét mực 7 ngày, thống kê tổng số việc hoàn thành, điểm năng suất /100 và ngày đạt đỉnh.
+  - **Habit Tracker:** Theo dõi chuỗi ngày liên tiếp (Streak) xây dựng thói quen tốt.
+  - **Mood Tracker & Weekly Reflection:** Chọn tâm trạng mỗi ngày và ghi lại bài học sau một tuần làm việc.
+
+---
+
+## 6. Hệ Thống Tiện Ích Toàn Cục (Global Utilities)
+
+- **Global Search:** Tìm kiếm tức thì theo từ khóa, lọc theo sổ tay và gắn thẻ. Tối ưu UX trên Mobile (nút Đóng và làm mờ sâu).
+- **Settings & Account (Bottom Sheet):** Quản lý hồ sơ, chọn avatar vẽ tay, đồng bộ hóa Realtime hai chiều (Online/Offline) và kiểm tra phiên bản Single Source of Truth.
