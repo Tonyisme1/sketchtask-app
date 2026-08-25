@@ -63,11 +63,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setMounted(true);
   }, []);
 
-  // Khóa cuộn trang khi modal mở
+  // Khóa cuộn trang và chủ động xóa focus khi modal mở
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
       document.body.style.touchAction = "none";
+
+      // Xóa bỏ hoàn toàn bất kỳ focus tự động nào từ trình duyệt / autofill
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+      setTimeout(() => {
+        if (
+          document.activeElement instanceof HTMLElement &&
+          (document.activeElement.tagName === "INPUT" ||
+            document.activeElement.tagName === "BUTTON")
+        ) {
+          document.activeElement.blur();
+        }
+      }, 50);
     } else {
       document.body.style.overflow = "";
       document.body.style.touchAction = "";
@@ -419,7 +433,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} className="space-y-3">
+            <form onSubmit={handleSubmit} autoComplete="off" className="space-y-3">
               {authMode === "signup" && (
                 <div>
                   <label className="block text-xs font-bold text-[#1C1917] mb-1">
@@ -428,6 +442,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <TextInput
                     placeholder="Ví dụ: Minh Khang"
                     value={name}
+                    autoComplete="off"
                     onChange={(e) => {
                       setName(e.target.value);
                       if (errorMessage) setErrorMessage("");
@@ -444,6 +459,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="email"
                   placeholder="tenban@email.com"
                   value={email}
+                  autoComplete="new-password"
                   onChange={(e) => {
                     setEmail(e.target.value);
                     if (errorMessage) setErrorMessage("");
@@ -459,6 +475,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="password"
                   placeholder="••••••••"
                   value={password}
+                  autoComplete="new-password"
                   onChange={(e) => {
                     setPassword(e.target.value);
                     if (errorMessage) setErrorMessage("");
