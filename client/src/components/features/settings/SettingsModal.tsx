@@ -29,6 +29,8 @@ import {
   Lock,
   Shield,
   Key,
+  ArrowRight,
+  Play,
 } from "lucide-react";
 import { PinLockModal } from "../auth/PinLockModal";
 
@@ -421,9 +423,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       onClose();
                       onOpenAuth();
                     }}
-                    className="flex-1 py-1.5 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded text-xs font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626]"
+                    className="flex-1 py-1.5 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded text-xs font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626] flex items-center justify-center gap-1.5"
                   >
-                    {user.isSignedIn ? "Quản lý tài khoản cá nhân" : "Đăng nhập / Đăng ký đồng bộ ➔"}
+                    <span>
+                      {user.isSignedIn
+                        ? "Quản lý tài khoản cá nhân"
+                        : "Đăng nhập / Đăng ký đồng bộ"}
+                    </span>
+                    {!user.isSignedIn && <ArrowRight size={13} />}
                   </button>
 
                   {user.isSignedIn && (
@@ -513,9 +520,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <button
                       type="button"
                       onClick={() => sounds.playPencilCheck(soundVolume)}
-                      className="px-2 py-0.5 bg-[#FBF9F4] hover:bg-[#FEF08A] border border-[#262626] rounded text-[10px] font-bold shadow-sm shrink-0"
+                      className="px-2 py-0.5 bg-[#FBF9F4] hover:bg-[#FEF08A] border border-[#262626] rounded text-[10px] font-bold shadow-sm shrink-0 flex items-center gap-1"
                     >
-                      Thử nghe ♪
+                      <Play size={10} className="fill-[#1C1917]" />
+                      <span>Thử nghe</span>
                     </button>
                   </div>
                 )}
@@ -725,7 +733,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     }}
                     className="w-full py-2 bg-[#262626] hover:bg-[#1C1917] text-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#A8A29E] font-bold flex items-center justify-center gap-1.5 active:translate-y-[0.5px] transition-all"
                   >
-                    <span>Đăng nhập / Đăng ký để bật đồng bộ ➔</span>
+                    <span>Đăng nhập / Đăng ký để bật đồng bộ</span>
+                    <ArrowRight size={14} />
                   </button>
                 )}
               </div>
@@ -778,9 +787,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       loadSampleData();
                       showToast("✓ Đã nạp dữ liệu mẫu phong phú!");
                     }}
-                    className="px-2.5 py-1 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded text-[11px] font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
+                    className="px-2.5 py-1 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded text-[11px] font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] flex items-center gap-1"
                   >
-                    Thử ngay ✦
+                    <span>Thử ngay</span>
+                    <Sparkles size={11} className="text-amber-700" />
                   </button>
                 </div>
                 <p className="text-[10px] text-[#78716C] leading-relaxed">
@@ -824,9 +834,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       onClose();
                       onOpenIntro();
                     }}
-                    className="px-2.5 py-1 bg-[#FEF08A] hover:bg-[#FDE047] text-[#1C1917] border border-[#262626] rounded text-[11px] font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
+                    className="px-2.5 py-1 bg-[#FEF08A] hover:bg-[#FDE047] text-[#1C1917] border border-[#262626] rounded text-[11px] font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] flex items-center gap-1"
                   >
-                    Xem Intro ✦
+                    <span>Xem Intro</span>
+                    <Sparkles size={11} className="text-amber-700" />
                   </button>
                 </div>
               )}

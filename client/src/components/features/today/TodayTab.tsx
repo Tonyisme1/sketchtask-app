@@ -25,6 +25,7 @@ import {
   SlidersHorizontal,
   Filter,
   Sun,
+  CheckCheck,
 } from "lucide-react";
 
 import { getLocalTodayStr, isTaskForDate } from "../../../utils/date";
@@ -189,7 +190,8 @@ export const TodayTab: React.FC = () => {
           <div className="flex items-center gap-2">
             {totalCount > 0 && completedCount === totalCount ? (
               <div className="px-2.5 py-1 border-2 border-red-600 bg-red-50 rounded-[4px] text-red-600 font-mono font-black text-xs -rotate-6 shadow-[1.5px_1.5px_0px_#DC2626] uppercase tracking-wider animate-stamp select-none flex items-center gap-1">
-                <span>HOÀN TẤT ★ 100%</span>
+                <CheckCheck size={14} className="stroke-[2.5]" />
+                <span>HOÀN TẤT 100%</span>
               </div>
             ) : (
               <div className="font-mono text-xs font-bold bg-white px-2.5 py-1 border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626]">

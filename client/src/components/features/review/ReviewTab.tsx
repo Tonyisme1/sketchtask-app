@@ -107,14 +107,21 @@ export const ReviewTab: React.FC = () => {
     };
   });
 
-  const maxCompleted = Math.max(1, ...dailyTaskStats.map((d) => d.completedCount));
+  const maxCompleted = Math.max(
+    1,
+    ...dailyTaskStats.map((d) => d.completedCount),
+  );
 
   // 2. Tìm ngày làm việc năng suất nhất
-  const bestDayStat = [...dailyTaskStats].sort((a, b) => b.completedCount - a.completedCount)[0];
+  const bestDayStat = [...dailyTaskStats].sort(
+    (a, b) => b.completedCount - a.completedCount,
+  )[0];
 
   // 3. Tổng số lượt check thói quen trong tuần
   const totalHabitChecks = habits.reduce((acc, h) => {
-    const checksInWeek = weekDays.filter((d) => h.completedDates.includes(d.date)).length;
+    const checksInWeek = weekDays.filter((d) =>
+      h.completedDates.includes(d.date),
+    ).length;
     return acc + checksInWeek;
   }, 0);
 
@@ -122,11 +129,13 @@ export const ReviewTab: React.FC = () => {
   const completedTasksCount = tasks.filter((t) => t.completed).length;
   const totalTasksCount = tasks.length;
   const completionRate =
-    totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
+    totalTasksCount > 0
+      ? Math.round((completedTasksCount / totalTasksCount) * 100)
+      : 0;
 
   const productivityScore = Math.min(
     100,
-    Math.round(completionRate * 0.7 + Math.min(30, totalHabitChecks * 5))
+    Math.round(completionRate * 0.7 + Math.min(30, totalHabitChecks * 5)),
   );
 
   return (
@@ -156,7 +165,11 @@ export const ReviewTab: React.FC = () => {
             {/* Header Biểu Đồ */}
             <div className="flex items-center justify-between">
               <span className="font-bold text-xs sm:text-sm text-[#1C1917] flex items-center gap-1.5">
-                <BarChart3 size={16} strokeWidth={2.2} className="text-indigo-700" />
+                <BarChart3
+                  size={16}
+                  strokeWidth={2.2}
+                  className="text-indigo-700"
+                />
                 <span>BIỂU ĐỒ HOÀN THÀNH (7 NGÀY)</span>
               </span>
               <span className="text-[10px] font-mono text-[#78716C] bg-[#FBF9F4] px-1.5 py-0.5 rounded border border-[#D4CEBF]">
@@ -184,8 +197,12 @@ export const ReviewTab: React.FC = () => {
                 <p className="font-mono font-bold text-xs sm:text-sm text-[#1C1917] mt-0.5 leading-tight">
                   {bestDayStat && bestDayStat.completedCount > 0 ? (
                     <span>
-                      <span className="text-sm font-black">{bestDayStat.label}</span>{" "}
-                      <span className="text-[10.5px] text-[#78716C]">({bestDayStat.completedCount} việc)</span>
+                      <span className="text-sm font-black">
+                        {bestDayStat.label}
+                      </span>{" "}
+                      <span className="text-[10.5px] text-[#78716C]">
+                        ({bestDayStat.completedCount} việc)
+                      </span>
                     </span>
                   ) : (
                     <span className="text-[11px] text-[#78716C]">Chưa có</span>
@@ -199,7 +216,10 @@ export const ReviewTab: React.FC = () => {
                   <span>Thói quen</span>
                 </span>
                 <p className="font-mono font-bold text-base text-[#1C1917] mt-0.5">
-                  {totalHabitChecks} <span className="text-[10px] text-[#78716C] font-normal">lượt</span>
+                  {totalHabitChecks}{" "}
+                  <span className="text-[10px] text-[#78716C] font-normal">
+                    lượt
+                  </span>
                 </p>
               </div>
 
@@ -208,9 +228,24 @@ export const ReviewTab: React.FC = () => {
                   <TrendingUp size={11} className="text-indigo-700 shrink-0" />
                   <span>Đánh giá</span>
                 </span>
-                <p className="font-bold text-xs text-[#1C1917] mt-0.5 leading-tight">
-                  {productivityScore >= 80 ? "Xuất sắc! 🔥" : productivityScore >= 50 ? "Khá tốt! ✨" : "Cố lên! 🌱"}
-                </p>
+                <div className="font-bold text-xs text-[#1C1917] mt-0.5 leading-tight flex items-center gap-1">
+                  {productivityScore >= 80 ? (
+                    <>
+                      <span>Xuất sắc!</span>
+                      <Flame size={13} className="text-amber-500 fill-amber-500 shrink-0" />
+                    </>
+                  ) : productivityScore >= 50 ? (
+                    <>
+                      <span>Khá tốt!</span>
+                      <Sparkles size={13} className="text-amber-500 shrink-0" />
+                    </>
+                  ) : (
+                    <>
+                      <span>Cố lên!</span>
+                      <Sprout size={13} className="text-emerald-600 shrink-0" />
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -218,9 +253,15 @@ export const ReviewTab: React.FC = () => {
             <div className="pt-2 border-t border-[#D4CEBF]/60">
               <div className="h-28 flex items-end justify-between gap-1.5 sm:gap-3 px-1 pt-4">
                 {dailyTaskStats.map((d) => {
-                  const heightPercent = maxCompleted > 0 ? Math.max(12, (d.completedCount / maxCompleted) * 100) : 12;
+                  const heightPercent =
+                    maxCompleted > 0
+                      ? Math.max(12, (d.completedCount / maxCompleted) * 100)
+                      : 12;
                   return (
-                    <div key={d.date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end group">
+                    <div
+                      key={d.date}
+                      className="flex-1 flex flex-col items-center gap-1 h-full justify-end group"
+                    >
                       <span className="text-[10px] font-mono font-bold text-[#78716C] group-hover:text-[#1C1917]">
                         {d.completedCount > 0 ? d.completedCount : ""}
                       </span>
@@ -230,12 +271,14 @@ export const ReviewTab: React.FC = () => {
                           d.isToday
                             ? "bg-[#FEF08A] shadow-[1.5px_0px_0px_#262626]"
                             : d.completedCount > 0
-                            ? "bg-[#BBF7D0] shadow-[1px_0px_0px_#262626]"
-                            : "bg-[#F3EFE6] opacity-60"
+                              ? "bg-[#BBF7D0] shadow-[1px_0px_0px_#262626]"
+                              : "bg-[#F3EFE6] opacity-60"
                         }`}
                       />
                       <div className="text-center pt-1">
-                        <p className={`text-[10px] font-mono leading-none ${d.isToday ? "font-bold text-[#1C1917] underline decoration-[#FEF08A] decoration-2" : "text-[#78716C]"}`}>
+                        <p
+                          className={`text-[10px] font-mono leading-none ${d.isToday ? "font-bold text-[#1C1917] underline decoration-[#FEF08A] decoration-2" : "text-[#78716C]"}`}
+                        >
                           {d.label}
                         </p>
                         <p className="text-[8px] font-mono text-[#A8A29E] mt-0.5">
@@ -277,7 +320,9 @@ export const ReviewTab: React.FC = () => {
                     } active:translate-y-[0.5px]`}
                   >
                     <DynamicIcon name={m.key} size={22} strokeWidth={2.2} />
-                    <span className="text-[10px] sm:text-[11px] mt-1">{m.label}</span>
+                    <span className="text-[10px] sm:text-[11px] mt-1">
+                      {m.label}
+                    </span>
                   </button>
                 );
               })}
@@ -287,12 +332,18 @@ export const ReviewTab: React.FC = () => {
             <div className="pt-2 border-t border-[#D4CEBF]/60 flex items-center justify-between text-xs px-1">
               {weekDays.map((d) => (
                 <div key={d.date} className="flex flex-col items-center">
-                  <span className={`text-[10px] font-mono ${d.isToday ? "font-bold text-[#1C1917] underline decoration-[#FEF08A] decoration-2" : "text-[#78716C]"}`}>
+                  <span
+                    className={`text-[10px] font-mono ${d.isToday ? "font-bold text-[#1C1917] underline decoration-[#FEF08A] decoration-2" : "text-[#78716C]"}`}
+                  >
                     {d.label}
                   </span>
                   <div className="h-5 flex items-center justify-center mt-0.5">
                     {dailyMoods[d.date] ? (
-                      <DynamicIcon name={dailyMoods[d.date]} size={16} strokeWidth={2.2} />
+                      <DynamicIcon
+                        name={dailyMoods[d.date]}
+                        size={16}
+                        strokeWidth={2.2}
+                      />
                     ) : (
                       <span className="w-2.5 h-2.5 rounded-full bg-[#F3EFE6] border border-[#D4CEBF]" />
                     )}
@@ -318,7 +369,10 @@ export const ReviewTab: React.FC = () => {
             </div>
 
             {/* Ô Thêm Thói Quen */}
-            <form onSubmit={handleAddHabit} className="p-3 border-b border-[#D4CEBF] flex gap-2 bg-[#FBF9F4]">
+            <form
+              onSubmit={handleAddHabit}
+              className="p-3 border-b border-[#D4CEBF] flex gap-2 bg-[#FBF9F4]"
+            >
               <TextInput
                 placeholder="Nhập thói quen mới (vd: Uống 2L nước, Chạy bộ 30p, Đọc sách)..."
                 value={newHabitName}
@@ -343,7 +397,7 @@ export const ReviewTab: React.FC = () => {
               ) : (
                 habits.map((habit) => {
                   const weekCompletedDays = weekDays.filter((d) =>
-                    habit.completedDates.includes(d.date)
+                    habit.completedDates.includes(d.date),
                   ).length;
 
                   return (
@@ -354,7 +408,11 @@ export const ReviewTab: React.FC = () => {
                       {/* HÀNG 1: TÊN THÓI QUEN ĐẦY ĐỦ 100% */}
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0">
-                          <Sparkles size={14} strokeWidth={2.2} className="text-amber-500 shrink-0" />
+                          <Sparkles
+                            size={14}
+                            strokeWidth={2.2}
+                            className="text-amber-500 shrink-0"
+                          />
                           <h4 className="font-bold text-sm sm:text-base text-[#1C1917] leading-snug break-words">
                             {habit.name}
                           </h4>
@@ -362,7 +420,11 @@ export const ReviewTab: React.FC = () => {
 
                         <div className="flex items-center gap-2 shrink-0">
                           <span className="text-xs font-mono font-bold bg-[#FEF08A] text-[#1C1917] px-2 py-0.5 rounded border border-[#262626] shadow-[1px_1px_0px_#262626] inline-flex items-center gap-1">
-                            <Flame size={12} strokeWidth={2.2} className="text-amber-600" />
+                            <Flame
+                              size={12}
+                              strokeWidth={2.2}
+                              className="text-amber-600"
+                            />
                             <span>{weekCompletedDays}/7 ngày</span>
                           </span>
                           <button
@@ -391,12 +453,16 @@ export const ReviewTab: React.FC = () => {
                                   : "bg-[#FBF9F4] border-[#D4CEBF] text-[#78716C] hover:bg-white hover:border-[#262626]"
                               } active:translate-y-[0.5px]`}
                             >
-                              <span className={`text-[9px] font-mono leading-none ${d.isToday ? "font-bold text-[#1C1917] underline decoration-[#FEF08A] decoration-2" : "text-[#78716C]"}`}>
+                              <span
+                                className={`text-[9px] font-mono leading-none ${d.isToday ? "font-bold text-[#1C1917] underline decoration-[#FEF08A] decoration-2" : "text-[#78716C]"}`}
+                              >
                                 {d.label}
                               </span>
                               <div className="mt-1">
                                 {isDone ? (
-                                  <span className="font-bold text-xs leading-none text-[#1C1917]">✓</span>
+                                  <span className="font-bold text-xs leading-none text-[#1C1917]">
+                                    ✓
+                                  </span>
                                 ) : (
                                   <span className="inline-block w-2.5 h-2.5 rounded-full border border-[#D4CEBF] bg-white" />
                                 )}

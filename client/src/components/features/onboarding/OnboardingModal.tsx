@@ -251,8 +251,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
               onClick={handleNext}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-[#262626] hover:bg-[#1C1917] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#A8A29E] text-xs font-bold text-white active:translate-y-[0.5px] active:shadow-none transition-all"
             >
-              <span>{isLast ? "Bắt đầu sử dụng ✦" : "Tiếp theo"}</span>
-              {!isLast && <ChevronRight size={14} />}
+              <span>{isLast ? "Bắt đầu sử dụng" : "Tiếp theo"}</span>
+              {isLast ? <Sparkles size={13} className="text-amber-300" /> : <ChevronRight size={14} />}
             </button>
           </div>
 
@@ -260,9 +260,10 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClos
             <button
               type="button"
               onClick={handleLoadSample}
-              className="w-full py-2 bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] active:translate-y-[0.5px] active:shadow-none transition-all"
+              className="w-full py-2 bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] active:translate-y-[0.5px] active:shadow-none transition-all flex items-center justify-center gap-1.5"
             >
-              Nạp dữ liệu mẫu để khám phá ✦
+              <span>Nạp dữ liệu mẫu để khám phá</span>
+              <Sparkles size={13} className="text-amber-700" />
             </button>
           )}
 

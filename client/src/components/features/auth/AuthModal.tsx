@@ -16,10 +16,12 @@ import {
   Smartphone,
   Laptop,
   Radio,
-  CheckSquare,
   BookMarked,
   Lightbulb,
   Flame,
+  Check,
+  AlertCircle,
+  ArrowRight,
 } from "lucide-react";
 
 // ==========================================
@@ -380,12 +382,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   size={14}
                   className={isSyncing ? "animate-spin" : ""}
                 />
-                <span>
-                  {syncDone
-                    ? "✓ Đồng bộ thành công!"
-                    : isSyncing
-                      ? "Đang đồng bộ..."
-                      : "Đồng bộ đám mây ngay"}
+                <span className="flex items-center gap-1.5">
+                  {syncDone ? (
+                    <>
+                      <Check size={14} className="text-emerald-700" />
+                      <span>Đồng bộ thành công!</span>
+                    </>
+                  ) : isSyncing ? (
+                    "Đang đồng bộ..."
+                  ) : (
+                    "Đồng bộ đám mây ngay"
+                  )}
                 </span>
               </button>
 
@@ -398,8 +405,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 }}
                 className="w-full py-2 bg-white hover:bg-red-50 text-red-600 border border-red-300 rounded-[4px] text-xs font-bold flex items-center justify-center gap-1.5"
               >
-                <LogOut size={13} />
-                <span>Đăng xuất khỏi thiết bị này</span>
+                <LogOut size={14} />
+                <span>Đăng xuất tài khoản này</span>
               </button>
             </div>
           </div>
@@ -408,29 +415,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           /* TRƯỜNG HỢP 2: CHƯA ĐĂNG NHẬP (FORM LOGIN/SIGNUP) */
           /* ========================================== */
           <div>
-            {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-[#262626] mb-4">
+            {/* Form Header */}
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#262626]">
               <div className="flex items-center gap-2">
                 {onBackToSettings && (
                   <button
                     type="button"
                     onClick={onBackToSettings}
                     title="Quay lại Cài đặt"
-                    className="p-1 bg-white hover:bg-[#FEF08A] border border-[#262626] rounded text-[#1C1917] shadow-sm flex items-center justify-center active:translate-y-[0.5px]"
+                    className="p-1 hover:bg-[#F3EFE6] border border-[#D4CEBF] rounded text-[#78716C] hover:text-[#1C1917]"
                   >
-                    <ArrowLeft size={14} strokeWidth={2.5} />
+                    <ArrowLeft size={14} strokeWidth={2.2} />
                   </button>
                 )}
-                <Sparkles
-                  size={18}
-                  strokeWidth={2.2}
-                  className="text-amber-600"
-                />
-                <h3 className="font-bold text-sm text-[#1C1917]">
-                  {authMode === "signin"
-                    ? "Đăng Nhập SketchTask"
-                    : "Tạo Sổ Tay Cá Nhân"}
-                </h3>
+                <div>
+                  <h3 className="font-bold text-sm sm:text-base text-[#1C1917]">
+                    {authMode === "signin"
+                      ? "Đăng Nhập SketchTask"
+                      : "Tạo Sổ Tay Cá Nhân"}
+                  </h3>
+                  <p className="text-[10px] text-[#78716C] font-mono">
+                    {authMode === "signin"
+                      ? "Đồng bộ đám mây"
+                      : "Lưu trữ vĩnh viễn"}
+                  </p>
+                </div>
               </div>
 
               {!onBackToSettings && (
@@ -446,10 +455,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
             {/* Subtitle / Intro */}
             <div className="mb-4 bg-[#FEF08A]/40 border border-[#262626] p-2.5 rounded-[4px] shadow-[1px_1px_0px_#262626]">
-              <p className="text-xs text-[#1C1917] leading-relaxed">
-                {authMode === "signin"
-                  ? "✨ Đăng nhập để đồng bộ real-time giữa điện thoại & máy tính!"
-                  : "🚀 Đăng ký tài khoản để lưu trữ đám mây & dùng mọi lúc mọi nơi."}
+              <p className="text-xs text-[#1C1917] leading-relaxed flex items-center gap-1.5">
+                {authMode === "signin" ? (
+                  <>
+                    <Sparkles size={14} className="text-amber-600 shrink-0" />
+                    <span>Đăng nhập để đồng bộ real-time giữa điện thoại & máy tính!</span>
+                  </>
+                ) : (
+                  <>
+                    <Cloud size={14} className="text-sky-600 shrink-0" />
+                    <span>Đăng ký tài khoản để lưu trữ đám mây & dùng mọi lúc mọi nơi.</span>
+                  </>
+                )}
               </p>
             </div>
 
@@ -502,8 +519,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
 
               {errorMessage && (
-                <p className="text-[11px] text-red-600 font-medium bg-red-50 p-2 border border-red-200 rounded">
-                  ⚠️ {errorMessage}
+                <p className="text-[11px] text-red-600 font-medium bg-red-50 p-2 border border-red-200 rounded flex items-center gap-1.5">
+                  <AlertCircle size={13} className="shrink-0" />
+                  <span>{errorMessage}</span>
                 </p>
               )}
 
@@ -513,13 +531,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   variant="primary"
                   size="md"
                   disabled={isSubmitting}
-                  className="w-full justify-center"
+                  className="w-full justify-center gap-1.5"
                 >
-                  {isSubmitting
-                    ? "Đang xử lý..."
-                    : authMode === "signin"
-                      ? "Đăng nhập ngay ➔"
-                      : "Tạo sổ tay cá nhân ➔"}
+                  <span>
+                    {isSubmitting
+                      ? "Đang xử lý..."
+                      : authMode === "signin"
+                        ? "Đăng nhập ngay"
+                        : "Tạo sổ tay cá nhân"}
+                  </span>
+                  {!isSubmitting && <ArrowRight size={14} />}
                 </Button>
 
                 {/* NÚT GOOGLE OAUTH POPUP (Chỉ hiển thị trên Web / PWA) */}
