@@ -16,9 +16,18 @@ app.use(express.json({ limit: "10mb" }));
 // API Endpoints
 app.use("/api/v1", apiRouter);
 
-// Health Check
+// Root & Health Check Endpoint (Cho UptimeRobot & Giữ máy chủ thức 24/7)
+app.get("/", (_req, res) => {
+  res.status(200).json({
+    status: "ok",
+    app: "SketchTask Backend Server",
+    realtime: "WebSocket Ready",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.get("/health", (_req, res) => {
-  res.json({
+  res.status(200).json({
     status: "ok",
     app: "SketchTask API",
     realtime: "WebSocket Ready",
