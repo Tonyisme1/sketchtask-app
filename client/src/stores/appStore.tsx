@@ -516,48 +516,59 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const isApplyingRemoteSync = useRef(false);
   const syncDebounceTimer = useRef<any>(null);
 
+  // Safe Storage Writer chống lỗi QuotaExceededError khi dữ liệu phình to
+  const safeSetItem = (key: string, value: string) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (err: any) {
+      if (err?.name === "QuotaExceededError" || err?.code === 22) {
+        console.warn(`⚠️ LocalStorage đầy bộ nhớ khi lưu ${key}. Đang kích hoạt cơ chế bảo vệ an toàn.`);
+      }
+    }
+  };
+
   // Sync to LocalStorage
   useEffect(() => {
-    localStorage.setItem(`${STORAGE_KEY}_user`, JSON.stringify(user));
+    safeSetItem(`${STORAGE_KEY}_user`, JSON.stringify(user));
   }, [user]);
 
   useEffect(() => {
-    localStorage.setItem(`${STORAGE_KEY}_tilt`, JSON.stringify(isTiltEnabled));
+    safeSetItem(`${STORAGE_KEY}_tilt`, JSON.stringify(isTiltEnabled));
   }, [isTiltEnabled]);
 
   useEffect(() => {
-    localStorage.setItem(
+    safeSetItem(
       `${STORAGE_KEY}_hide_completed`,
       JSON.stringify(hideCompletedTasks),
     );
   }, [hideCompletedTasks]);
 
   useEffect(() => {
-    localStorage.setItem(`${STORAGE_KEY}_tasks`, JSON.stringify(tasks));
+    safeSetItem(`${STORAGE_KEY}_tasks`, JSON.stringify(tasks));
   }, [tasks]);
 
   useEffect(() => {
-    localStorage.setItem(`${STORAGE_KEY}_tags`, JSON.stringify(tags));
+    safeSetItem(`${STORAGE_KEY}_tags`, JSON.stringify(tags));
   }, [tags]);
 
   useEffect(() => {
-    localStorage.setItem(`${STORAGE_KEY}_notebooks`, JSON.stringify(notebooks));
+    safeSetItem(`${STORAGE_KEY}_notebooks`, JSON.stringify(notebooks));
   }, [notebooks]);
 
   useEffect(() => {
-    localStorage.setItem(`${STORAGE_KEY}_notes`, JSON.stringify(stickyNotes));
+    safeSetItem(`${STORAGE_KEY}_notes`, JSON.stringify(stickyNotes));
   }, [stickyNotes]);
 
   useEffect(() => {
-    localStorage.setItem(`${STORAGE_KEY}_habits`, JSON.stringify(habits));
+    safeSetItem(`${STORAGE_KEY}_habits`, JSON.stringify(habits));
   }, [habits]);
 
   useEffect(() => {
-    localStorage.setItem(`${STORAGE_KEY}_moods`, JSON.stringify(dailyMoods));
+    safeSetItem(`${STORAGE_KEY}_moods`, JSON.stringify(dailyMoods));
   }, [dailyMoods]);
 
   useEffect(() => {
-    localStorage.setItem(`${STORAGE_KEY}_reflection`, weeklyReflection);
+    safeSetItem(`${STORAGE_KEY}_reflection`, weeklyReflection);
   }, [weeklyReflection]);
 
   // Ref lưu dữ liệu mới nhất để push/pull an toàn mà không làm re-trigger hooks

@@ -217,6 +217,7 @@ export const TodayTab: React.FC = () => {
             <TextInput
               placeholder="Thêm việc mới..."
               value={newTitle}
+              maxLength={250}
               error={inputError}
               onChange={(e) => {
                 setNewTitle(e.target.value);
@@ -524,47 +525,24 @@ export const TodayTab: React.FC = () => {
               </div>
             </div>
 
-            {/* 2. Theo Cuốn Sổ */}
-            <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-[#D4CEBF]/60">
+            {/* 2. Theo Cuốn Sổ (Dropdown CustomSelect gọn gàng) */}
+            <div className="flex items-center gap-2 pt-2 border-t border-[#D4CEBF]/60">
               <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">Cuốn sổ:</span>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => setNotebookFilter("all")}
-                  className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
-                    notebookFilter === "all"
-                      ? "bg-[#262626] text-white border-[#262626] font-bold"
-                      : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
-                  }`}
-                >
-                  Tất cả sổ
-                </button>
-                {notebooks.map((nb) => (
-                  <button
-                    key={nb.id}
-                    type="button"
-                    onClick={() => setNotebookFilter(notebookFilter === nb.id ? "all" : nb.id)}
-                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
-                      notebookFilter === nb.id
-                        ? "bg-[#FEF08A] border-[#262626] text-[#1C1917] font-bold shadow-[1px_1px_0px_#262626]"
-                        : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
-                    }`}
-                  >
-                    <DynamicIcon name={nb.icon || "lucide:BookMarked"} size={11} />
-                    <span>{nb.name}</span>
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setNotebookFilter(notebookFilter === "none" ? "all" : "none")}
-                  className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
-                    notebookFilter === "none"
-                      ? "bg-[#262626] text-white border-[#262626] font-bold"
-                      : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
-                  }`}
-                >
-                  Chưa gán sổ
-                </button>
+              <div className="flex-1 min-w-0 max-w-xs">
+                <CustomSelect
+                  value={notebookFilter}
+                  onChange={(val) => setNotebookFilter(val)}
+                  options={[
+                    { value: "all", label: "Tất cả sổ tay", count: todayTasks.length },
+                    ...notebooks.map((nb) => ({
+                      value: nb.id,
+                      label: nb.name,
+                      icon: nb.icon || "lucide:BookMarked",
+                      count: todayTasks.filter((t) => t.notebookId === nb.id).length,
+                    })),
+                    { value: "none", label: "Chưa gán sổ", count: todayTasks.filter((t) => !t.notebookId).length },
+                  ]}
+                />
               </div>
             </div>
 
@@ -575,7 +553,7 @@ export const TodayTab: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setOnlyOverdueFilter(!onlyOverdueFilter)}
-                  className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
+                  className={`px-2 py-1 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
                     onlyOverdueFilter
                       ? "bg-rose-600 text-white border-rose-700 font-bold shadow-[1px_1px_0px_#262626]"
                       : "border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100"
@@ -587,35 +565,22 @@ export const TodayTab: React.FC = () => {
               </div>
             )}
 
-            {/* 4. Nhãn Phân Loại (#Tag) */}
-            <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-[#D4CEBF]/60">
+            {/* 4. Nhãn Phân Loại (#Tag Dropdown CustomSelect gọn gàng) */}
+            <div className="flex items-center gap-2 pt-2 border-t border-[#D4CEBF]/60">
               <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">Nhãn tag:</span>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <button
-                  type="button"
-                  onClick={() => setTagFilter("all")}
-                  className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
-                    tagFilter === "all"
-                      ? "bg-[#262626] text-white border-[#262626] font-bold"
-                      : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
-                  }`}
-                >
-                  Tất cả tag
-                </button>
-                {tags.map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => setTagFilter(tagFilter === tag ? "all" : tag)}
-                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
-                      tagFilter === tag
-                        ? "border-[#262626] bg-[#FEF08A] font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626]"
-                        : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
-                    }`}
-                  >
-                    #{tag}
-                  </button>
-                ))}
+              <div className="flex-1 min-w-0 max-w-xs">
+                <CustomSelect
+                  value={tagFilter}
+                  onChange={(val) => setTagFilter(val)}
+                  options={[
+                    { value: "all", label: "Tất cả thẻ tag", count: todayTasks.length },
+                    ...tags.map((tag) => ({
+                      value: tag,
+                      label: `#${tag}`,
+                      count: todayTasks.filter((t) => t.tag === tag).length,
+                    })),
+                  ]}
+                />
               </div>
             </div>
           </div>
