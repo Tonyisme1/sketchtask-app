@@ -3,6 +3,7 @@ import { useAppStore, StickyNoteItem } from "../../../stores/appStore";
 import { Button } from "../../ui/Button";
 import { CustomColorPicker, ColorOption } from "../../ui/CustomColorPicker";
 import { DynamicIcon } from "../../ui/DynamicIcon";
+import { Pin, X, ArrowRight } from "lucide-react";
 
 // ==========================================
 // COMPONENT: BraindumpTab (Đa Dạng Màu - Cuộn Mượt - Tự Đóng Khi Click Ngoài)
@@ -211,14 +212,17 @@ export const BraindumpTab: React.FC = () => {
                 key={note.id}
                 className={`group relative p-3.5 border-[1.5px] border-[#262626] shadow-[2.5px_2.5px_0px_#262626] rounded-[3px] ${
                   colorMap[note.color]
-                } ${rotation} flex flex-col justify-between min-h-[145px] transition-all hover:shadow-[3.5px_3.5px_0px_#262626]`}
+                } ${rotation} flex flex-col justify-between min-h-[145px] transition-all hover:shadow-[3.5px_3.5px_0px_#262626] animate-note-drop`}
               >
+                {/* Miếng Băng Dính Vàng Phác Thảo hoặc Ghim Đỏ */}
                 {note.isPinned ? (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 text-base z-10 animate-bounce">
-                    📌
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 animate-bounce">
+                    <div className="w-5 h-5 rounded-full bg-red-500 border border-[#262626] flex items-center justify-center text-white shadow-sm">
+                      <Pin size={11} strokeWidth={2.5} />
+                    </div>
                   </div>
                 ) : (
-                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-3 bg-white/70 border-t border-b border-[#262626]/20" />
+                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-10 h-3.5 bg-[#FEF08A]/80 border-x border-[#262626]/40 rotate-1 shadow-sm pointer-events-none" />
                 )}
 
                 {/* Top Action */}
@@ -226,21 +230,22 @@ export const BraindumpTab: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => togglePinStickyNote(note.id)}
-                    className={`text-[10px] px-1 py-0.2 rounded border ${
+                    className={`text-[10px] px-1.5 py-0.5 rounded border flex items-center gap-1 transition-all ${
                       note.isPinned
                         ? "bg-red-100 border-red-500 text-red-700 font-bold"
-                        : "bg-white/60 hover:bg-white border-[#262626]/40 text-[#78716C]"
+                        : "bg-white/70 hover:bg-white border-[#262626]/40 text-[#78716C]"
                     }`}
                   >
-                    {note.isPinned ? "📌 Đã ghim" : "📌 Ghim"}
+                    <Pin size={10} strokeWidth={2.2} />
+                    <span>{note.isPinned ? "Đã ghim" : "Ghim"}</span>
                   </button>
 
                   <button
                     onClick={() => deleteStickyNote(note.id)}
-                    title="Xóa"
-                    className="text-xs text-[#78716C] hover:text-[#1C1917] p-0.5 font-bold"
+                    title="Xóa ghi chú"
+                    className="text-[#78716C] hover:text-red-600 p-0.5"
                   >
-                    ✕
+                    <X size={12} strokeWidth={2.5} />
                   </button>
                 </div>
 
@@ -254,9 +259,10 @@ export const BraindumpTab: React.FC = () => {
                   <button
                     onClick={() => convertNoteToTask(note.id)}
                     title="Chuyển việc hôm nay"
-                    className="text-[10px] font-bold text-[#1C1917] bg-white hover:bg-[#FEF08A] px-2 py-0.5 border border-[#262626] rounded-[2px] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
+                    className="text-[10px] font-bold text-[#1C1917] bg-white hover:bg-[#FEF08A] px-2 py-0.5 border border-[#262626] rounded-[2px] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] flex items-center gap-1"
                   >
-                    ➔ Hôm nay
+                    <ArrowRight size={10} strokeWidth={2.2} />
+                    <span>Hôm nay</span>
                   </button>
 
                   <div data-notebook-dropdown-container className="relative">

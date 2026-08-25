@@ -574,7 +574,7 @@ export const PlannerTab: React.FC = () => {
               return (
                 <div
                   key={task.id}
-                  className={`group p-2.5 sm:p-3 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] space-y-2 transition-all ${getCardTilt(
+                  className={`group p-2.5 sm:p-3 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] space-y-2 transition-all animate-task-pop ${getCardTilt(
                     idx
                   )}`}
                 >

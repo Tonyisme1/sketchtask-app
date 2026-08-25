@@ -161,8 +161,16 @@ export const TodayTab: React.FC = () => {
             </span>
           </div>
 
-          <div className="font-mono text-xs font-bold bg-white px-2.5 py-1 border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626]">
-            {completedCount}/{totalCount} Xong
+          <div className="flex items-center gap-2">
+            {totalCount > 0 && completedCount === totalCount ? (
+              <div className="px-2.5 py-1 border-2 border-red-600 bg-red-50 rounded-[4px] text-red-600 font-mono font-black text-xs -rotate-6 shadow-[1.5px_1.5px_0px_#DC2626] uppercase tracking-wider animate-stamp select-none flex items-center gap-1">
+                <span>HOÀN TẤT ★ 100%</span>
+              </div>
+            ) : (
+              <div className="font-mono text-xs font-bold bg-white px-2.5 py-1 border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626]">
+                {completedCount}/{totalCount} Xong
+              </div>
+            )}
           </div>
         </div>
 
@@ -172,28 +180,6 @@ export const TodayTab: React.FC = () => {
               className="h-full bg-[#BBF7D0] border-r border-[#262626] transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
-          </div>
-        )}
-
-        {/* Con Dấu Mộc Đóng Xuống Khi Hoàn Thành 100% Việc Trong Ngày */}
-        {totalCount > 0 && completedCount === totalCount && (
-          <div className="p-2.5 bg-[#FEF08A]/40 border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] flex items-center justify-between gap-2 animate-stamp select-none">
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-emerald-200 border border-[#262626] flex items-center justify-center font-bold text-emerald-900 text-xs shadow-sm">
-                ✓
-              </span>
-              <div>
-                <p className="font-bold text-xs text-[#1C1917]">
-                  Xuất sắc! Đã hoàn thành 100% việc hôm nay!
-                </p>
-                <p className="text-[10px] text-[#78716C]">
-                  Tất cả mục tiêu đã xong. Hãy tận hưởng thời gian nghỉ ngơi nhé!
-                </p>
-              </div>
-            </div>
-            <div className="px-2 py-0.5 border-2 border-red-600 bg-white/80 rounded-[3px] text-red-600 font-mono font-black text-[11px] -rotate-3 shadow-[1px_1px_0px_#DC2626] uppercase tracking-wider shrink-0">
-              HOÀN TẤT ★
-            </div>
           </div>
         )}
       </div>
@@ -443,7 +429,7 @@ export const TodayTab: React.FC = () => {
             return (
               <div
                 key={task.id}
-                className={`group p-2.5 sm:p-3 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] transition-all ${getCardTilt(
+                className={`group p-2.5 sm:p-3 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] transition-all animate-task-pop ${getCardTilt(
                   index
                 )} ${
                   task.completed
