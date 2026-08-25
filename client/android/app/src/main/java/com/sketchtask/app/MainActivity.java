@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
@@ -17,8 +19,8 @@ public class MainActivity extends BridgeActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(Color.parseColor("#FFFFFF"));
-            window.setNavigationBarColor(Color.parseColor("#FFFFFF"));
+            window.setStatusBarColor(Color.parseColor("#FBF9F4"));
+            window.setNavigationBarColor(Color.parseColor("#FBF9F4"));
         }
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -29,6 +31,22 @@ public class MainActivity extends BridgeActivity {
                 flags |= View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
             }
             decorView.setSystemUiVisibility(flags);
+        }
+
+        // Cấu hình WebView hỗ trợ Google OAuth Popup
+        if (this.bridge != null && this.bridge.getWebView() != null) {
+            WebView webView = this.bridge.getWebView();
+            WebSettings settings = webView.getSettings();
+            settings.setJavaScriptCanOpenWindowsAutomatically(true);
+            settings.setSupportMultipleWindows(true);
+            settings.setDomStorageEnabled(true);
+            settings.setDatabaseEnabled(true);
+            
+            // Xóa dấu hiệu "; wv" để Google OAuth không chặn WebView
+            String userAgent = settings.getUserAgentString();
+            if (userAgent != null && userAgent.contains("; wv")) {
+                settings.setUserAgentString(userAgent.replace("; wv", ""));
+            }
         }
     }
 }
