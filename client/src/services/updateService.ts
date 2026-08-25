@@ -2,7 +2,7 @@
 // SERVICE: updateService.ts (Tự Động Kiểm Tra Cập Nhật)
 // ==========================================
 
-export const CURRENT_APP_VERSION = "1.2.0";
+export const CURRENT_APP_VERSION = "1.3.0";
 
 export interface UpdateInfo {
   hasUpdate: boolean;
@@ -33,7 +33,13 @@ export const checkForAppUpdates = async (): Promise<UpdateInfo | null> => {
     const data = await res.json();
     const latestVersion = data.version || CURRENT_APP_VERSION;
 
-    // So sánh version chuỗi semver (ví dụ "1.3.0" > "1.2.0")
+    // Kiểm tra xem người dùng đã bỏ qua hoặc đã cập nhật version này trong session chưa
+    const dismissedVersion = sessionStorage.getItem("sketchtask_dismissed_version");
+    if (dismissedVersion === latestVersion) {
+      return null;
+    }
+
+    // So sánh version chuỗi semver (ví dụ "1.3.1" > "1.3.0")
     const hasUpdate = isNewerVersion(latestVersion, CURRENT_APP_VERSION);
 
     return {

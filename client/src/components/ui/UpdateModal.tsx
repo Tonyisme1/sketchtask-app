@@ -19,6 +19,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
   if (!updateInfo || !updateInfo.hasUpdate) return null;
 
   const handleApplyUpdate = () => {
+    sessionStorage.setItem("sketchtask_dismissed_version", updateInfo.latestVersion);
     // Nếu có link APK hoặc web download
     if (updateInfo.apkUrl && updateInfo.apkUrl.endsWith(".apk")) {
       window.open(updateInfo.apkUrl, "_blank");
@@ -33,6 +34,11 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
       }
       window.location.reload();
     }
+    onClose();
+  };
+
+  const handleDismiss = () => {
+    sessionStorage.setItem("sketchtask_dismissed_version", updateInfo.latestVersion);
     onClose();
   };
 
@@ -79,7 +85,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
           {!updateInfo.isForceUpdate && (
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleDismiss}
               className="text-[#78716C] hover:text-[#1C1917] dark:text-[#A8A29E] dark:hover:text-white p-1"
             >
               <X size={15} strokeWidth={2.5} />
@@ -103,7 +109,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
           {!updateInfo.isForceUpdate && (
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleDismiss}
               className="flex-1 py-2 bg-[#F3EFE6] dark:bg-[#2E2A27] hover:bg-white dark:hover:bg-[#3D3834] border border-[#262626] dark:border-[#57534E] rounded-[4px] text-xs font-bold text-[#78716C] dark:text-[#A8A29E] transition-all"
             >
               Để sau
@@ -124,3 +130,4 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
     document.body
   );
 };
+
