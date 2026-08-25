@@ -21,7 +21,7 @@ app.get("/", (_req, res) => {
   res.json({
     status: "ok",
     app: "SketchTask API",
-    version: "1.4.0",
+    version: "1.6.0",
     uptime: "24/7",
     timestamp: new Date().toISOString(),
   });
@@ -31,7 +31,7 @@ app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
     app: "SketchTask API",
-    version: "1.4.0",
+    version: "1.6.0",
     realtime: "WebSocket Ready",
     timestamp: new Date().toISOString(),
   });
@@ -40,9 +40,9 @@ app.get("/health", (_req, res) => {
 // App Version Check for Auto-Update
 app.get("/api/version", (_req, res) => {
   res.json({
-    version: "1.4.0",
+    version: "1.6.0",
     releaseDate: "2026-08-25",
-    changelog: "Dark Mode, Tactile Animations, Global Search Ctrl+K, Productivity Analytics, Native Notch Safe-Header, Splash Screen",
+    changelog: "Bottom Sheet Settings, Optimized Search, Productivity Sketch Chart, Priority & Tag Filters, Google Auth Enhancement",
     downloadUrl: "https://sketchtask-app.vercel.app",
     apkUrl: "https://sketchtask-app.vercel.app",
     isForceUpdate: false,

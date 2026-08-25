@@ -60,6 +60,7 @@ export const TodayTab: React.FC = () => {
 
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
   const [dueFilter, setDueFilter] = useState<"all" | "overdue" | "today" | "upcoming">("all");
+  const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all");
   const [tagFilter, setTagFilter] = useState<string>("all");
 
   const handleAddTask = (e?: React.FormEvent) => {
@@ -136,8 +137,11 @@ export const TodayTab: React.FC = () => {
         ? dueInfo?.type === "today"
         : dueInfo?.type === "upcoming";
 
+    const matchPriority =
+      priorityFilter === "all" ? true : (task.priority || "medium") === priorityFilter;
+
     const matchTag = tagFilter === "all" ? true : task.tag === tagFilter;
-    return matchStatus && matchDue && matchTag;
+    return matchStatus && matchDue && matchPriority && matchTag;
   });
 
   const completedCount = todayTasks.filter((t) => t.completed).length;
@@ -391,6 +395,30 @@ export const TodayTab: React.FC = () => {
             <Clock size={11} strokeWidth={2.2} />
             <span>Hôm nay</span>
           </button>
+        </div>
+
+        <div className="w-[1px] h-4 bg-[#D4CEBF] shrink-0" />
+
+        {/* Lọc Mức Độ Ưu Tiên (🔴 Gấp / 🟡 Vừa / 🟢 Thấp) */}
+        <div className="flex items-center gap-1 shrink-0">
+          {[
+            { key: "high", label: "🔴 Gấp", activeClass: "bg-rose-100 text-rose-800 border-rose-400 font-bold" },
+            { key: "medium", label: "🟡 Vừa", activeClass: "bg-amber-100 text-amber-800 border-amber-400 font-bold" },
+            { key: "low", label: "🟢 Thấp", activeClass: "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold" },
+          ].map((p) => (
+            <button
+              key={p.key}
+              type="button"
+              onClick={() => setPriorityFilter(priorityFilter === p.key ? "all" : (p.key as any))}
+              className={`px-1.5 py-0.5 rounded-[3px] border text-[10px] font-medium transition-all ${
+                priorityFilter === p.key
+                  ? `${p.activeClass} shadow-[1px_1px_0px_#262626]`
+                  : "border-transparent bg-[#FBF9F4] text-[#78716C] hover:text-[#1C1917]"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
         </div>
 
         <div className="w-[1px] h-4 bg-[#D4CEBF] shrink-0" />

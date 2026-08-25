@@ -15,10 +15,6 @@ import {
   Smartphone,
   Laptop,
   Radio,
-  CheckSquare,
-  BookOpen,
-  Lightbulb,
-  Flame,
 } from "lucide-react";
 
 // ==========================================
@@ -56,19 +52,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncDone, setSyncDone] = useState(false);
-  const [isMobileDevice, setIsMobileDevice] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobileDevice(
-        /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
-          window.innerWidth < 640
-      );
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   // Form states
   const [name, setName] = useState("");
@@ -139,11 +122,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
     },
     onError: (error) => {
+      console.warn("Google OAuth Error:", error);
       setErrorMessage(
-        "Cửa sổ đăng nhập Google bị hủy hoặc chưa cấu hình Client ID hợp lệ."
+        "Cửa sổ Google bị chặn trên ứng dụng. Bạn có thể đăng nhập bằng Email & Mật khẩu bên trên rất nhanh chóng!"
       );
     },
   });
+
+  const handleGoogleClick = () => {
+    try {
+      triggerGoogleOAuth();
+    } catch (err: any) {
+      console.warn("Google OAuth trigger failed:", err);
+      setErrorMessage("Vui lòng đăng ký/đăng nhập bằng Email & Mật khẩu bên trên.");
+    }
+  };
 
   if (!isOpen || !mounted) return null;
 
@@ -201,13 +194,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
-  if (!isOpen || !mounted) return null;
-
   return createPortal(
     <div
-      onClick={(e) => e.stopPropagation()}
-      onTouchStart={(e) => e.stopPropagation()}
-      onTouchMove={(e) => e.stopPropagation()}
+      onClick={onClose}
       style={{
         position: "fixed",
         top: 0,
@@ -218,20 +207,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         height: "100dvh",
         minHeight: "100vh",
         zIndex: 999999,
-        backgroundColor: "rgba(38, 38, 38, 0.65)",
-        touchAction: "none",
+        backgroundColor: "rgba(0, 0, 0, 0.75)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
       }}
-      className="flex items-end sm:items-center justify-center p-0 sm:p-4 select-none animate-in fade-in duration-150 pointer-events-auto"
+      className="flex items-end sm:items-center justify-center p-0 sm:p-4 select-none animate-in fade-in duration-200 pointer-events-auto"
     >
       {/* Modal Box */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-sm bg-[#FBF9F4] border-t-[2px] sm:border-[2px] border-[#262626] rounded-t-[16px] sm:rounded-[8px] shadow-[0px_-4px_0px_#262626] sm:shadow-[6px_6px_0px_#262626] p-4 sm:p-5 animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 z-[1000000] max-h-[88vh] overflow-y-auto no-scrollbar pb-6 sm:pb-5"
+        className="relative w-full max-w-sm bg-[#FBF9F4] border-t-[2.5px] sm:border-[2px] border-[#262626] rounded-t-[22px] sm:rounded-[8px] shadow-[0px_-4px_0px_#262626] sm:shadow-[6px_6px_0px_#262626] p-4 sm:p-5 animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 z-[1000000] max-h-[90vh] overflow-y-auto no-scrollbar"
       >
-        {/* Mobile Drag Handle Indicator */}
-        <div className="w-10 h-1 bg-[#D4CEBF] rounded-full mx-auto mb-3 sm:hidden" />
+        {/* Mobile Grab Handle */}
+        <div className="w-12 h-1.5 bg-[#D4CEBF] rounded-full mx-auto -mt-1 mb-2.5 sm:hidden" />
 
-        {/* Paper Tape Effect (Desktop) */}
+        {/* Paper Tape Effect */}
         <div className="hidden sm:block absolute -top-3 left-1/2 -translate-x-1/2 w-28 h-5 bg-[#FEF08A]/90 border-x border-[#262626]/40 rotate-1 shadow-sm pointer-events-none" />
 
         {/* ========================================== */}
@@ -298,14 +288,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
             </div>
 
-            {/* Sync Stats Summary (Lucide Icons chuẩn Design System) */}
-            <div className="p-2.5 bg-[#FEF08A]/30 border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2 text-xs">
+            {/* Sync Stats Summary */}
+            <div className="p-2.5 bg-[#FEF08A]/30 border border-[#262626] rounded-[6px] space-y-1.5 text-xs">
               <div className="flex items-center justify-between font-bold text-[11px] text-[#1C1917]">
                 <span className="flex items-center gap-1.5">
-                  <Cloud size={14} strokeWidth={2.2} className="text-sky-700" />
+                  <Cloud size={13} strokeWidth={2.2} />
                   <span>Dữ liệu đồng bộ:</span>
                 </span>
-                <span className="font-mono text-[10px] text-emerald-800 bg-[#BBF7D0] px-1.5 py-0.5 border border-[#262626] rounded font-bold">
+                <span className="font-mono text-[10px] text-emerald-700 bg-emerald-100 px-1.5 py-0.2 border border-emerald-300 rounded">
                   {syncStatus === "syncing"
                     ? "Đang đồng bộ..."
                     : lastSyncedAt
@@ -314,60 +304,39 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-[11px] text-[#1C1917] pt-2 border-t border-[#262626]/20">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <CheckSquare size={13} strokeWidth={2.2} className="text-amber-700 shrink-0" />
-                  <span>{tasks.length} công việc</span>
-                </span>
-                <span className="flex items-center gap-1.5 font-medium">
-                  <BookOpen size={13} strokeWidth={2.2} className="text-indigo-700 shrink-0" />
-                  <span>{notebooks.length} cuốn sổ</span>
-                </span>
-                <span className="flex items-center gap-1.5 font-medium">
-                  <Lightbulb size={13} strokeWidth={2.2} className="text-amber-600 shrink-0" />
-                  <span>{stickyNotes.length} thẻ ý tưởng</span>
-                </span>
-                <span className="flex items-center gap-1.5 font-medium">
-                  <Flame size={13} strokeWidth={2.2} className="text-orange-600 shrink-0" />
-                  <span>{habits.length} thói quen</span>
-                </span>
+              <div className="grid grid-cols-2 gap-1 text-[10px] text-[#78716C] pt-1 border-t border-[#262626]/20">
+                <span>📝 {tasks.length} công việc</span>
+                <span>📓 {notebooks.length} cuốn sổ</span>
+                <span>💡 {stickyNotes.length} thẻ ý tưởng</span>
+                <span>🔥 {habits.length} thói quen</span>
               </div>
             </div>
 
-            {/* Devices list (Tự động nhận diện thiết bị hiện tại) */}
-            <div className="space-y-1.5">
-              <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
-                <Radio size={13} strokeWidth={2.2} className="text-emerald-700" />
-                <span>THIẾT BỊ ĐANG KẾT NỐI REALTIME:</span>
+            {/* Devices list */}
+            <div className="space-y-1">
+              <span className="font-bold text-[11px] text-[#1C1917] block">
+                📱 THIẾT BỊ ĐANG KẾT NỐI REALTIME:
               </span>
-              <div className="space-y-1.5 text-[11px]">
-                {/* 1. Thiết bị đang cầm trên tay */}
-                <div className="flex items-center justify-between bg-white p-2 rounded-[4px] border border-[#262626] shadow-[1px_1px_0px_#262626]">
-                  <span className="flex items-center gap-2 text-[#1C1917] font-bold">
-                    {isMobileDevice ? (
-                      <Smartphone size={14} strokeWidth={2.2} className="text-emerald-700" />
-                    ) : (
-                      <Laptop size={14} strokeWidth={2.2} className="text-emerald-700" />
-                    )}
-                    <span>{isMobileDevice ? "Điện thoại này (Hiện tại)" : "Máy tính này (Hiện tại)"}</span>
+              <div className="space-y-1 text-[11px] text-[#78716C]">
+                <div className="flex items-center justify-between bg-[#FBF9F4] p-1.5 rounded border border-[#262626]/10">
+                  <span className="flex items-center gap-1.5 text-[#1C1917] font-medium">
+                    <Laptop size={13} strokeWidth={2.2} />
+                    <span>Thiết bị hiện tại</span>
                   </span>
-                  <span className="flex items-center gap-1 text-[9.5px] font-mono font-bold text-emerald-800 bg-[#BBF7D0] px-1.5 py-0.5 rounded border border-[#262626]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
+                  <span className="flex items-center gap-1 text-[9px] font-mono text-emerald-700">
+                    <Radio
+                      size={10}
+                      className="animate-pulse text-emerald-600"
+                    />
                     Online
                   </span>
                 </div>
-
-                {/* 2. Thiết bị còn lại kết nối qua Cloud */}
-                <div className="flex items-center justify-between bg-[#FBF9F4] p-2 rounded-[4px] border border-[#D4CEBF]">
-                  <span className="flex items-center gap-2 text-[#78716C] font-medium">
-                    {!isMobileDevice ? (
-                      <Smartphone size={14} strokeWidth={2.2} className="text-[#78716C]" />
-                    ) : (
-                      <Laptop size={14} strokeWidth={2.2} className="text-[#78716C]" />
-                    )}
-                    <span>{!isMobileDevice ? "Điện thoại di động" : "Máy tính / Desktop"}</span>
+                <div className="flex items-center justify-between bg-[#FBF9F4] p-1.5 rounded border border-[#262626]/10">
+                  <span className="flex items-center gap-1.5 text-[#1C1917] font-medium">
+                    <Smartphone size={13} strokeWidth={2.2} />
+                    <span>Điện thoại di động (PWA/APK)</span>
                   </span>
-                  <span className="text-[9.5px] font-mono text-emerald-700 font-bold">
+                  <span className="text-[9px] font-mono text-emerald-700">
                     Tự động đồng bộ
                   </span>
                 </div>
@@ -380,7 +349,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 type="button"
                 onClick={handleManualSync}
                 disabled={isSyncing}
-                className="w-full py-2 bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] flex items-center justify-center gap-2 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                className="w-full py-2 bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] flex items-center justify-center gap-2 active:translate-y-[1px]"
               >
                 <RefreshCw
                   size={14}
@@ -402,7 +371,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   if (onBackToSettings) onBackToSettings();
                   else onClose();
                 }}
-                className="w-full py-2 bg-white hover:bg-red-50 text-red-600 border border-red-300 rounded-[4px] text-xs font-bold flex items-center justify-center gap-1.5 active:translate-x-[1px] active:translate-y-[1px] transition-all"
+                className="w-full py-2 bg-white hover:bg-red-50 text-red-600 border border-red-300 rounded-[4px] text-xs font-bold flex items-center justify-center gap-1.5"
               >
                 <LogOut size={13} />
                 <span>Đăng xuất khỏi thiết bị này</span>
@@ -540,7 +509,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {/* NÚT GOOGLE OAUTH POPUP CHÍNH THỨC */}
                 <button
                   type="button"
-                  onClick={() => triggerGoogleOAuth()}
+                  onClick={handleGoogleClick}
                   disabled={isSubmitting}
                   className="w-full py-2 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] hover:bg-[#F3EFE6] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center gap-2.5"
                 >

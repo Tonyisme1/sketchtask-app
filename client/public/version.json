@@ -1,7 +1,7 @@
 {
-  "version": "1.4.0",
+  "version": "1.6.0",
   "releaseDate": "2026-08-25",
-  "changelog": "Hoàn thiện Splash Screen Logo Sổ tay, thanh Header an toàn chống đụng tai thỏ, thông báo ServiceWorker chuẩn Android Chrome và Google OAuth.",
+  "changelog": "✨ Bản Cập Nhật Lớn v1.6.0:\n• 🎨 Cài đặt dạng Bottom Sheet trượt đáy mượt mà trên Mobile & làm mờ nền sâu\n• 🔍 Tối ưu Tìm Kiếm Toàn Cục (Thêm nút Đóng, chuẩn hóa cho điện thoại)\n• 📊 Biểu đồ Thống kê Năng suất Phác thảo 7 ngày & Chuỗi Thói Quen\n• 🏷️ Bộ Lọc Nâng Cao (Lọc theo mức độ ưu tiên 🔴 Gấp / 🟡 Vừa / 🟢 Thấp & Nhãn Tag)\n• 🔑 Tối ưu Đăng Nhập Tài Khoản & Đồng Bộ Đám Mây",
   "apkUrl": "https://github.com/Tonyisme1/sketchtask-app/actions",
   "downloadUrl": "https://sketchtask-app.vercel.app",
   "isForceUpdate": false

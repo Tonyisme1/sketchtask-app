@@ -112,40 +112,44 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[8px] shadow-[6px_6px_0px_#262626] p-4 flex flex-col max-h-[80vh] overflow-hidden animate-in zoom-in-95 duration-150"
+        className="relative w-full max-w-lg bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[8px] shadow-[6px_6px_0px_#262626] p-3.5 sm:p-4 flex flex-col space-y-3 animate-in zoom-in-95 duration-200 z-[1000000] max-h-[85vh] overflow-hidden"
       >
         {/* Paper Tape Effect */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-28 h-5 bg-[#FEF08A]/90 border-x border-[#262626]/40 rotate-1 shadow-sm pointer-events-none" />
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-5 bg-[#FEF08A]/90 border-x border-[#262626]/40 rotate-1 shadow-sm pointer-events-none" />
 
         {/* Search Input Bar */}
-        <div className="flex items-center gap-2 pb-3 border-b-[1.5px] border-[#262626]">
-          <div className="w-8 h-8 bg-[#FEF08A] border border-[#262626] rounded-[4px] flex items-center justify-center shadow-[1px_1px_0px_#262626] shrink-0">
-            <Search size={16} strokeWidth={2.5} className="text-[#1C1917]" />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 flex items-center">
+            <div className="absolute left-2.5 w-7 h-7 bg-[#FEF08A] border border-[#262626] rounded-[3px] flex items-center justify-center shadow-[1px_1px_0px_#262626]">
+              <Search size={14} className="text-[#1C1917]" />
+            </div>
+            <input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Tìm công việc, sổ tay, ý tưởng, thói quen..."
+              className="w-full pl-12 pr-8 py-2 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs sm:text-sm font-sans text-[#1C1917] placeholder:text-[#78716C] outline-none focus:bg-[#FFFDEB]"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-2.5 text-[#78716C] hover:text-[#1C1917] p-0.5"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
 
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Tìm công việc, sổ tay, ý tưởng, thói quen..."
-            className="flex-1 bg-transparent border-none outline-none text-sm sm:text-base font-bold text-[#1C1917] placeholder:text-[#78716C] placeholder:font-normal"
-          />
-
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              className="p-1 text-[#78716C] hover:text-[#1C1917] font-bold"
-            >
-              <X size={14} strokeWidth={2.5} />
-            </button>
-          )}
-
-          <div className="hidden sm:flex items-center gap-1 text-[10px] font-mono text-[#78716C] bg-white px-1.5 py-0.5 rounded border border-[#D4CEBF]">
-            <Command size={10} />
-            <span>K</span>
-          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            title="Đóng tìm kiếm"
+            className="px-2.5 py-2 bg-[#F3EFE6] hover:bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-xs font-bold text-[#78716C] hover:text-[#1C1917] active:translate-y-[0.5px] shrink-0"
+          >
+            Đóng
+          </button>
         </div>
 
         {/* Results Container */}
@@ -314,12 +318,14 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
         </div>
 
         {/* Footer Hint */}
-        <div className="pt-2 border-t-[1.5px] border-[#262626] flex items-center justify-between text-[10px] text-[#78716C] bg-[#FBF9F4] shrink-0">
-          <span>Nhấn ESC để đóng</span>
-          <span>Click vào mục để mở nhanh ➔</span>
+        <div className="pt-2 border-t-[1.5px] border-[#262626] flex items-center justify-between text-[10px] text-[#78716C] bg-[#FBF9F4] shrink-0 font-sans">
+          <span className="hidden sm:inline">Nhấn ESC để đóng</span>
+          <span className="sm:hidden">Chạm ngoài để thoát</span>
+          <span>Chạm vào mục để mở nhanh ➔</span>
         </div>
       </div>
     </div>,
     document.body
   );
 };
+
