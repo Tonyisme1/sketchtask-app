@@ -19,7 +19,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
   if (!updateInfo || !updateInfo.hasUpdate) return null;
 
   const handleApplyUpdate = () => {
-    sessionStorage.setItem("sketchtask_dismissed_version", updateInfo.latestVersion);
+    localStorage.setItem("sketchtask_dismissed_version", updateInfo.latestVersion);
     // Nếu có link APK hoặc web download
     if (updateInfo.apkUrl && updateInfo.apkUrl.endsWith(".apk")) {
       window.open(updateInfo.apkUrl, "_blank");
@@ -38,7 +38,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
   };
 
   const handleDismiss = () => {
-    sessionStorage.setItem("sketchtask_dismissed_version", updateInfo.latestVersion);
+    localStorage.setItem("sketchtask_dismissed_version", updateInfo.latestVersion);
     onClose();
   };
 
