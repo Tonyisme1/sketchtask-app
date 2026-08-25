@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 
 // ==========================================
-// COMPONENT: PlannerTab (Trung Tâm Điều Khiển Task & Kế Hoạch)
+// COMPONENT: PlannerTab (Kế Hoạch & Task Command Center)
 // ==========================================
 
 const DAY_NAMES = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"];
@@ -558,7 +558,7 @@ export const PlannerTab: React.FC = () => {
                   key={p.key}
                   type="button"
                   onClick={() => setSelectedPriority(p.key as any)}
-                  className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                  className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
                     selectedPriority === p.key
                       ? p.activeClass
                       : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
@@ -571,21 +571,21 @@ export const PlannerTab: React.FC = () => {
           </div>
         </form>
 
-        {/* 4. Filter Bar Khoa Học & Mở Rộng Toàn Diện (Task Command Center) */}
+        {/* 4. Filter Bar Khoa Học & Không Bao Giờ Rớt Dòng (Task Command Center) */}
         <div className="space-y-1.5 select-none">
-          <div className="p-1.5 bg-white border border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] flex items-center justify-between gap-2 text-xs">
+          <div className="p-1 bg-white border border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] flex items-center justify-between gap-1 sm:gap-2 text-xs overflow-x-auto no-scrollbar">
             {/* Nhóm lọc trạng thái chính */}
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 shrink-0">
               {[
                 { key: "all", label: "Tất cả" },
-                { key: "active", label: "⏳ Cần làm" },
-                { key: "completed", label: "✓ Đã xong" },
+                { key: "active", label: "Cần làm" },
+                { key: "completed", label: "Đã xong" },
               ].map((f) => (
                 <button
                   key={f.key}
                   type="button"
                   onClick={() => setStatusFilter(f.key as any)}
-                  className={`px-2 sm:px-2.5 py-1 rounded-[3px] border text-xs font-bold transition-all ${
+                  className={`px-2 sm:px-2.5 py-1 rounded-[3px] border text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
                     statusFilter === f.key
                       ? "bg-[#262626] text-white border-[#262626] shadow-[1px_1px_0px_#262626]"
                       : "bg-[#FBF9F4] text-[#78716C] border-[#D4CEBF] hover:text-[#1C1917]"
@@ -597,7 +597,7 @@ export const PlannerTab: React.FC = () => {
             </div>
 
             {/* Nhóm nút bên phải: Bộ Lọc Nâng Cao & Xóa Lọc */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 shrink-0">
               {(statusFilter !== "all" || priorityFilter !== "all" || notebookFilter !== "all" || timeFilter !== "all" || tagFilter !== "all") && (
                 <button
                   type="button"
@@ -608,27 +608,27 @@ export const PlannerTab: React.FC = () => {
                     setTimeFilter("all");
                     setTagFilter("all");
                   }}
-                  title="Đặt lại toàn bộ lọc"
-                  className="px-2 py-1 rounded-[3px] bg-rose-50 border border-rose-300 text-rose-700 text-[11px] font-bold flex items-center gap-1 hover:bg-rose-100 active:translate-y-[0.5px]"
+                  title="Xóa toàn bộ lọc"
+                  className="px-1.5 sm:px-2 py-1 rounded-[3px] bg-rose-50 border border-rose-300 text-rose-700 text-[11px] font-bold flex items-center gap-0.5 hover:bg-rose-100 active:translate-y-[0.5px] whitespace-nowrap shrink-0"
                 >
                   <X size={12} strokeWidth={2.5} />
-                  <span>Xóa lọc</span>
+                  <span className="hidden xs:inline sm:inline">Xóa</span>
                 </button>
               )}
 
               <button
                 type="button"
                 onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
-                className={`px-2 sm:px-2.5 py-1 rounded-[3px] border-[1.5px] text-xs font-bold transition-all flex items-center gap-1.5 ${
+                className={`px-2 sm:px-2.5 py-1 rounded-[3px] border-[1.5px] text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 ${
                   isFilterDrawerOpen || (priorityFilter !== "all" || notebookFilter !== "all" || timeFilter !== "all" || tagFilter !== "all")
                     ? "bg-[#FEF08A] border-[#262626] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
                     : "bg-white border-[#D4CEBF] text-[#78716C] hover:text-[#1C1917]"
                 }`}
               >
                 <SlidersHorizontal size={13} strokeWidth={2.2} />
-                <span>Bộ lọc</span>
+                <span>Lọc</span>
                 {((priorityFilter !== "all" ? 1 : 0) + (notebookFilter !== "all" ? 1 : 0) + (timeFilter !== "all" ? 1 : 0) + (tagFilter !== "all" ? 1 : 0)) > 0 && (
-                  <span className="w-4 h-4 rounded-full bg-[#262626] text-white text-[10px] flex items-center justify-center font-mono font-bold">
+                  <span className="w-4 h-4 rounded-full bg-[#262626] text-white text-[10px] flex items-center justify-center font-mono font-bold shrink-0">
                     {(priorityFilter !== "all" ? 1 : 0) + (notebookFilter !== "all" ? 1 : 0) + (timeFilter !== "all" ? 1 : 0) + (tagFilter !== "all" ? 1 : 0)}
                   </span>
                 )}
@@ -654,7 +654,7 @@ export const PlannerTab: React.FC = () => {
                       key={p.key}
                       type="button"
                       onClick={() => setPriorityFilter(p.key as any)}
-                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
                         priorityFilter === p.key
                           ? p.activeClass || "bg-[#262626] text-white border-[#262626] font-bold"
                           : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
@@ -673,7 +673,7 @@ export const PlannerTab: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setNotebookFilter("all")}
-                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
                       notebookFilter === "all"
                         ? "bg-[#262626] text-white border-[#262626] font-bold"
                         : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
@@ -686,7 +686,7 @@ export const PlannerTab: React.FC = () => {
                       key={nb.id}
                       type="button"
                       onClick={() => setNotebookFilter(notebookFilter === nb.id ? "all" : nb.id)}
-                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 ${
+                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
                         notebookFilter === nb.id
                           ? "bg-[#FEF08A] border-[#262626] text-[#1C1917] font-bold shadow-[1px_1px_0px_#262626]"
                           : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
@@ -699,7 +699,7 @@ export const PlannerTab: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setNotebookFilter(notebookFilter === "none" ? "all" : "none")}
-                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
                       notebookFilter === "none"
                         ? "bg-[#262626] text-white border-[#262626] font-bold"
                         : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
@@ -723,7 +723,7 @@ export const PlannerTab: React.FC = () => {
                       key={t.key}
                       type="button"
                       onClick={() => setTimeFilter(t.key as any)}
-                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
                         timeFilter === t.key
                           ? "bg-[#262626] text-white border-[#262626] font-bold shadow-[1px_1px_0px_#262626]"
                           : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
@@ -742,7 +742,7 @@ export const PlannerTab: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setTagFilter("all")}
-                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
                       tagFilter === "all"
                         ? "bg-[#262626] text-white border-[#262626] font-bold"
                         : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
@@ -755,7 +755,7 @@ export const PlannerTab: React.FC = () => {
                       key={tag}
                       type="button"
                       onClick={() => setTagFilter(tagFilter === tag ? "all" : tag)}
-                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
                         tagFilter === tag
                           ? "border-[#262626] bg-[#FEF08A] font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626]"
                           : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
@@ -826,18 +826,6 @@ export const PlannerTab: React.FC = () => {
                                 <CalendarIcon size={10} strokeWidth={2.2} className="text-emerald-700" />
                               )}
                               <span>{dueInfo.label}</span>
-                            </span>
-                          )}
-
-                          {/* Badge Mức Độ Ưu Tiên */}
-                          {task.priority === "high" && !task.completed && (
-                            <span className="px-1.5 py-0.5 rounded border border-rose-300 bg-rose-50 text-rose-700 font-bold font-mono">
-                              🔴 Gấp
-                            </span>
-                          )}
-                          {task.priority === "low" && !task.completed && (
-                            <span className="px-1.5 py-0.5 rounded border border-emerald-300 bg-emerald-50 text-emerald-700 font-mono">
-                              🟢 Thấp
                             </span>
                           )}
 
