@@ -5,6 +5,7 @@ import { Button } from "../../ui/Button";
 import { ConfirmModal } from "../../ui/ConfirmModal";
 import { CustomAvatarPicker } from "../../ui/CustomAvatarPicker";
 import { BrandLogo } from "../../ui/BrandLogo";
+import { CURRENT_APP_VERSION } from "../../../services/updateService";
 import {
   Settings,
   User,
@@ -718,7 +719,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </h4>
                 <div className="inline-block">
                   <span className="font-mono text-[10px] font-bold px-2 py-0.5 bg-[#F3EFE6] border border-[#D4CEBF] rounded-[3px] text-[#78716C]">
-                    Phiên bản: v1.3.0 (Mới nhất)
+                    Phiên bản: v{CURRENT_APP_VERSION} (Mới nhất)
                   </span>
                 </div>
                 <p className="text-xs text-[#1C1917] leading-relaxed pt-1">
