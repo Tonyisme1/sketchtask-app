@@ -707,16 +707,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {activeTab === "about" && (
             <div className="space-y-3 text-xs">
               <div className="p-3.5 bg-white border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2 text-center">
-                <div className="w-12 h-12 mx-auto bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] -rotate-2 flex items-center justify-center">
-                  <Settings
-                    size={24}
-                    strokeWidth={2}
-                    className="text-[#1C1917]"
-                  />
+                <div className="flex justify-center mb-1">
+                  <div className="w-12 h-12 bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] -rotate-2 flex items-center justify-center">
+                    <BrandLogo size="md" showText={false} />
+                  </div>
                 </div>
                 <h4 className="font-bold text-sm sm:text-base text-[#1C1917]">
                   SketchTask - Sổ Tay Công Việc Cá Nhân
                 </h4>
+                <div className="inline-block">
+                  <span className="font-mono text-[10px] font-bold px-2 py-0.5 bg-[#F3EFE6] border border-[#D4CEBF] rounded-[3px] text-[#78716C]">
+                    Phiên bản: v1.3.0 (Mới nhất)
+                  </span>
+                </div>
                 <p className="text-xs text-[#1C1917] leading-relaxed pt-1">
                   SketchTask được thiết kế như một cuốn sổ tay giấy vẽ tay ấm
                   áp, giúp bạn sắp xếp công việc mỗi ngày, rèn luyện thói quen
