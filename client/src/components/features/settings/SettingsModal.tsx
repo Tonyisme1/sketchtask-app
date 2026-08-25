@@ -297,7 +297,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Tab Content Container */}
-        <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-0.5">
+        <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-0.5 pb-8">
           {/* TAB 1: CHUNG */}
           {activeTab === "general" && (
             <div className="space-y-3 text-xs">
@@ -493,7 +493,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
                   <button
                     type="button"
-                    onClick={() => setIsNotificationsEnabled(!isNotificationsEnabled)}
+                    onClick={() =>
+                      setIsNotificationsEnabled(!isNotificationsEnabled)
+                    }
                     className={`w-14 h-7 border-[1.5px] border-[#262626] rounded-[4px] transition-all p-0.5 flex items-center shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none select-none ${
                       isNotificationsEnabled
                         ? "bg-[#BBF7D0] justify-end"
@@ -534,7 +536,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   >
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
-                        user.isSignedIn ? "bg-emerald-600 animate-pulse" : "bg-amber-600"
+                        user.isSignedIn
+                          ? "bg-emerald-600 animate-pulse"
+                          : "bg-amber-600"
                       }`}
                     />
                     {user.isSignedIn ? "● Realtime Online" : "Chưa đăng nhập"}
@@ -562,7 +566,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       className={isSyncing ? "animate-spin" : ""}
                     />
                     <span>
-                      {isSyncing ? "Đang đồng bộ đám mây..." : "Đồng bộ ngay bây giờ"}
+                      {isSyncing
+                        ? "Đang đồng bộ đám mây..."
+                        : "Đồng bộ ngay bây giờ"}
                     </span>
                   </button>
                 ) : (
@@ -637,7 +643,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </button>
                 </div>
                 <p className="text-[10px] text-[#78716C] leading-snug">
-                  Nạp bộ dữ liệu mẫu gồm việc làm, sổ tay, ý tưởng & thói quen để tham khảo cách dùng app tốt nhất.
+                  Nạp bộ dữ liệu mẫu gồm việc làm, sổ tay, ý tưởng & thói quen
+                  để tham khảo cách dùng app tốt nhất.
                 </p>
               </div>
 
@@ -723,7 +730,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         )}
 
         {/* Footer */}
-        <div className="pt-2.5 mt-2 border-t border-[#D4CEBF] flex justify-end">
+        <div className="pt-2.5 mt-2 border-t-[1.5px] border-[#262626] flex justify-end shrink-0 bg-[#FBF9F4]">
           <Button onClick={onClose} variant="primary" size="md">
             Đóng
           </Button>
