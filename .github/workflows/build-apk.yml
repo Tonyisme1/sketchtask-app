@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch: # Cho phép bấm nút "Run workflow" thủ công trên GitHub
+  workflow_dispatch:
 
 jobs:
   build-apk:
@@ -31,33 +31,24 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Client Dependencies
+      - name: Install Dependencies & Build Web Assets
         run: |
           cd client
           npm install
-
-      - name: Build Web Assets (Vite)
-        run: |
-          cd client
           npm run build
 
-      - name: Sync Capacitor Android
+      - name: Sync Web Assets into Android
         run: |
           cd client
-          npx cap sync android
+          mkdir -p android/app/src/main/assets/public
+          cp -r dist/* android/app/src/main/assets/public/
+          node ./node_modules/@capacitor/cli/bin/capacitor sync android || true
 
-      - name: Grant Execute Permission for Gradlew
+      - name: Generate Debug Keystore & Build APK
         run: |
           cd client/android
           chmod +x gradlew
-
-      - name: Generate Debug Keystore
-        run: |
-          keytool -genkey -v -keystore client/android/app/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
-
-      - name: Build APK with Gradle
-        run: |
-          cd client/android
+          keytool -genkey -v -keystore app/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" -noprompt || true
           ./gradlew assembleDebug --no-daemon
 
       - name: Rename and Prepare APK
