@@ -9,11 +9,11 @@ const __dirname = path.dirname(__filename);
 const svgPath = path.join(__dirname, 'public', 'pwa-512x512.svg');
 const svgBuffer = fs.readFileSync(svgPath);
 
-// SVG Foreground trong suốt cho Adaptive Icon Android
+// SVG Foreground trong suốt cho Adaptive Icon Android (Vùng an toàn chuẩn Google Safe Zone 66%)
 const foregroundSvg = Buffer.from(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Bìa Sổ Tay Vàng Nghệ Căn Giữa -->
-  <g transform="translate(30, 30) scale(0.88)">
+  <!-- Bìa Sổ Tay Vàng Nghệ Căn Giữa Chuẩn Vùng An Toàn 66% -->
+  <g transform="translate(90, 90) scale(0.65)">
     <!-- Bóng Đổ Sổ Tay -->
     <rect x="96" y="96" width="340" height="340" rx="32" fill="#262626" />
     
@@ -84,3 +84,4 @@ async function generateAndroidIcons() {
 }
 
 generateAndroidIcons().catch(console.error);
+
