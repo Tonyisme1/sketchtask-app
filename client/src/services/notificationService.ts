@@ -25,6 +25,45 @@ const hashStringToIntegerId = (str: string): number => {
   return Math.abs(hash);
 };
 
+/**
+ * Hiển thị thông báo trên Web / PWA qua Service Worker (Chuẩn 100% Android Chrome & iOS Safari)
+ */
+const showWebNotification = async (
+  title: string,
+  options: NotificationOptions = {}
+): Promise<void> => {
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+  // 1. Chuẩn hiện đại trên Android Chrome & iOS Safari PWA
+  try {
+    if ("serviceWorker" in navigator) {
+      const reg = await navigator.serviceWorker.ready;
+      if (reg && "showNotification" in reg) {
+        await reg.showNotification(title, {
+          icon: "/pwa-192x192.png",
+          badge: "/favicon.svg",
+          vibrate: [200, 100, 200] as any,
+          ...options,
+        });
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn("ServiceWorker showNotification failed:", err);
+  }
+
+  // 2. Fallback cho máy tính Desktop
+  try {
+    new Notification(title, {
+      icon: "/pwa-192x192.png",
+      badge: "/favicon.svg",
+      ...options,
+    });
+  } catch (err) {
+    console.warn("Window Notification constructor error:", err);
+  }
+};
+
 export const notificationService = {
   /**
    * Kiểm tra quyền gửi thông báo hiện tại
@@ -83,14 +122,10 @@ export const notificationService = {
             },
           ],
         });
-      } else if (
-        "Notification" in window &&
-        Notification.permission === "granted"
-      ) {
-        new Notification(title, {
+      } else {
+        await showWebNotification(title, {
           body,
-          icon: "/pwa-192x192.svg",
-          badge: "/favicon.svg",
+          tag: `instant-${Date.now()}`,
         });
       }
     } catch (e) {
@@ -147,21 +182,16 @@ export const notificationService = {
           ],
         });
       } else {
-        // Trên Web: Nếu đang mở tab, dùng setTimeout nếu trong ngày
+        // Trên Web PWA: Đặt timer gọi ServiceWorker showNotification
         const msUntil = targetDate.getTime() - now.getTime();
         if (msUntil > 0 && msUntil < 86400000) {
-          setTimeout(() => {
-            if (
-              "Notification" in window &&
-              Notification.permission === "granted"
-            ) {
-              new Notification(`⏰ Nhắc việc: ${task.title}`, {
-                body:
-                  task.description ||
-                  "Đến giờ thực hiện công việc của bạn rồi!",
-                icon: "/pwa-192x192.svg",
-              });
-            }
+          setTimeout(async () => {
+            await showWebNotification(`⏰ Nhắc việc: ${task.title}`, {
+              body:
+                task.description ||
+                "Đến giờ thực hiện công việc của bạn rồi!",
+              tag: `task-${task.id}`,
+            });
           }, msUntil);
         }
       }
