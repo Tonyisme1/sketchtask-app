@@ -222,7 +222,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return createPortal(
     <div
-      onClick={onClose}
+      onClick={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
       style={{
         position: "fixed",
         top: 0,
@@ -233,20 +234,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         height: "100dvh",
         minHeight: "100vh",
         zIndex: 999999,
-        backgroundColor: "rgba(0, 0, 0, 0.75)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
+        backgroundColor: "rgba(0, 0, 0, 0.82)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        touchAction: "none",
       }}
-      className="flex items-end sm:items-center justify-center p-0 sm:p-4 select-none animate-in fade-in duration-200 pointer-events-auto"
+      className="flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-200 pointer-events-auto"
     >
-      {/* Settings Modal Box (Bottom Sheet trên Mobile, Centered Card trên Desktop) */}
+      {/* Settings Modal Box (Cố định chiều cao 540px - không co giãn khi đổi tab) */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md h-[580px] max-h-[88vh] bg-[#FBF9F4] border-t-[2.5px] sm:border-[2px] border-[#262626] rounded-t-[22px] sm:rounded-[8px] shadow-[0px_-4px_0px_#262626] sm:shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col justify-between overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 z-[1000000]"
+        className="relative w-full max-w-md h-[540px] max-h-[90vh] bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[8px] shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col justify-between overflow-hidden animate-in zoom-in-95 duration-200 z-[1000000]"
       >
-        {/* Mobile Grab Handle */}
-        <div className="w-12 h-1.5 bg-[#D4CEBF] rounded-full mx-auto -mt-1 mb-2.5 sm:hidden" />
-
         {/* Header */}
         <div className="flex items-center justify-between pb-2.5 border-b border-[#262626]">
           <div className="flex items-center gap-2">
@@ -720,8 +719,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </h4>
                 <div className="inline-block">
                   <span className="font-mono text-[10px] font-bold px-2 py-0.5 bg-[#F3EFE6] border border-[#D4CEBF] rounded-[3px] text-[#78716C]">
-                    Phiên bản: v1.3.0 (Mới nhất)
-                    Phiên bản: v{CURRENT_APP_VERSION} (Mới nhất)
+                    Phiên bản: v{CURRENT_APP_VERSION}
                   </span>
                 </div>
                 <p className="text-xs text-[#1C1917] leading-relaxed pt-1">
