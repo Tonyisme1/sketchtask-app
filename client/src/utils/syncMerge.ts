@@ -165,3 +165,4 @@ export function smartMergeAppData(localData: RawSyncData, remoteData: RawSyncDat
     tags: mergedTags,
   };
 }
+
