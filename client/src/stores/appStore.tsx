@@ -105,6 +105,7 @@ export interface AppContextType {
     dueDate?: string;
     tag?: string;
     notebookId?: string;
+    priority?: TaskPriority;
   }) => TaskDto;
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
@@ -945,6 +946,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     dueDate?: string;
     tag?: string;
     notebookId?: string;
+    priority?: TaskPriority;
   }) => {
     const newTask: TaskDto = {
       id: `task-${Date.now()}`,
@@ -954,7 +956,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       notebookId: taskData.notebookId,
       completed: false,
       status: "todo",
-      priority: "medium",
+      priority: taskData.priority || "medium",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
