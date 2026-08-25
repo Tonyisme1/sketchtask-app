@@ -13,17 +13,18 @@ export interface UpdateInfo {
   isForceUpdate?: boolean;
 }
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "https://sketchtask-app.onrender.com";
+const VERCEL_VERSION_URL =
+  "https://sketchtask-app.vercel.app/version.json";
 
 /**
- * Kiểm tra phiên bản mới nhất từ máy chủ
+ * Kiểm tra phiên bản mới nhất từ máy chủ (Vercel / Backend)
  */
 export const checkForAppUpdates = async (): Promise<UpdateInfo | null> => {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/version`, {
+    // 1. Ưu tiên fetch từ Vercel CDN tĩnh siêu nhanh (kèm cache-buster)
+    const res = await fetch(`${VERCEL_VERSION_URL}?t=${Date.now()}`, {
       method: "GET",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Cache-Control": "no-cache, no-store, must-revalidate" },
       cache: "no-store",
     });
 
@@ -32,7 +33,7 @@ export const checkForAppUpdates = async (): Promise<UpdateInfo | null> => {
     const data = await res.json();
     const latestVersion = data.version || CURRENT_APP_VERSION;
 
-    // So sánh version chuỗi semver đơn giản
+    // So sánh version chuỗi semver (ví dụ "1.3.0" > "1.2.0")
     const hasUpdate = isNewerVersion(latestVersion, CURRENT_APP_VERSION);
 
     return {
@@ -64,3 +65,4 @@ function isNewerVersion(remote: string, local: string): boolean {
   }
   return false;
 }
+
