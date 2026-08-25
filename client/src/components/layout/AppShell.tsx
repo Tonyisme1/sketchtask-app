@@ -6,6 +6,7 @@ import { useAppStore } from "../../stores/appStore";
 import { AuthModal } from "../features/auth/AuthModal";
 import { SettingsModal } from "../features/settings/SettingsModal";
 import { OnboardingModal } from "../features/onboarding/OnboardingModal";
+import { GlobalSearchModal } from "../ui/GlobalSearchModal";
 import { BrandLogo } from "../ui/BrandLogo";
 import { DynamicIcon } from "../ui/DynamicIcon";
 import { NotificationBell } from "../ui/NotificationBell";
@@ -14,6 +15,7 @@ import {
   Settings,
   KeyRound,
   LogOut,
+  Search,
 } from "lucide-react";
 
 // ==========================================
@@ -35,7 +37,20 @@ export const AppShell: React.FC<AppShellProps> = ({
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const avatarMenuRef = useRef<HTMLDivElement>(null);
+
+  // Phím tắt bàn phím toàn cục Ctrl + K / Cmd + K để mở tìm kiếm
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsSearchModalOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Đóng khi click ngoài
   useEffect(() => {
@@ -71,8 +86,22 @@ export const AppShell: React.FC<AppShellProps> = ({
           {/* Brand Logo */}
           <BrandLogo size="md" />
 
-          {/* Right: Notification Bell + Avatar Button with Menu Popover */}
+          {/* Right: Search Button + Notification Bell + Avatar Button with Menu Popover */}
           <div className="flex items-center gap-2">
+            {/* Nút Tìm Kiếm Toàn Cục Ctrl + K */}
+            <button
+              type="button"
+              onClick={() => setIsSearchModalOpen(true)}
+              title="Tìm kiếm nhanh (Ctrl + K)"
+              className="h-8 px-2 sm:px-2.5 bg-white hover:bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center gap-1.5 text-xs font-bold text-[#1C1917] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all select-none"
+            >
+              <Search size={14} strokeWidth={2.4} />
+              <span className="hidden sm:inline">Tìm kiếm</span>
+              <kbd className="hidden sm:inline text-[9px] font-mono px-1 py-0.2 bg-[#F3EFE6] border border-[#D4CEBF] rounded text-[#78716C]">
+                Ctrl K
+              </kbd>
+            </button>
+
             <NotificationBell />
 
             <div ref={avatarMenuRef} className="relative">
@@ -163,6 +192,13 @@ export const AppShell: React.FC<AppShellProps> = ({
           </div>
         </div>
       </header>
+
+        {/* Modal Tìm Kiếm Toàn Cục Ctrl + K */}
+        <GlobalSearchModal
+          isOpen={isSearchModalOpen}
+          onClose={() => setIsSearchModalOpen(false)}
+          onNavigate={onTabChange}
+        />
 
         {/* Modal Cài Đặt Hệ Thống */}
         <SettingsModal

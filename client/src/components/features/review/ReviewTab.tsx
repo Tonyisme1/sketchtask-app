@@ -12,11 +12,16 @@ import {
   Flame,
   X,
   Sparkles,
+  BarChart3,
+  Trophy,
+  Target,
+  Zap,
+  TrendingUp,
 } from "lucide-react";
-import { getLocalTodayStr } from "../../../utils/date";
+import { getLocalTodayStr, isTaskForDate } from "../../../utils/date";
 
 // ==========================================
-// COMPONENT: ReviewTab (Tổng Kết & Thói Quen - Nâng Cấp Icon Hiện Đại)
+// COMPONENT: ReviewTab (Tổng Kết & Thống Kê Năng Suất Phác Thảo)
 // ==========================================
 
 const DAY_LABELS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
@@ -65,6 +70,7 @@ export const ReviewTab: React.FC = () => {
       days.push({
         label: DAY_LABELS[i],
         dayNum: d.getDate(),
+        monthNum: d.getMonth() + 1,
         date: dateStr,
         isToday,
       });
@@ -83,24 +89,161 @@ export const ReviewTab: React.FC = () => {
     setNewHabitName("");
   };
 
+  // 1. Thống kê số lượng task hoàn thành từng ngày trong 7 ngày qua
+  const dailyTaskStats = weekDays.map((day) => {
+    const completedTasksOnDay = tasks.filter((t) => {
+      if (!t.completed) return false;
+      return isTaskForDate(t.dueDate, day.date);
+    }).length;
+
+    const totalTasksOnDay = tasks.filter((t) => {
+      return isTaskForDate(t.dueDate, day.date);
+    }).length;
+
+    return {
+      ...day,
+      completedCount: completedTasksOnDay,
+      totalCount: totalTasksOnDay,
+    };
+  });
+
+  const maxCompleted = Math.max(1, ...dailyTaskStats.map((d) => d.completedCount));
+
+  // 2. Tìm ngày làm việc năng suất nhất
+  const bestDayStat = [...dailyTaskStats].sort((a, b) => b.completedCount - a.completedCount)[0];
+
+  // 3. Tổng số lượt check thói quen trong tuần
+  const totalHabitChecks = habits.reduce((acc, h) => {
+    const checksInWeek = weekDays.filter((d) => h.completedDates.includes(d.date)).length;
+    return acc + checksInWeek;
+  }, 0);
+
+  // 4. Tính Điểm Năng Suất (0 - 100)
   const completedTasksCount = tasks.filter((t) => t.completed).length;
   const totalTasksCount = tasks.length;
   const completionRate =
     totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
 
+  const productivityScore = Math.min(
+    100,
+    Math.round(completionRate * 0.7 + Math.min(30, totalHabitChecks * 5))
+  );
+
   return (
     <div className="space-y-4 max-w-2xl mx-auto">
       {/* 1. Header */}
       <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1917]">
-          Tổng Kết & Thói Quen
-        </h2>
-        <span className="font-mono text-xs font-bold bg-white px-2.5 py-1 border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626]">
-          {completedTasksCount}/{totalTasksCount} Xong ({completionRate}%)
-        </span>
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1917]">
+            Tổng Kết & Năng Suất
+          </h2>
+          <p className="text-[11px] text-[#78716C]">
+            Theo dõi tiến độ, phân tích hiệu suất và duy trì thói quen
+          </p>
+        </div>
+        <div className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#FEF08A] px-2.5 py-1 border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626]">
+          <Trophy size={13} strokeWidth={2.5} className="text-amber-700" />
+          <span>{productivityScore}/100 Điểm</span>
+        </div>
       </div>
 
-      {/* 2. TÂM TRẠNG HÔM NAY (1 CHẠM LÀ XONG) */}
+      {/* 2. BẢNG THỐNG KÊ & BIỂU ĐỒ NĂNG SUẤT 7 NGÀY (PHÁC THẢO MỰC) */}
+      <div className="p-3.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2.5px_2.5px_0px_#262626] space-y-3">
+        {/* Header Biểu Đồ */}
+        <div className="flex items-center justify-between">
+          <span className="font-bold text-xs sm:text-sm text-[#1C1917] flex items-center gap-1.5">
+            <BarChart3 size={16} strokeWidth={2.2} className="text-indigo-700" />
+            <span>BIỂU ĐỒ HOÀN THÀNH (7 NGÀY)</span>
+          </span>
+          <span className="text-[10px] font-mono text-[#78716C] bg-[#FBF9F4] px-1.5 py-0.5 rounded border border-[#D4CEBF]">
+            Tuần này
+          </span>
+        </div>
+
+        {/* 4 Thẻ Chỉ Số Nhanh */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+          <div className="p-2 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626]">
+            <span className="text-[10px] text-[#78716C] flex items-center gap-1">
+              <Target size={11} className="text-emerald-700" />
+              <span>Tỷ lệ hoàn thành</span>
+            </span>
+            <p className="font-mono font-bold text-base text-[#1C1917] mt-0.5">
+              {completionRate}%
+            </p>
+          </div>
+
+          <div className="p-2 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626]">
+            <span className="text-[10px] text-[#78716C] flex items-center gap-1">
+              <Zap size={11} className="text-amber-600" />
+              <span>Ngày tốt nhất</span>
+            </span>
+            <p className="font-mono font-bold text-sm text-[#1C1917] mt-0.5 truncate">
+              {bestDayStat && bestDayStat.completedCount > 0 ? `${bestDayStat.label} (${bestDayStat.completedCount} việc)` : "Chưa có"}
+            </p>
+          </div>
+
+          <div className="p-2 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626]">
+            <span className="text-[10px] text-[#78716C] flex items-center gap-1">
+              <Flame size={11} className="text-orange-600" />
+              <span>Chuỗi thói quen</span>
+            </span>
+            <p className="font-mono font-bold text-base text-[#1C1917] mt-0.5">
+              {totalHabitChecks} lượt
+            </p>
+          </div>
+
+          <div className="p-2 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626]">
+            <span className="text-[10px] text-[#78716C] flex items-center gap-1">
+              <TrendingUp size={11} className="text-indigo-700" />
+              <span>Đánh giá</span>
+            </span>
+            <p className="font-bold text-xs text-[#1C1917] mt-1 truncate">
+              {productivityScore >= 80 ? "Xuất sắc! 🔥" : productivityScore >= 50 ? "Khá tốt! ✨" : "Cố lên nhé! 🌱"}
+            </p>
+          </div>
+        </div>
+
+        {/* Biểu Đồ Cột Nét Mực 7 Ngày */}
+        <div className="pt-2 border-t border-[#D4CEBF]/60">
+          <div className="h-28 flex items-end justify-between gap-1.5 sm:gap-3 px-1 pt-4">
+            {dailyTaskStats.map((d) => {
+              const heightPercent = maxCompleted > 0 ? Math.max(12, (d.completedCount / maxCompleted) * 100) : 12;
+              return (
+                <div key={d.date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end group">
+                  {/* Số lượng phía trên cột */}
+                  <span className="text-[10px] font-mono font-bold text-[#78716C] group-hover:text-[#1C1917]">
+                    {d.completedCount > 0 ? d.completedCount : ""}
+                  </span>
+
+                  {/* Cột biểu đồ */}
+                  <div
+                    style={{ height: `${heightPercent}%` }}
+                    className={`w-full max-w-[36px] rounded-t-[3px] border-[1.5px] border-[#262626] transition-all duration-300 ${
+                      d.isToday
+                        ? "bg-[#FEF08A] shadow-[1.5px_0px_0px_#262626]"
+                        : d.completedCount > 0
+                        ? "bg-[#BBF7D0] shadow-[1px_0px_0px_#262626]"
+                        : "bg-[#F3EFE6] opacity-60"
+                    }`}
+                  />
+
+                  {/* Nhãn Thứ & Ngày */}
+                  <div className="text-center pt-1">
+                    <p className={`text-[10px] font-mono leading-none ${d.isToday ? "font-bold text-[#1C1917] underline decoration-[#FEF08A] decoration-2" : "text-[#78716C]"}`}>
+                      {d.label}
+                    </p>
+                    <p className="text-[8px] font-mono text-[#A8A29E] mt-0.5">
+                      {d.dayNum}/{d.monthNum}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* 3. TÂM TRẠNG HÔM NAY (1 CHẠM LÀ XONG) */}
       <div className="p-3.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2.5px_2.5px_0px_#262626] space-y-2.5">
         <div className="flex items-center justify-between">
           <span className="font-bold text-xs sm:text-sm text-[#1C1917] flex items-center gap-1.5">
