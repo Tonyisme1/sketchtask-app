@@ -421,42 +421,68 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                 {/* NÚT GẠT 1: ĐỘ NGHIÊNG GIẤY */}
                 <div className="flex items-center justify-between">
-                  <p className="font-bold text-xs text-[#1C1917]">
-                    Nghiêng giấy tự nhiên
-                  </p>
+                  <div>
+                    <p className="font-bold text-xs text-[#1C1917]">
+                      Nghiêng giấy tự nhiên
+                    </p>
+                    <p className="text-[10px] text-[#78716C]">
+                      Hiệu ứng thẻ bài hơi nghiêng như trên bàn gỗ
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={() => setIsTiltEnabled(!isTiltEnabled)}
-                    className={`w-11 h-6 rounded-full border-[1.5px] border-[#262626] transition-colors p-0.5 flex items-center shadow-[1px_1px_0px_#262626] ${
+                    className={`w-14 h-7 border-[1.5px] border-[#262626] rounded-[4px] transition-all p-0.5 flex items-center shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none select-none ${
                       isTiltEnabled
                         ? "bg-[#BBF7D0] justify-end"
-                        : "bg-gray-200 justify-start"
+                        : "bg-[#F3EFE6] justify-start"
                     }`}
                   >
-                    <span className="w-4 h-4 rounded-full bg-white border border-[#262626] shadow-sm" />
+                    <span
+                      className={`h-5 px-1.5 rounded-[2px] border border-[#262626] flex items-center justify-center text-[9px] font-mono font-bold shadow-[0.5px_0.5px_0px_#262626] transition-all ${
+                        isTiltEnabled
+                          ? "bg-white text-emerald-900"
+                          : "bg-white text-[#78716C]"
+                      }`}
+                    >
+                      {isTiltEnabled ? "BẬT ✓" : "TẮT ✕"}
+                    </span>
                   </button>
                 </div>
 
                 {/* NÚT GẠT 2: TỰ ĐỘNG ẨN VIỆC ĐÃ HOÀN THÀNH */}
-                <div className="flex items-center justify-between pt-2 border-t border-[#D4CEBF]/60">
-                  <p className="font-bold text-xs text-[#1C1917]">
-                    Tự động ẩn việc đã xong
-                  </p>
+                <div className="flex items-center justify-between pt-2.5 border-t border-[#D4CEBF]/60">
+                  <div>
+                    <p className="font-bold text-xs text-[#1C1917]">
+                      Tự động ẩn việc đã xong
+                    </p>
+                    <p className="text-[10px] text-[#78716C]">
+                      Làm gọn danh sách khi hoàn thành công việc
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={() => setHideCompletedTasks(!hideCompletedTasks)}
-                    className={`w-11 h-6 rounded-full border-[1.5px] border-[#262626] transition-colors p-0.5 flex items-center shadow-[1px_1px_0px_#262626] ${
+                    className={`w-14 h-7 border-[1.5px] border-[#262626] rounded-[4px] transition-all p-0.5 flex items-center shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none select-none ${
                       hideCompletedTasks
                         ? "bg-[#BBF7D0] justify-end"
-                        : "bg-gray-200 justify-start"
+                        : "bg-[#F3EFE6] justify-start"
                     }`}
                   >
-                    <span className="w-4 h-4 rounded-full bg-white border border-[#262626] shadow-sm" />
+                    <span
+                      className={`h-5 px-1.5 rounded-[2px] border border-[#262626] flex items-center justify-center text-[9px] font-mono font-bold shadow-[0.5px_0.5px_0px_#262626] transition-all ${
+                        hideCompletedTasks
+                          ? "bg-white text-emerald-900"
+                          : "bg-white text-[#78716C]"
+                      }`}
+                    >
+                      {hideCompletedTasks ? "BẬT ✓" : "TẮT ✕"}
+                    </span>
                   </button>
                 </div>
 
                 {/* NÚT GẠT 3: BẬT / TẮT THÔNG BÁO NHẮC VIỆC */}
-                <div className="flex items-center justify-between pt-2 border-t border-[#D4CEBF]/60">
+                <div className="flex items-center justify-between pt-2.5 border-t border-[#D4CEBF]/60">
                   <div>
                     <p className="font-bold text-xs text-[#1C1917]">
                       Thông báo nhắc việc đúng giờ
@@ -468,13 +494,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsNotificationsEnabled(!isNotificationsEnabled)}
-                    className={`w-11 h-6 rounded-full border-[1.5px] border-[#262626] transition-colors p-0.5 flex items-center shadow-[1px_1px_0px_#262626] ${
+                    className={`w-14 h-7 border-[1.5px] border-[#262626] rounded-[4px] transition-all p-0.5 flex items-center shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none select-none ${
                       isNotificationsEnabled
                         ? "bg-[#BBF7D0] justify-end"
-                        : "bg-gray-200 justify-start"
+                        : "bg-[#F3EFE6] justify-start"
                     }`}
                   >
-                    <span className="w-4 h-4 rounded-full bg-white border border-[#262626] shadow-sm" />
+                    <span
+                      className={`h-5 px-1.5 rounded-[2px] border border-[#262626] flex items-center justify-center text-[9px] font-mono font-bold shadow-[0.5px_0.5px_0px_#262626] transition-all ${
+                        isNotificationsEnabled
+                          ? "bg-white text-emerald-900"
+                          : "bg-white text-[#78716C]"
+                      }`}
+                    >
+                      {isNotificationsEnabled ? "BẬT ✓" : "TẮT ✕"}
+                    </span>
                   </button>
                 </div>
               </div>
