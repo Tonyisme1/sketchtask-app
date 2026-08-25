@@ -30,19 +30,20 @@ const hashStringToIntegerId = (str: string): number => {
  */
 const showWebNotification = async (
   title: string,
-  options: NotificationOptions = {}
+  options: NotificationOptions = {},
 ): Promise<void> => {
-  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  if (!("Notification" in window) || Notification.permission !== "granted")
+    return;
 
   // 1. Chuẩn hiện đại trên Android Chrome & iOS Safari PWA
   try {
     if ("serviceWorker" in navigator) {
       const reg = await navigator.serviceWorker.ready;
-      if (reg && "showNotification" in reg) {
-        await reg.showNotification(title, {
+      if (reg) {
+        await (reg as any).showNotification(title, {
           icon: "/pwa-192x192.png",
           badge: "/favicon.svg",
-          vibrate: [200, 100, 200] as any,
+          vibrate: [200, 100, 200],
           ...options,
         });
         return;
@@ -188,8 +189,7 @@ export const notificationService = {
           setTimeout(async () => {
             await showWebNotification(`⏰ Nhắc việc: ${task.title}`, {
               body:
-                task.description ||
-                "Đến giờ thực hiện công việc của bạn rồi!",
+                task.description || "Đến giờ thực hiện công việc của bạn rồi!",
               tag: `task-${task.id}`,
             });
           }, msUntil);
