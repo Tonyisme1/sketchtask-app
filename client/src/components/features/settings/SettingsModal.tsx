@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useAppStore } from "../../../stores/appStore";
 import { Button } from "../../ui/Button";
 import { ConfirmModal } from "../../ui/ConfirmModal";
 import { CustomAvatarPicker } from "../../ui/CustomAvatarPicker";
-import { BrandLogo } from "../../ui/BrandLogo";
 import { CURRENT_APP_VERSION } from "../../../services/updateService";
+import { sounds } from "../../../utils/soundEffects";
 import {
   Settings,
   User,
@@ -17,14 +17,19 @@ import {
   RefreshCw,
   X,
   Zap,
-  Smartphone,
   Check,
   Edit2,
   Lightbulb,
+  Volume2,
+  VolumeX,
+  FileText,
+  Database,
+  Archive,
+  Sparkles,
 } from "lucide-react";
 
 // ==========================================
-// COMPONENT: SettingsModal (Cài Đặt Hệ Thống với Icon Hiện Đại Sắc Nét)
+// COMPONENT: SettingsModal (Cài Đặt Hệ Thống Pro)
 // ==========================================
 
 interface SettingsModalProps {
@@ -56,7 +61,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setIsNotificationsEnabled,
     isDarkMode,
     setIsDarkMode,
+    isSoundEnabled,
+    setIsSoundEnabled,
+    soundVolume,
+    setSoundVolume,
+    paperStyle,
+    setPaperStyle,
     loadSampleData,
+    archiveOldTasks,
     tasks,
     notebooks,
     stickyNotes,
@@ -71,6 +83,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     "general",
   );
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
+  const [confirmArchiveOpen, setConfirmArchiveOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -102,6 +115,25 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     };
   }, [isOpen]);
 
+  // Tính toán dung lượng bộ nhớ LocalStorage thực tế
+  const storageHealth = useMemo(() => {
+    let totalBytes = 0;
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("sketchtask")) {
+          const val = localStorage.getItem(key) || "";
+          totalBytes += key.length + val.length * 2; // UTF-16
+        }
+      }
+    } catch {
+      totalBytes = 10240;
+    }
+    const kb = (totalBytes / 1024).toFixed(1);
+    const percent = Math.min(100, Math.round((totalBytes / (5 * 1024 * 1024)) * 100));
+    return { kb, percent };
+  }, [tasks, notebooks, stickyNotes, habits, isOpen]);
+
   if (!isOpen || !mounted) return null;
 
   const showToast = (msg: string) => {
@@ -120,44 +152,40 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     const success = await syncNow();
     setIsSyncing(false);
     if (success) {
-      showToast("☁️ Đã đồng bộ dữ liệu mới nhất với đám mây!");
+      showToast("✓ Đã đồng bộ dữ liệu đám mây thành công!");
     } else {
-      showToast("⚠️ Lỗi đồng bộ đám mây, vui lòng thử lại!");
+      showToast("⚠️ Đồng bộ thất bại. Vui lòng thử lại!");
     }
   };
 
-  // Xuất file sao lưu dữ liệu JSON
+  // Xuất file dữ liệu JSON
   const handleExportData = () => {
-    const backupData = {
-      version: "1.0.0",
+    const dataToExport = {
+      version: CURRENT_APP_VERSION,
       exportDate: new Date().toISOString(),
-      user,
+      user: { name: user.name, email: user.email },
       tasks,
+      tags,
       notebooks,
       stickyNotes,
       habits,
-      tags,
       dailyMoods,
       weeklyReflection,
     };
 
-    const dataStr =
-      "data:text/json;charset=utf-8," +
-      encodeURIComponent(JSON.stringify(backupData, null, 2));
-    const downloadAnchor = document.createElement("a");
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute(
-      "download",
-      `sketchtask_backup_${new Date().toISOString().split("T")[0]}.json`,
-    );
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-
-    showToast("✓ Đã xuất file sao lưu thành công!");
+    const blob = new Blob([JSON.stringify(dataToExport, null, 2)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `sketchtask-backup-${new Date().toISOString().split("T")[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast("✓ Đã tải file sao lưu về máy!");
   };
 
-  // Nhập file sao lưu JSON
+  // Nhập dữ liệu JSON từ máy
   const handleImportData = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -166,40 +194,34 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     reader.onload = (event) => {
       try {
         const json = JSON.parse(event.target?.result as string);
-        if (json.tasks && Array.isArray(json.tasks)) {
+        if (json.tasks) {
           localStorage.setItem(
-            "sketchtask_local_storage_v1_tasks",
+            "sketchtask_local_storage_v2_tasks",
             JSON.stringify(json.tasks),
           );
         }
-        if (json.notebooks && Array.isArray(json.notebooks)) {
+        if (json.notebooks) {
           localStorage.setItem(
-            "sketchtask_local_storage_v1_notebooks",
+            "sketchtask_local_storage_v2_notebooks",
             JSON.stringify(json.notebooks),
           );
         }
-        if (json.notes || json.stickyNotes) {
+        if (json.stickyNotes) {
           localStorage.setItem(
-            "sketchtask_local_storage_v1_notes",
-            JSON.stringify(json.notes || json.stickyNotes),
+            "sketchtask_local_storage_v2_notes",
+            JSON.stringify(json.stickyNotes),
           );
         }
-        if (json.habits && Array.isArray(json.habits)) {
+        if (json.habits) {
           localStorage.setItem(
-            "sketchtask_local_storage_v1_habits",
+            "sketchtask_local_storage_v2_habits",
             JSON.stringify(json.habits),
           );
         }
-        if (json.tags && Array.isArray(json.tags)) {
+        if (json.tags) {
           localStorage.setItem(
-            "sketchtask_local_storage_v1_tags",
+            "sketchtask_local_storage_v2_tags",
             JSON.stringify(json.tags),
-          );
-        }
-        if (json.dailyMoods) {
-          localStorage.setItem(
-            "sketchtask_local_storage_v1_moods",
-            JSON.stringify(json.dailyMoods),
           );
         }
 
@@ -212,6 +234,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       }
     };
     reader.readAsText(file);
+  };
+
+  // Thực hiện lưu trữ các task cũ
+  const handlePerformArchive = () => {
+    const count = archiveOldTasks(60);
+    setConfirmArchiveOpen(false);
+    if (count > 0) {
+      showToast(`✓ Đã dọn dẹp và lưu trữ ${count} công việc cũ!`);
+    } else {
+      showToast("Không có công việc nào hoàn thành quá 60 ngày cần dọn dẹp.");
+    }
   };
 
   // Reset toàn bộ dữ liệu về mặc định
@@ -229,13 +262,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       onTouchStart={(e) => e.stopPropagation()}
       style={{
         position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        width: "100vw",
-        height: "100dvh",
-        minHeight: "100vh",
+        inset: 0,
         zIndex: 999999,
         backgroundColor: "rgba(0, 0, 0, 0.82)",
         backdropFilter: "blur(20px)",
@@ -244,44 +271,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       }}
       className="flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-200 pointer-events-auto"
     >
-      {/* Settings Modal Box (Cố định chiều cao 540px - không co giãn khi đổi tab) */}
+      {/* Settings Modal Box */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md h-[540px] max-h-[90vh] bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[8px] shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col justify-between overflow-hidden animate-in zoom-in-95 duration-200 z-[1000000]"
+        className="relative w-full max-w-md h-[560px] max-h-[92vh] bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[8px] shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col justify-between overflow-hidden animate-in zoom-in-95 duration-200 z-[1000000]"
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-2.5 border-b border-[#262626]">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-[#FEF08A] border border-[#262626] rounded-[4px] flex items-center justify-center shadow-[1px_1px_0px_#262626]">
-              <Settings
-                size={17}
-                strokeWidth={2.2}
-                className="text-[#1C1917]"
-              />
+              <Settings size={17} strokeWidth={2.2} className="text-[#1C1917]" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-[#1C1917]">
-                Cài Đặt Ứng Dụng
-              </h3>
-              <p className="text-[10px] text-[#78716C] font-mono">
-                Tùy chỉnh & Đồng bộ
-              </p>
+              <h3 className="font-bold text-base text-[#1C1917]">Cài Đặt Ứng Dụng</h3>
+              <p className="text-[10px] text-[#78716C] font-mono">Tùy chỉnh & Đồng bộ</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-[#78716C] hover:text-[#1C1917] p-1 bg-white border border-[#D4CEBF] rounded"
+            className="text-[#78716C] hover:text-[#1C1917] p-1 bg-white border border-[#D4CEBF] rounded active:translate-y-[0.5px]"
           >
             <X size={14} strokeWidth={2.5} />
           </button>
         </div>
 
         {/* 3 Tab Navigation */}
-        <div className="grid grid-cols-3 gap-1 p-0.5 my-3 bg-white border border-[#262626] rounded-[4px]">
+        <div className="grid grid-cols-3 gap-1 p-0.5 my-2.5 bg-white border border-[#262626] rounded-[4px]">
           {[
             { key: "general", label: "Chung", Icon: User },
-            { key: "data", label: "Đồng bộ", Icon: Cloud },
+            { key: "data", label: "Dữ liệu", Icon: Cloud },
             { key: "about", label: "Giới thiệu", Icon: Info },
           ].map((t) => {
             const IconComp = t.Icon;
@@ -305,7 +324,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Tab Content Container */}
         <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-0.5">
-          {/* TAB 1: CHUNG */}
+          {/* TAB 1: CHUNG & GIAO DIỆN */}
           {activeTab === "general" && (
             <div className="space-y-3 text-xs">
               {/* Thẻ Hồ Sơ & Avatar Cá Nhân */}
@@ -327,7 +346,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
 
                 <div className="flex items-center gap-3 pt-1">
-                  {/* Bộ Chọn Avatar Độc Đáo */}
                   <CustomAvatarPicker
                     avatar={user.avatar || "lucide:User"}
                     avatarBg={user.avatarBg || "#BBF7D0"}
@@ -336,7 +354,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     }}
                   />
 
-                  {/* Đổi Tên Hiển Thị */}
                   <div className="flex-1 min-w-0">
                     {isEditingName ? (
                       <div className="flex items-center gap-1">
@@ -347,11 +364,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           autoFocus
                           onChange={(e) => setEditingName(e.target.value)}
                           onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              if (editingName.trim()) {
-                                updateUserProfile({ name: editingName.trim() });
-                                setIsEditingName(false);
-                              }
+                            if (e.key === "Enter" && editingName.trim()) {
+                              updateUserProfile({ name: editingName.trim() });
+                              setIsEditingName(false);
                             } else if (e.key === "Escape") {
                               setIsEditingName(false);
                             }
@@ -387,9 +402,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       </div>
                     )}
                     <p className="text-[10px] text-[#78716C] font-mono truncate mt-0.5">
-                      {user.isSignedIn
-                        ? user.email
-                        : "Chạm vào avatar để đổi icon"}
+                      {user.isSignedIn ? user.email : "Chạm avatar để đổi icon"}
                     </p>
                   </div>
                 </div>
@@ -403,9 +416,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     }}
                     className="flex-1 py-1.5 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded text-xs font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626]"
                   >
-                    {user.isSignedIn
-                      ? "Quản lý tài khoản cá nhân"
-                      : "Đăng nhập / Đăng ký đồng bộ ➔"}
+                    {user.isSignedIn ? "Quản lý tài khoản cá nhân" : "Đăng nhập / Đăng ký đồng bộ ➔"}
                   </button>
 
                   {user.isSignedIn && (
@@ -420,134 +431,148 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* TÙY BIẾN TRẢI NGHIỆM */}
+              {/* TÙY BIẾN CHẤT LIỆU TRANG GIẤY */}
+              <div className="p-3 bg-white border border-[#D4CEBF] rounded-[6px] space-y-2">
+                <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
+                  <FileText size={13} strokeWidth={2.2} />
+                  <span>CHẤT LIỆU TRANG GIẤY:</span>
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-0.5">
+                  {[
+                    { key: "blank", label: "Giấy Trơn", desc: "Ấm áp" },
+                    { key: "lined", label: "Kẻ Ngang", desc: "Nhật ký" },
+                    { key: "dots", label: "Chấm Bi", desc: "Bullet" },
+                    { key: "grid", label: "Ô Vuông", desc: "Kỹ thuật" },
+                  ].map((style) => (
+                    <button
+                      key={style.key}
+                      type="button"
+                      onClick={() => setPaperStyle(style.key as any)}
+                      className={`p-2 rounded-[4px] border text-center transition-all ${
+                        paperStyle === style.key
+                          ? "bg-[#FEF08A] border-[#262626] font-bold shadow-[1.5px_1.5px_0px_#262626]"
+                          : "bg-[#FBF9F4] border-[#D4CEBF] text-[#78716C] hover:text-[#1C1917]"
+                      }`}
+                    >
+                      <p className="text-xs font-bold text-[#1C1917]">{style.label}</p>
+                      <p className="text-[9px] text-[#78716C] mt-0.5">{style.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ÂM THANH NÉT BÚT VẬT LÝ */}
+              <div className="p-3 bg-white border border-[#D4CEBF] rounded-[6px] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
+                    {isSoundEnabled ? (
+                      <Volume2 size={13} className="text-amber-600" />
+                    ) : (
+                      <VolumeX size={13} className="text-[#78716C]" />
+                    )}
+                    <span>ÂM THANH BÚT CHÌ VẬT LÝ:</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsSoundEnabled(!isSoundEnabled);
+                      if (!isSoundEnabled) sounds.playPencilCheck(soundVolume);
+                    }}
+                    className={`w-14 h-6 border-[1.5px] border-[#262626] rounded-[4px] transition-all p-0.5 flex items-center shadow-[1px_1px_0px_#262626] select-none ${
+                      isSoundEnabled ? "bg-[#BBF7D0] justify-end" : "bg-[#F3EFE6] justify-start"
+                    }`}
+                  >
+                    <span className="h-4 px-1 rounded-[2px] border border-[#262626] bg-white text-[8.5px] font-mono font-bold flex items-center justify-center">
+                      {isSoundEnabled ? "BẬT" : "TẮT"}
+                    </span>
+                  </button>
+                </div>
+
+                {isSoundEnabled && (
+                  <div className="pt-1 flex items-center justify-between gap-3">
+                    <span className="text-[10px] text-[#78716C] shrink-0">Âm lượng:</span>
+                    <input
+                      type="range"
+                      min="0.1"
+                      max="1"
+                      step="0.05"
+                      value={soundVolume}
+                      onChange={(e) => {
+                        const val = parseFloat(e.target.value);
+                        setSoundVolume(val);
+                      }}
+                      className="w-full h-1.5 bg-[#F3EFE6] rounded-lg appearance-none cursor-pointer accent-[#262626]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => sounds.playPencilCheck(soundVolume)}
+                      className="px-2 py-0.5 bg-[#FBF9F4] hover:bg-[#FEF08A] border border-[#262626] rounded text-[10px] font-bold shadow-sm shrink-0"
+                    >
+                      Thử nghe ♪
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* TÙY BIẾN KHÁC */}
               <div className="p-3 bg-white border border-[#D4CEBF] rounded-[6px] space-y-3">
                 <span className="font-bold text-[11px] text-[#1C1917] block">
-                  TRẢI NGHIỆM GIAO DIỆN:
+                  TÙY CHỌN KHÁC:
                 </span>
 
-                {/* NÚT GẠT 1: ĐỘ NGHIÊNG GIẤY */}
+                {/* Độ nghiêng */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-bold text-xs text-[#1C1917]">
-                      Nghiêng giấy tự nhiên
-                    </p>
-                    <p className="text-[10px] text-[#78716C]">
-                      Hiệu ứng thẻ bài hơi nghiêng như trên bàn gỗ
-                    </p>
+                    <p className="font-bold text-xs text-[#1C1917]">Nghiêng giấy tự nhiên</p>
+                    <p className="text-[10px] text-[#78716C]">Thẻ bài xoay nhẹ như trên bàn gỗ</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsTiltEnabled(!isTiltEnabled)}
-                    className={`w-14 h-7 border-[1.5px] border-[#262626] rounded-[4px] transition-all p-0.5 flex items-center shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none select-none ${
-                      isTiltEnabled
-                        ? "bg-[#BBF7D0] justify-end"
-                        : "bg-[#F3EFE6] justify-start"
+                    className={`w-14 h-6 border-[1.5px] border-[#262626] rounded-[4px] p-0.5 flex items-center shadow-[1px_1px_0px_#262626] ${
+                      isTiltEnabled ? "bg-[#BBF7D0] justify-end" : "bg-[#F3EFE6] justify-start"
                     }`}
                   >
-                    <span
-                      className={`h-5 px-1.5 rounded-[2px] border border-[#262626] flex items-center justify-center text-[9px] font-mono font-bold shadow-[0.5px_0.5px_0px_#262626] transition-all ${
-                        isTiltEnabled
-                          ? "bg-white text-emerald-900"
-                          : "bg-white text-[#78716C]"
-                      }`}
-                    >
-                      {isTiltEnabled ? "BẬT ✓" : "TẮT ✕"}
+                    <span className="h-4 px-1 rounded-[2px] border border-[#262626] bg-white text-[8.5px] font-mono font-bold">
+                      {isTiltEnabled ? "BẬT" : "TẮT"}
                     </span>
                   </button>
                 </div>
 
-                {/* NÚT GẠT 2: TỰ ĐỘNG ẨN VIỆC ĐÃ HOÀN THÀNH */}
-                <div className="flex items-center justify-between pt-2.5 border-t border-[#D4CEBF]/60">
+                {/* Tự động ẩn việc đã xong */}
+                <div className="flex items-center justify-between pt-2 border-t border-[#D4CEBF]/60">
                   <div>
-                    <p className="font-bold text-xs text-[#1C1917]">
-                      Tự động ẩn việc đã xong
-                    </p>
-                    <p className="text-[10px] text-[#78716C]">
-                      Làm gọn danh sách khi hoàn thành công việc
-                    </p>
+                    <p className="font-bold text-xs text-[#1C1917]">Tự động ẩn việc đã xong</p>
+                    <p className="text-[10px] text-[#78716C]">Làm gọn danh sách khi tick hoàn tất</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setHideCompletedTasks(!hideCompletedTasks)}
-                    className={`w-14 h-7 border-[1.5px] border-[#262626] rounded-[4px] transition-all p-0.5 flex items-center shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none select-none ${
-                      hideCompletedTasks
-                        ? "bg-[#BBF7D0] justify-end"
-                        : "bg-[#F3EFE6] justify-start"
+                    className={`w-14 h-6 border-[1.5px] border-[#262626] rounded-[4px] p-0.5 flex items-center shadow-[1px_1px_0px_#262626] ${
+                      hideCompletedTasks ? "bg-[#BBF7D0] justify-end" : "bg-[#F3EFE6] justify-start"
                     }`}
                   >
-                    <span
-                      className={`h-5 px-1.5 rounded-[2px] border border-[#262626] flex items-center justify-center text-[9px] font-mono font-bold shadow-[0.5px_0.5px_0px_#262626] transition-all ${
-                        hideCompletedTasks
-                          ? "bg-white text-emerald-900"
-                          : "bg-white text-[#78716C]"
-                      }`}
-                    >
-                      {hideCompletedTasks ? "BẬT ✓" : "TẮT ✕"}
+                    <span className="h-4 px-1 rounded-[2px] border border-[#262626] bg-white text-[8.5px] font-mono font-bold">
+                      {hideCompletedTasks ? "BẬT" : "TẮT"}
                     </span>
                   </button>
                 </div>
 
-                {/* NÚT GẠT 3: BẬT / TẮT THÔNG BÁO NHẮC VIỆC */}
-                <div className="flex items-center justify-between pt-2.5 border-t border-[#D4CEBF]/60">
+                {/* Dark Mode */}
+                <div className="flex items-center justify-between pt-2 border-t border-[#D4CEBF]/60">
                   <div>
-                    <p className="font-bold text-xs text-[#1C1917]">
-                      Thông báo nhắc việc đúng giờ
-                    </p>
-                    <p className="text-[10px] text-[#78716C]">
-                      Rung & chuông khi đến giờ hẹn
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setIsNotificationsEnabled(!isNotificationsEnabled)
-                    }
-                    className={`w-14 h-7 border-[1.5px] border-[#262626] rounded-[4px] transition-all p-0.5 flex items-center shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none select-none ${
-                      isNotificationsEnabled
-                        ? "bg-[#BBF7D0] justify-end"
-                        : "bg-[#F3EFE6] justify-start"
-                    }`}
-                  >
-                    <span
-                      className={`h-5 px-1.5 rounded-[2px] border border-[#262626] flex items-center justify-center text-[9px] font-mono font-bold shadow-[0.5px_0.5px_0px_#262626] transition-all ${
-                        isNotificationsEnabled
-                          ? "bg-white text-emerald-900"
-                          : "bg-white text-[#78716C]"
-                      }`}
-                    >
-                      {isNotificationsEnabled ? "BẬT ✓" : "TẮT ✕"}
-                    </span>
-                  </button>
-                </div>
-
-                {/* NÚT GẠT 4: CHẾ ĐỘ BAN ĐÊM (DARK SLATE PAPER) */}
-                <div className="flex items-center justify-between pt-2.5 border-t border-[#D4CEBF]/60">
-                  <div>
-                    <p className="font-bold text-xs text-[#1C1917]">
-                      Chế độ Ban Đêm (Dark Mode)
-                    </p>
-                    <p className="text-[10px] text-[#78716C]">
-                      Giấy than đen cổ điển êm mắt khi dùng ban đêm
-                    </p>
+                    <p className="font-bold text-xs text-[#1C1917]">Chế độ Ban Đêm</p>
+                    <p className="text-[10px] text-[#78716C]">Giấy than đen êm mắt</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setIsDarkMode(!isDarkMode)}
-                    className={`w-14 h-7 border-[1.5px] border-[#262626] rounded-[4px] transition-all p-0.5 flex items-center shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none select-none ${
-                      isDarkMode
-                        ? "bg-[#BBF7D0] justify-end"
-                        : "bg-[#F3EFE6] justify-start"
+                    className={`w-14 h-6 border-[1.5px] border-[#262626] rounded-[4px] p-0.5 flex items-center shadow-[1px_1px_0px_#262626] ${
+                      isDarkMode ? "bg-[#BBF7D0] justify-end" : "bg-[#F3EFE6] justify-start"
                     }`}
                   >
-                    <span
-                      className={`h-5 px-1.5 rounded-[2px] border border-[#262626] flex items-center justify-center text-[9px] font-mono font-bold shadow-[0.5px_0.5px_0px_#262626] transition-all ${
-                        isDarkMode
-                          ? "bg-white text-emerald-900"
-                          : "bg-white text-[#78716C]"
-                      }`}
-                    >
-                      {isDarkMode ? "BẬT ✓" : "TẮT ✕"}
+                    <span className="h-4 px-1 rounded-[2px] border border-[#262626] bg-white text-[8.5px] font-mono font-bold">
+                      {isDarkMode ? "BẬT" : "TẮT"}
                     </span>
                   </button>
                 </div>
@@ -555,9 +580,44 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           )}
 
-          {/* TAB 2: ĐỒNG BỘ ĐÁM MÂY & DỮ LIỆU */}
+          {/* TAB 2: ĐỒNG BỘ & DỮ LIỆU */}
           {activeTab === "data" && (
             <div className="space-y-3 text-xs">
+              {/* Trạm Kiểm Soát Dung Lượng (Data Health Hub) */}
+              <div className="p-3 bg-white border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
+                    <Database size={13} strokeWidth={2.2} />
+                    <span>TRẠM KIỂM SOÁT DUNG LƯỢNG:</span>
+                  </span>
+                  <span className="text-[10px] font-mono font-bold bg-[#F3EFE6] px-1.5 py-0.2 rounded border border-[#D4CEBF]">
+                    {storageHealth.kb} KB / 5 MB
+                  </span>
+                </div>
+
+                <div className="w-full h-1.5 bg-[#F3EFE6] border border-[#262626] rounded-[2px] overflow-hidden">
+                  <div
+                    className="h-full bg-[#BBF7D0] border-r border-[#262626] transition-all"
+                    style={{ width: `${Math.max(2, storageHealth.percent)}%` }}
+                  />
+                </div>
+
+                <div className="pt-1.5 flex items-center justify-between gap-2 border-t border-[#D4CEBF]/60">
+                  <div>
+                    <p className="font-bold text-xs text-[#1C1917]">Lưu trữ việc cũ ({">"} 60 ngày)</p>
+                    <p className="text-[10px] text-[#78716C]">Dọn dẹp công việc cũ để app luôn nhẹ như mới</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmArchiveOpen(true)}
+                    className="px-2.5 py-1.5 bg-[#FBF9F4] hover:bg-[#FEF08A] text-[#1C1917] border border-[#262626] rounded text-xs font-bold shadow-[1px_1px_0px_#262626] flex items-center gap-1 active:translate-y-[0.5px] shrink-0"
+                  >
+                    <Archive size={12} />
+                    <span>Dọn việc cũ</span>
+                  </button>
+                </div>
+              </div>
+
               {/* Thẻ Đồng Bộ Đám Mây Tự Động */}
               <div className="p-3 bg-white border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2.5">
                 <div className="flex items-center justify-between gap-1.5 flex-wrap">
@@ -566,22 +626,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <span>ĐỒNG BỘ REALTIME:</span>
                   </span>
                   <span
-                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-[#262626] inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
-                      user.isSignedIn
-                        ? "text-emerald-900 bg-[#BBF7D0]"
-                        : "text-amber-900 bg-[#FEF08A]"
+                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-[#262626] inline-flex items-center gap-1.5 shrink-0 ${
+                      user.isSignedIn ? "text-emerald-900 bg-[#BBF7D0]" : "text-amber-900 bg-[#FEF08A]"
                     }`}
                   >
                     <span
                       className={`w-2 h-2 rounded-full shrink-0 ${
-                        user.isSignedIn
-                          ? "bg-emerald-600 animate-pulse"
-                          : "bg-amber-600"
+                        user.isSignedIn ? "bg-emerald-600 animate-pulse" : "bg-amber-600"
                       }`}
                     />
-                    <span>
-                      {user.isSignedIn ? "Realtime Online" : "Chưa đăng nhập"}
-                    </span>
+                    <span>{user.isSignedIn ? "Realtime Online" : "Chưa đăng nhập"}</span>
                   </span>
                 </div>
 
@@ -600,16 +654,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     onClick={handleCloudSync}
                     className="w-full py-2 bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] font-bold flex items-center justify-center gap-1.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
                   >
-                    <RefreshCw
-                      size={14}
-                      strokeWidth={2.2}
-                      className={isSyncing ? "animate-spin" : ""}
-                    />
-                    <span>
-                      {isSyncing
-                        ? "Đang đồng bộ đám mây..."
-                        : "Đồng bộ ngay bây giờ"}
-                    </span>
+                    <RefreshCw size={14} strokeWidth={2.2} className={isSyncing ? "animate-spin" : ""} />
+                    <span>{isSyncing ? "Đang đồng bộ đám mây..." : "Đồng bộ ngay bây giờ"}</span>
                   </button>
                 ) : (
                   <button
@@ -638,7 +684,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     className="py-1.5 bg-[#FBF9F4] hover:bg-white border border-[#262626] rounded font-bold flex items-center justify-center gap-1.5 text-[11px]"
                   >
                     <Download size={13} strokeWidth={2.2} />
-                    <span>Tải bản sao lưu</span>
+                    <span>Tải file sao lưu</span>
                   </button>
 
                   <input
@@ -655,70 +701,40 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     className="py-1.5 bg-[#FBF9F4] hover:bg-white border border-[#262626] rounded font-bold flex items-center justify-center gap-1.5 text-[11px]"
                   >
                     <Upload size={13} strokeWidth={2.2} />
-                    <span>Nhập từ file</span>
+                    <span>Phục hồi file JSON</span>
                   </button>
                 </div>
               </div>
 
-              {/* Nạp Dữ Liệu Mẫu */}
-              <div className="p-3 bg-[#FEF08A]/40 border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2">
+              {/* Dữ Liệu Mẫu */}
+              <div className="p-3 bg-[#FEF08A]/30 border border-[#D4CEBF] rounded-[6px] space-y-2">
                 <div className="flex items-center justify-between">
-                  <p className="font-bold text-[#1C1917] text-[11px] flex items-center gap-1.5">
-                    <Zap
-                      size={14}
-                      strokeWidth={2.2}
-                      className="text-amber-600"
-                    />
-                    <span>KHÁM PHÁ NHANH ỨNG DỤNG:</span>
-                  </p>
+                  <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
+                    <Zap size={13} className="text-amber-600" />
+                    <span>DỮ LIỆU MẪU ĐẦY ĐỦ:</span>
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
                       loadSampleData();
-                      showToast("✨ Đã thêm dữ liệu mẫu để bạn khám phá!");
+                      showToast("✓ Đã nạp dữ liệu mẫu phong phú!");
                     }}
-                    className="px-2.5 py-1 bg-[#FEF08A] hover:bg-[#FDE047] text-[#1C1917] border border-[#262626] rounded text-[11px] font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
+                    className="px-2.5 py-1 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded text-[11px] font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
                   >
                     Thử ngay ✦
                   </button>
                 </div>
-                <p className="text-[10px] text-[#78716C] leading-snug">
-                  Nạp bộ dữ liệu mẫu gồm việc làm, sổ tay, ý tưởng & thói quen
-                  để tham khảo cách dùng app tốt nhất.
+                <p className="text-[10px] text-[#78716C] leading-relaxed">
+                  Tự động điền công việc, sổ tay, thói quen và ghi chú mẫu để khám phá toàn bộ tính năng.
                 </p>
-              </div>
-
-              {/* Vùng Làm Mới */}
-              <div className="p-2.5 bg-red-50/70 border border-red-300 rounded-[6px] flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-red-700 text-[11px]">
-                    Đặt lại ứng dụng
-                  </p>
-                  <p className="text-[10px] text-red-600">
-                    Xóa dữ liệu để bắt đầu lại
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setConfirmResetOpen(true)}
-                  className="px-2.5 py-1 bg-white text-red-600 hover:bg-red-600 hover:text-white border border-red-400 rounded text-[11px] font-bold transition-colors flex items-center gap-1"
-                >
-                  <RotateCcw size={12} strokeWidth={2.2} />
-                  <span>Đặt lại</span>
-                </button>
               </div>
             </div>
           )}
 
-          {/* TAB 3: GIỚI THIỆU */}
+          {/* TAB 3: GIỚI THIỆU & GIÚP ĐỠ */}
           {activeTab === "about" && (
             <div className="space-y-3 text-xs">
-              <div className="p-3.5 bg-white border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2 text-center">
-                <div className="flex justify-center mb-1">
-                  <div className="w-12 h-12 bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] -rotate-2 flex items-center justify-center">
-                    <BrandLogo size="md" showText={false} />
-                  </div>
-                </div>
+              <div className="p-3 bg-white border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2">
                 <h4 className="font-bold text-sm sm:text-base text-[#1C1917]">
                   SketchTask - Sổ Tay Công Việc Cá Nhân
                 </h4>
@@ -728,41 +744,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </span>
                 </div>
                 <p className="text-xs text-[#1C1917] leading-relaxed pt-1">
-                  SketchTask được thiết kế như một cuốn sổ tay giấy vẽ tay ấm
-                  áp, giúp bạn sắp xếp công việc mỗi ngày, rèn luyện thói quen
-                  tốt và ghi lại những ý tưởng bất chợt một cách nhẹ nhàng nhất.
+                  SketchTask được thiết kế như một cuốn sổ tay giấy vẽ tay ấm áp, giúp bạn sắp xếp công việc mỗi ngày, rèn luyện thói quen tốt và ghi lại những ý tưởng bất chợt.
                 </p>
               </div>
-              {/* Mẹo Sử Dụng Cho Người Dùng */}
-              <div className="p-3 bg-white border border-[#D4CEBF] rounded-[6px] space-y-2">
-                <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
-                  <Lightbulb size={13} className="text-amber-500" />
-                  <span>MẸO SỬ DỤNG HẰNG NGÀY:</span>
-                </span>
-                <ul className="space-y-1.5 text-[11px] text-[#1C1917] leading-relaxed list-disc list-inside">
-                  <li>
-                    <strong>Hôm nay:</strong> Tập trung làm những việc quan
-                    trọng nhất trong ngày.
-                  </li>
-                  <li>
-                    <strong>Kế hoạch:</strong> Xem lịch tuần/tháng và kéo việc
-                    tương lai về hôm nay.
-                  </li>
-                  <li>
-                    <strong>Sổ tay:</strong> Tạo từng cuốn sổ cho từng dự án,
-                    học tập hoặc đời sống.
-                  </li>
-                  <li>
-                    <strong>Ý tưởng:</strong> Dán những suy nghĩ thoáng qua và
-                    ghim lên đầu bảng.
-                  </li>
-                  <li>
-                    <strong>Tổng kết:</strong> Ghi nhận cảm xúc và duy trì chuỗi
-                    thói quen kiên trì.
-                  </li>
-                </ul>
-              </div>
 
+              {/* Nút Xem Lại Intro */}
               {onOpenIntro && (
                 <div className="p-3 bg-[#FEF08A]/40 border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-between">
                   <div>
@@ -785,6 +771,36 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </button>
                 </div>
               )}
+
+              {/* Mẹo Sử Dụng */}
+              <div className="p-3 bg-white border border-[#D4CEBF] rounded-[6px] space-y-2">
+                <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
+                  <Lightbulb size={13} className="text-amber-500" />
+                  <span>PHÍM TẮT & MẸO DÙNG:</span>
+                </span>
+                <ul className="space-y-1.5 text-[11px] text-[#1C1917] leading-relaxed list-disc list-inside">
+                  <li><strong>Ctrl + K:</strong> Mở tìm kiếm thông minh không dấu mọi lúc.</li>
+                  <li><strong>Hôm nay:</strong> Tập trung làm những việc quan trọng nhất.</li>
+                  <li><strong>Kế hoạch:</strong> Xem lịch tuần/tháng và lên lịch trước.</li>
+                  <li><strong>Sổ tay:</strong> Phân loại công việc theo dự án riêng.</li>
+                  <li><strong>Ý tưởng:</strong> Dán thẻ ghi chú nhanh và ghim lên đầu.</li>
+                </ul>
+              </div>
+
+              {/* Đặt Lại Ứng Dụng */}
+              <div className="p-3 bg-rose-50/50 border border-rose-200 rounded-[6px] flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-xs text-rose-800">Đặt lại toàn bộ ứng dụng</p>
+                  <p className="text-[10px] text-[#78716C]">Xóa toàn bộ dữ liệu trên máy về ban đầu</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setConfirmResetOpen(true)}
+                  className="px-2.5 py-1.5 bg-white text-rose-600 hover:bg-rose-50 border border-rose-300 rounded font-bold text-xs shadow-sm"
+                >
+                  Xóa tất cả
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -812,6 +828,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         confirmText="Đồng ý xóa"
         onConfirm={handleResetData}
         onCancel={() => setConfirmResetOpen(false)}
+      />
+
+      {/* Modal Xác Nhận Lưu Trữ Việc Cũ */}
+      <ConfirmModal
+        isOpen={confirmArchiveOpen}
+        title="Lưu trữ & dọn dẹp việc cũ"
+        message="Các công việc đã hoàn thành cách đây hơn 60 ngày sẽ được dọn sạch để danh sách luôn mượt mà. Bạn có muốn tiếp tục?"
+        confirmText="Dọn việc cũ"
+        onConfirm={handlePerformArchive}
+        onCancel={() => setConfirmArchiveOpen(false)}
       />
     </div>,
     document.body,

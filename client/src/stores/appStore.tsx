@@ -11,6 +11,7 @@ import { api, authStorage } from "../services/api";
 import { syncSocket } from "../services/syncSocket";
 import { smartMergeAppData } from "../utils/syncMerge";
 import { notificationService } from "../services/notificationService";
+import { sounds } from "../utils/soundEffects";
 
 // ==========================================
 // STORE: AppStore (Offline-First + Realtime WebSocket Sync Engine)
@@ -95,8 +96,15 @@ export interface AppContextType {
   setIsNotificationsEnabled: (enabled: boolean) => void;
   isDarkMode: boolean;
   setIsDarkMode: (enabled: boolean) => void;
+  isSoundEnabled: boolean;
+  setIsSoundEnabled: (enabled: boolean) => void;
+  soundVolume: number;
+  setSoundVolume: (vol: number) => void;
+  paperStyle: "blank" | "lined" | "dots" | "grid";
+  setPaperStyle: (style: "blank" | "lined" | "dots" | "grid") => void;
   triggerHaptic: () => void;
   loadSampleData: () => void;
+  archiveOldTasks: (days?: number) => number;
 
   // Tasks
   tasks: TaskDto[];
@@ -443,6 +451,62 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     }
   }, [isDarkMode]);
+
+  // --- Sound Effects & Paper Style Settings ---
+  const [isSoundEnabled, setIsSoundEnabledState] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_sound_enabled`);
+      return saved !== null ? JSON.parse(saved) : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const setIsSoundEnabled = (enabled: boolean) => {
+    setIsSoundEnabledState(enabled);
+    localStorage.setItem(`${STORAGE_KEY}_sound_enabled`, JSON.stringify(enabled));
+  };
+
+  const [soundVolume, setSoundVolumeState] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_sound_volume`);
+      return saved !== null ? JSON.parse(saved) : 0.5;
+    } catch {
+      return 0.5;
+    }
+  });
+
+  const setSoundVolume = (vol: number) => {
+    setSoundVolumeState(vol);
+    localStorage.setItem(`${STORAGE_KEY}_sound_volume`, JSON.stringify(vol));
+  };
+
+  const [paperStyle, setPaperStyleState] = useState<"blank" | "lined" | "dots" | "grid">(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_paper_style`);
+      return (saved as any) || "blank";
+    } catch {
+      return "blank";
+    }
+  });
+
+  const setPaperStyle = (style: "blank" | "lined" | "dots" | "grid") => {
+    setPaperStyleState(style);
+    localStorage.setItem(`${STORAGE_KEY}_paper_style`, style);
+    if (typeof document !== "undefined") {
+      document.body.classList.remove("paper-lined", "paper-dots", "paper-grid");
+      if (style !== "blank") {
+        document.body.classList.add(`paper-${style}`);
+      }
+    }
+  };
+
+  // Áp dụng paperStyle khi mount
+  useEffect(() => {
+    if (typeof document !== "undefined" && paperStyle !== "blank") {
+      document.body.classList.add(`paper-${paperStyle}`);
+    }
+  }, [paperStyle]);
 
   const triggerHaptic = () => {};
 
@@ -1017,6 +1081,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
         if (newCompleted) {
           notificationService.cancelTask(id);
+          if (isSoundEnabled) {
+            sounds.playPencilCheck(soundVolume);
+          }
         } else if (updatedTask.dueDate) {
           notificationService.scheduleTask(updatedTask);
         }
@@ -1177,6 +1244,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       triggerDebouncedPush({ stickyNotes: next });
       return next;
     });
+
+    if (isSoundEnabled) {
+      sounds.playStickyNote(soundVolume);
+    }
   };
 
   const togglePinStickyNote = (id: string) => {
@@ -1283,6 +1354,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     triggerDebouncedPush({ weeklyReflection: text });
   };
 
+  const archiveOldTasks = (days = 60): number => {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    const cutoffStr = cutoffDate.toISOString().split("T")[0];
+
+    let removedCount = 0;
+    setTasks((prev) => {
+      const next = prev.filter((t) => {
+        const isOldCompleted = t.completed && t.dueDate && t.dueDate.split(" ")[0] < cutoffStr;
+        if (isOldCompleted) {
+          removedCount++;
+          return false;
+        }
+        return true;
+      });
+      if (removedCount > 0) {
+        triggerDebouncedPush({ tasks: next });
+      }
+      return next;
+    });
+    return removedCount;
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -1309,8 +1403,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsNotificationsEnabled,
         isDarkMode,
         setIsDarkMode,
+        isSoundEnabled,
+        setIsSoundEnabled,
+        soundVolume,
+        setSoundVolume,
+        paperStyle,
+        setPaperStyle,
         triggerHaptic,
         loadSampleData,
+        archiveOldTasks,
         tasks,
         addTask,
         toggleTask,
