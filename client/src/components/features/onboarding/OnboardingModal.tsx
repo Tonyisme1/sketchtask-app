@@ -11,10 +11,11 @@ import {
   Sparkles,
   Cloud,
   Edit3,
+  X,
 } from "lucide-react";
 
 // ==========================================
-// COMPONENT: OnboardingModal (Chào Mừng Người Dùng Mới)
+// COMPONENT: OnboardingModal (Chào Mừng & Giới Thiệu Ứng Dụng)
 // ==========================================
 
 const STEPS = [
@@ -28,7 +29,7 @@ const STEPS = [
     features: null,
   },
   {
-    icon: null,
+    IconComponent: null,
     iconBg: null,
     title: "4 tính năng cốt lõi",
     subtitle: "Mọi thứ bạn cần trong một app",
@@ -65,7 +66,7 @@ const STEPS = [
     ],
   },
   {
-    icon: null,
+    IconComponent: null,
     iconBg: null,
     title: "Bắt đầu thế nào?",
     subtitle: "Chỉ cần 3 bước đơn giản",
@@ -98,9 +99,10 @@ const STEPS = [
 
 interface OnboardingModalProps {
   isOpen: boolean;
+  onClose?: () => void;
 }
 
-export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen }) => {
+export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen, onClose }) => {
   const { dismissOnboarding, loadSampleData } = useAppStore();
   const [step, setStep] = useState(0);
 
@@ -110,9 +112,14 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen }) => {
   const isLast = step === STEPS.length - 1;
   const isFirst = step === 0;
 
+  const handleClose = () => {
+    dismissOnboarding();
+    if (onClose) onClose();
+  };
+
   const handleNext = () => {
     if (isLast) {
-      dismissOnboarding();
+      handleClose();
     } else {
       setStep((s) => s + 1);
     }
@@ -120,7 +127,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen }) => {
 
   const handleLoadSample = () => {
     loadSampleData();
-    dismissOnboarding();
+    handleClose();
   };
 
   return createPortal(
@@ -134,12 +141,22 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen }) => {
         WebkitBackdropFilter: "blur(20px)",
         touchAction: "none",
       }}
-      className="flex items-end sm:items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-300"
+      className="flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-300"
     >
       {/* Modal Card */}
       <div className="relative w-full max-w-sm bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[10px] shadow-[6px_6px_0px_#262626] overflow-hidden animate-in zoom-in-95 duration-300">
         {/* Paper Tape decoration */}
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-5 bg-[#FEF08A]/90 border-x border-[#262626]/40 rotate-1 shadow-sm pointer-events-none z-10" />
+
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={handleClose}
+          className="absolute top-2.5 right-2.5 z-20 w-7 h-7 bg-white hover:bg-rose-50 text-[#78716C] hover:text-rose-600 border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center justify-center active:translate-y-[0.5px] transition-all"
+          title="Đóng giới thiệu"
+        >
+          <X size={14} strokeWidth={2.5} />
+        </button>
 
         {/* Progress bar */}
         <div className="h-1 bg-[#E7E2D8]">

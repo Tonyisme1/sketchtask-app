@@ -31,12 +31,14 @@ interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onOpenAuth: () => void;
+  onOpenIntro?: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
   onOpenAuth,
+  onOpenIntro,
 }) => {
   const {
     user,
@@ -760,6 +762,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </li>
                 </ul>
               </div>
+
+              {onOpenIntro && (
+                <div className="p-3 bg-[#FEF08A]/40 border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-[#1C1917] text-[11px]">
+                      Màn hình giới thiệu (Intro)
+                    </p>
+                    <p className="text-[10px] text-[#78716C]">
+                      Xem lại các tính năng cốt lõi của ứng dụng
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onOpenIntro();
+                    }}
+                    className="px-2.5 py-1 bg-[#FEF08A] hover:bg-[#FDE047] text-[#1C1917] border border-[#262626] rounded text-[11px] font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
+                  >
+                    Xem Intro ✦
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

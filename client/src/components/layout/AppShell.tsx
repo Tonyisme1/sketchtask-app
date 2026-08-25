@@ -13,7 +13,7 @@ import { isNativePlatform } from "../../services/notificationService";
 import { BrandLogo } from "../ui/BrandLogo";
 import { DynamicIcon } from "../ui/DynamicIcon";
 import { NotificationBell } from "../ui/NotificationBell";
-import { User, Settings, KeyRound, LogOut, Search } from "lucide-react";
+import { User, Settings, KeyRound, LogOut, Search, Sparkles } from "lucide-react";
 
 // ==========================================
 // COMPONENT: AppShell (Topbar với BrandLogo & Menu Avatar Hiện Đại)
@@ -35,6 +35,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const avatarMenuRef = useRef<HTMLDivElement>(null);
 
@@ -87,7 +88,11 @@ export const AppShell: React.FC<AppShellProps> = ({
       }`}
     >
       {/* 1. Desktop Left Sidebar */}
-      <Sidebar activeTab={activeTab} onTabChange={onTabChange} />
+      <Sidebar
+        activeTab={activeTab}
+        onTabChange={onTabChange}
+        onOpenIntro={() => setIsOnboardingOpen(true)}
+      />
 
       {/* 2. Main Workspace (Canvas bên phải) */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
@@ -177,6 +182,19 @@ export const AppShell: React.FC<AppShellProps> = ({
                       <span>Cài đặt hệ thống</span>
                     </button>
 
+                    {/* Mục Mở Giới Thiệu Ứng Dụng (Intro) */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAvatarMenuOpen(false);
+                        setIsOnboardingOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[3px] bg-white hover:bg-[#FEF08A] border border-[#D4CEBF] text-left transition-colors font-bold shadow-[1px_1px_0px_#262626]"
+                    >
+                      <Sparkles size={14} className="text-amber-700" strokeWidth={2.2} />
+                      <span>Giới thiệu & Hướng dẫn</span>
+                    </button>
+
                     {/* Nút Mở Đăng Nhập / Tạo Tài Khoản */}
                     <button
                       type="button"
@@ -227,6 +245,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           isOpen={isSettingsModalOpen}
           onClose={() => setIsSettingsModalOpen(false)}
           onOpenAuth={() => setIsAuthModalOpen(true)}
+          onOpenIntro={() => setIsOnboardingOpen(true)}
         />
 
         {/* Modal Đăng nhập / Tạo tài khoản / Quản lý tài khoản */}
@@ -245,13 +264,16 @@ export const AppShell: React.FC<AppShellProps> = ({
           onClose={() => setUpdateInfo(null)}
         />
 
-        {/* Onboarding chào mừng lần đầu vào app */}
-        <OnboardingModal isOpen={isFirstVisit} />
+        {/* Onboarding chào mừng lần đầu vào app hoặc mở thủ công */}
+        <OnboardingModal
+          isOpen={isOnboardingOpen || isFirstVisit}
+          onClose={() => setIsOnboardingOpen(false)}
+        />
 
         {/* Main Content Area với hiệu ứng Lật Trang Êm Ái khi đổi Tab */}
         <main
           key={activeTab}
-          className="flex-1 px-3 sm:px-6 md:px-10 py-4 sm:py-8 pb-24 md:pb-10 max-w-5xl w-full mx-auto animate-page-flip"
+          className="flex-1 px-3 sm:px-6 md:px-8 py-4 sm:py-6 pb-24 md:pb-10 max-w-6xl w-full mx-auto animate-page-flip"
         >
           {children}
         </main>

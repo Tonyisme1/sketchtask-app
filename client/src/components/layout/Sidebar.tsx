@@ -10,11 +10,18 @@ import {
   Lightbulb,
   CheckCheck,
   LucideIcon,
+  Sparkles,
 } from "lucide-react";
 
 // ==========================================
 // COMPONENT: Desktop Sidebar (Thanh điều hướng Sổ tay với Icon Hiện Đại)
 // ==========================================
+
+export interface SidebarProps {
+  activeTab: TabKey;
+  onTabChange: (tab: TabKey) => void;
+  onOpenIntro?: () => void;
+}
 
 export interface NavTabItem extends Omit<TabConfig, "icon"> {
   shortLabel: string;
@@ -59,12 +66,11 @@ export const SIDEBAR_TABS: NavTabItem[] = [
   },
 ];
 
-interface SidebarProps {
-  activeTab: TabKey;
-  onTabChange: (tab: TabKey) => void;
-}
-
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
+export const Sidebar: React.FC<SidebarProps> = ({
+  activeTab,
+  onTabChange,
+  onOpenIntro,
+}) => {
   const { tasks, notebooks, stickyNotes, habits } = useAppStore();
 
   const getBadgeCount = (key: TabKey): number | null => {
@@ -167,14 +173,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange }) => {
           />
         </div>
 
-        <p className="text-[10px] text-[#78716C] font-mono pt-1 border-t border-[#D4CEBF]/60 text-center">
-          {new Date().toLocaleDateString("vi-VN", {
-            weekday: "short",
-            day: "numeric",
-            month: "numeric",
-          })}{" "}
-          • Nhịp độ của bạn
-        </p>
+        <div className="pt-2 border-t border-[#D4CEBF]/60 space-y-1.5">
+          <p className="text-[10px] text-[#78716C] font-mono text-center">
+            {new Date().toLocaleDateString("vi-VN", {
+              weekday: "short",
+              day: "numeric",
+              month: "numeric",
+            })}{" "}
+            • Nhịp độ của bạn
+          </p>
+
+          {onOpenIntro && (
+            <button
+              type="button"
+              onClick={onOpenIntro}
+              className="w-full flex items-center justify-center gap-1.5 py-1 px-2 bg-[#FEF08A]/60 hover:bg-[#FEF08A] text-[#1C1917] border border-[#262626] rounded-[3px] shadow-[1px_1px_0px_#262626] text-[11px] font-bold active:translate-y-[0.5px] transition-all"
+            >
+              <Sparkles size={12} className="text-amber-700" />
+              <span>✦ Giới thiệu ứng dụng</span>
+            </button>
+          )}
+        </div>
       </div>
     </aside>
   );
