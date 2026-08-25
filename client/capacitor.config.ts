@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: 'SketchTask',
   webDir: 'dist',
   server: {
-    androidScheme: 'https',
+    url: 'https://sketchtask-app.vercel.app',
+    cleartext: true,
   },
   android: {
     backgroundColor: '#FBF9F4',
