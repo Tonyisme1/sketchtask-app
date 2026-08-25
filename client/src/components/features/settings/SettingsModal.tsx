@@ -18,6 +18,11 @@ import {
   Smartphone,
   Check,
   Edit2,
+  CheckSquare,
+  BookOpen,
+  Lightbulb,
+  Flame,
+  Radio,
 } from "lucide-react";
 
 // ==========================================
@@ -228,18 +233,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         height: "100dvh",
         minHeight: "100vh",
         zIndex: 999999,
-        backgroundColor: "rgba(0, 0, 0, 0.82)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
+        backgroundColor: "rgba(38, 38, 38, 0.65)",
         touchAction: "none",
       }}
-      className="flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-200 pointer-events-auto"
+      className="flex items-end sm:items-center justify-center p-0 sm:p-4 select-none animate-in fade-in duration-150 pointer-events-auto"
     >
-      {/* Settings Modal Box (Cố định chiều cao 540px - không co giãn khi đổi tab) */}
+      {/* Settings Modal Box (Cố định chiều cao và tối ưu tràn viền mobile) */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md h-[540px] max-h-[90vh] bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[8px] shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col justify-between overflow-hidden animate-in zoom-in-95 duration-200 z-[1000000]"
+        className="relative w-full max-w-md h-[560px] max-h-[88vh] bg-[#FBF9F4] border-t-[2px] sm:border-[2px] border-[#262626] rounded-t-[16px] sm:rounded-[8px] shadow-[0px_-4px_0px_#262626] sm:shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col justify-between overflow-hidden animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 z-[1000000] pb-6 sm:pb-5"
       >
+        {/* Mobile Drag Handle Indicator */}
+        <div className="w-10 h-1 bg-[#D4CEBF] rounded-full mx-auto mb-3 sm:hidden" />
         {/* Header */}
         <div className="flex items-center justify-between pb-2.5 border-b border-[#262626]">
           <div className="flex items-center gap-2">
@@ -460,17 +465,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {activeTab === "data" && (
             <div className="space-y-3 text-xs">
               {/* Thẻ Đồng Bộ Đám Mây Tự Động */}
-              <div className="p-3 bg-white border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2.5">
+              <div className="p-3 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
-                    <Cloud size={14} strokeWidth={2.2} />
-                    <span>ĐỒNG BỘ ĐA THIẾT BỊ (REALTIME):</span>
+                    <Cloud size={15} strokeWidth={2.2} className="text-sky-700" />
+                    <span>ĐỒNG BỘ CLOUD (REALTIME):</span>
                   </span>
                   <span
-                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-[#262626] flex items-center gap-1 ${
+                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-[#262626] flex items-center gap-1.5 ${
                       user.isSignedIn
-                        ? "text-emerald-800 bg-[#BBF7D0]"
-                        : "text-amber-800 bg-[#FEF08A]"
+                        ? "text-emerald-900 bg-[#BBF7D0]"
+                        : "text-amber-900 bg-[#FEF08A]"
                     }`}
                   >
                     <span
@@ -478,7 +483,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         user.isSignedIn ? "bg-emerald-600 animate-pulse" : "bg-amber-600"
                       }`}
                     />
-                    {user.isSignedIn ? "● Realtime Online" : "Chưa đăng nhập"}
+                    {user.isSignedIn ? "Realtime Online" : "Chưa đăng nhập"}
                   </span>
                 </div>
 
@@ -489,6 +494,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       }.`
                     : "Đăng nhập tài khoản để đồng bộ hóa hai chiều tức thì giữa điện thoại và máy tính không lo mất dữ liệu."}
                 </p>
+
+                {/* Tóm tắt dữ liệu hiện có trên máy */}
+                {user.isSignedIn && (
+                  <div className="grid grid-cols-2 gap-2 text-[10.5px] text-[#1C1917] p-2 bg-[#FBF9F4] border border-[#D4CEBF] rounded-[4px]">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <CheckSquare size={12} strokeWidth={2.2} className="text-amber-700 shrink-0" />
+                      <span>{tasks.length} công việc</span>
+                    </span>
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <BookOpen size={12} strokeWidth={2.2} className="text-indigo-700 shrink-0" />
+                      <span>{notebooks.length} cuốn sổ</span>
+                    </span>
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Lightbulb size={12} strokeWidth={2.2} className="text-amber-600 shrink-0" />
+                      <span>{stickyNotes.length} thẻ ý tưởng</span>
+                    </span>
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Flame size={12} strokeWidth={2.2} className="text-orange-600 shrink-0" />
+                      <span>{habits.length} thói quen</span>
+                    </span>
+                  </div>
+                )}
 
                 {user.isSignedIn ? (
                   <button
@@ -513,7 +540,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       onClose();
                       onOpenAuth();
                     }}
-                    className="w-full py-2 bg-[#262626] hover:bg-[#1C1917] text-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#A8A29E] font-bold flex items-center justify-center gap-1.5 active:translate-y-[0.5px] transition-all"
+                    className="w-full py-2 bg-[#262626] hover:bg-[#1C1917] text-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#A8A29E] font-bold flex items-center justify-center gap-1.5 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
                   >
                     <span>Đăng nhập / Đăng ký để bật đồng bộ ➔</span>
                   </button>
@@ -521,7 +548,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
 
               {/* Tùy Chọn Sao Lưu Dự Phòng */}
-              <div className="p-3 bg-white border border-[#D4CEBF] rounded-[6px] space-y-2">
+              <div className="p-3 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2">
                 <span className="font-bold text-[11px] text-[#1C1917] block">
                   SAO LƯU THỦ CÔNG (DỰ PHÒNG):
                 </span>
@@ -530,7 +557,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <button
                     type="button"
                     onClick={handleExportData}
-                    className="py-1.5 bg-[#FBF9F4] hover:bg-white border border-[#262626] rounded font-bold flex items-center justify-center gap-1.5 text-[11px]"
+                    className="py-1.5 bg-[#FBF9F4] hover:bg-white border-[1.5px] border-[#262626] rounded-[4px] font-bold flex items-center justify-center gap-1.5 text-[11px] shadow-[1px_1px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
                   >
                     <Download size={13} strokeWidth={2.2} />
                     <span>Tải bản sao lưu</span>
@@ -547,7 +574,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="py-1.5 bg-[#FBF9F4] hover:bg-white border border-[#262626] rounded font-bold flex items-center justify-center gap-1.5 text-[11px]"
+                    className="py-1.5 bg-[#FBF9F4] hover:bg-white border-[1.5px] border-[#262626] rounded-[4px] font-bold flex items-center justify-center gap-1.5 text-[11px] shadow-[1px_1px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
                   >
                     <Upload size={13} strokeWidth={2.2} />
                     <span>Nhập từ file</span>
@@ -556,7 +583,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
 
               {/* Nạp Dữ Liệu Mẫu */}
-              <div className="p-3 bg-[#FEF08A]/40 border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2">
+              <div className="p-3 bg-[#FEF08A]/40 border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="font-bold text-[#1C1917] text-[11px] flex items-center gap-1.5">
                     <Zap
@@ -572,7 +599,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       loadSampleData();
                       showToast("✨ Đã thêm dữ liệu mẫu để bạn khám phá!");
                     }}
-                    className="px-2.5 py-1 bg-[#FEF08A] hover:bg-[#FDE047] text-[#1C1917] border border-[#262626] rounded text-[11px] font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
+                    className="px-2.5 py-1 bg-[#FEF08A] hover:bg-[#FDE047] text-[#1C1917] border border-[#262626] rounded text-[11px] font-bold shadow-[1px_1px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
                   >
                     Thử ngay ✦
                   </button>

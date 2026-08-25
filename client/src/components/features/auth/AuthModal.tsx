@@ -15,6 +15,10 @@ import {
   Smartphone,
   Laptop,
   Radio,
+  CheckSquare,
+  BookOpen,
+  Lightbulb,
+  Flame,
 } from "lucide-react";
 
 // ==========================================
@@ -52,6 +56,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncDone, setSyncDone] = useState(false);
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobileDevice(
+        /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
+          window.innerWidth < 640
+      );
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Form states
   const [name, setName] = useState("");
@@ -63,25 +80,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setMounted(true);
   }, []);
 
-  // Khóa cuộn trang và chủ động xóa focus khi modal mở
+  // Khóa cuộn trang khi modal mở
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
       document.body.style.touchAction = "none";
-
-      // Xóa bỏ hoàn toàn bất kỳ focus tự động nào từ trình duyệt / autofill
-      if (document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur();
-      }
-      setTimeout(() => {
-        if (
-          document.activeElement instanceof HTMLElement &&
-          (document.activeElement.tagName === "INPUT" ||
-            document.activeElement.tagName === "BUTTON")
-        ) {
-          document.activeElement.blur();
-        }
-      }, 50);
     } else {
       document.body.style.overflow = "";
       document.body.style.touchAction = "";
@@ -198,6 +201,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   };
 
+  if (!isOpen || !mounted) return null;
+
   return createPortal(
     <div
       onClick={(e) => e.stopPropagation()}
@@ -213,20 +218,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         height: "100dvh",
         minHeight: "100vh",
         zIndex: 999999,
-        backgroundColor: "rgba(0, 0, 0, 0.82)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
+        backgroundColor: "rgba(38, 38, 38, 0.65)",
         touchAction: "none",
       }}
-      className="flex items-center justify-center p-4 select-none animate-in fade-in duration-200 pointer-events-auto"
+      className="flex items-end sm:items-center justify-center p-0 sm:p-4 select-none animate-in fade-in duration-150 pointer-events-auto"
     >
       {/* Modal Box */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-sm bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[8px] shadow-[6px_6px_0px_#262626] p-4 sm:p-5 animate-in zoom-in-95 duration-200 z-[1000000] max-h-[90vh] overflow-y-auto no-scrollbar"
+        className="relative w-full max-w-sm bg-[#FBF9F4] border-t-[2px] sm:border-[2px] border-[#262626] rounded-t-[16px] sm:rounded-[8px] shadow-[0px_-4px_0px_#262626] sm:shadow-[6px_6px_0px_#262626] p-4 sm:p-5 animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 z-[1000000] max-h-[88vh] overflow-y-auto no-scrollbar pb-6 sm:pb-5"
       >
-        {/* Paper Tape Effect */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-28 h-5 bg-[#FEF08A]/90 border-x border-[#262626]/40 rotate-1 shadow-sm pointer-events-none" />
+        {/* Mobile Drag Handle Indicator */}
+        <div className="w-10 h-1 bg-[#D4CEBF] rounded-full mx-auto mb-3 sm:hidden" />
+
+        {/* Paper Tape Effect (Desktop) */}
+        <div className="hidden sm:block absolute -top-3 left-1/2 -translate-x-1/2 w-28 h-5 bg-[#FEF08A]/90 border-x border-[#262626]/40 rotate-1 shadow-sm pointer-events-none" />
 
         {/* ========================================== */}
         {/* TRƯỜNG HỢP 1: ĐÃ ĐĂNG NHẬP (QUẢN LÝ TÀI KHOẢN CÁ NHÂN) */}
@@ -292,14 +298,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
             </div>
 
-            {/* Sync Stats Summary */}
-            <div className="p-2.5 bg-[#FEF08A]/30 border border-[#262626] rounded-[6px] space-y-1.5 text-xs">
+            {/* Sync Stats Summary (Lucide Icons chuẩn Design System) */}
+            <div className="p-2.5 bg-[#FEF08A]/30 border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2 text-xs">
               <div className="flex items-center justify-between font-bold text-[11px] text-[#1C1917]">
                 <span className="flex items-center gap-1.5">
-                  <Cloud size={13} strokeWidth={2.2} />
+                  <Cloud size={14} strokeWidth={2.2} className="text-sky-700" />
                   <span>Dữ liệu đồng bộ:</span>
                 </span>
-                <span className="font-mono text-[10px] text-emerald-700 bg-emerald-100 px-1.5 py-0.2 border border-emerald-300 rounded">
+                <span className="font-mono text-[10px] text-emerald-800 bg-[#BBF7D0] px-1.5 py-0.5 border border-[#262626] rounded font-bold">
                   {syncStatus === "syncing"
                     ? "Đang đồng bộ..."
                     : lastSyncedAt
@@ -308,39 +314,60 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-1 text-[10px] text-[#78716C] pt-1 border-t border-[#262626]/20">
-                <span>📝 {tasks.length} công việc</span>
-                <span>📓 {notebooks.length} cuốn sổ</span>
-                <span>💡 {stickyNotes.length} thẻ ý tưởng</span>
-                <span>🔥 {habits.length} thói quen</span>
+              <div className="grid grid-cols-2 gap-2 text-[11px] text-[#1C1917] pt-2 border-t border-[#262626]/20">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <CheckSquare size={13} strokeWidth={2.2} className="text-amber-700 shrink-0" />
+                  <span>{tasks.length} công việc</span>
+                </span>
+                <span className="flex items-center gap-1.5 font-medium">
+                  <BookOpen size={13} strokeWidth={2.2} className="text-indigo-700 shrink-0" />
+                  <span>{notebooks.length} cuốn sổ</span>
+                </span>
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Lightbulb size={13} strokeWidth={2.2} className="text-amber-600 shrink-0" />
+                  <span>{stickyNotes.length} thẻ ý tưởng</span>
+                </span>
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Flame size={13} strokeWidth={2.2} className="text-orange-600 shrink-0" />
+                  <span>{habits.length} thói quen</span>
+                </span>
               </div>
             </div>
 
-            {/* Devices list */}
-            <div className="space-y-1">
-              <span className="font-bold text-[11px] text-[#1C1917] block">
-                📱 THIẾT BỊ ĐANG KẾT NỐI REALTIME:
+            {/* Devices list (Tự động nhận diện thiết bị hiện tại) */}
+            <div className="space-y-1.5">
+              <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
+                <Radio size={13} strokeWidth={2.2} className="text-emerald-700" />
+                <span>THIẾT BỊ ĐANG KẾT NỐI REALTIME:</span>
               </span>
-              <div className="space-y-1 text-[11px] text-[#78716C]">
-                <div className="flex items-center justify-between bg-[#FBF9F4] p-1.5 rounded border border-[#262626]/10">
-                  <span className="flex items-center gap-1.5 text-[#1C1917] font-medium">
-                    <Laptop size={13} strokeWidth={2.2} />
-                    <span>Thiết bị hiện tại</span>
+              <div className="space-y-1.5 text-[11px]">
+                {/* 1. Thiết bị đang cầm trên tay */}
+                <div className="flex items-center justify-between bg-white p-2 rounded-[4px] border border-[#262626] shadow-[1px_1px_0px_#262626]">
+                  <span className="flex items-center gap-2 text-[#1C1917] font-bold">
+                    {isMobileDevice ? (
+                      <Smartphone size={14} strokeWidth={2.2} className="text-emerald-700" />
+                    ) : (
+                      <Laptop size={14} strokeWidth={2.2} className="text-emerald-700" />
+                    )}
+                    <span>{isMobileDevice ? "Điện thoại này (Hiện tại)" : "Máy tính này (Hiện tại)"}</span>
                   </span>
-                  <span className="flex items-center gap-1 text-[9px] font-mono text-emerald-700">
-                    <Radio
-                      size={10}
-                      className="animate-pulse text-emerald-600"
-                    />
+                  <span className="flex items-center gap-1 text-[9.5px] font-mono font-bold text-emerald-800 bg-[#BBF7D0] px-1.5 py-0.5 rounded border border-[#262626]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
                     Online
                   </span>
                 </div>
-                <div className="flex items-center justify-between bg-[#FBF9F4] p-1.5 rounded border border-[#262626]/10">
-                  <span className="flex items-center gap-1.5 text-[#1C1917] font-medium">
-                    <Smartphone size={13} strokeWidth={2.2} />
-                    <span>Điện thoại di động (PWA/APK)</span>
+
+                {/* 2. Thiết bị còn lại kết nối qua Cloud */}
+                <div className="flex items-center justify-between bg-[#FBF9F4] p-2 rounded-[4px] border border-[#D4CEBF]">
+                  <span className="flex items-center gap-2 text-[#78716C] font-medium">
+                    {!isMobileDevice ? (
+                      <Smartphone size={14} strokeWidth={2.2} className="text-[#78716C]" />
+                    ) : (
+                      <Laptop size={14} strokeWidth={2.2} className="text-[#78716C]" />
+                    )}
+                    <span>{!isMobileDevice ? "Điện thoại di động" : "Máy tính / Desktop"}</span>
                   </span>
-                  <span className="text-[9px] font-mono text-emerald-700">
+                  <span className="text-[9.5px] font-mono text-emerald-700 font-bold">
                     Tự động đồng bộ
                   </span>
                 </div>
@@ -353,7 +380,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 type="button"
                 onClick={handleManualSync}
                 disabled={isSyncing}
-                className="w-full py-2 bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] flex items-center justify-center gap-2 active:translate-y-[1px]"
+                className="w-full py-2 bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] flex items-center justify-center gap-2 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
               >
                 <RefreshCw
                   size={14}
@@ -375,7 +402,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   if (onBackToSettings) onBackToSettings();
                   else onClose();
                 }}
-                className="w-full py-2 bg-white hover:bg-red-50 text-red-600 border border-red-300 rounded-[4px] text-xs font-bold flex items-center justify-center gap-1.5"
+                className="w-full py-2 bg-white hover:bg-red-50 text-red-600 border border-red-300 rounded-[4px] text-xs font-bold flex items-center justify-center gap-1.5 active:translate-x-[1px] active:translate-y-[1px] transition-all"
               >
                 <LogOut size={13} />
                 <span>Đăng xuất khỏi thiết bị này</span>
@@ -433,7 +460,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             {/* Form */}
-            <form onSubmit={handleSubmit} autoComplete="off" className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {authMode === "signup" && (
                 <div>
                   <label className="block text-xs font-bold text-[#1C1917] mb-1">
@@ -442,7 +469,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <TextInput
                     placeholder="Ví dụ: Minh Khang"
                     value={name}
-                    autoComplete="off"
                     onChange={(e) => {
                       setName(e.target.value);
                       if (errorMessage) setErrorMessage("");
@@ -459,7 +485,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="email"
                   placeholder="tenban@email.com"
                   value={email}
-                  autoComplete="new-password"
                   onChange={(e) => {
                     setEmail(e.target.value);
                     if (errorMessage) setErrorMessage("");
@@ -475,7 +500,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="password"
                   placeholder="••••••••"
                   value={password}
-                  autoComplete="new-password"
                   onChange={(e) => {
                     setPassword(e.target.value);
                     if (errorMessage) setErrorMessage("");
