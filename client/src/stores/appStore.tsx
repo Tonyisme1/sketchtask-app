@@ -91,6 +91,8 @@ export interface AppContextType {
   setIsTiltEnabled: (enabled: boolean) => void;
   hideCompletedTasks: boolean;
   setHideCompletedTasks: (hide: boolean) => void;
+  isNotificationsEnabled: boolean;
+  setIsNotificationsEnabled: (enabled: boolean) => void;
   triggerHaptic: () => void;
   loadSampleData: () => void;
 
@@ -381,6 +383,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       return false;
     }
   });
+
+  const [isNotificationsEnabled, setIsNotificationsEnabledState] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_notifications_enabled`);
+      return saved !== null ? JSON.parse(saved) : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const setIsNotificationsEnabled = (enabled: boolean) => {
+    setIsNotificationsEnabledState(enabled);
+    localStorage.setItem(`${STORAGE_KEY}_notifications_enabled`, JSON.stringify(enabled));
+    if (!enabled) {
+      // Hủy toàn bộ thông báo khi người dùng tắt
+      if (typeof window !== "undefined" && "LocalNotifications" in window) {
+        notificationService.cancelAll?.();
+      }
+    } else {
+      // Đồng bộ lại thông báo khi bật
+      notificationService.syncAllTasks(tasks);
+    }
+  };
 
   const triggerHaptic = () => {};
 
@@ -1231,6 +1256,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setIsTiltEnabled,
         hideCompletedTasks,
         setHideCompletedTasks,
+        isNotificationsEnabled,
+        setIsNotificationsEnabled,
         triggerHaptic,
         loadSampleData,
         tasks,

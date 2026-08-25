@@ -36,7 +36,12 @@ const relativeTime = (minutesAgo: number) => {
 };
 
 export const NotificationBell: React.FC = () => {
-  const { tasks, habits } = useAppStore();
+  const {
+    tasks,
+    habits,
+    isNotificationsEnabled,
+    setIsNotificationsEnabled,
+  } = useAppStore();
   const [isOpen, setIsOpen] = useState(false);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
@@ -54,8 +59,9 @@ export const NotificationBell: React.FC = () => {
     const granted = await notificationService.requestPermission();
     setHasSystemPerm(granted);
     if (granted) {
+      setIsNotificationsEnabled(true);
       notificationService.sendInstant(
-        "🎉 SketchTask",
+        "SketchTask",
         "Đã bật thông báo thành công! Bạn sẽ nhận được nhắc nhở khi đến giờ hẹn."
       );
     }
@@ -286,8 +292,31 @@ export const NotificationBell: React.FC = () => {
             </div>
           </div>
 
+          {/* Công Tắc Bật / Tắt Thông Báo */}
+          <div className="flex items-center justify-between p-1.5 bg-white border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626]">
+            <span className="flex items-center gap-1.5 text-[11px] font-bold text-[#1C1917]">
+              {isNotificationsEnabled ? (
+                <Bell size={12} strokeWidth={2.2} className="text-emerald-700" />
+              ) : (
+                <BellOff size={12} strokeWidth={2.2} className="text-red-600" />
+              )}
+              <span>Nhắc việc:</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsNotificationsEnabled(!isNotificationsEnabled)}
+              className={`px-2 py-0.5 rounded-[3px] border-[1.5px] border-[#262626] text-[10px] font-bold transition-all flex items-center gap-1 active:translate-x-[0.5px] active:translate-y-[0.5px] ${
+                isNotificationsEnabled
+                  ? "bg-[#BBF7D0] text-emerald-900 shadow-[1px_1px_0px_#262626]"
+                  : "bg-[#FECDD3] text-red-900 shadow-[1px_1px_0px_#262626]"
+              }`}
+            >
+              <span>{isNotificationsEnabled ? "Đang Bật ✓" : "Đã Tắt ✕"}</span>
+            </button>
+          </div>
+
           {/* Banner Bật Thông Báo Ngoài Màn Hình (Nếu chưa cấp quyền) */}
-          {!hasSystemPerm && (
+          {!hasSystemPerm && isNotificationsEnabled && (
             <div className="p-2 bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] font-bold text-[#1C1917] leading-tight">

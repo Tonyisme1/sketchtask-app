@@ -173,6 +173,22 @@ export const notificationService = {
   },
 
   /**
+   * Hủy toàn bộ thông báo
+   */
+  async cancelAll(): Promise<void> {
+    if (isNativePlatform()) {
+      try {
+        const pending = await LocalNotifications.getPending();
+        if (pending.notifications.length > 0) {
+          await LocalNotifications.cancel({ notifications: pending.notifications });
+        }
+      } catch (e) {
+        console.warn("Lỗi hủy toàn bộ thông báo:", e);
+      }
+    }
+  },
+
+  /**
    * Đồng bộ toàn bộ lịch thông báo của các công việc chưa hoàn thành
    */
   async syncAllTasks(tasks: TaskDto[]): Promise<void> {

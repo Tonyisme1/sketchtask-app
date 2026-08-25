@@ -10,6 +10,7 @@ import { ConfirmModal } from "../../ui/ConfirmModal";
 import { DynamicIcon } from "../../ui/DynamicIcon";
 import { getCardTilt } from "../../../utils/tilt";
 import { getTagStyle } from "../../../utils/tagColors";
+import { getTaskDueInfo } from "../../../utils/taskDueStatus";
 import {
   Calendar as CalendarIcon,
   Sun,
@@ -17,6 +18,7 @@ import {
   Clock,
   X,
   Star,
+  AlertCircle,
 } from "lucide-react";
 
 // ==========================================
@@ -514,9 +516,9 @@ export const PlannerTab: React.FC = () => {
           </div>
         </form>
 
-        {/* Filter Pills */}
-        <div className="flex items-center justify-between flex-wrap gap-2 text-xs pt-0.5">
-          <div className="flex items-center gap-1 flex-wrap">
+        {/* Filter Bar 1 Hàng Cuộn Ngang Mượt Mà */}
+        <div className="p-1.5 bg-white border border-[#D4CEBF] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs select-none">
+          <div className="flex items-center gap-1 shrink-0">
             {[
               { key: "all", label: "Tất cả" },
               { key: "active", label: "Cần làm" },
@@ -525,10 +527,10 @@ export const PlannerTab: React.FC = () => {
               <button
                 key={f.key}
                 onClick={() => setStatusFilter(f.key as any)}
-                className={`px-2 py-0.5 rounded-[3px] border text-xs font-medium transition-all ${
+                className={`px-2 py-0.5 rounded-[3px] border text-xs font-bold transition-all ${
                   statusFilter === f.key
                     ? "bg-[#262626] text-white border-[#262626]"
-                    : "bg-white text-[#78716C] border-[#D4CEBF]"
+                    : "bg-[#FBF9F4] text-[#78716C] border-[#D4CEBF]"
                 }`}
               >
                 {f.label}
@@ -536,14 +538,16 @@ export const PlannerTab: React.FC = () => {
             ))}
           </div>
 
-          <div className="flex items-center gap-1 flex-wrap">
+          <div className="w-[1px] h-4 bg-[#D4CEBF] shrink-0" />
+
+          <div className="flex items-center gap-1 shrink-0">
             {["all", ...tags].map((tag) => (
               <button
                 key={tag}
                 onClick={() => setTagFilter(tag)}
-                className={`px-1.5 py-0.2 rounded border text-[10px] transition-all ${
+                className={`px-1.5 py-0.5 rounded border text-[11px] transition-all whitespace-nowrap ${
                   tagFilter === tag
-                    ? "border-[#262626] bg-[#FEF08A] font-bold"
+                    ? "border-[#262626] bg-[#FEF08A] font-bold text-[#1C1917]"
                     : "border-transparent text-[#78716C]"
                 }`}
               >
@@ -565,11 +569,12 @@ export const PlannerTab: React.FC = () => {
             filteredDayTasks.map((task, idx) => {
               const assignedNotebook = notebooks.find((n) => n.id === task.notebookId);
               const isTaskForToday = task.dueDate?.includes(todayStr) || (selectedDateStr === todayStr && !task.dueDate);
+              const dueInfo = getTaskDueInfo(task.dueDate);
 
               return (
                 <div
                   key={task.id}
-                  className={`group p-3 bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] space-y-2 transition-all hover:bg-white ${getCardTilt(
+                  className={`group p-2.5 sm:p-3 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] space-y-2 transition-all ${getCardTilt(
                     idx
                   )}`}
                 >
@@ -590,15 +595,25 @@ export const PlannerTab: React.FC = () => {
                           {task.title}
                         </p>
                         <div className="mt-1 flex items-center gap-1.5 flex-wrap text-[10px]">
-                          {task.dueDate && (
-                            <span className="font-mono text-[#78716C] bg-white px-1.5 py-0.2 rounded border border-[#D4CEBF] inline-flex items-center gap-1">
-                              <Clock size={10} strokeWidth={2.2} />
-                              <span>{task.dueDate.includes(" ") ? task.dueDate.split(" ")[1] : "Cả ngày"}</span>
+                          {/* Badge Hạn Chót */}
+                          {dueInfo && !task.completed && (
+                            <span
+                              className={`px-1.5 py-0.5 rounded border inline-flex items-center gap-1 font-mono ${dueInfo.badgeClass}`}
+                            >
+                              {dueInfo.type === "overdue" ? (
+                                <AlertCircle size={10} strokeWidth={2.5} className="text-rose-700" />
+                              ) : dueInfo.type === "today" ? (
+                                <Clock size={10} strokeWidth={2.2} className="text-amber-800" />
+                              ) : (
+                                <CalendarIcon size={10} strokeWidth={2.2} className="text-emerald-700" />
+                              )}
+                              <span>{dueInfo.label}</span>
                             </span>
                           )}
+
                           {task.tag && (
                             <span
-                              className={`${getTagStyle(task.tag).bg} ${getTagStyle(task.tag).text} px-1.5 py-0.2 rounded border ${getTagStyle(task.tag).border} font-medium`}
+                              className={`${getTagStyle(task.tag).bg} ${getTagStyle(task.tag).text} px-1.5 py-0.5 rounded border ${getTagStyle(task.tag).border} font-medium`}
                             >
                               #{task.tag}
                             </span>
@@ -619,7 +634,7 @@ export const PlannerTab: React.FC = () => {
                     <button
                       onClick={() => setDeletingTaskId(task.id)}
                       title="Xóa"
-                      className="opacity-40 group-hover:opacity-100 text-[#78716C] hover:text-red-600 p-1 shrink-0"
+                      className="opacity-40 group-hover:opacity-100 text-[#78716C] hover:text-red-600 p-1 shrink-0 active:translate-y-[0.5px]"
                     >
                       <X size={13} strokeWidth={2.5} />
                     </button>
