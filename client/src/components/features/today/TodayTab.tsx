@@ -24,6 +24,7 @@ import {
   ChevronUp,
   SlidersHorizontal,
   Filter,
+  Sun,
 } from "lucide-react";
 
 import { getLocalTodayStr, isTaskForDate } from "../../../utils/date";
