@@ -49,6 +49,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setHideCompletedTasks,
     isNotificationsEnabled,
     setIsNotificationsEnabled,
+    isDarkMode,
+    setIsDarkMode,
     loadSampleData,
     tasks,
     notebooks,
@@ -510,6 +512,37 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       }`}
                     >
                       {isNotificationsEnabled ? "BẬT ✓" : "TẮT ✕"}
+                    </span>
+                  </button>
+                </div>
+
+                {/* NÚT GẠT 4: CHẾ ĐỘ BAN ĐÊM (DARK SLATE PAPER) */}
+                <div className="flex items-center justify-between pt-2.5 border-t border-[#D4CEBF]/60">
+                  <div>
+                    <p className="font-bold text-xs text-[#1C1917]">
+                      Chế độ Ban Đêm (Dark Mode)
+                    </p>
+                    <p className="text-[10px] text-[#78716C]">
+                      Giấy than đen cổ điển êm mắt khi dùng ban đêm
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsDarkMode(!isDarkMode)}
+                    className={`w-14 h-7 border-[1.5px] border-[#262626] rounded-[4px] transition-all p-0.5 flex items-center shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none select-none ${
+                      isDarkMode
+                        ? "bg-[#BBF7D0] justify-end"
+                        : "bg-[#F3EFE6] justify-start"
+                    }`}
+                  >
+                    <span
+                      className={`h-5 px-1.5 rounded-[2px] border border-[#262626] flex items-center justify-center text-[9px] font-mono font-bold shadow-[0.5px_0.5px_0px_#262626] transition-all ${
+                        isDarkMode
+                          ? "bg-white text-emerald-900"
+                          : "bg-white text-[#78716C]"
+                      }`}
+                    >
+                      {isDarkMode ? "BẬT ✓" : "TẮT ✕"}
                     </span>
                   </button>
                 </div>

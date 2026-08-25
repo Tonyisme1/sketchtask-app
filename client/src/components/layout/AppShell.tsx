@@ -7,16 +7,12 @@ import { AuthModal } from "../features/auth/AuthModal";
 import { SettingsModal } from "../features/settings/SettingsModal";
 import { OnboardingModal } from "../features/onboarding/OnboardingModal";
 import { GlobalSearchModal } from "../ui/GlobalSearchModal";
+import { UpdateModal } from "../ui/UpdateModal";
+import { checkForAppUpdates, UpdateInfo } from "../../services/updateService";
 import { BrandLogo } from "../ui/BrandLogo";
 import { DynamicIcon } from "../ui/DynamicIcon";
 import { NotificationBell } from "../ui/NotificationBell";
-import {
-  User,
-  Settings,
-  KeyRound,
-  LogOut,
-  Search,
-} from "lucide-react";
+import { User, Settings, KeyRound, LogOut, Search } from "lucide-react";
 
 // ==========================================
 // COMPONENT: AppShell (Topbar với BrandLogo & Menu Avatar Hiện Đại)
@@ -38,7 +34,20 @@ export const AppShell: React.FC<AppShellProps> = ({
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const avatarMenuRef = useRef<HTMLDivElement>(null);
+
+  // Tự động kiểm tra cập nhật ngầm trong background khi mở app
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      checkForAppUpdates().then((info) => {
+        if (info && info.hasUpdate) {
+          setUpdateInfo(info);
+        }
+      });
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Phím tắt bàn phím toàn cục Ctrl + K / Cmd + K để mở tìm kiếm
   useEffect(() => {
@@ -139,59 +148,65 @@ export const AppShell: React.FC<AppShellProps> = ({
                         {user.name}
                       </p>
                       <p className="text-[10px] text-[#78716C] truncate font-mono">
-                        {user.isSignedIn ? user.email : "Khách (Chưa đăng nhập)"}
+                        {user.isSignedIn
+                          ? user.email
+                          : "Khách (Chưa đăng nhập)"}
                       </p>
                     </div>
                   </div>
 
-                {/* Menu Items */}
-                <div className="space-y-1">
-                  {/* Mục Mở Cài Đặt Hệ Thống */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsAvatarMenuOpen(false);
-                      setIsSettingsModalOpen(true);
-                    }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[3px] bg-white hover:bg-[#F3EFE6] border border-[#D4CEBF] text-left transition-colors font-bold shadow-[1px_1px_0px_#262626]"
-                  >
-                    <Settings size={14} strokeWidth={2.2} />
-                    <span>Cài đặt hệ thống</span>
-                  </button>
-
-                  {/* Nút Mở Đăng Nhập / Tạo Tài Khoản */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsAvatarMenuOpen(false);
-                      setIsAuthModalOpen(true);
-                    }}
-                    className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[3px] text-[#1C1917] bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] text-left transition-colors font-bold shadow-[1px_1px_0px_#262626]"
-                  >
-                    <KeyRound size={14} strokeWidth={2.2} />
-                    <span>{user.isSignedIn ? "Quản lý tài khoản" : "Đăng nhập / Đăng ký"}</span>
-                  </button>
-
-                  {/* Mục Đăng xuất khi đã đăng nhập */}
-                  {user.isSignedIn && (
+                  {/* Menu Items */}
+                  <div className="space-y-1">
+                    {/* Mục Mở Cài Đặt Hệ Thống */}
                     <button
                       type="button"
                       onClick={() => {
-                        logout();
                         setIsAvatarMenuOpen(false);
+                        setIsSettingsModalOpen(true);
                       }}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[3px] text-red-600 hover:bg-[#FECDD3]/50 text-left transition-colors font-bold pt-1.5 border-t border-[#D4CEBF]/60"
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[3px] bg-white hover:bg-[#F3EFE6] border border-[#D4CEBF] text-left transition-colors font-bold shadow-[1px_1px_0px_#262626]"
                     >
-                      <LogOut size={14} strokeWidth={2.2} />
-                      <span>Đăng xuất</span>
+                      <Settings size={14} strokeWidth={2.2} />
+                      <span>Cài đặt hệ thống</span>
                     </button>
-                  )}
+
+                    {/* Nút Mở Đăng Nhập / Tạo Tài Khoản */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAvatarMenuOpen(false);
+                        setIsAuthModalOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[3px] text-[#1C1917] bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] text-left transition-colors font-bold shadow-[1px_1px_0px_#262626]"
+                    >
+                      <KeyRound size={14} strokeWidth={2.2} />
+                      <span>
+                        {user.isSignedIn
+                          ? "Quản lý tài khoản"
+                          : "Đăng nhập / Đăng ký"}
+                      </span>
+                    </button>
+
+                    {/* Mục Đăng xuất khi đã đăng nhập */}
+                    {user.isSignedIn && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          logout();
+                          setIsAvatarMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[3px] text-red-600 hover:bg-[#FECDD3]/50 text-left transition-colors font-bold pt-1.5 border-t border-[#D4CEBF]/60"
+                      >
+                        <LogOut size={14} strokeWidth={2.2} />
+                        <span>Đăng xuất</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
         {/* Modal Tìm Kiếm Toàn Cục Ctrl + K */}
         <GlobalSearchModal
@@ -215,6 +230,12 @@ export const AppShell: React.FC<AppShellProps> = ({
             setIsAuthModalOpen(false);
             setIsSettingsModalOpen(true);
           }}
+        />
+
+        {/* Modal Tự Động Báo Cập Nhật Mới */}
+        <UpdateModal
+          updateInfo={updateInfo}
+          onClose={() => setUpdateInfo(null)}
         />
 
         {/* Onboarding chào mừng lần đầu vào app */}

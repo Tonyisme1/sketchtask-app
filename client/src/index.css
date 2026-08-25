@@ -17,6 +17,60 @@
   --accent-lavender: #DDD6FE;
 }
 
+/* ========================================== */
+/* DARK SLATE PAPER MODE (GIẤY THAN ĐEN)      */
+/* ========================================== */
+.dark {
+  --bg-canvas: #1C1917;
+  --bg-surface: #262626;
+  --bg-surface-muted: #2E2A27;
+  --border-ink: #57534E;
+  --border-ink-muted: #44403C;
+  --text-main: #FBF9F4;
+  --text-muted: #A8A29E;
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: #1C1917 !important;
+  color: #FBF9F4 !important;
+}
+
+.dark header,
+.dark nav {
+  background-color: #1C1917 !important;
+  border-color: #57534E !important;
+}
+
+.dark .bg-white,
+.dark .bg-\[\#FBF9F4\] {
+  background-color: #262626 !important;
+}
+
+.dark .bg-\[\#F3EFE6\] {
+  background-color: #2E2A27 !important;
+}
+
+.dark .text-\[\#1C1917\] {
+  color: #FBF9F4 !important;
+}
+
+.dark .text-\[\#78716C\] {
+  color: #A8A29E !important;
+}
+
+.dark .border-\[\#262626\],
+.dark .border-\[\#D4CEBF\] {
+  border-color: #57534E !important;
+}
+
+.dark .shadow-\[2px_2px_0px_\#262626\],
+.dark .shadow-\[1\.5px_1\.5px_0px_\#262626\],
+.dark .shadow-\[1px_1px_0px_\#262626\],
+.dark .shadow-\[6px_6px_0px_\#262626\] {
+  box-shadow: 2px 2px 0px #0C0A09 !important;
+}
+
 * {
   -webkit-tap-highlight-color: transparent;
 }

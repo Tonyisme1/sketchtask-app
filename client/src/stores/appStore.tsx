@@ -93,6 +93,8 @@ export interface AppContextType {
   setHideCompletedTasks: (hide: boolean) => void;
   isNotificationsEnabled: boolean;
   setIsNotificationsEnabled: (enabled: boolean) => void;
+  isDarkMode: boolean;
+  setIsDarkMode: (enabled: boolean) => void;
   triggerHaptic: () => void;
   loadSampleData: () => void;
 
@@ -384,18 +386,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   });
 
-  const [isNotificationsEnabled, setIsNotificationsEnabledState] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem(`${STORAGE_KEY}_notifications_enabled`);
-      return saved !== null ? JSON.parse(saved) : true;
-    } catch {
-      return true;
-    }
-  });
+  const [isNotificationsEnabled, setIsNotificationsEnabledState] =
+    useState<boolean>(() => {
+      try {
+        const saved = localStorage.getItem(
+          `${STORAGE_KEY}_notifications_enabled`,
+        );
+        return saved !== null ? JSON.parse(saved) : true;
+      } catch {
+        return true;
+      }
+    });
 
   const setIsNotificationsEnabled = (enabled: boolean) => {
     setIsNotificationsEnabledState(enabled);
-    localStorage.setItem(`${STORAGE_KEY}_notifications_enabled`, JSON.stringify(enabled));
+    localStorage.setItem(
+      `${STORAGE_KEY}_notifications_enabled`,
+      JSON.stringify(enabled),
+    );
     if (!enabled) {
       // Hủy toàn bộ thông báo khi người dùng tắt
       if (typeof window !== "undefined" && "LocalNotifications" in window) {
@@ -406,6 +414,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       notificationService.syncAllTasks(tasks);
     }
   };
+
+  // --- Dark Mode State ---
+  const [isDarkMode, setIsDarkModeState] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_darkmode`);
+      return saved !== null ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
+
+  const setIsDarkMode = (enabled: boolean) => {
+    setIsDarkModeState(enabled);
+    localStorage.setItem(`${STORAGE_KEY}_darkmode`, JSON.stringify(enabled));
+  };
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.classList.toggle("dark", isDarkMode);
+      const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+      if (metaThemeColor) {
+        metaThemeColor.setAttribute(
+          "content",
+          isDarkMode ? "#1C1917" : "#FBF9F4",
+        );
+      }
+    }
+  }, [isDarkMode]);
 
   const triggerHaptic = () => {};
 
@@ -1258,6 +1294,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setHideCompletedTasks,
         isNotificationsEnabled,
         setIsNotificationsEnabled,
+        isDarkMode,
+        setIsDarkMode,
         triggerHaptic,
         loadSampleData,
         tasks,

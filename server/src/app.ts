@@ -16,22 +16,36 @@ app.use(express.json({ limit: "10mb" }));
 // API Endpoints
 app.use("/api/v1", apiRouter);
 
-// Root & Health Check Endpoint (Cho UptimeRobot & Giữ máy chủ thức 24/7)
+// Health Check & Uptime Monitor
 app.get("/", (_req, res) => {
-  res.status(200).json({
+  res.json({
     status: "ok",
-    app: "SketchTask Backend Server",
-    realtime: "WebSocket Ready",
+    app: "SketchTask API",
+    version: "1.2.0",
+    uptime: "24/7",
     timestamp: new Date().toISOString(),
   });
 });
 
 app.get("/health", (_req, res) => {
-  res.status(200).json({
+  res.json({
     status: "ok",
     app: "SketchTask API",
+    version: "1.2.0",
     realtime: "WebSocket Ready",
     timestamp: new Date().toISOString(),
+  });
+});
+
+// App Version Check for Auto-Update
+app.get("/api/version", (_req, res) => {
+  res.json({
+    version: "1.2.0",
+    releaseDate: "2026-08-25",
+    changelog: "Dark Mode, Tactile Animations, Global Search Ctrl+K, Productivity Analytics",
+    downloadUrl: "https://sketchtask-app.vercel.app",
+    apkUrl: "https://sketchtask-app.vercel.app",
+    isForceUpdate: false,
   });
 });
 
@@ -44,8 +58,12 @@ wsService.init(server);
 // Start server
 if (process.env.NODE_ENV !== "test") {
   server.listen(config.port, "0.0.0.0", () => {
-    console.log(`🚀 SketchTask Backend Server đang chạy tại http://0.0.0.0:${config.port}`);
-    console.log(`⚡ WebSocket Realtime endpoint: ws://0.0.0.0:${config.port}/ws`);
+    console.log(
+      `🚀 SketchTask Backend Server đang chạy tại http://0.0.0.0:${config.port}`,
+    );
+    console.log(
+      `⚡ WebSocket Realtime endpoint: ws://0.0.0.0:${config.port}/ws`,
+    );
   });
 }
 
