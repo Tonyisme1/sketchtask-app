@@ -297,7 +297,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Tab Content Container */}
-        <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-0.5 pb-8">
+        <div className="flex-1 overflow-y-auto no-scrollbar space-y-3 pr-0.5">
           {/* TAB 1: CHUNG */}
           {activeTab === "general" && (
             <div className="space-y-3 text-xs">
@@ -522,26 +522,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="space-y-3 text-xs">
               {/* Thẻ Đồng Bộ Đám Mây Tự Động */}
               <div className="p-3 bg-white border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2.5">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-1.5 flex-wrap">
                   <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
                     <Cloud size={14} strokeWidth={2.2} />
-                    <span>ĐỒNG BỘ ĐA THIẾT BỊ (REALTIME):</span>
+                    <span>ĐỒNG BỘ REALTIME:</span>
                   </span>
                   <span
-                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-[#262626] flex items-center gap-1 ${
+                    className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-[#262626] inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
                       user.isSignedIn
-                        ? "text-emerald-800 bg-[#BBF7D0]"
-                        : "text-amber-800 bg-[#FEF08A]"
+                        ? "text-emerald-900 bg-[#BBF7D0]"
+                        : "text-amber-900 bg-[#FEF08A]"
                     }`}
                   >
                     <span
-                      className={`w-1.5 h-1.5 rounded-full ${
+                      className={`w-2 h-2 rounded-full shrink-0 ${
                         user.isSignedIn
                           ? "bg-emerald-600 animate-pulse"
                           : "bg-amber-600"
                       }`}
                     />
-                    {user.isSignedIn ? "● Realtime Online" : "Chưa đăng nhập"}
+                    <span>{user.isSignedIn ? "Realtime Online" : "Chưa đăng nhập"}</span>
                   </span>
                 </div>
 
@@ -730,7 +730,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         )}
 
         {/* Footer */}
-        <div className="pt-2.5 mt-2 border-t-[1.5px] border-[#262626] flex justify-end shrink-0 bg-[#FBF9F4]">
+        <div className="pt-2.5 mt-2 border-t border-[#D4CEBF] flex justify-end">
           <Button onClick={onClose} variant="primary" size="md">
             Đóng
           </Button>
