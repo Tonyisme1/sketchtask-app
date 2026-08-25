@@ -4,6 +4,7 @@ import { useAppStore } from "../../../stores/appStore";
 import { Button } from "../../ui/Button";
 import { ConfirmModal } from "../../ui/ConfirmModal";
 import { CustomAvatarPicker } from "../../ui/CustomAvatarPicker";
+import { BrandLogo } from "../../ui/BrandLogo";
 import {
   Settings,
   User,
