@@ -113,13 +113,18 @@ export const BraindumpTab: React.FC = () => {
   });
 
   return (
-    <div className="space-y-3.5 max-w-2xl mx-auto">
+    <div className="space-y-3.5 max-w-2xl lg:max-w-6xl mx-auto">
       {/* 1. Header */}
       <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1917]">
-          Ý Tưởng
-        </h2>
-        <div className="text-xs font-mono bg-[#FEF08A] text-[#1C1917] px-2 py-0.5 border-[1.5px] border-[#262626] rounded-[4px] font-bold shadow-[1px_1px_0px_#262626]">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1917]">
+            Ý Tưởng & Ghi Chú
+          </h2>
+          <p className="text-xs text-[#78716C] mt-0.5">
+            Bảng dán thẻ nhớ nhanh và ghim những suy nghĩ quan trọng
+          </p>
+        </div>
+        <div className="text-xs font-mono bg-[#FEF08A] text-[#1C1917] px-2.5 py-1 border-[1.5px] border-[#262626] rounded-[4px] font-bold shadow-[1px_1px_0px_#262626]">
           {stickyNotes.length} Note
         </div>
       </div>
@@ -148,7 +153,8 @@ export const BraindumpTab: React.FC = () => {
             <CustomColorPicker
               value={COLOR_KEY_TO_HEX[selectedColor]}
               onChange={(hex) => {
-                const matchedKey = HEX_TO_COLOR_KEY[hex.toLowerCase()] || "yellow";
+                const matchedKey =
+                  HEX_TO_COLOR_KEY[hex.toLowerCase()] || "yellow";
                 setSelectedColor(matchedKey);
               }}
               colors={STICKY_PALETTE}
@@ -156,8 +162,9 @@ export const BraindumpTab: React.FC = () => {
             />
           </div>
 
-          <span className="text-[10px] text-[#78716C]">
-            📌 Ghim lên đầu
+          <span className="text-[11px] text-[#78716C] flex items-center gap-1">
+            <Pin size={11} className="text-rose-600" />
+            <span>Ghim lên đầu</span>
           </span>
         </div>
       </form>
@@ -199,7 +206,7 @@ export const BraindumpTab: React.FC = () => {
       </div>
 
       {/* 4. Sticky Notes Canvas Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 pt-0.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-0.5">
         {filteredNotes.length === 0 ? (
           <div className="col-span-full py-10 text-center text-[#78716C] border-[1.5px] border-dashed border-[#D4CEBF] rounded-[6px] bg-[#FBF9F4]">
             <p className="text-sm">Chưa có ghi chú nào.</p>
@@ -270,11 +277,17 @@ export const BraindumpTab: React.FC = () => {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setOpenAssignNbId(openAssignNbId === note.id ? null : note.id);
+                        setOpenAssignNbId(
+                          openAssignNbId === note.id ? null : note.id,
+                        );
                       }}
                       className="text-[10px] font-bold text-[#1C1917] bg-white/80 hover:bg-white px-1.5 py-0.5 border border-[#262626] rounded-[2px] shadow-[1px_1px_0px_#262626] flex items-center gap-1 active:translate-y-[0.5px]"
                     >
-                      <DynamicIcon name="lucide:BookMarked" size={11} strokeWidth={2.2} />
+                      <DynamicIcon
+                        name="lucide:BookMarked"
+                        size={11}
+                        strokeWidth={2.2}
+                      />
                       <span>Sổ</span>
                       <span className="text-[8px] text-[#78716C]">▾</span>
                     </button>
@@ -300,7 +313,11 @@ export const BraindumpTab: React.FC = () => {
                               }}
                               className="w-full text-left px-1.5 py-1 bg-white hover:bg-[#FEF08A] rounded text-[10px] font-bold flex items-center gap-1.5 truncate transition-colors shadow-[0.5px_0.5px_0px_#262626]"
                             >
-                              <DynamicIcon name={nb.icon} size={12} strokeWidth={2.2} />
+                              <DynamicIcon
+                                name={nb.icon}
+                                size={12}
+                                strokeWidth={2.2}
+                              />
                               <span className="truncate">{nb.name}</span>
                             </button>
                           ))
