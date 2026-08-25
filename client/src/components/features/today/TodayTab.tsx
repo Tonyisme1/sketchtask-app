@@ -69,12 +69,11 @@ export const TodayTab: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "completed"
   >("all");
-  const [dueFilter, setDueFilter] = useState<
-    "all" | "overdue" | "today" | "upcoming"
-  >("all");
   const [priorityFilter, setPriorityFilter] = useState<
     "all" | "high" | "medium" | "low"
   >("all");
+  const [notebookFilter, setNotebookFilter] = useState<string>("all");
+  const [onlyOverdueFilter, setOnlyOverdueFilter] = useState<boolean>(false);
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
@@ -147,23 +146,23 @@ export const TodayTab: React.FC = () => {
           ? !task.completed
           : task.completed;
 
-    const dueInfo = getTaskDueInfo(task.dueDate);
-    const matchDue =
-      dueFilter === "all"
-        ? true
-        : dueFilter === "overdue"
-          ? dueInfo?.type === "overdue"
-          : dueFilter === "today"
-            ? dueInfo?.type === "today"
-            : dueInfo?.type === "upcoming";
-
     const matchPriority =
       priorityFilter === "all"
         ? true
         : (task.priority || "medium") === priorityFilter;
 
+    const matchNotebook =
+      notebookFilter === "all"
+        ? true
+        : notebookFilter === "none"
+        ? !task.notebookId
+        : task.notebookId === notebookFilter;
+
+    const isTaskOverdue = Boolean(task.dueDate && task.dueDate.split(" ")[0] < todayStr);
+    const matchOverdue = onlyOverdueFilter ? isTaskOverdue : true;
+
     const matchTag = tagFilter === "all" ? true : task.tag === tagFilter;
-    return matchStatus && matchDue && matchPriority && matchTag;
+    return matchStatus && matchPriority && matchNotebook && matchOverdue && matchTag;
   });
 
   const completedCount = todayTasks.filter((t) => t.completed).length;
@@ -452,13 +451,14 @@ export const TodayTab: React.FC = () => {
 
           {/* Nhóm nút bên phải: Bộ Lọc Nâng Cao & Xóa Lọc */}
           <div className="flex items-center gap-1 shrink-0">
-            {(statusFilter !== "all" || dueFilter !== "all" || priorityFilter !== "all" || tagFilter !== "all") && (
+            {(statusFilter !== "all" || priorityFilter !== "all" || notebookFilter !== "all" || onlyOverdueFilter || tagFilter !== "all") && (
               <button
                 type="button"
                 onClick={() => {
                   setStatusFilter("all");
-                  setDueFilter("all");
                   setPriorityFilter("all");
+                  setNotebookFilter("all");
+                  setOnlyOverdueFilter(false);
                   setTagFilter("all");
                 }}
                 title="Xóa toàn bộ lọc"
@@ -473,16 +473,16 @@ export const TodayTab: React.FC = () => {
               type="button"
               onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
               className={`px-2 sm:px-2.5 py-1 rounded-[3px] border-[1.5px] text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 ${
-                isFilterDrawerOpen || (dueFilter !== "all" || priorityFilter !== "all" || tagFilter !== "all")
+                isFilterDrawerOpen || (priorityFilter !== "all" || notebookFilter !== "all" || onlyOverdueFilter || tagFilter !== "all")
                   ? "bg-[#FEF08A] border-[#262626] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
                   : "bg-white border-[#D4CEBF] text-[#78716C] hover:text-[#1C1917]"
               }`}
             >
               <SlidersHorizontal size={13} strokeWidth={2.2} />
               <span>Lọc</span>
-              {((dueFilter !== "all" ? 1 : 0) + (priorityFilter !== "all" ? 1 : 0) + (tagFilter !== "all" ? 1 : 0)) > 0 && (
+              {((priorityFilter !== "all" ? 1 : 0) + (notebookFilter !== "all" ? 1 : 0) + (onlyOverdueFilter ? 1 : 0) + (tagFilter !== "all" ? 1 : 0)) > 0 && (
                 <span className="w-4 h-4 rounded-full bg-[#262626] text-white text-[10px] flex items-center justify-center font-mono font-bold shrink-0">
-                  {(dueFilter !== "all" ? 1 : 0) + (priorityFilter !== "all" ? 1 : 0) + (tagFilter !== "all" ? 1 : 0)}
+                  {(priorityFilter !== "all" ? 1 : 0) + (notebookFilter !== "all" ? 1 : 0) + (onlyOverdueFilter ? 1 : 0) + (tagFilter !== "all" ? 1 : 0)}
                 </span>
               )}
               {isFilterDrawerOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
@@ -507,7 +507,7 @@ export const TodayTab: React.FC = () => {
                     key={p.key}
                     type="button"
                     onClick={() => setPriorityFilter(p.key as any)}
-                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
                       priorityFilter === p.key
                         ? p.activeClass || "bg-[#262626] text-white border-[#262626] font-bold"
                         : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
@@ -519,60 +519,77 @@ export const TodayTab: React.FC = () => {
               </div>
             </div>
 
-            {/* 2. Hạn Chót */}
+            {/* 2. Theo Cuốn Sổ */}
             <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-[#D4CEBF]/60">
-              <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">Hạn chót:</span>
+              <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">Cuốn sổ:</span>
               <div className="flex items-center gap-1.5 flex-wrap">
                 <button
                   type="button"
-                  onClick={() => setDueFilter("all")}
+                  onClick={() => setNotebookFilter("all")}
                   className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
-                    dueFilter === "all"
-                      ? "bg-[#262626] text-white border-[#262626] font-bold shadow-[1px_1px_0px_#262626]"
+                    notebookFilter === "all"
+                      ? "bg-[#262626] text-white border-[#262626] font-bold"
                       : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
                   }`}
                 >
-                  Tất cả
+                  Tất cả sổ
                 </button>
-
-                {overdueCount > 0 && (
+                {notebooks.map((nb) => (
                   <button
+                    key={nb.id}
                     type="button"
-                    onClick={() => setDueFilter(dueFilter === "overdue" ? "all" : "overdue")}
+                    onClick={() => setNotebookFilter(notebookFilter === nb.id ? "all" : nb.id)}
                     className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
-                      dueFilter === "overdue"
-                        ? "bg-rose-600 text-white border-rose-700 font-bold shadow-[1px_1px_0px_#262626]"
-                        : "border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                      notebookFilter === nb.id
+                        ? "bg-[#FEF08A] border-[#262626] text-[#1C1917] font-bold shadow-[1px_1px_0px_#262626]"
+                        : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
                     }`}
                   >
-                    <AlertCircle size={12} strokeWidth={2.5} />
-                    <span>Quá hạn ({overdueCount})</span>
+                    <DynamicIcon name={nb.icon || "lucide:BookMarked"} size={11} />
+                    <span>{nb.name}</span>
                   </button>
-                )}
-
+                ))}
                 <button
                   type="button"
-                  onClick={() => setDueFilter(dueFilter === "today" ? "all" : "today")}
-                  className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
-                    dueFilter === "today"
-                      ? "bg-amber-500 text-white border-amber-600 font-bold shadow-[1px_1px_0px_#262626]"
-                      : "border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                  onClick={() => setNotebookFilter(notebookFilter === "none" ? "all" : "none")}
+                  className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
+                    notebookFilter === "none"
+                      ? "bg-[#262626] text-white border-[#262626] font-bold"
+                      : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
                   }`}
                 >
-                  <Sun size={12} strokeWidth={2.2} />
-                  <span>Hôm nay</span>
+                  Chưa gán sổ
                 </button>
               </div>
             </div>
 
-            {/* 3. Nhãn Phân Loại (#Tag) */}
+            {/* 3. Việc Quá Hạn (Nếu có) */}
+            {overdueCount > 0 && (
+              <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-[#D4CEBF]/60">
+                <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">Tồn đọng:</span>
+                <button
+                  type="button"
+                  onClick={() => setOnlyOverdueFilter(!onlyOverdueFilter)}
+                  className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
+                    onlyOverdueFilter
+                      ? "bg-rose-600 text-white border-rose-700 font-bold shadow-[1px_1px_0px_#262626]"
+                      : "border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                  }`}
+                >
+                  <AlertCircle size={12} strokeWidth={2.5} />
+                  <span>Xem việc quá hạn ({overdueCount})</span>
+                </button>
+              </div>
+            )}
+
+            {/* 4. Nhãn Phân Loại (#Tag) */}
             <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-[#D4CEBF]/60">
               <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">Nhãn tag:</span>
               <div className="flex items-center gap-1.5 flex-wrap">
                 <button
                   type="button"
                   onClick={() => setTagFilter("all")}
-                  className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                  className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
                     tagFilter === "all"
                       ? "bg-[#262626] text-white border-[#262626] font-bold"
                       : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
@@ -585,7 +602,7 @@ export const TodayTab: React.FC = () => {
                     key={tag}
                     type="button"
                     onClick={() => setTagFilter(tagFilter === tag ? "all" : tag)}
-                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
                       tagFilter === tag
                         ? "border-[#262626] bg-[#FEF08A] font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626]"
                         : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
