@@ -19,10 +19,14 @@ import {
   X,
   Star,
   AlertCircle,
+  SlidersHorizontal,
+  ChevronDown,
+  ChevronUp,
+  BookOpen,
 } from "lucide-react";
 
 // ==========================================
-// COMPONENT: PlannerTab (Kế Hoạch với Icon Hiện Đại Sắc Nét)
+// COMPONENT: PlannerTab (Trung Tâm Điều Khiển Task & Kế Hoạch)
 // ==========================================
 
 const DAY_NAMES = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"];
@@ -56,6 +60,7 @@ export const PlannerTab: React.FC = () => {
 
   const [dayTaskTitle, setDayTaskTitle] = useState<string>("");
   const [dayTaskTime, setDayTaskTime] = useState<string | undefined>(undefined);
+  const [selectedPriority, setSelectedPriority] = useState<"high" | "medium" | "low">("medium");
   const [selectedTag, setSelectedTag] = useState<string>(tags[0] || "Công việc");
   const [selectedNotebookId, setSelectedNotebookId] = useState<string>("");
 
@@ -63,8 +68,13 @@ export const PlannerTab: React.FC = () => {
   const [newTagInput, setNewTagInput] = useState("");
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
+  // Bộ Lọc Phân Tầng Nâng Cao (Task Command Center)
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
+  const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all");
+  const [notebookFilter, setNotebookFilter] = useState<string>("all");
+  const [timeFilter, setTimeFilter] = useState<"all" | "timed" | "allday">("all");
   const [tagFilter, setTagFilter] = useState<string>("all");
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
   const getWeekDates = () => {
     const currentDay = now.getDay();
@@ -154,8 +164,26 @@ export const PlannerTab: React.FC = () => {
         ? !task.completed
         : task.completed;
 
+    const matchPriority =
+      priorityFilter === "all" ? true : (task.priority || "medium") === priorityFilter;
+
+    const matchNotebook =
+      notebookFilter === "all"
+        ? true
+        : notebookFilter === "none"
+        ? !task.notebookId
+        : task.notebookId === notebookFilter;
+
+    const hasSpecificTime = task.dueDate && (task.dueDate.includes("T") || task.dueDate.includes(":"));
+    const matchTime =
+      timeFilter === "all"
+        ? true
+        : timeFilter === "timed"
+        ? hasSpecificTime
+        : !hasSpecificTime;
+
     const matchTag = tagFilter === "all" ? true : task.tag === tagFilter;
-    return matchStatus && matchTag;
+    return matchStatus && matchPriority && matchNotebook && matchTime && matchTag;
   });
 
   const getDayFormattedTitle = () => {
@@ -181,10 +209,12 @@ export const PlannerTab: React.FC = () => {
       dueDate: finalDue,
       tag: selectedTag,
       notebookId: selectedNotebookId || undefined,
+      priority: selectedPriority,
     });
 
     setDayTaskTitle("");
     setDayTaskTime(undefined);
+    setSelectedPriority("medium");
   };
 
   const handleCreateNewTag = (e: React.FormEvent) => {
@@ -514,47 +544,230 @@ export const PlannerTab: React.FC = () => {
               className="w-full"
             />
           </div>
+
+          {/* Chọn Mức Độ Ưu Tiên Khi Lên Lịch */}
+          <div className="flex items-center gap-2 pt-1.5 border-t border-[#D4CEBF]/40 text-xs">
+            <span className="text-[11px] font-bold text-[#78716C] shrink-0">Ưu tiên:</span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {[
+                { key: "high", label: "🔴 Gấp", activeClass: "bg-rose-100 text-rose-800 border-rose-400 font-bold shadow-[1px_1px_0px_#262626]" },
+                { key: "medium", label: "🟡 Vừa", activeClass: "bg-amber-100 text-amber-800 border-amber-400 font-bold shadow-[1px_1px_0px_#262626]" },
+                { key: "low", label: "🟢 Thấp", activeClass: "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold shadow-[1px_1px_0px_#262626]" },
+              ].map((p) => (
+                <button
+                  key={p.key}
+                  type="button"
+                  onClick={() => setSelectedPriority(p.key as any)}
+                  className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                    selectedPriority === p.key
+                      ? p.activeClass
+                      : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                  }`}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </form>
 
-        {/* Filter Bar 1 Hàng Cuộn Ngang Mượt Mà */}
-        <div className="p-1.5 bg-white border border-[#D4CEBF] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs select-none">
-          <div className="flex items-center gap-1 shrink-0">
-            {[
-              { key: "all", label: "Tất cả" },
-              { key: "active", label: "Cần làm" },
-              { key: "completed", label: "Xong" },
-            ].map((f) => (
+        {/* 4. Filter Bar Khoa Học & Mở Rộng Toàn Diện (Task Command Center) */}
+        <div className="space-y-1.5 select-none">
+          <div className="p-1.5 bg-white border border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] flex items-center justify-between gap-2 text-xs">
+            {/* Nhóm lọc trạng thái chính */}
+            <div className="flex items-center gap-1">
+              {[
+                { key: "all", label: "Tất cả" },
+                { key: "active", label: "⏳ Cần làm" },
+                { key: "completed", label: "✓ Đã xong" },
+              ].map((f) => (
+                <button
+                  key={f.key}
+                  type="button"
+                  onClick={() => setStatusFilter(f.key as any)}
+                  className={`px-2 sm:px-2.5 py-1 rounded-[3px] border text-xs font-bold transition-all ${
+                    statusFilter === f.key
+                      ? "bg-[#262626] text-white border-[#262626] shadow-[1px_1px_0px_#262626]"
+                      : "bg-[#FBF9F4] text-[#78716C] border-[#D4CEBF] hover:text-[#1C1917]"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Nhóm nút bên phải: Bộ Lọc Nâng Cao & Xóa Lọc */}
+            <div className="flex items-center gap-1.5">
+              {(statusFilter !== "all" || priorityFilter !== "all" || notebookFilter !== "all" || timeFilter !== "all" || tagFilter !== "all") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStatusFilter("all");
+                    setPriorityFilter("all");
+                    setNotebookFilter("all");
+                    setTimeFilter("all");
+                    setTagFilter("all");
+                  }}
+                  title="Đặt lại toàn bộ lọc"
+                  className="px-2 py-1 rounded-[3px] bg-rose-50 border border-rose-300 text-rose-700 text-[11px] font-bold flex items-center gap-1 hover:bg-rose-100 active:translate-y-[0.5px]"
+                >
+                  <X size={12} strokeWidth={2.5} />
+                  <span>Xóa lọc</span>
+                </button>
+              )}
+
               <button
-                key={f.key}
-                onClick={() => setStatusFilter(f.key as any)}
-                className={`px-2 py-0.5 rounded-[3px] border text-xs font-bold transition-all ${
-                  statusFilter === f.key
-                    ? "bg-[#262626] text-white border-[#262626]"
-                    : "bg-[#FBF9F4] text-[#78716C] border-[#D4CEBF]"
+                type="button"
+                onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
+                className={`px-2 sm:px-2.5 py-1 rounded-[3px] border-[1.5px] text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  isFilterDrawerOpen || (priorityFilter !== "all" || notebookFilter !== "all" || timeFilter !== "all" || tagFilter !== "all")
+                    ? "bg-[#FEF08A] border-[#262626] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
+                    : "bg-white border-[#D4CEBF] text-[#78716C] hover:text-[#1C1917]"
                 }`}
               >
-                {f.label}
+                <SlidersHorizontal size={13} strokeWidth={2.2} />
+                <span>Bộ lọc</span>
+                {((priorityFilter !== "all" ? 1 : 0) + (notebookFilter !== "all" ? 1 : 0) + (timeFilter !== "all" ? 1 : 0) + (tagFilter !== "all" ? 1 : 0)) > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-[#262626] text-white text-[10px] flex items-center justify-center font-mono font-bold">
+                    {(priorityFilter !== "all" ? 1 : 0) + (notebookFilter !== "all" ? 1 : 0) + (timeFilter !== "all" ? 1 : 0) + (tagFilter !== "all" ? 1 : 0)}
+                  </span>
+                )}
+                {isFilterDrawerOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               </button>
-            ))}
+            </div>
           </div>
 
-          <div className="w-[1px] h-4 bg-[#D4CEBF] shrink-0" />
+          {/* Khung Bộ Lọc Nâng Cao Mở Rộng Cho Planner */}
+          {isFilterDrawerOpen && (
+            <div className="p-3 bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] space-y-2.5 animate-in slide-in-from-top-2 duration-150 text-xs">
+              {/* 1. Mức Độ Ưu Tiên */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">Ưu tiên:</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {[
+                    { key: "all", label: "Tất cả" },
+                    { key: "high", label: "🔴 Gấp", activeClass: "bg-rose-100 text-rose-800 border-rose-400 font-bold shadow-[1px_1px_0px_#262626]" },
+                    { key: "medium", label: "🟡 Vừa", activeClass: "bg-amber-100 text-amber-800 border-amber-400 font-bold shadow-[1px_1px_0px_#262626]" },
+                    { key: "low", label: "🟢 Thấp", activeClass: "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold shadow-[1px_1px_0px_#262626]" },
+                  ].map((p) => (
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => setPriorityFilter(p.key as any)}
+                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                        priorityFilter === p.key
+                          ? p.activeClass || "bg-[#262626] text-white border-[#262626] font-bold"
+                          : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <div className="flex items-center gap-1 shrink-0">
-            {["all", ...tags].map((tag) => (
-              <button
-                key={tag}
-                onClick={() => setTagFilter(tag)}
-                className={`px-1.5 py-0.5 rounded border text-[11px] transition-all whitespace-nowrap ${
-                  tagFilter === tag
-                    ? "border-[#262626] bg-[#FEF08A] font-bold text-[#1C1917]"
-                    : "border-transparent text-[#78716C]"
-                }`}
-              >
-                {tag === "all" ? "Tất cả" : `#${tag}`}
-              </button>
-            ))}
-          </div>
+              {/* 2. Theo Cuốn Sổ */}
+              <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-[#D4CEBF]/60">
+                <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">Cuốn sổ:</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setNotebookFilter("all")}
+                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                      notebookFilter === "all"
+                        ? "bg-[#262626] text-white border-[#262626] font-bold"
+                        : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                    }`}
+                  >
+                    Tất cả sổ
+                  </button>
+                  {notebooks.map((nb) => (
+                    <button
+                      key={nb.id}
+                      type="button"
+                      onClick={() => setNotebookFilter(notebookFilter === nb.id ? "all" : nb.id)}
+                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 ${
+                        notebookFilter === nb.id
+                          ? "bg-[#FEF08A] border-[#262626] text-[#1C1917] font-bold shadow-[1px_1px_0px_#262626]"
+                          : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                      }`}
+                    >
+                      <DynamicIcon name={nb.icon || "lucide:BookMarked"} size={11} />
+                      <span>{nb.name}</span>
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setNotebookFilter(notebookFilter === "none" ? "all" : "none")}
+                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                      notebookFilter === "none"
+                        ? "bg-[#262626] text-white border-[#262626] font-bold"
+                        : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                    }`}
+                  >
+                    Chưa gán sổ
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. Thời Gian & Giờ Hẹn */}
+              <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-[#D4CEBF]/60">
+                <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">Thời gian:</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {[
+                    { key: "all", label: "Tất cả" },
+                    { key: "timed", label: "⏰ Có giờ hẹn" },
+                    { key: "allday", label: "☀️ Cả ngày" },
+                  ].map((t) => (
+                    <button
+                      key={t.key}
+                      type="button"
+                      onClick={() => setTimeFilter(t.key as any)}
+                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                        timeFilter === t.key
+                          ? "bg-[#262626] text-white border-[#262626] font-bold shadow-[1px_1px_0px_#262626]"
+                          : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 4. Nhãn Phân Loại (#Tag) */}
+              <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-[#D4CEBF]/60">
+                <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">Nhãn tag:</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setTagFilter("all")}
+                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                      tagFilter === "all"
+                        ? "bg-[#262626] text-white border-[#262626] font-bold"
+                        : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                    }`}
+                  >
+                    Tất cả tag
+                  </button>
+                  {tags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => setTagFilter(tagFilter === tag ? "all" : tag)}
+                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                        tagFilter === tag
+                          ? "border-[#262626] bg-[#FEF08A] font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626]"
+                          : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                      }`}
+                    >
+                      #{tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Task List */}
@@ -613,6 +826,18 @@ export const PlannerTab: React.FC = () => {
                                 <CalendarIcon size={10} strokeWidth={2.2} className="text-emerald-700" />
                               )}
                               <span>{dueInfo.label}</span>
+                            </span>
+                          )}
+
+                          {/* Badge Mức Độ Ưu Tiên */}
+                          {task.priority === "high" && !task.completed && (
+                            <span className="px-1.5 py-0.5 rounded border border-rose-300 bg-rose-50 text-rose-700 font-bold font-mono">
+                              🔴 Gấp
+                            </span>
+                          )}
+                          {task.priority === "low" && !task.completed && (
+                            <span className="px-1.5 py-0.5 rounded border border-emerald-300 bg-emerald-50 text-emerald-700 font-mono">
+                              🟢 Thấp
                             </span>
                           )}
 
