@@ -13,6 +13,14 @@ const config: CapacitorConfig = {
     allowMixedContent: true,
   },
   plugins: {
+    SplashScreen: {
+      launchShowDuration: 1200,
+      launchAutoHide: true,
+      backgroundColor: '#FBF9F4',
+      androidSplashResourceName: 'splash',
+      androidScaleType: 'CENTER_CROP',
+      showSpinner: false,
+    },
     LocalNotifications: {
       smallIcon: 'ic_stat_sketchtask',
       iconColor: '#FEF08A',
