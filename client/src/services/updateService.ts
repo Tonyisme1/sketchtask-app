@@ -2,7 +2,7 @@
 // SERVICE: updateService.ts (Tự Động Kiểm Tra Cập Nhật)
 // ==========================================
 
-export const CURRENT_APP_VERSION = "1.3.0";
+export const CURRENT_APP_VERSION = "1.2.0";
 
 export interface UpdateInfo {
   hasUpdate: boolean;
@@ -13,47 +13,48 @@ export interface UpdateInfo {
   isForceUpdate?: boolean;
 }
 
-const VERCEL_VERSION_URL =
-  "https://sketchtask-app.vercel.app/version.json";
+const SOURCES = [
+  "https://sketchtask-app.vercel.app/version.json",
+  "https://raw.githubusercontent.com/Tonyisme1/sketchtask-app/main/client/public/version.json",
+  "https://sketchtask-app.onrender.com/api/version",
+];
 
 /**
- * Kiểm tra phiên bản mới nhất từ máy chủ (Vercel / Backend)
+ * Kiểm tra phiên bản mới nhất từ máy chủ (Vercel / GitHub Raw / Backend)
  */
 export const checkForAppUpdates = async (): Promise<UpdateInfo | null> => {
-  try {
-    // 1. Ưu tiên fetch từ Vercel CDN tĩnh siêu nhanh (kèm cache-buster)
-    const res = await fetch(`${VERCEL_VERSION_URL}?t=${Date.now()}`, {
-      method: "GET",
-      headers: { "Cache-Control": "no-cache, no-store, must-revalidate" },
-      cache: "no-store",
-    });
+  for (const url of SOURCES) {
+    try {
+      const res = await fetch(`${url}?t=${Date.now()}`, {
+        method: "GET",
+        headers: { "Cache-Control": "no-cache" },
+        cache: "no-store",
+      });
 
-    if (!res.ok) return null;
+      if (!res.ok) continue;
 
-    const data = await res.json();
-    const latestVersion = data.version || CURRENT_APP_VERSION;
+      const data = await res.json();
+      const latestVersion = data.version;
+      if (!latestVersion) continue;
 
-    // Kiểm tra xem người dùng đã bỏ qua hoặc đã cập nhật version này trong session chưa
-    const dismissedVersion = sessionStorage.getItem("sketchtask_dismissed_version");
-    if (dismissedVersion === latestVersion) {
-      return null;
+      // So sánh version chuỗi semver (ví dụ "1.3.0" > "1.2.0")
+      const hasUpdate = isNewerVersion(latestVersion, CURRENT_APP_VERSION);
+
+      return {
+        hasUpdate,
+        latestVersion,
+        changelog: data.changelog,
+        apkUrl: data.apkUrl || "https://github.com/Tonyisme1/sketchtask-app/actions",
+        downloadUrl: data.downloadUrl || "https://sketchtask-app.vercel.app",
+        isForceUpdate: !!data.isForceUpdate,
+      };
+    } catch (e) {
+      // Thử nguồn tiếp theo
+      continue;
     }
-
-    // So sánh version chuỗi semver (ví dụ "1.3.1" > "1.3.0")
-    const hasUpdate = isNewerVersion(latestVersion, CURRENT_APP_VERSION);
-
-    return {
-      hasUpdate,
-      latestVersion,
-      changelog: data.changelog,
-      apkUrl: data.apkUrl,
-      downloadUrl: data.downloadUrl,
-      isForceUpdate: !!data.isForceUpdate,
-    };
-  } catch (error) {
-    console.log("Update check skipped (offline or network error)");
-    return null;
   }
+
+  return null;
 };
 
 /**
