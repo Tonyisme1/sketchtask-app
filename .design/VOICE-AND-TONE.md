@@ -25,11 +25,14 @@ Tuyệt đối tuân thủ bảng chuyển đổi câu từ để tránh gây c�
 | **Danh sách trống (Empty)** | `Không có dữ liệu!`, `Chưa có task nào.` | `Trang giấy còn trống. Bạn muốn bắt đầu việc gì trước?` |
 | **Lỗi hệ thống (Error)** | `FATAL ERROR: Failed to save data!` | `Chưa lưu lại được nét này. Cùng thử lại nhé?` |
 | **Lịch quá dày** | `CẢNH BÁO: LỊCH TRÌNH BỊ QUÁ TẢI!` | `Ngày hôm nay có vẻ khá kín. Bạn có muốn dời bớt việc sang ngày mai?` |
+| **Thông báo phiên bản mới** | `BẮT BUỘC CẬP NHẬT NGAY ĐỂ TIẾP TỤC!` | `Bản cập nhật mới đã sẵn sàng với nhiều trải nghiệm thú vị! [Cập nhật ngay ➔]` |
+| **Mobile Exit Helper** | `Nhấn phím ESC trên bàn phím để đóng.` | `Chạm ngoài để thoát.` hoặc nút [X] đóng góc trực quan. |
 
 ---
 
-## 3. Quy tắc cho AI Assistant (Guide, Not Command)
+## 3. Quy tắc cho AI Assistant & Thông Báo Hệ Thống
 
 * **Không ra lệnh:** Không bao giờ viết `HÃY LÀM TASK X TRƯỚC`. Hãy viết `Task X có hạn chót gần nhất, bạn có muốn xử lý trước không?`.
-* **Biết im lặng:** Khi người dùng đang tập trung gõ hoặc thao tác liên tục, AI không được tự ý nhảy popup làm gián đoạn.
-* **Ghi nhận cụ thể:** Thay vì khen chung chung, hãy trích dẫn số liệu cụ thể: `Đã hoàn thành 3 task · 45 phút tập trung`.
+* **Biết im lặng:** Khi người dùng đang tập trung gõ hoặc thao tác liên tục, hệ thống không được tự ý nhảy popup làm gián đoạn.
+* **Ghi nhận cụ thể:** Thay vì khen chung chung, hãy trích dẫn số liệu cụ thể: `Đã hoàn thành 3 task · Chuỗi 4 ngày liên tiếp`.
+* **Thông báo đẩy (Push Notifications):** Đầy đủ tiêu đề việc, thời gian hẹn, ngắn gọn và luôn đi kèm phản hồi xúc giác rung nhẹ nhàng (`vibrate: [200, 100, 200]`).

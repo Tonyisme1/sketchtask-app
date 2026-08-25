@@ -18,7 +18,15 @@ Source of truth cho toàn bộ giá trị biến giao diện (Design Tokens) c�
 | `--text-main`        | `#1C1917`        | `#FAFAFA`       | Chữ chính (độ tương phản cao)                  |
 | `--text-muted`       | `#78716C`        | `#A1A1AA`       | Metadata, date, secondary labels               |
 
-### 1.2. Highlighter & Accent Palette (Màu bút dạ quang & Mực nhớ)
+### 1.2. Mức Độ Ưu Tiên (Priority Tokens)
+
+| Priority Level       | Background | Text Color | Border Color | Huy hiệu hiển thị |
+| :------------------- | :--------- | :--------- | :----------- | :---------------- |
+| `--priority-high`    | `#FFE4E6`  | `#BE123C`  | `#FDA4AF`    | `🔴 Gấp`         |
+| `--priority-medium`  | `#FEF3C7`  | `#92400E`  | `#FCD34D`    | `🟡 Vừa`         |
+| `--priority-low`     | `#D1FAE5`  | `#065F46`  | `#6EE7B7`    | `🟢 Thấp`        |
+
+### 1.3. Highlighter & Accent Palette (Màu bút dạ quang & Mực nhớ)
 
 | Token Name          | Hex       | Class Gợi ý      | Ý nghĩa / Ứng dụng                         |
 | :------------------ | :-------- | :--------------- | :----------------------------------------- |
@@ -39,16 +47,7 @@ Source of truth cho toàn bộ giá trị biến giao diện (Design Tokens) c�
 - **`--font-hand` (Handwritten Accent):** `'Caveat', 'Patrick Hand', cursive`
   - **Chỉ dùng cho:** Sticky note, lời nhắn động viên, tooltip ghi chú, doodle text, empty state annotations.
 - **`--font-mono` (Data/Code):** `'JetBrains Mono', 'Fira Code', monospace`
-  - Dùng cho: thời gian (09:00 AM), timestamp, shortcut keybinds.
-
-### 2.2. Type Scale
-
-- `text-xs`: 12px / Line height: 16px (Metadata, tags)
-- `text-sm`: 14px / Line height: 20px (Task item, form label, table body)
-- `text-base`: 16px / Line height: 24px (Body text, modal text)
-- `text-lg`: 18px / Line height: 28px (Card header, sub-section)
-- `text-xl`: 20px / Line height: 28px (Page sub-title)
-- `text-2xl`: 24px / Line height: 32px (Page title)
+  - Dùng cho: thời gian (09:00 AM), timestamp, badge quá hạn, phiên bản app.
 
 ---
 
@@ -65,13 +64,13 @@ Không dùng blur lan tỏa (`rgba(0,0,0,0.1)`). Mọi độ nổi đều sử d
 
 ---
 
-## 4. Borders & Roughness
+## 4. Borders & Corner Radius
 
-- **Độ dày nét mực:** Cố định `border-width: 1.5px` (hoặc tối thiểu `1px` cho lưới dày).
+- **Độ dày nét mực:** Cố định `border-width: 1.5px` (hoặc `1px` cho đường phân cách phụ).
 - **Border Radius Tokens:**
   - `--radius-strict`: `4px` (Dùng cho Input, Checkbox, Data Grid).
-  - `--radius-organic-1`: `255px 15px 225px 15px / 15px 225px 15px 255px` (Dùng cho Task Card).
-  - `--radius-organic-2`: `20px 255px 20px 255px / 255px 20px 255px 20px` (Dùng cho Sticky Note, Pill Badges).
+  - `--radius-card`: `6px` (Dùng cho Task Card, Button).
+  - `--radius-sheet`: `22px` (Bo góc trên của Mobile Bottom Sheet: `rounded-t-[22px]`).
 
 ---
 
@@ -86,16 +85,3 @@ Tuyệt đối không xoay text chính hoặc container cuộn. Chỉ áp dụng
 | `--rot-subtle-right` | `0.5deg`  | `rotate-[0.5deg]`  | Task Card xen kẽ                                     |
 | `--rot-tilt-left`    | `-1deg`   | `-rotate-1`        | Sticky Note, Pinned card                             |
 | `--rot-tilt-right`   | `1deg`    | `rotate-1`         | Sticky Note, Bookmark                                |
-
----
-
-## 6. Spacing Scale
-
-Dựa trên base grid 4px:
-
-- `space-1`: 4px (Khoảng cách icon và text)
-- `space-2`: 8px (Padding nội bộ của badge, gap giữa các tag)
-- `space-3`: 12px (Padding của task row, small card)
-- `space-4`: 16px (Padding chuẩn của Card, form control gap)
-- `space-6`: 24px (Khoảng cách giữa các Section, Modal padding)
-- `space-8`: 32px (Margin layout chính)
