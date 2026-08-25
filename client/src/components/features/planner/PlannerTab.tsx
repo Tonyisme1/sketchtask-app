@@ -714,24 +714,43 @@ export const PlannerTab: React.FC = () => {
               <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-[#D4CEBF]/60">
                 <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">Thời gian:</span>
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  {[
-                    { key: "all", label: "Tất cả" },
-                    { key: "timed", label: "⏰ Có giờ hẹn" },
-                    { key: "allday", label: "☀️ Cả ngày" },
-                  ].map((t) => (
-                    <button
-                      key={t.key}
-                      type="button"
-                      onClick={() => setTimeFilter(t.key as any)}
-                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
-                        timeFilter === t.key
-                          ? "bg-[#262626] text-white border-[#262626] font-bold shadow-[1px_1px_0px_#262626]"
-                          : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
-                      }`}
-                    >
-                      {t.label}
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setTimeFilter("all")}
+                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
+                      timeFilter === "all"
+                        ? "bg-[#262626] text-white border-[#262626] font-bold shadow-[1px_1px_0px_#262626]"
+                        : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                    }`}
+                  >
+                    Tất cả
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTimeFilter(timeFilter === "timed" ? "all" : "timed")}
+                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
+                      timeFilter === "timed"
+                        ? "bg-[#262626] text-white border-[#262626] font-bold shadow-[1px_1px_0px_#262626]"
+                        : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                    }`}
+                  >
+                    <Clock size={12} strokeWidth={2.2} />
+                    <span>Có giờ hẹn</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setTimeFilter(timeFilter === "allday" ? "all" : "allday")}
+                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
+                      timeFilter === "allday"
+                        ? "bg-amber-500 text-white border-amber-600 font-bold shadow-[1px_1px_0px_#262626]"
+                        : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                    }`}
+                  >
+                    <Sun size={12} strokeWidth={2.2} />
+                    <span>Cả ngày</span>
+                  </button>
                 </div>
               </div>
 

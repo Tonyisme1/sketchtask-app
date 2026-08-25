@@ -522,28 +522,45 @@ export const TodayTab: React.FC = () => {
             <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-[#D4CEBF]/60">
               <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">Hạn chót:</span>
               <div className="flex items-center gap-1.5 flex-wrap">
-                {[
-                  { key: "all", label: "Tất cả" },
-                  ...(overdueCount > 0
-                    ? [{ key: "overdue", label: `⏰ Quá hạn (${overdueCount})`, isOverdue: true }]
-                    : []),
-                  { key: "today", label: "☀️ Hôm nay" },
-                ].map((d) => (
+                <button
+                  type="button"
+                  onClick={() => setDueFilter("all")}
+                  className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
+                    dueFilter === "all"
+                      ? "bg-[#262626] text-white border-[#262626] font-bold shadow-[1px_1px_0px_#262626]"
+                      : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                  }`}
+                >
+                  Tất cả
+                </button>
+
+                {overdueCount > 0 && (
                   <button
-                    key={d.key}
                     type="button"
-                    onClick={() => setDueFilter(d.key as any)}
-                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
-                      dueFilter === d.key
-                        ? d.isOverdue
-                          ? "bg-rose-600 text-white border-rose-700 font-bold shadow-[1px_1px_0px_#262626]"
-                          : "bg-[#262626] text-white border-[#262626] font-bold shadow-[1px_1px_0px_#262626]"
-                        : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                    onClick={() => setDueFilter(dueFilter === "overdue" ? "all" : "overdue")}
+                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
+                      dueFilter === "overdue"
+                        ? "bg-rose-600 text-white border-rose-700 font-bold shadow-[1px_1px_0px_#262626]"
+                        : "border-rose-300 bg-rose-50 text-rose-700 hover:bg-rose-100"
                     }`}
                   >
-                    {d.label}
+                    <AlertCircle size={12} strokeWidth={2.5} />
+                    <span>Quá hạn ({overdueCount})</span>
                   </button>
-                ))}
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setDueFilter(dueFilter === "today" ? "all" : "today")}
+                  className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
+                    dueFilter === "today"
+                      ? "bg-amber-500 text-white border-amber-600 font-bold shadow-[1px_1px_0px_#262626]"
+                      : "border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                  }`}
+                >
+                  <Sun size={12} strokeWidth={2.2} />
+                  <span>Hôm nay</span>
+                </button>
               </div>
             </div>
 
