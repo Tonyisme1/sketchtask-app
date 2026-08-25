@@ -9,6 +9,7 @@ import { OnboardingModal } from "../features/onboarding/OnboardingModal";
 import { GlobalSearchModal } from "../ui/GlobalSearchModal";
 import { UpdateModal } from "../ui/UpdateModal";
 import { checkForAppUpdates, UpdateInfo } from "../../services/updateService";
+import { isNativePlatform } from "../../services/notificationService";
 import { BrandLogo } from "../ui/BrandLogo";
 import { DynamicIcon } from "../ui/DynamicIcon";
 import { NotificationBell } from "../ui/NotificationBell";
@@ -90,8 +91,14 @@ export const AppShell: React.FC<AppShellProps> = ({
 
       {/* 2. Main Workspace (Canvas bên phải) */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-        {/* Topbar Header */}
-        <header className="sticky top-0 z-30 bg-[#FBF9F4] border-b-[1.5px] border-[#262626] px-3.5 sm:px-4 py-2.5 shadow-[0px_2px_0px_#262626] flex items-center justify-between">
+        {/* Topbar Header với Native Status Bar Inset */}
+        <header
+          className={`sticky top-0 z-30 bg-[#FBF9F4] border-b-[1.5px] border-[#262626] px-3.5 sm:px-4 ${
+            isNativePlatform()
+              ? "pt-11 pb-2.5"
+              : "pt-[max(env(safe-area-inset-top),10px)] pb-2.5"
+          } shadow-[0px_2px_0px_#262626] flex items-center justify-between transition-all`}
+        >
           {/* Brand Logo */}
           <BrandLogo size="md" />
 
