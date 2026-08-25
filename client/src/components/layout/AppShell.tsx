@@ -45,7 +45,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           setUpdateInfo(info);
         }
       });
-    }, 3000);
+    }, 1200);
     return () => clearTimeout(timer);
   }, []);
 
@@ -90,8 +90,8 @@ export const AppShell: React.FC<AppShellProps> = ({
 
       {/* 2. Main Workspace (Canvas bên phải) */}
       <div className="flex-1 flex flex-col min-w-0 min-h-screen">
-        {/* Topbar Header với Safe Area Inset chống đụng đầu camera/tai thỏ trên APK */}
-        <header className="sticky top-0 z-30 bg-[#FBF9F4] border-b-[1.5px] border-[#262626] px-3.5 sm:px-4 pt-[max(env(safe-area-inset-top),12px)] pb-2.5 shadow-[0px_2px_0px_#262626] flex items-center justify-between">
+        {/* Topbar Header */}
+        <header className="sticky top-0 z-30 bg-[#FBF9F4] border-b-[1.5px] border-[#262626] px-3.5 sm:px-4 py-2.5 shadow-[0px_2px_0px_#262626] flex items-center justify-between">
           {/* Brand Logo */}
           <BrandLogo size="md" />
 
