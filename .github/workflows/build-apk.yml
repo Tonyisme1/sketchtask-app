@@ -44,11 +44,10 @@ jobs:
           cp -r dist/* android/app/src/main/assets/public/
           node ./node_modules/@capacitor/cli/bin/capacitor sync android || true
 
-      - name: Generate Debug Keystore & Build APK
+      - name: Build APK with Gradle
         run: |
           cd client/android
           chmod +x gradlew
-          keytool -genkey -v -keystore app/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US" -noprompt || true
           ./gradlew assembleDebug --no-daemon
 
       - name: Rename and Prepare APK
