@@ -20,6 +20,7 @@ import {
   Smartphone,
   Check,
   Edit2,
+  Lightbulb,
 } from "lucide-react";
 
 // ==========================================
@@ -576,7 +577,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                           : "bg-amber-600"
                       }`}
                     />
-                    <span>{user.isSignedIn ? "Realtime Online" : "Chưa đăng nhập"}</span>
+                    <span>
+                      {user.isSignedIn ? "Realtime Online" : "Chưa đăng nhập"}
+                    </span>
                   </span>
                 </div>
 
@@ -730,8 +733,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               </div>
               {/* Mẹo Sử Dụng Cho Người Dùng */}
               <div className="p-3 bg-white border border-[#D4CEBF] rounded-[6px] space-y-2">
-                <span className="font-bold text-[11px] text-[#1C1917] block">
-                  💡 MẸO SỬ DỤNG HẰNG NGÀY:
+                <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
+                  <Lightbulb size={13} className="text-amber-500" />
+                  <span>MẸO SỬ DỤNG HẰNG NGÀY:</span>
                 </span>
                 <ul className="space-y-1.5 text-[11px] text-[#1C1917] leading-relaxed list-disc list-inside">
                   <li>

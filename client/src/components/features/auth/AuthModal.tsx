@@ -16,6 +16,10 @@ import {
   Smartphone,
   Laptop,
   Radio,
+  CheckSquare,
+  BookMarked,
+  Lightbulb,
+  Flame,
 } from "lucide-react";
 
 // ==========================================
@@ -312,18 +316,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-1 text-[10px] text-[#78716C] pt-1 border-t border-[#262626]/20">
-                <span>📝 {tasks.length} công việc</span>
-                <span>📓 {notebooks.length} cuốn sổ</span>
-                <span>💡 {stickyNotes.length} thẻ ý tưởng</span>
-                <span>🔥 {habits.length} thói quen</span>
+              <div className="grid grid-cols-2 gap-1.5 text-[10px] text-[#78716C] pt-1 border-t border-[#262626]/20">
+                <span className="flex items-center gap-1">
+                  <CheckSquare size={11} className="text-amber-700" />
+                  <span>{tasks.length} công việc</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <BookMarked size={11} className="text-indigo-700" />
+                  <span>{notebooks.length} cuốn sổ</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <Lightbulb size={11} className="text-amber-500" />
+                  <span>{stickyNotes.length} ý tưởng</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <Flame size={11} className="text-orange-600" />
+                  <span>{habits.length} thói quen</span>
+                </span>
               </div>
             </div>
 
             {/* Devices list */}
             <div className="space-y-1">
-              <span className="font-bold text-[11px] text-[#1C1917] block">
-                📱 THIẾT BỊ ĐANG KẾT NỐI REALTIME:
+              <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1">
+                <Smartphone size={13} strokeWidth={2.2} />
+                <span>THIẾT BỊ ĐANG KẾT NỐI REALTIME:</span>
               </span>
               <div className="space-y-1 text-[11px] text-[#78716C]">
                 <div className="flex items-center justify-between bg-[#FBF9F4] p-1.5 rounded border border-[#262626]/10">

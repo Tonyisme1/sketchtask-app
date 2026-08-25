@@ -387,19 +387,22 @@ export const TodayTab: React.FC = () => {
                   {[
                     {
                       key: "high",
-                      label: "🔴 Gấp",
+                      label: "Gấp",
+                      dotClass: "bg-rose-500",
                       activeClass:
                         "bg-rose-100 text-rose-800 border-rose-400 font-bold shadow-[1px_1px_0px_#262626]",
                     },
                     {
                       key: "medium",
-                      label: "🟡 Vừa",
+                      label: "Vừa",
+                      dotClass: "bg-amber-400",
                       activeClass:
                         "bg-amber-100 text-amber-800 border-amber-400 font-bold shadow-[1px_1px_0px_#262626]",
                     },
                     {
                       key: "low",
-                      label: "🟢 Thấp",
+                      label: "Thấp",
+                      dotClass: "bg-emerald-500",
                       activeClass:
                         "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold shadow-[1px_1px_0px_#262626]",
                     },
@@ -408,13 +411,14 @@ export const TodayTab: React.FC = () => {
                       key={p.key}
                       type="button"
                       onClick={() => setSelectedPriority(p.key as any)}
-                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all ${
+                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
                         selectedPriority === p.key
                           ? p.activeClass
                           : "border-[#D4CEBF] bg-[#FBF9F4] text-[#78716C] hover:text-[#1C1917]"
                       }`}
                     >
-                      {p.label}
+                      <span className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`} />
+                      <span>{p.label}</span>
                     </button>
                   ))}
                 </div>
@@ -499,21 +503,22 @@ export const TodayTab: React.FC = () => {
               <div className="flex items-center gap-1.5 flex-wrap">
                 {[
                   { key: "all", label: "Tất cả" },
-                  { key: "high", label: "🔴 Gấp", activeClass: "bg-rose-100 text-rose-800 border-rose-400 font-bold shadow-[1px_1px_0px_#262626]" },
-                  { key: "medium", label: "🟡 Vừa", activeClass: "bg-amber-100 text-amber-800 border-amber-400 font-bold shadow-[1px_1px_0px_#262626]" },
-                  { key: "low", label: "🟢 Thấp", activeClass: "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold shadow-[1px_1px_0px_#262626]" },
+                  { key: "high", label: "Gấp", dotClass: "bg-rose-500", activeClass: "bg-rose-100 text-rose-800 border-rose-400 font-bold shadow-[1px_1px_0px_#262626]" },
+                  { key: "medium", label: "Vừa", dotClass: "bg-amber-400", activeClass: "bg-amber-100 text-amber-800 border-amber-400 font-bold shadow-[1px_1px_0px_#262626]" },
+                  { key: "low", label: "Thấp", dotClass: "bg-emerald-500", activeClass: "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold shadow-[1px_1px_0px_#262626]" },
                 ].map((p) => (
                   <button
                     key={p.key}
                     type="button"
                     onClick={() => setPriorityFilter(p.key as any)}
-                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
+                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
                       priorityFilter === p.key
                         ? p.activeClass || "bg-[#262626] text-white border-[#262626] font-bold"
                         : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
                     }`}
                   >
-                    {p.label}
+                    {p.dotClass && <span className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`} />}
+                    <span>{p.label}</span>
                   </button>
                 ))}
               </div>
@@ -697,13 +702,15 @@ export const TodayTab: React.FC = () => {
 
                         {/* Badge Mức Độ Ưu Tiên */}
                         {task.priority === "high" && !task.completed && (
-                          <span className="px-1.5 py-0.5 rounded border border-rose-300 bg-rose-50 text-rose-700 font-bold font-mono">
-                            🔴 Gấp
+                          <span className="px-1.5 py-0.5 rounded border border-rose-300 bg-rose-50 text-rose-700 font-bold font-mono inline-flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-600 inline-block" />
+                            <span>Gấp</span>
                           </span>
                         )}
                         {task.priority === "low" && !task.completed && (
-                          <span className="px-1.5 py-0.5 rounded border border-emerald-300 bg-emerald-50 text-emerald-700 font-mono">
-                            🟢 Thấp
+                          <span className="px-1.5 py-0.5 rounded border border-emerald-300 bg-emerald-50 text-emerald-700 font-mono inline-flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
+                            <span>Thấp</span>
                           </span>
                         )}
 

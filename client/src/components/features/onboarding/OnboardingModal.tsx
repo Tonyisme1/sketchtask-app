@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { useAppStore } from "../../../stores/appStore";
-import { BrandLogo } from "../../ui/BrandLogo";
 import {
   CheckSquare,
   BookOpen,
@@ -11,6 +10,7 @@ import {
   ChevronLeft,
   Sparkles,
   Cloud,
+  Edit3,
 } from "lucide-react";
 
 // ==========================================
@@ -19,9 +19,8 @@ import {
 
 const STEPS = [
   {
-    isIntroLogo: true,
-    icon: null,
-    iconBg: null,
+    IconComponent: Edit3,
+    iconBg: "#FEF08A",
     title: "Chào mừng đến SketchTask!",
     subtitle: "Sổ tay công việc phong cách vẽ tay",
     description:
@@ -154,18 +153,14 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ isOpen }) => {
         <div className="p-5 space-y-4">
           {/* Step: Header */}
           <div className="text-center space-y-1.5">
-            {current.isIntroLogo ? (
-              <div className="flex justify-center mb-3">
-                <BrandLogo size="lg" showText={false} />
-              </div>
-            ) : current.icon ? (
+            {current.IconComponent && (
               <div
-                className="w-14 h-14 mx-auto rounded-[8px] border-[1.5px] border-[#262626] shadow-[2px_2px_0px_#262626] flex items-center justify-center text-2xl -rotate-1 mb-2"
+                className="w-14 h-14 mx-auto rounded-[8px] border-[1.5px] border-[#262626] shadow-[2px_2px_0px_#262626] flex items-center justify-center -rotate-1 mb-2"
                 style={{ backgroundColor: current.iconBg! }}
               >
-                {current.icon}
+                <current.IconComponent size={24} className="text-[#1C1917]" strokeWidth={2.2} />
               </div>
-            ) : null}
+            )}
             <h2 className="font-bold text-base text-[#1C1917]">
               {current.title}
             </h2>
