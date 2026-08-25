@@ -220,8 +220,11 @@ export const AppShell: React.FC<AppShellProps> = ({
         {/* Onboarding chào mừng lần đầu vào app */}
         <OnboardingModal isOpen={isFirstVisit} />
 
-        {/* Main Content Area */}
-        <main className="flex-1 px-3 sm:px-6 md:px-10 py-4 sm:py-8 pb-24 md:pb-10 max-w-5xl w-full mx-auto">
+        {/* Main Content Area với hiệu ứng Lật Trang Êm Ái khi đổi Tab */}
+        <main
+          key={activeTab}
+          className="flex-1 px-3 sm:px-6 md:px-10 py-4 sm:py-8 pb-24 md:pb-10 max-w-5xl w-full mx-auto animate-page-flip"
+        >
           {children}
         </main>
       </div>

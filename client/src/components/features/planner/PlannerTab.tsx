@@ -587,13 +587,18 @@ export const PlannerTab: React.FC = () => {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p
-                          className={`text-xs sm:text-sm font-semibold leading-snug break-all ${
-                            task.completed ? "line-through text-[#78716C]" : "text-[#1C1917]"
-                          }`}
-                        >
-                          {task.title}
-                        </p>
+                        <div className="relative inline-block max-w-full">
+                          <p
+                            className={`text-xs sm:text-sm font-semibold leading-snug break-all ${
+                              task.completed ? "text-[#78716C]" : "text-[#1C1917]"
+                            }`}
+                          >
+                            {task.title}
+                          </p>
+                          {task.completed && (
+                            <div className="absolute top-1/2 left-0 right-0 h-[1.5px] bg-[#78716C] animate-ink-strike -translate-y-1/2 pointer-events-none" />
+                          )}
+                        </div>
                         <div className="mt-1 flex items-center gap-1.5 flex-wrap text-[10px]">
                           {/* Badge Hạn Chót */}
                           {dueInfo && !task.completed && (

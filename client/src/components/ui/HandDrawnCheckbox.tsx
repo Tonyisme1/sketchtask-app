@@ -35,7 +35,7 @@ export const HandDrawnCheckbox: React.FC<CheckboxProps> = ({
             strokeLinecap="round"
             strokeLinejoin="round"
           >
-            <polyline points="20 6 9 17 4 12" />
+            <polyline points="20 6 9 17 4 12" className="animate-draw-check" />
           </svg>
         )}
       </div>
