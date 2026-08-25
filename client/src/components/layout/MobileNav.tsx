@@ -20,7 +20,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   const activeTodayTasks = tasks.filter((t) => !t.completed).length;
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FFFFFF] border-t-[1.5px] border-[#262626] shadow-[0px_-2px_0px_#262626] px-1 py-1 select-none">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FBF9F4] border-t-[1.5px] border-[#262626] shadow-[0px_-2px_0px_#262626] px-1 py-1 select-none">
       <div className="grid grid-cols-5 gap-1 max-w-md mx-auto">
         {SIDEBAR_TABS.map((tab) => {
           const isActive = activeTab === tab.key;
