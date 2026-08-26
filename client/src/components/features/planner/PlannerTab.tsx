@@ -23,6 +23,9 @@ import {
   ChevronDown,
   ChevronUp,
   BookOpen,
+  PackageOpen,
+  Layers,
+  Sparkles,
 } from "lucide-react";
 
 // ==========================================
@@ -38,6 +41,7 @@ export const PlannerTab: React.FC = () => {
   const {
     tasks,
     addTask,
+    updateTask,
     toggleTask,
     deleteTask,
     moveTaskToToday,
@@ -86,6 +90,10 @@ export const PlannerTab: React.FC = () => {
   );
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+  const [isBacklogDrawerOpen, setIsBacklogDrawerOpen] = useState(false);
+
+  // Danh sách các việc từ Sổ tay chưa lên lịch (Unscheduled Tasks)
+  const unscheduledTasks = tasks.filter((t) => !t.completed && !t.dueDate);
 
   const getWeekDates = () => {
     const currentDay = now.getDay();
@@ -640,7 +648,9 @@ export const PlannerTab: React.FC = () => {
                         : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
                     }`}
                   >
-                    <span className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`} />
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`}
+                    />
                     <span>{p.label}</span>
                   </button>
                 ))}
@@ -697,9 +707,32 @@ export const PlannerTab: React.FC = () => {
                   </button>
                 )}
 
+                {/* Nút Hộp Việc Chờ Lên Lịch Từ Sổ Tay */}
                 <button
                   type="button"
-                  onClick={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
+                  onClick={() => {
+                    setIsBacklogDrawerOpen(!isBacklogDrawerOpen);
+                    if (isFilterDrawerOpen) setIsFilterDrawerOpen(false);
+                  }}
+                  className={`px-2 sm:px-2.5 py-1 rounded-[3px] border-[1.5px] text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 ${
+                    isBacklogDrawerOpen
+                      ? "bg-[#BBF7D0] border-[#262626] text-emerald-950 shadow-[1px_1px_0px_#262626]"
+                      : "bg-white border-[#D4CEBF] text-[#78716C] hover:text-[#1C1917]"
+                  }`}
+                >
+                  <PackageOpen size={13} strokeWidth={2.2} className="text-emerald-800" />
+                  <span className="hidden xs:inline sm:inline">Việc chờ xếp lịch</span>
+                  <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-full bg-[#262626] text-white font-bold">
+                    {unscheduledTasks.length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsFilterDrawerOpen(!isFilterDrawerOpen);
+                    if (isBacklogDrawerOpen) setIsBacklogDrawerOpen(false);
+                  }}
                   className={`px-2 sm:px-2.5 py-1 rounded-[3px] border-[1.5px] text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 ${
                     isFilterDrawerOpen ||
                     priorityFilter !== "all" ||
@@ -732,6 +765,82 @@ export const PlannerTab: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            {/* Ngăn Kéo: Hộp Việc Từ Sổ Tay Chưa Lên Lịch (Unscheduled Backlog Drawer) */}
+            {isBacklogDrawerOpen && (
+              <div className="p-3.5 bg-[#BBF7D0]/30 border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] space-y-2.5 animate-in slide-in-from-top-2 duration-150 text-xs">
+                <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]/20">
+                  <div className="flex items-center gap-1.5 font-bold text-[#1C1917]">
+                    <PackageOpen size={15} className="text-emerald-800" />
+                    <span>HỘP VIỆC TỪ SỔ TAY CHỜ LÊN LỊCH:</span>
+                  </div>
+                  <span className="text-[11px] font-mono text-[#78716C]">
+                    {unscheduledTasks.length} việc
+                  </span>
+                </div>
+
+                {unscheduledTasks.length === 0 ? (
+                  <p className="text-xs text-[#78716C] py-2 text-center italic">
+                    Tuyệt vời! Tất cả công việc trong các sổ tay đều đã được lên lịch.
+                  </p>
+                ) : (
+                  <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1 no-scrollbar">
+                    {unscheduledTasks.map((t) => {
+                      const nb = notebooks.find((n) => n.id === t.notebookId);
+                      return (
+                        <div
+                          key={t.id}
+                          className="p-2 bg-white border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-xs text-[#1C1917] truncate">
+                              {t.title}
+                            </p>
+                            <div className="flex items-center gap-1.5 mt-0.5 text-[10px]">
+                              {nb && (
+                                <span
+                                  className="px-1.5 py-0.2 rounded border border-[#262626] text-[#1C1917] inline-flex items-center gap-1"
+                                  style={{ backgroundColor: nb.color || "#FEF08A" }}
+                                >
+                                  <DynamicIcon name={nb.icon} size={10} strokeWidth={2.2} />
+                                  <span className="truncate max-w-[100px]">{nb.name}</span>
+                                </span>
+                              )}
+                              {t.tag && (
+                                <span className="text-[#78716C]">#{t.tag}</span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                updateTask(t.id, { dueDate: selectedDateStr });
+                              }}
+                              title={`Xếp vào ngày ${selectedDateStr}`}
+                              className="px-2 py-1 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded text-[10px] font-bold shadow-sm active:translate-y-[0.5px] flex items-center gap-1"
+                            >
+                              <CalendarIcon size={11} />
+                              <span>Xếp ngày {selectedDateStr.split("-").slice(1).reverse().join("/")}</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => moveTaskToToday(t.id)}
+                              title="Làm hôm nay"
+                              className="px-2 py-1 bg-[#BBF7D0] hover:bg-[#86EFAC] border border-[#262626] rounded text-[10px] font-bold shadow-sm active:translate-y-[0.5px] flex items-center gap-1"
+                            >
+                              <Sun size={11} />
+                              <span>Hôm nay</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Khung Bộ Lọc Nâng Cao Mở Rộng Cho Planner */}
             {isFilterDrawerOpen && (
@@ -777,7 +886,11 @@ export const PlannerTab: React.FC = () => {
                             : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
                         }`}
                       >
-                        {p.dotClass && <span className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`} />}
+                        {p.dotClass && (
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`}
+                          />
+                        )}
                         <span>{p.label}</span>
                       </button>
                     ))}

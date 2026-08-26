@@ -26,6 +26,7 @@ import {
   Filter,
   Sun,
   CheckCheck,
+  Edit3,
 } from "lucide-react";
 
 import { getLocalTodayStr, isTaskForDate } from "../../../utils/date";
@@ -38,6 +39,7 @@ export const TodayTab: React.FC = () => {
   const {
     tasks,
     addTask,
+    updateTask,
     toggleTask,
     deleteTask,
     moveTaskToTomorrow,
@@ -77,6 +79,51 @@ export const TodayTab: React.FC = () => {
   const [onlyOverdueFilter, setOnlyOverdueFilter] = useState<boolean>(false);
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
+
+  // State chỉnh sửa task (Edit Task Modal)
+  const [editingTask, setEditingTask] = useState<TaskDto | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDueDate, setEditDueDate] = useState<string | undefined>(undefined);
+  const [editDueTime, setEditDueTime] = useState<string | undefined>(undefined);
+  const [editPriority, setEditPriority] = useState<"high" | "medium" | "low">("medium");
+  const [editTag, setEditTag] = useState<string>("");
+  const [editNotebookId, setEditNotebookId] = useState<string>("");
+
+  const handleOpenEditModal = (task: TaskDto) => {
+    setEditingTask(task);
+    setEditTitle(task.title);
+    if (task.dueDate) {
+      const parts = task.dueDate.split(" ");
+      setEditDueDate(parts[0]);
+      setEditDueTime(parts[1] || undefined);
+    } else {
+      setEditDueDate(undefined);
+      setEditDueTime(undefined);
+    }
+    setEditPriority(task.priority || "medium");
+    setEditTag(task.tag || tags[0] || "Công việc");
+    setEditNotebookId(task.notebookId || "");
+  };
+
+  const handleSaveEditTask = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTask || !editTitle.trim()) return;
+
+    let finalDueDate: string | undefined = undefined;
+    if (editDueDate) {
+      finalDueDate = editDueTime ? `${editDueDate} ${editDueTime}` : editDueDate;
+    }
+
+    updateTask(editingTask.id, {
+      title: editTitle.trim(),
+      dueDate: finalDueDate,
+      priority: editPriority,
+      tag: editTag,
+      notebookId: editNotebookId || undefined,
+    });
+
+    setEditingTask(null);
+  };
 
   const handleAddTask = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -713,13 +760,23 @@ export const TodayTab: React.FC = () => {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => setDeletingTaskId(task.id)}
-                    title="Xóa"
-                    className="opacity-40 group-hover:opacity-100 text-[#78716C] hover:text-red-600 p-1 shrink-0 active:translate-y-[0.5px]"
-                  >
-                    <X size={13} strokeWidth={2.5} />
-                  </button>
+                  <div className="flex items-center gap-0.5 shrink-0 opacity-80 group-hover:opacity-100">
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditModal(task)}
+                      title="Chỉnh sửa việc"
+                      className="p-1 hover:bg-[#FEF08A] rounded border border-transparent hover:border-[#262626] text-[#78716C] hover:text-[#1C1917] active:translate-y-[0.5px]"
+                    >
+                      <Edit3 size={13} strokeWidth={2.2} />
+                    </button>
+                    <button
+                      onClick={() => setDeletingTaskId(task.id)}
+                      title="Xóa"
+                      className="p-1 hover:bg-rose-100 rounded border border-transparent hover:border-[#262626] text-[#78716C] hover:text-red-600 active:translate-y-[0.5px]"
+                    >
+                      <X size={13} strokeWidth={2.5} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Hàng Dời Lịch Sang Ngày Mai */}
@@ -741,6 +798,146 @@ export const TodayTab: React.FC = () => {
           })
         )}
       </div>
+
+      {/* Modal Chỉnh Sửa Chi Tiết Task (Edit Task Modal) */}
+      {editingTask && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 999999,
+            backgroundColor: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(12px)",
+          }}
+          className="flex items-center justify-center p-3 select-none animate-in fade-in duration-150"
+        >
+          <div className="w-full max-w-md bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[8px] shadow-[4px_4px_0px_#262626] p-4 space-y-3.5">
+            <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
+              <h3 className="font-bold text-sm text-[#1C1917] flex items-center gap-1.5">
+                <Edit3 size={15} />
+                <span>Chỉnh sửa công việc</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingTask(null)}
+                className="w-6 h-6 rounded bg-white hover:bg-rose-50 border border-[#262626] flex items-center justify-center text-[#78716C] hover:text-rose-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditTask} className="space-y-3 text-xs">
+              <div>
+                <label className="font-bold text-[#1C1917] block mb-1">
+                  Tiêu đề công việc:
+                </label>
+                <TextInput
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  placeholder="Nhập tiêu đề..."
+                  className="w-full bg-white text-xs"
+                  autoFocus
+                />
+              </div>
+
+              {/* Đổi Cuốn Sổ Tay */}
+              <div>
+                <label className="font-bold text-[#1C1917] block mb-1">
+                  Thuộc cuốn sổ:
+                </label>
+                <CustomSelect
+                  value={editNotebookId}
+                  onChange={setEditNotebookId}
+                  options={[
+                    { value: "", label: "Không gán sổ", icon: "lucide:FileText" },
+                    ...notebooks.map((nb) => ({
+                      value: nb.id,
+                      label: nb.name,
+                      icon: nb.icon || "lucide:BookMarked",
+                    })),
+                  ]}
+                />
+              </div>
+
+              {/* Đổi Hạn Chót */}
+              <div>
+                <label className="font-bold text-[#1C1917] block mb-1">
+                  Hạn chót & Thời gian:
+                </label>
+                <CustomDuePicker
+                  dueDate={editDueDate}
+                  dueTime={editDueTime}
+                  onDateChange={setEditDueDate}
+                  onTimeChange={setEditDueTime}
+                />
+              </div>
+
+              {/* Đổi Mức Độ Ưu Tiên */}
+              <div>
+                <label className="font-bold text-[#1C1917] block mb-1">
+                  Mức độ ưu tiên:
+                </label>
+                <div className="flex items-center gap-2">
+                  {[
+                    { key: "high", label: "🔴 Gấp" },
+                    { key: "medium", label: "🟡 Vừa" },
+                    { key: "low", label: "🟢 Thấp" },
+                  ].map((p) => (
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => setEditPriority(p.key as any)}
+                      className={`flex-1 py-1 rounded border text-xs font-bold transition-all ${
+                        editPriority === p.key
+                          ? "bg-[#262626] text-white border-[#262626] shadow-[1px_1px_0px_#262626]"
+                          : "bg-white border-[#D4CEBF] text-[#78716C]"
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Đổi Nhãn Tag */}
+              <div>
+                <label className="font-bold text-[#1C1917] block mb-1">
+                  Nhãn phân loại:
+                </label>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {tags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => setEditTag(tag)}
+                      className={`px-2 py-0.5 rounded border text-[11px] font-medium ${
+                        editTag === tag
+                          ? "bg-[#262626] text-white border-[#262626]"
+                          : "bg-white border-[#D4CEBF] text-[#78716C]"
+                      }`}
+                    >
+                      #{tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-[#D4CEBF] flex gap-2 justify-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setEditingTask(null)}
+                >
+                  Hủy bỏ
+                </Button>
+                <Button type="submit" variant="primary">
+                  Lưu thay đổi
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Confirm Delete Modal */}
       <ConfirmModal

@@ -119,6 +119,7 @@ export interface AppContextType {
   deleteTask: (id: string) => void;
   moveTaskToTomorrow: (id: string) => void;
   moveTaskToToday: (id: string) => void;
+  updateTask: (id: string, updates: Partial<TaskDto>) => void;
 
   // Custom Tags
   tags: string[];
@@ -1192,6 +1193,49 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
+  const updateTask = (id: string, updates: Partial<TaskDto>) => {
+    setTasks((prev) => {
+      const oldTask = prev.find((t) => t.id === id);
+      const next = prev.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              ...updates,
+              updatedAt: new Date().toISOString(),
+            }
+          : t,
+      );
+      triggerDebouncedPush({ tasks: next });
+
+      // Nếu có cập nhật dueDate, cập nhật lại lịch thông báo
+      const updated = next.find((t) => t.id === id);
+      if (updated) {
+        if (updated.dueDate && !updated.completed) {
+          notificationService.scheduleTask(updated);
+        } else {
+          notificationService.cancelTask(id);
+        }
+      }
+
+      // Nếu chuyển đổi notebookId, cập nhật số lượng taskCount của 2 cuốn sổ
+      if (updates.notebookId !== undefined && oldTask && oldTask.notebookId !== updates.notebookId) {
+        setNotebooks((prevNb) =>
+          prevNb.map((nb) => {
+            if (nb.id === oldTask.notebookId) {
+              return { ...nb, taskCount: Math.max(0, (nb.taskCount || 1) - 1), updatedAt: new Date().toISOString() };
+            }
+            if (nb.id === updates.notebookId) {
+              return { ...nb, taskCount: (nb.taskCount || 0) + 1, updatedAt: new Date().toISOString() };
+            }
+            return nb;
+          }),
+        );
+      }
+
+      return next;
+    });
+  };
+
   const addTag = (tag: string) => {
     const trimmed = tag.trim();
     if (trimmed && !tags.includes(trimmed)) {
@@ -1461,6 +1505,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         deleteTask,
         moveTaskToTomorrow,
         moveTaskToToday,
+        updateTask,
         tags,
         addTag,
         deleteTag,
