@@ -54,3 +54,4 @@ async function generateNotifIcons() {
 }
 
 generateNotifIcons().catch(console.error);
+

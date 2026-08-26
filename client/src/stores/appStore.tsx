@@ -6,12 +6,14 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { TaskDto, NotebookDto, HabitDto, TaskStatus } from "../types";
+import { TaskDto, NotebookDto, HabitDto, TaskStatus, TaskPriority } from "../types";
 import { api, authStorage } from "../services/api";
 import { syncSocket } from "../services/syncSocket";
 import { smartMergeAppData } from "../utils/syncMerge";
 import { notificationService } from "../services/notificationService";
 import { sounds } from "../utils/soundEffects";
+
+export type { TaskDto, TaskPriority, NotebookDto, HabitDto, TaskStatus };
 
 // ==========================================
 // STORE: AppStore (Offline-First + Realtime WebSocket Sync Engine)
@@ -102,6 +104,11 @@ export interface AppContextType {
   setSoundVolume: (vol: number) => void;
   paperStyle: "blank" | "lined" | "dots" | "grid";
   setPaperStyle: (style: "blank" | "lined" | "dots" | "grid") => void;
+  pinCode: string | null;
+  setPinCode: (pin: string | null) => void;
+  isPinLocked: boolean;
+  unlockWithPin: (newPin?: string) => void;
+  lockApp: () => void;
   triggerHaptic: () => void;
   loadSampleData: () => void;
   archiveOldTasks: (days?: number) => number;

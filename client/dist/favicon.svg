@@ -1,7 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <rect width="64" height="64" rx="14" fill="#FBF9F4" />
-  <rect x="10" y="10" width="44" height="44" rx="6" fill="#262626" />
-  <rect x="8" y="8" width="44" height="44" rx="6" fill="#FEF08A" stroke="#262626" stroke-width="2.5" />
-  <path d="M18 18 L18 42" stroke="#262626" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 3" />
-  <path d="M25 31 L32 38 L43 23" stroke="#262626" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
+  <rect x="12" y="12" width="42" height="42" rx="4" fill="#262626" />
+  <rect x="10" y="10" width="42" height="42" rx="4" fill="#FEF08A" stroke="#262626" stroke-width="2.5" />
+  <rect x="10" y="10" width="9" height="42" rx="2" fill="#FDE047" stroke="#262626" stroke-width="2.5" />
+  <circle cx="14.5" cy="18" r="1.2" fill="#262626" />
+  <circle cx="14.5" cy="26" r="1.2" fill="#262626" />
+  <circle cx="14.5" cy="34" r="1.2" fill="#262626" />
+  <circle cx="14.5" cy="42" r="1.2" fill="#262626" />
+  <path d="M25 31 L32 38 L45 20" fill="none" stroke="#1C1917" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" />
 </svg>

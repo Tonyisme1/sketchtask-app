@@ -43,26 +43,52 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           className="w-[72%] h-[72%]"
         >
           {/* Cuốn Sổ Tay Bìa Gập */}
-          <rect x="3" y="3" width="18" height="18" rx="2" fill="#FEF08A" stroke="#1C1917" strokeWidth="1.8" />
+          <rect
+            x="3"
+            y="3"
+            width="18"
+            height="18"
+            rx="2"
+            fill="#FEF08A"
+            stroke="#1C1917"
+            strokeWidth="1.8"
+          />
           {/* Dải Gáy Sổ & Khoen Lò Xo */}
-          <line x1="7.5" y1="3" x2="7.5" y2="21" stroke="#1C1917" strokeWidth="1.6" />
+          <line
+            x1="7.5"
+            y1="3"
+            x2="7.5"
+            y2="21"
+            stroke="#1C1917"
+            strokeWidth="1.6"
+          />
           <circle cx="5.2" cy="7" r="0.8" fill="#1C1917" />
           <circle cx="5.2" cy="12" r="0.8" fill="#1C1917" />
           <circle cx="5.2" cy="17" r="0.8" fill="#1C1917" />
           {/* Dấu Tick Hoàn Thành Vẽ Tay */}
-          <path d="M10.5 12 L13 14.5 L18 8" stroke="#1C1917" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          <path
+            d="M10.5 12 L13 14.5 L18 8"
+            stroke="#1C1917"
+            strokeWidth="2.2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </div>
 
       {/* Brand Wordmark Text */}
       {showText && (
         <div className="flex flex-col leading-none">
-          <span className={`font-bold tracking-tight text-[#1C1917] ${textSizes[size]}`}>
-            Sketch<span className="text-[#1C1917] underline decoration-[#FEF08A] decoration-[3px]">Task</span>
+          <span
+            className={`font-bold tracking-tight text-[#1C1917] ${textSizes[size]}`}
+          >
+            Sketch
+            <span className="text-[#1C1917] underline decoration-[#FEF08A] decoration-[3px]">
+              Task
+            </span>
           </span>
         </div>
       )}
     </div>
   );
 };
-

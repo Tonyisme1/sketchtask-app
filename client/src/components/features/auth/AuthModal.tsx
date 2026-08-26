@@ -20,6 +20,7 @@ import {
   Lightbulb,
   Flame,
   Check,
+  CheckSquare,
   AlertCircle,
   ArrowRight,
 } from "lucide-react";
@@ -98,7 +99,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             headers: {
               Authorization: `Bearer ${tokenResponse.access_token}`,
             },
-          }
+          },
         );
 
         if (!userInfoRes.ok) {
@@ -122,7 +123,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         }
       } catch (err: any) {
         setErrorMessage(
-          err.message || "Lỗi xử lý tài khoản Google. Vui lòng thử lại."
+          err.message || "Lỗi xử lý tài khoản Google. Vui lòng thử lại.",
         );
       } finally {
         setIsSubmitting(false);
@@ -132,7 +133,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       console.warn("Google OAuth Error:", error);
       setIsSubmitting(false);
       setErrorMessage(
-        "Cửa sổ Google bị hạn chế trên môi trường hiện tại. Bạn vui lòng nhập Email & Mật khẩu bên trên để đăng nhập trong 2 giây!"
+        "Cửa sổ Google bị hạn chế trên môi trường hiện tại. Bạn vui lòng nhập Email & Mật khẩu bên trên để đăng nhập trong 2 giây!",
       );
     },
   });
@@ -148,7 +149,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     } catch (err: any) {
       console.warn("Google OAuth trigger failed:", err);
       setIsSubmitting(false);
-      setErrorMessage("Vui lòng nhập Email & Mật khẩu bên trên để đăng nhập nhanh chóng!");
+      setErrorMessage(
+        "Vui lòng nhập Email & Mật khẩu bên trên để đăng nhập nhanh chóng!",
+      );
     }
   };
 
@@ -171,7 +174,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         const result = await registerWithCredentials(
           userName,
           email.trim(),
-          password || undefined
+          password || undefined,
         );
         if (result.success) {
           onClose();
@@ -181,13 +184,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       } else {
         const result = await loginWithCredentials(
           email.trim(),
-          password || undefined
+          password || undefined,
         );
         if (result.success) {
           onClose();
         } else {
           setErrorMessage(
-            result.message || "Email hoặc mật khẩu không chính xác."
+            result.message || "Email hoặc mật khẩu không chính xác.",
           );
         }
       }
@@ -459,12 +462,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 {authMode === "signin" ? (
                   <>
                     <Sparkles size={14} className="text-amber-600 shrink-0" />
-                    <span>Đăng nhập để đồng bộ real-time giữa điện thoại & máy tính!</span>
+                    <span>
+                      Đăng nhập để đồng bộ real-time giữa điện thoại & máy tính!
+                    </span>
                   </>
                 ) : (
                   <>
                     <Cloud size={14} className="text-sky-600 shrink-0" />
-                    <span>Đăng ký tài khoản để lưu trữ đám mây & dùng mọi lúc mọi nơi.</span>
+                    <span>
+                      Đăng ký tài khoản để lưu trữ đám mây & dùng mọi lúc mọi
+                      nơi.
+                    </span>
                   </>
                 )}
               </p>
@@ -628,6 +636,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         )}
       </div>
     </div>,
-    document.body
+    document.body,
   );
 };

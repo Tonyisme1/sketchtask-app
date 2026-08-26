@@ -1,12 +1,12 @@
-import sharp from 'sharp';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import sharp from "sharp";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const svgPath = path.join(__dirname, 'public', 'pwa-512x512.svg');
+const svgPath = path.join(__dirname, "public", "pwa-512x512.svg");
 const svgBuffer = fs.readFileSync(svgPath);
 
 // SVG Foreground trong suốt cho Adaptive Icon Android (Vùng an toàn chuẩn Google Safe Zone 66%)
@@ -40,18 +40,18 @@ const foregroundSvg = Buffer.from(`
 </svg>
 `);
 
-const resDir = path.join(__dirname, 'android', 'app', 'src', 'main', 'res');
+const resDir = path.join(__dirname, "android", "app", "src", "main", "res");
 
 const densities = [
-  { name: 'mipmap-mdpi', size: 48, fgSize: 108 },
-  { name: 'mipmap-hdpi', size: 72, fgSize: 162 },
-  { name: 'mipmap-xhdpi', size: 96, fgSize: 216 },
-  { name: 'mipmap-xxhdpi', size: 144, fgSize: 324 },
-  { name: 'mipmap-xxxhdpi', size: 192, fgSize: 432 },
+  { name: "mipmap-mdpi", size: 48, fgSize: 108 },
+  { name: "mipmap-hdpi", size: 72, fgSize: 162 },
+  { name: "mipmap-xhdpi", size: 96, fgSize: 216 },
+  { name: "mipmap-xxhdpi", size: 144, fgSize: 324 },
+  { name: "mipmap-xxxhdpi", size: 192, fgSize: 432 },
 ];
 
 async function generateAndroidIcons() {
-  console.log('Generating Android App Icons for SketchTask...');
+  console.log("Generating Android App Icons for SketchTask...");
 
   for (const d of densities) {
     const dirPath = path.join(resDir, d.name);
@@ -63,25 +63,26 @@ async function generateAndroidIcons() {
     await sharp(svgBuffer)
       .resize(d.size, d.size)
       .png()
-      .toFile(path.join(dirPath, 'ic_launcher.png'));
+      .toFile(path.join(dirPath, "ic_launcher.png"));
 
     // 2. ic_launcher_round.png (Round Icon)
     await sharp(svgBuffer)
       .resize(d.size, d.size)
       .png()
-      .toFile(path.join(dirPath, 'ic_launcher_round.png'));
+      .toFile(path.join(dirPath, "ic_launcher_round.png"));
 
     // 3. ic_launcher_foreground.png (Adaptive Foreground)
     await sharp(foregroundSvg)
       .resize(d.fgSize, d.fgSize)
       .png()
-      .toFile(path.join(dirPath, 'ic_launcher_foreground.png'));
+      .toFile(path.join(dirPath, "ic_launcher_foreground.png"));
 
-    console.log(`✓ Generated ${d.name} (${d.size}x${d.size} & fg ${d.fgSize}x${d.fgSize})`);
+    console.log(
+      `✓ Generated ${d.name} (${d.size}x${d.size} & fg ${d.fgSize}x${d.fgSize})`,
+    );
   }
 
-  console.log('🎉 All Android native launcher icons generated successfully!');
+  console.log("🎉 All Android native launcher icons generated successfully!");
 }
 
 generateAndroidIcons().catch(console.error);
-

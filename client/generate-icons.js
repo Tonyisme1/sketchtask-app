@@ -1,47 +1,47 @@
-import sharp from 'sharp';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import sharp from "sharp";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const publicDir = path.join(__dirname, 'public');
+const publicDir = path.join(__dirname, "public");
 
-const svg192 = fs.readFileSync(path.join(publicDir, 'pwa-192x192.svg'));
-const svg512 = fs.readFileSync(path.join(publicDir, 'pwa-512x512.svg'));
+const svg192 = fs.readFileSync(path.join(publicDir, "pwa-192x192.svg"));
+const svg512 = fs.readFileSync(path.join(publicDir, "pwa-512x512.svg"));
 
 async function generate() {
-  console.log('Generating PNG icons for PWA & PWABuilder...');
+  console.log("Generating PNG icons for PWA & PWABuilder...");
 
   // 1. 192x192 PNG
   await sharp(svg192)
     .resize(192, 192)
     .png()
-    .toFile(path.join(publicDir, 'pwa-192x192.png'));
+    .toFile(path.join(publicDir, "pwa-192x192.png"));
 
   // 2. 512x512 PNG
   await sharp(svg512)
     .resize(512, 512)
     .png()
-    .toFile(path.join(publicDir, 'pwa-512x512.png'));
+    .toFile(path.join(publicDir, "pwa-512x512.png"));
 
   // 3. Apple Touch Icon 180x180 PNG
   await sharp(svg512)
     .resize(180, 180)
     .png()
-    .toFile(path.join(publicDir, 'apple-touch-icon.png'));
+    .toFile(path.join(publicDir, "apple-touch-icon.png"));
 
   // 4. Maskable 192 & 512 PNG
   await sharp(svg192)
     .resize(192, 192)
     .png()
-    .toFile(path.join(publicDir, 'pwa-maskable-192x192.png'));
+    .toFile(path.join(publicDir, "pwa-maskable-192x192.png"));
 
   await sharp(svg512)
     .resize(512, 512)
     .png()
-    .toFile(path.join(publicDir, 'pwa-maskable-512x512.png'));
+    .toFile(path.join(publicDir, "pwa-maskable-512x512.png"));
 
   // 5. Screenshots cho PWABuilder (Mobile 750x1334 & Desktop 1280x800)
   const mobileScreenshotSvg = Buffer.from(`
@@ -63,7 +63,7 @@ async function generate() {
   await sharp(mobileScreenshotSvg)
     .resize(750, 1334)
     .png()
-    .toFile(path.join(publicDir, 'screenshot-mobile.png'));
+    .toFile(path.join(publicDir, "screenshot-mobile.png"));
 
   const desktopScreenshotSvg = Buffer.from(`
     <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="800" viewBox="0 0 1280 800">
@@ -78,9 +78,9 @@ async function generate() {
   await sharp(desktopScreenshotSvg)
     .resize(1280, 800)
     .png()
-    .toFile(path.join(publicDir, 'screenshot-desktop.png'));
+    .toFile(path.join(publicDir, "screenshot-desktop.png"));
 
-  console.log('✅ Generated all PNG icons & screenshots successfully!');
+  console.log("✅ Generated all PNG icons & screenshots successfully!");
 }
 
 generate().catch(console.error);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Task } from "../../types";
+import { TaskDto, TaskPriority } from "../../types";
 import { useAppStore } from "../../stores/appStore";
 import { TextInput } from "./TextInput";
 import { Button } from "./Button";
@@ -13,7 +13,7 @@ import { getTagStyle } from "../../utils/tagColors";
 // ==========================================
 
 interface EditTaskModalProps {
-  task: Task | null;
+  task: TaskDto | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -295,7 +295,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
           <div className="pt-2 border-t border-[#D4CEBF] flex items-center justify-end gap-2">
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               size="md"
               onClick={onClose}
               className="flex-1 sm:flex-none justify-center"

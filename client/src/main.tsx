@@ -20,5 +20,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         <App />
       </GoogleOAuthProvider>
     </ErrorBoundary>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

@@ -50,6 +50,20 @@ export interface HabitDto {
   updatedAt: string;
 }
 
+export interface StickyNoteDto {
+  id: string;
+  content: string;
+  color: string;
+  position: { x: number; y: number };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type Task = TaskDto;
+export type Notebook = NotebookDto;
+export type Habit = HabitDto;
+export type StickyNote = StickyNoteDto;
+
 export type TabKey = "today" | "planner" | "notebooks" | "braindump" | "review";
 
 export interface TabConfig {

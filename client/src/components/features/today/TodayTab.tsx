@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAppStore } from "../../../stores/appStore";
+import { TaskDto } from "../../../types";
 import { Button } from "../../ui/Button";
 import { HandDrawnCheckbox } from "../../ui/HandDrawnCheckbox";
 import { TextInput } from "../../ui/TextInput";
@@ -83,47 +84,9 @@ export const TodayTab: React.FC = () => {
 
   // State chỉnh sửa task (Edit Task Modal)
   const [editingTask, setEditingTask] = useState<TaskDto | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDueDate, setEditDueDate] = useState<string | undefined>(undefined);
-  const [editDueTime, setEditDueTime] = useState<string | undefined>(undefined);
-  const [editPriority, setEditPriority] = useState<"high" | "medium" | "low">("medium");
-  const [editTag, setEditTag] = useState<string>("");
-  const [editNotebookId, setEditNotebookId] = useState<string>("");
 
   const handleOpenEditModal = (task: TaskDto) => {
     setEditingTask(task);
-    setEditTitle(task.title);
-    if (task.dueDate) {
-      const parts = task.dueDate.split(" ");
-      setEditDueDate(parts[0]);
-      setEditDueTime(parts[1] || undefined);
-    } else {
-      setEditDueDate(undefined);
-      setEditDueTime(undefined);
-    }
-    setEditPriority(task.priority || "medium");
-    setEditTag(task.tag || tags[0] || "Công việc");
-    setEditNotebookId(task.notebookId || "");
-  };
-
-  const handleSaveEditTask = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingTask || !editTitle.trim()) return;
-
-    let finalDueDate: string | undefined = undefined;
-    if (editDueDate) {
-      finalDueDate = editDueTime ? `${editDueDate} ${editDueTime}` : editDueDate;
-    }
-
-    updateTask(editingTask.id, {
-      title: editTitle.trim(),
-      dueDate: finalDueDate,
-      priority: editPriority,
-      tag: editTag,
-      notebookId: editNotebookId || undefined,
-    });
-
-    setEditingTask(null);
   };
 
   const handleAddTask = (e?: React.FormEvent) => {

@@ -111,7 +111,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         <div
           className={`absolute ${
             align === "right" ? "right-0" : "left-0"
-          } mt-1 min-w-full w-max max-w-[calc(100vw-32px)] bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] z-50 py-1 animate-in fade-in zoom-in-95 flex flex-col`}
+          } mt-1 w-full min-w-[200px] max-w-[320px] bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] z-50 py-1 animate-in fade-in zoom-in-95 flex flex-col`}
         >
           {/* Search Box khi có nhiều hơn 5 options */}
           {enableSearch && options.length > 5 && (

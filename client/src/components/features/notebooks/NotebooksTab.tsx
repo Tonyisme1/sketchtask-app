@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useAppStore, TaskDto, TaskPriority } from "../../../stores/appStore";
+import { useAppStore } from "../../../stores/appStore";
+import { TaskDto, TaskPriority } from "../../../types";
 import { Button } from "../../ui/Button";
 import { TextInput } from "../../ui/TextInput";
 import { HandDrawnCheckbox } from "../../ui/HandDrawnCheckbox";
@@ -86,12 +87,6 @@ export const NotebooksTab: React.FC = () => {
 
   // State chỉnh sửa task (Edit Task Modal)
   const [editingTask, setEditingTask] = useState<TaskDto | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editDueDate, setEditDueDate] = useState<string | undefined>(undefined);
-  const [editDueTime, setEditDueTime] = useState<string | undefined>(undefined);
-  const [editPriority, setEditPriority] = useState<TaskPriority>("medium");
-  const [editTag, setEditTag] = useState<string>("");
-  const [editNotebookId, setEditNotebookId] = useState<string>("");
 
   const [confirmDeleteNbId, setConfirmDeleteNbId] = useState<string | null>(
     null,
@@ -141,40 +136,6 @@ export const NotebooksTab: React.FC = () => {
 
   const handleOpenEditModal = (task: TaskDto) => {
     setEditingTask(task);
-    setEditTitle(task.title);
-    if (task.dueDate) {
-      const parts = task.dueDate.split(" ");
-      setEditDueDate(parts[0]);
-      setEditDueTime(parts[1] || undefined);
-    } else {
-      setEditDueDate(undefined);
-      setEditDueTime(undefined);
-    }
-    setEditPriority(task.priority || "medium");
-    setEditTag(task.tag || tags[0] || "Công việc");
-    setEditNotebookId(task.notebookId || "");
-  };
-
-  const handleSaveEditTask = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingTask || !editTitle.trim()) return;
-
-    let finalDueDate: string | undefined = undefined;
-    if (editDueDate) {
-      finalDueDate = editDueTime
-        ? `${editDueDate} ${editDueTime}`
-        : editDueDate;
-    }
-
-    updateTask(editingTask.id, {
-      title: editTitle.trim(),
-      dueDate: finalDueDate,
-      priority: editPriority,
-      tag: editTag,
-      notebookId: editNotebookId || undefined,
-    });
-
-    setEditingTask(null);
   };
 
   const activeNotebook = notebooks.find((n) => n.id === selectedNotebookId);
@@ -364,10 +325,9 @@ export const NotebooksTab: React.FC = () => {
                     </span>
                     <div className="flex-1 min-w-[200px]">
                       <CustomDuePicker
-                        dueDate={drillTaskDueDate}
-                        dueTime={drillTaskDueTime}
-                        onDateChange={setDrillTaskDueDate}
-                        onTimeChange={setDrillTaskDueTime}
+                        value={drillTaskDueDate}
+                        onChange={setDrillTaskDueDate}
+                        mode="datetime"
                       />
                     </div>
                   </div>
