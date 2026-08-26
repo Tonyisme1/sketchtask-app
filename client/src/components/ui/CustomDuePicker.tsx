@@ -188,7 +188,7 @@ export const CustomDuePicker: React.FC<CustomDuePickerProps> = ({
   const yearList = Array.from({ length: 9 }, (_, i) => 2024 + i);
 
   return (
-    <div ref={containerRef} className={`relative min-w-0 ${className}`}>
+    <div ref={containerRef} className={`relative inline-block ${className}`}>
       {/* Trigger Button Nhỏ Gọn & Tinh Tế */}
       <button
         type="button"
@@ -196,19 +196,19 @@ export const CustomDuePicker: React.FC<CustomDuePickerProps> = ({
           setIsOpen(true);
           if (mode === "time-only") setActiveTab("time");
         }}
-        className={`w-full min-w-0 flex items-center justify-between gap-1 px-2 py-1 text-xs rounded-[4px] border-[1.5px] transition-all select-none ${
+        className={`inline-flex items-center justify-between gap-1 px-2 py-1 h-7 text-[11px] rounded-[4px] border-[1.5px] transition-all select-none whitespace-nowrap ${
           value
             ? "bg-[#FEF08A] border-[#262626] text-[#1C1917] font-bold shadow-[1px_1px_0px_#262626]"
             : "bg-white border-[#D4CEBF] text-[#78716C] hover:border-[#262626] hover:text-[#1C1917] shadow-[1px_1px_0px_#D4CEBF]"
         } active:translate-x-[0.5px] active:translate-y-[0.5px]`}
       >
-        <div className="flex items-center gap-1 min-w-0 flex-1 overflow-hidden">
+        <div className="flex items-center gap-1 min-w-0">
           {mode === "time-only" ? (
-            <Clock size={12} className="shrink-0 text-[#1C1917]" strokeWidth={2.2} />
+            <Clock size={11} className="shrink-0 text-[#1C1917]" strokeWidth={2.2} />
           ) : (
-            <CalendarIcon size={12} className="shrink-0 text-[#1C1917]" strokeWidth={2.2} />
+            <CalendarIcon size={11} className="shrink-0 text-[#1C1917]" strokeWidth={2.2} />
           )}
-          <span className="truncate font-mono text-[11px] text-left block min-w-0 flex-1">
+          <span className="font-mono text-[11px]">
             {renderDisplayLabel()}
           </span>
         </div>

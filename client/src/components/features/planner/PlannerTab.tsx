@@ -75,6 +75,7 @@ export const PlannerTab: React.FC = () => {
 
   const [isAddingTag, setIsAddingTag] = useState(false);
   const [newTagInput, setNewTagInput] = useState("");
+  const [isExpandForm, setIsExpandForm] = useState(false);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
   // Bộ Lọc Phân Tầng Nâng Cao (Task Command Center)
@@ -506,156 +507,196 @@ export const PlannerTab: React.FC = () => {
             </span>
           </div>
 
-          {/* Quick Add Form */}
+          {/* Quick Add Form (Mặc định thu gọn siêu mỏng) */}
           <form
             onSubmit={handleAddDayTask}
-            className="p-2.5 bg-[#FBF9F4] border border-[#262626] rounded-[4px] space-y-2"
+            className="p-2.5 bg-[#FBF9F4] border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2 select-none"
           >
-            <div className="flex gap-2">
+            <div className="flex items-center gap-1.5">
               <TextInput
-                placeholder={`Lên lịch việc mới...`}
+                placeholder={`Lên lịch việc mới cho ${getDayFormattedTitle()}...`}
                 value={dayTaskTitle}
                 maxLength={250}
                 onChange={(e) => setDayTaskTitle(e.target.value)}
-                className="flex-1 text-xs sm:text-sm bg-white"
+                className="flex-1 text-xs sm:text-sm bg-white font-medium"
               />
-              <Button type="submit" variant="primary">
+              
+              <button
+                type="button"
+                onClick={() => setIsExpandForm(!isExpandForm)}
+                className={`px-2 py-1.5 rounded-[4px] border text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 ${
+                  isExpandForm || dayTaskTime || selectedNotebookId
+                    ? "bg-[#FEF08A] border-[#262626] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
+                    : "bg-white border-[#D4CEBF] text-[#78716C] hover:border-[#262626] hover:text-[#1C1917]"
+                }`}
+                title="Tùy chọn mở rộng (Giờ hẹn, Sổ tay, Tag, Ưu tiên)"
+              >
+                <span>Tùy chọn</span>
+                <span className="text-[9px]">{isExpandForm ? "▲" : "▾"}</span>
+              </button>
+
+              <Button type="submit" variant="primary" size="md" disabled={!dayTaskTitle.trim()}>
                 + Lên lịch
               </Button>
             </div>
 
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {tags.map((tag) => {
-                const tagStyle = getTagStyle(tag);
-                return (
-                  <div
-                    key={tag}
-                    className="group/tag relative inline-flex items-center"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setSelectedTag(tag)}
-                      className={`px-2 py-0.5 rounded-[2px] border text-[11px] font-medium transition-all ${
-                        selectedTag === tag
-                          ? `${tagStyle.bg} ${tagStyle.border} text-[#1C1917] shadow-[1px_1px_0px_#262626] -translate-y-[0.5px] font-bold`
-                          : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
-                      }`}
-                    >
-                      #{tag}
-                    </button>
+            {/* Phần Tùy Chọn Mở Rộng: Chỉ bung ra khi người dùng bấm nút [ Tùy chọn ▾ ] */}
+            {isExpandForm && (
+              <div className="pt-2 border-t border-[#D4CEBF]/60 space-y-2 text-xs animate-in slide-in-from-top-1">
+                {/* 1. Dải Tag */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-bold text-[#78716C] shrink-0 w-14">
+                    Nhãn:
+                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap flex-1">
+                    {tags.map((tag) => {
+                      const tagStyle = getTagStyle(tag);
+                      return (
+                        <div
+                          key={tag}
+                          className="group/tag relative inline-flex items-center"
+                        >
+                          <button
+                            type="button"
+                            onClick={() => setSelectedTag(tag)}
+                            className={`px-2 py-0.5 rounded-[2px] border text-[11px] font-medium transition-all ${
+                              selectedTag === tag
+                                ? `${tagStyle.bg} ${tagStyle.border} text-[#1C1917] shadow-[1px_1px_0px_#262626] -translate-y-[0.5px] font-bold`
+                                : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                            }`}
+                          >
+                            #{tag}
+                          </button>
 
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteTag(tag);
-                        if (selectedTag === tag && tags.length > 1) {
-                          setSelectedTag(tags.find((t) => t !== tag) || "");
-                        }
-                      }}
-                      title={`Xóa #${tag}`}
-                      className="opacity-0 group-hover/tag:opacity-100 text-[9px] text-[#78716C] hover:text-red-500 ml-0.5 p-0.5"
-                    >
-                      <X size={10} strokeWidth={2.5} />
-                    </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteTag(tag);
+                              if (selectedTag === tag && tags.length > 1) {
+                                setSelectedTag(tags.find((t) => t !== tag) || "");
+                              }
+                            }}
+                            title={`Xóa #${tag}`}
+                            className="opacity-0 group-hover/tag:opacity-100 text-[9px] text-[#78716C] hover:text-red-500 ml-0.5 p-0.5"
+                          >
+                            <X size={10} strokeWidth={2.5} />
+                          </button>
+                        </div>
+                      );
+                    })}
+
+                    {isAddingTag ? (
+                      <input
+                        type="text"
+                        placeholder="Tên tag..."
+                        value={newTagInput}
+                        maxLength={15}
+                        onChange={(e) => setNewTagInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleCreateNewTag(e);
+                          } else if (e.key === "Escape") {
+                            setIsAddingTag(false);
+                          }
+                        }}
+                        onBlur={handleCreateNewTag}
+                        className="w-18 px-1.5 py-0.5 text-[11px] border border-[#262626] rounded-[2px] outline-none bg-white font-sans"
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingTag(true)}
+                        className="px-1.5 py-0.5 text-[11px] text-[#78716C] hover:text-[#1C1917] border border-dashed border-[#D4CEBF] rounded-[2px]"
+                      >
+                        + Tag
+                      </button>
+                    )}
                   </div>
-                );
-              })}
+                </div>
 
-              {isAddingTag ? (
-                <input
-                  type="text"
-                  autoFocus
-                  placeholder="Tên tag..."
-                  value={newTagInput}
-                  maxLength={15}
-                  onChange={(e) => setNewTagInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleCreateNewTag(e);
-                    } else if (e.key === "Escape") {
-                      setIsAddingTag(false);
-                    }
-                  }}
-                  onBlur={handleCreateNewTag}
-                  className="w-18 px-1.5 py-0.5 text-[11px] border border-[#262626] rounded-[2px] outline-none bg-white font-sans"
-                />
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setIsAddingTag(true)}
-                  className="px-1.5 py-0.5 text-[11px] text-[#78716C] hover:text-[#1C1917] border border-dashed border-[#D4CEBF] rounded-[2px]"
-                >
-                  + Tag
-                </button>
-              )}
-            </div>
+                {/* 2. Cuốn Sổ & Giờ Hẹn Gọn Gàng */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-[#D4CEBF]/40">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-[#78716C] shrink-0 w-14">
+                      Sổ tay:
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <CustomSelect
+                        options={notebookOptions}
+                        value={selectedNotebookId}
+                        onChange={setSelectedNotebookId}
+                        placeholder="Gán sổ tay"
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
 
-            <div className="grid grid-cols-2 gap-2 pt-1.5 border-t border-[#D4CEBF]/60 text-xs">
-              <CustomSelect
-                options={notebookOptions}
-                value={selectedNotebookId}
-                onChange={setSelectedNotebookId}
-                placeholder="Gán sổ tay"
-                className="w-full"
-              />
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-[#78716C] shrink-0 w-14">
+                      Giờ hẹn:
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <CustomDuePicker
+                        value={dayTaskTime}
+                        onChange={setDayTaskTime}
+                        mode="time-only"
+                        className="w-full"
+                      />
+                    </div>
+                  </div>
+                </div>
 
-              <CustomDuePicker
-                value={dayTaskTime}
-                onChange={setDayTaskTime}
-                mode="time-only"
-                className="w-full"
-              />
-            </div>
-
-            {/* Chọn Mức Độ Ưu Tiên Khi Lên Lịch */}
-            <div className="flex items-center gap-2 pt-1.5 border-t border-[#D4CEBF]/40 text-xs">
-              <span className="text-[11px] font-bold text-[#78716C] shrink-0">
-                Ưu tiên:
-              </span>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {[
-                  {
-                    key: "high",
-                    label: "Gấp",
-                    dotClass: "bg-rose-500",
-                    activeClass:
-                      "bg-rose-100 text-rose-800 border-rose-400 font-bold shadow-[1px_1px_0px_#262626]",
-                  },
-                  {
-                    key: "medium",
-                    label: "Vừa",
-                    dotClass: "bg-amber-400",
-                    activeClass:
-                      "bg-amber-100 text-amber-800 border-amber-400 font-bold shadow-[1px_1px_0px_#262626]",
-                  },
-                  {
-                    key: "low",
-                    label: "Thấp",
-                    dotClass: "bg-emerald-500",
-                    activeClass:
-                      "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold shadow-[1px_1px_0px_#262626]",
-                  },
-                ].map((p) => (
-                  <button
-                    key={p.key}
-                    type="button"
-                    onClick={() => setSelectedPriority(p.key as any)}
-                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
-                      selectedPriority === p.key
-                        ? p.activeClass
-                        : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
-                    }`}
-                  >
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`}
-                    />
-                    <span>{p.label}</span>
-                  </button>
-                ))}
+                {/* 3. Chọn Mức Độ Ưu Tiên */}
+                <div className="flex items-center gap-1.5 pt-1 border-t border-[#D4CEBF]/40">
+                  <span className="text-[11px] font-bold text-[#78716C] shrink-0 w-14">
+                    Ưu tiên:
+                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {[
+                      {
+                        key: "high",
+                        label: "Gấp",
+                        dotClass: "bg-rose-500",
+                        activeClass:
+                          "bg-rose-100 text-rose-800 border-rose-400 font-bold shadow-[1px_1px_0px_#262626]",
+                      },
+                      {
+                        key: "medium",
+                        label: "Vừa",
+                        dotClass: "bg-amber-400",
+                        activeClass:
+                          "bg-amber-100 text-amber-800 border-amber-400 font-bold shadow-[1px_1px_0px_#262626]",
+                      },
+                      {
+                        key: "low",
+                        label: "Thấp",
+                        dotClass: "bg-emerald-500",
+                        activeClass:
+                          "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold shadow-[1px_1px_0px_#262626]",
+                      },
+                    ].map((p) => (
+                      <button
+                        key={p.key}
+                        type="button"
+                        onClick={() => setSelectedPriority(p.key as any)}
+                        className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
+                          selectedPriority === p.key
+                            ? p.activeClass
+                            : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                        }`}
+                      >
+                        <span
+                          className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`}
+                        />
+                        <span>{p.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </form>
 
           {/* 4. Filter Bar Khoa Học & Không Bao Giờ Rớt Dòng (Task Command Center) */}
