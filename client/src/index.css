@@ -226,6 +226,71 @@ body {
   animation: stampPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
+/* 6. Hiệu ứng Rung Lắc Nhẹ khi nhập sai mã PIN (PIN Shake) */
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+.animate-shake {
+  animation: shakeError 0.4s ease-in-out;
+}
+
+/* 7. Hiệu ứng Intro Chill: Chữ mở màn xuất hiện êm ái rồi tách bay về 2 phía */
+@keyframes chillSplitLeft {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(4px);
+  }
+  35% {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
+    filter: blur(0);
+  }
+  75% {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-60px);
+    filter: blur(4px);
+  }
+}
+
+@keyframes chillSplitRight {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(4px);
+  }
+  35% {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
+    filter: blur(0);
+  }
+  75% {
+    opacity: 1;
+    transform: translateY(0) translateX(0);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(60px);
+    filter: blur(4px);
+  }
+}
+
+.animate-chill-left {
+  animation: chillSplitLeft 1.9s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.animate-chill-right {
+  animation: chillSplitRight 1.9s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
 /* 4. Hiệu ứng lật trang êm ái khi đổi tab */
 @keyframes pageFlip {
   0% {
