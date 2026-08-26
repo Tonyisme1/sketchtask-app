@@ -27,7 +27,7 @@ const splashScreens = [
 ];
 
 async function generateSplashScreens() {
-  console.log('Generating Splash Screens for Android Native APK...');
+  console.log('Generating Clean Solid Splash Screens for Android Native APK...');
 
   for (const s of splashScreens) {
     const targetDir = path.join(resDir, s.dir);
@@ -35,12 +35,7 @@ async function generateSplashScreens() {
       fs.mkdirSync(targetDir, { recursive: true });
     }
 
-    // Resize logo
-    const resizedLogo = await sharp(logoBuffer)
-      .resize(s.logoSize, s.logoSize)
-      .toBuffer();
-
-    // Ghép logo vào giữa nền #FBF9F4
+    // Tạo ảnh nền trơn #FBF9F4 không lồng logo để tránh hiện 2 lần logo
     await sharp({
       create: {
         width: s.width,
@@ -49,19 +44,12 @@ async function generateSplashScreens() {
         background: { r: 251, g: 249, b: 244, alpha: 1 }, // #FBF9F4
       },
     })
-      .composite([
-        {
-          input: resizedLogo,
-          gravity: 'center',
-        },
-      ])
       .png()
       .toFile(path.join(targetDir, 'splash.png'));
-
-    console.log(`✓ Generated ${s.dir}/splash.png (${s.width}x${s.height})`);
   }
 
-  console.log('🎉 All Android Splash Screens generated with SketchTask Notebook Logo!');
+  console.log('✅ Generated all solid splash screens successfully!');
 }
 
 generateSplashScreens().catch(console.error);
+
