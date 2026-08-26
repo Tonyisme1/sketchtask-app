@@ -172,7 +172,7 @@ export const CustomDuePicker: React.FC<CustomDuePickerProps> = ({
   };
 
   const renderDisplayLabel = () => {
-    if (!value) return mode === "time-only" ? "Chọn giờ" : "Chọn hạn";
+    if (!value) return mode === "time-only" ? "Giờ hẹn" : "Hạn chót";
     if (mode === "time-only") {
       return value.includes(" ") ? value.split(" ")[1] : value;
     }
@@ -180,7 +180,7 @@ export const CustomDuePicker: React.FC<CustomDuePickerProps> = ({
       const parts = value.split(" ");
       const dateParts = parts[0].split("-");
       const dateFormatted = `${dateParts[2]}/${dateParts[1]}`;
-      return parts[1] ? `${dateFormatted} • ${parts[1]}` : dateFormatted;
+      return parts[1] ? `${dateFormatted} ${parts[1]}` : dateFormatted;
     }
     return value;
   };
@@ -188,23 +188,31 @@ export const CustomDuePicker: React.FC<CustomDuePickerProps> = ({
   const yearList = Array.from({ length: 9 }, (_, i) => 2024 + i);
 
   return (
-    <div ref={containerRef} className={`relative w-full min-w-0 ${className}`}>
-      {/* Trigger Button */}
+    <div ref={containerRef} className={`relative min-w-0 ${className}`}>
+      {/* Trigger Button Nhỏ Gọn & Tinh Tế */}
       <button
         type="button"
         onClick={() => {
           setIsOpen(true);
           if (mode === "time-only") setActiveTab("time");
         }}
-        className="w-full min-w-0 flex items-center justify-between gap-1 px-2.5 py-1 text-xs bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] hover:-translate-y-[0.5px] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all select-none text-[#1C1917]"
+        className={`w-full min-w-0 flex items-center justify-between gap-1 px-2 py-1 text-xs rounded-[4px] border-[1.5px] transition-all select-none ${
+          value
+            ? "bg-[#FEF08A] border-[#262626] text-[#1C1917] font-bold shadow-[1px_1px_0px_#262626]"
+            : "bg-white border-[#D4CEBF] text-[#78716C] hover:border-[#262626] hover:text-[#1C1917] shadow-[1px_1px_0px_#D4CEBF]"
+        } active:translate-x-[0.5px] active:translate-y-[0.5px]`}
       >
-        <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
-          <CalendarIcon size={13} className="text-[#1C1917] shrink-0" />
-          <span className="truncate font-mono text-[11px] font-medium text-left block min-w-0 flex-1">
+        <div className="flex items-center gap-1 min-w-0 flex-1 overflow-hidden">
+          {mode === "time-only" ? (
+            <Clock size={12} className="shrink-0 text-[#1C1917]" strokeWidth={2.2} />
+          ) : (
+            <CalendarIcon size={12} className="shrink-0 text-[#1C1917]" strokeWidth={2.2} />
+          )}
+          <span className="truncate font-mono text-[11px] text-left block min-w-0 flex-1">
             {renderDisplayLabel()}
           </span>
         </div>
-        <span className="text-[10px] text-[#78716C] ml-1 shrink-0">▾</span>
+        <span className="text-[9px] text-[#78716C] ml-0.5 shrink-0">▾</span>
       </button>
 
       {/* Full-Screen Modal Backdrop & Center Card (Chuẩn Nền Mờ Toàn Màn Hình Giống Cài Đặt) */}

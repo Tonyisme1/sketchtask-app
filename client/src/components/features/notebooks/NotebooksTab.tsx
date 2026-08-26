@@ -323,7 +323,7 @@ export const NotebooksTab: React.FC = () => {
                     <span className="text-[11px] font-bold text-[#78716C] shrink-0 w-16">
                       Hạn chót:
                     </span>
-                    <div className="flex-1 min-w-[200px]">
+                    <div className="w-auto min-w-[120px] max-w-[180px]">
                       <CustomDuePicker
                         value={drillTaskDueDate}
                         onChange={setDrillTaskDueDate}
@@ -412,14 +412,13 @@ export const NotebooksTab: React.FC = () => {
                               e.key === "Enter" && handleCreateNewTag(e)
                             }
                             className="w-20 px-1.5 py-0.5 text-[11px] bg-white border border-[#262626] rounded outline-none"
-                            autoFocus
                           />
                           <button
                             type="button"
                             onClick={handleCreateNewTag}
-                            className="px-1.5 py-0.5 bg-[#FEF08A] border border-[#262626] rounded text-[11px] font-bold"
+                            className="px-1.5 py-0.5 bg-[#FEF08A] border border-[#262626] rounded text-[10px] font-bold"
                           >
-                            Lưu
+                            +
                           </button>
                           <button
                             type="button"
