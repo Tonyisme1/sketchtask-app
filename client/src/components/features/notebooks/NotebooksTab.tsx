@@ -60,17 +60,28 @@ export const NotebooksTab: React.FC = () => {
 
   // Form tạo task nâng cao trong sổ
   const [drillTaskTitle, setDrillTaskTitle] = useState("");
-  const [drillTaskDueDate, setDrillTaskDueDate] = useState<string | undefined>(undefined);
-  const [drillTaskDueTime, setDrillTaskDueTime] = useState<string | undefined>(undefined);
-  const [drillTaskPriority, setDrillTaskPriority] = useState<TaskPriority>("medium");
-  const [drillTaskTag, setDrillTaskTag] = useState<string>(tags[0] || "Công việc");
+  const [drillTaskDueDate, setDrillTaskDueDate] = useState<string | undefined>(
+    undefined,
+  );
+  const [drillTaskDueTime, setDrillTaskDueTime] = useState<string | undefined>(
+    undefined,
+  );
+  const [drillTaskPriority, setDrillTaskPriority] =
+    useState<TaskPriority>("medium");
+  const [drillTaskTag, setDrillTaskTag] = useState<string>(
+    tags[0] || "Công việc",
+  );
   const [isAddingTag, setIsAddingTag] = useState(false);
   const [newTagInput, setNewTagInput] = useState("");
   const [isExpandForm, setIsExpandForm] = useState(false);
 
   // Bộ lọc bên trong sổ tay
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
-  const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "active" | "completed"
+  >("all");
+  const [priorityFilter, setPriorityFilter] = useState<
+    "all" | "high" | "medium" | "low"
+  >("all");
 
   // State chỉnh sửa task (Edit Task Modal)
   const [editingTask, setEditingTask] = useState<TaskDto | null>(null);
@@ -81,7 +92,9 @@ export const NotebooksTab: React.FC = () => {
   const [editTag, setEditTag] = useState<string>("");
   const [editNotebookId, setEditNotebookId] = useState<string>("");
 
-  const [confirmDeleteNbId, setConfirmDeleteNbId] = useState<string | null>(null);
+  const [confirmDeleteNbId, setConfirmDeleteNbId] = useState<string | null>(
+    null,
+  );
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
   const handleSaveInlineNotebook = (e: React.FormEvent) => {
@@ -147,7 +160,9 @@ export const NotebooksTab: React.FC = () => {
 
     let finalDueDate: string | undefined = undefined;
     if (editDueDate) {
-      finalDueDate = editDueTime ? `${editDueDate} ${editDueTime}` : editDueDate;
+      finalDueDate = editDueTime
+        ? `${editDueDate} ${editDueTime}`
+        : editDueDate;
     }
 
     updateTask(editingTask.id, {
@@ -319,13 +334,19 @@ export const NotebooksTab: React.FC = () => {
                   type="button"
                   onClick={() => setIsExpandForm(!isExpandForm)}
                   className={`px-2 py-1 border border-[#262626] rounded-[4px] text-xs font-bold transition-all flex items-center gap-0.5 shrink-0 ${
-                    isExpandForm || drillTaskDueDate || drillTaskPriority !== "medium"
+                    isExpandForm ||
+                    drillTaskDueDate ||
+                    drillTaskPriority !== "medium"
                       ? "bg-[#FEF08A] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
                       : "bg-[#FBF9F4] text-[#78716C] hover:text-[#1C1917]"
                   }`}
                 >
                   <span>{isExpandForm ? "Thu gọn" : "+ Tùy chọn"}</span>
-                  {isExpandForm ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                  {isExpandForm ? (
+                    <ChevronUp size={12} />
+                  ) : (
+                    <ChevronDown size={12} />
+                  )}
                 </button>
                 <Button type="submit" variant="primary">
                   + Thêm
@@ -389,7 +410,9 @@ export const NotebooksTab: React.FC = () => {
                               : "border-[#D4CEBF] bg-[#FBF9F4] text-[#78716C] hover:text-[#1C1917]"
                           }`}
                         >
-                          <span className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`} />
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`}
+                          />
                           <span>{p.label}</span>
                         </button>
                       ))}
@@ -424,7 +447,9 @@ export const NotebooksTab: React.FC = () => {
                             placeholder="Tag mới..."
                             value={newTagInput}
                             onChange={(e) => setNewTagInput(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleCreateNewTag(e)}
+                            onKeyDown={(e) =>
+                              e.key === "Enter" && handleCreateNewTag(e)
+                            }
                             className="w-20 px-1.5 py-0.5 text-[11px] bg-white border border-[#262626] rounded outline-none"
                             autoFocus
                           />
@@ -463,7 +488,10 @@ export const NotebooksTab: React.FC = () => {
               <div className="flex items-center gap-1">
                 {[
                   { key: "all", label: `Tất cả (${nbTotalCount})` },
-                  { key: "active", label: `Cần làm (${nbTotalCount - nbCompletedCount})` },
+                  {
+                    key: "active",
+                    label: `Cần làm (${nbTotalCount - nbCompletedCount})`,
+                  },
                   { key: "completed", label: `Đã xong (${nbCompletedCount})` },
                 ].map((f) => (
                   <button
@@ -496,13 +524,27 @@ export const NotebooksTab: React.FC = () => {
                   <CustomSelect
                     value={priorityFilter}
                     onChange={(val) => setPriorityFilter(val as any)}
-                    align="right"
-                    enableSearch={false}
                     options={[
-                      { value: "all", label: "Ưu tiên", icon: "lucide:SlidersHorizontal" },
-                      { value: "high", label: "🔴 Gấp", icon: "lucide:AlertCircle" },
-                      { value: "medium", label: "🟡 Vừa", icon: "lucide:Clock" },
-                      { value: "low", label: "🟢 Thấp", icon: "lucide:CheckCheck" },
+                      {
+                        value: "all",
+                        label: "Ưu tiên",
+                        icon: "lucide:SlidersHorizontal",
+                      },
+                      {
+                        value: "high",
+                        label: "🔴 Gấp",
+                        icon: "lucide:AlertCircle",
+                      },
+                      {
+                        value: "medium",
+                        label: "🟡 Vừa",
+                        icon: "lucide:Clock",
+                      },
+                      {
+                        value: "low",
+                        label: "🟢 Thấp",
+                        icon: "lucide:CheckCheck",
+                      },
                     ]}
                   />
                 </div>
@@ -558,11 +600,23 @@ export const NotebooksTab: React.FC = () => {
                                 className={`px-1.5 py-0.5 rounded border inline-flex items-center gap-1 font-mono ${dueInfo.badgeClass}`}
                               >
                                 {dueInfo.type === "overdue" ? (
-                                  <AlertCircle size={10} strokeWidth={2.5} className="text-rose-700" />
+                                  <AlertCircle
+                                    size={10}
+                                    strokeWidth={2.5}
+                                    className="text-rose-700"
+                                  />
                                 ) : dueInfo.type === "today" ? (
-                                  <Clock size={10} strokeWidth={2.2} className="text-amber-800" />
+                                  <Clock
+                                    size={10}
+                                    strokeWidth={2.2}
+                                    className="text-amber-800"
+                                  />
                                 ) : (
-                                  <CalendarIcon size={10} strokeWidth={2.2} className="text-emerald-700" />
+                                  <CalendarIcon
+                                    size={10}
+                                    strokeWidth={2.2}
+                                    className="text-emerald-700"
+                                  />
                                 )}
                                 <span>{dueInfo.label}</span>
                               </span>
@@ -674,7 +728,6 @@ export const NotebooksTab: React.FC = () => {
                     onChange={(e) => setEditTitle(e.target.value)}
                     placeholder="Nhập tiêu đề..."
                     className="w-full bg-white text-xs"
-                    autoFocus
                   />
                 </div>
 
@@ -687,7 +740,11 @@ export const NotebooksTab: React.FC = () => {
                     value={editNotebookId}
                     onChange={setEditNotebookId}
                     options={[
-                      { value: "", label: "Không gán sổ", icon: "lucide:FileText" },
+                      {
+                        value: "",
+                        label: "Không gán sổ",
+                        icon: "lucide:FileText",
+                      },
                       ...notebooks.map((nb) => ({
                         value: nb.id,
                         label: nb.name,

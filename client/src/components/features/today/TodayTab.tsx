@@ -832,7 +832,6 @@ export const TodayTab: React.FC = () => {
                   onChange={(e) => setEditTitle(e.target.value)}
                   placeholder="Nhập tiêu đề..."
                   className="w-full bg-white text-xs"
-                  autoFocus
                 />
               </div>
 
