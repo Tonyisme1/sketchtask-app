@@ -211,45 +211,69 @@ export const NotebooksTab: React.FC = () => {
 
         {/* Bố Cục 2 Cột Desktop: Trái = Thông tin Sổ | Phải = Danh Sách Việc */}
         <div className="lg:grid lg:grid-cols-12 lg:gap-6 lg:items-start space-y-4 lg:space-y-0">
-          {/* CỘT TRÁI (4 Cột): Banner & Tiến Độ Cuốn Sổ Gọn Nhẹ */}
-          <div className="lg:col-span-4 space-y-2.5">
-            {/* Notebook Banner Tinh Gọn */}
+          {/* CỘT TRÁI (4 Cột): Banner, Tiến Độ & Thống Kê Sổ */}
+          <div className="lg:col-span-4 space-y-3.5">
+            {/* Notebook Banner */}
             <div
-              className="p-3 sm:p-3.5 rounded-[6px] border-[1.5px] border-[#262626] shadow-[2px_2px_0px_#262626] space-y-2.5"
+              className="p-4 rounded-[6px] border-[1.5px] border-[#262626] shadow-[2.5px_2.5px_0px_#262626] space-y-3"
               style={{ backgroundColor: activeNotebook.color }}
             >
-              <div className="flex items-center gap-2.5">
-                <span className="p-2 bg-white border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] shrink-0 flex items-center justify-center">
+              <div className="flex items-center gap-3">
+                <span className="p-2.5 bg-white border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] shrink-0 flex items-center justify-center">
                   <DynamicIcon
                     name={activeNotebook.icon}
-                    size={20}
+                    size={24}
                     strokeWidth={2.2}
                   />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-sm sm:text-base font-bold text-[#1C1917] truncate">
+                  <h2 className="text-base sm:text-lg font-bold text-[#1C1917] truncate">
                     {activeNotebook.name}
                   </h2>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="font-mono text-[10px] font-bold text-[#1C1917] bg-white/80 px-1.5 py-0.2 rounded border border-[#262626]">
-                      {nbCompletedCount}/{nbTotalCount} Xong ({nbPercent}%)
-                    </span>
-                  </div>
+                  <span className="font-mono text-[10px] font-bold text-[#1C1917] bg-white/70 px-1.5 py-0.2 rounded border border-[#262626]">
+                    {nbTotalCount} công việc
+                  </span>
                 </div>
               </div>
 
               {activeNotebook.description && (
-                <p className="text-[11px] text-[#1C1917]/90 leading-relaxed bg-white/50 p-2 rounded border border-[#262626]/20 line-clamp-2">
+                <p className="text-xs text-[#1C1917]/90 leading-relaxed bg-white/40 p-2.5 rounded border border-[#262626]/20">
                   {activeNotebook.description}
                 </p>
               )}
+            </div>
 
-              {/* Thanh tiến độ mini */}
-              <div className="w-full h-1.5 bg-white/70 border border-[#262626] rounded-[2px] overflow-hidden">
+            {/* Thẻ Thống Kê Tiến Độ Của Cuốn Sổ */}
+            <div className="p-3.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] space-y-2.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-[#1C1917]">
+                  Tiến độ hoàn thành:
+                </span>
+                <span className="font-mono font-bold text-emerald-900 bg-[#BBF7D0] px-1.5 py-0.2 rounded border border-[#262626]">
+                  {nbPercent}%
+                </span>
+              </div>
+
+              <div className="w-full h-2 bg-[#F3EFE6] border border-[#262626] rounded-[2px] overflow-hidden">
                 <div
-                  className="h-full bg-emerald-400 border-r border-[#262626] transition-all duration-300"
+                  className="h-full bg-[#BBF7D0] border-r border-[#262626] transition-all duration-300"
                   style={{ width: `${nbPercent}%` }}
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-center pt-1 text-xs">
+                <div className="p-2 bg-[#FBF9F4] border border-[#D4CEBF] rounded">
+                  <p className="text-[10px] text-[#78716C]">Cần làm</p>
+                  <p className="text-sm font-bold font-mono text-[#1C1917]">
+                    {nbTotalCount - nbCompletedCount}
+                  </p>
+                </div>
+                <div className="p-2 bg-emerald-50 border border-emerald-200 rounded">
+                  <p className="text-[10px] text-emerald-800">Đã xong</p>
+                  <p className="text-sm font-bold font-mono text-emerald-900">
+                    {nbCompletedCount}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -472,6 +496,8 @@ export const NotebooksTab: React.FC = () => {
                   <CustomSelect
                     value={priorityFilter}
                     onChange={(val) => setPriorityFilter(val as any)}
+                    align="right"
+                    enableSearch={false}
                     options={[
                       { value: "all", label: "Ưu tiên", icon: "lucide:SlidersHorizontal" },
                       { value: "high", label: "🔴 Gấp", icon: "lucide:AlertCircle" },

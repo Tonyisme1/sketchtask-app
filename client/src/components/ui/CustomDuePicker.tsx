@@ -88,6 +88,20 @@ export const CustomDuePicker: React.FC<CustomDuePickerProps> = ({
     };
   }, []);
 
+  // Khóa cuộn màn hình phía sau khi mở bộ chọn ngày/giờ
+  useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      const originalTouchAction = document.body.style.touchAction;
+      document.body.style.overflow = "hidden";
+      document.body.style.touchAction = "none";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+        document.body.style.touchAction = originalTouchAction;
+      };
+    }
+  }, [isOpen]);
+
   const formattedHour = String(selectedHour).padStart(2, "0");
   const formattedMinute = String(selectedMinute).padStart(2, "0");
 
@@ -191,7 +205,7 @@ export const CustomDuePicker: React.FC<CustomDuePickerProps> = ({
         className="w-full min-w-0 flex items-center justify-between gap-1 px-2.5 py-1 text-xs bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] hover:-translate-y-[0.5px] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all select-none text-[#1C1917]"
       >
         <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
-          <span className="shrink-0 text-xs">⏱</span>
+          <Clock size={12} strokeWidth={2.2} className="shrink-0 text-[#78716C]" />
           <span className="truncate font-mono text-[11px] font-medium text-left block min-w-0 flex-1">
             {renderDisplayLabel()}
           </span>
@@ -214,8 +228,9 @@ export const CustomDuePicker: React.FC<CustomDuePickerProps> = ({
           >
           {/* Header */}
           <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]">
-            <span className="font-bold text-xs flex items-center gap-1">
-              <span>🕒</span> {mode === "time-only" ? "KÉO CHỌN GIỜ" : "CHỌN HẠN"}
+            <span className="font-bold text-xs flex items-center gap-1.5">
+              <Clock size={13} strokeWidth={2.2} className="text-[#1C1917]" />
+              <span>{mode === "time-only" ? "KÉO CHỌN GIỜ" : "CHỌN HẠN"}</span>
             </span>
             <button
               onClick={() => {
@@ -237,24 +252,26 @@ export const CustomDuePicker: React.FC<CustomDuePickerProps> = ({
                   setActiveTab("date");
                   setDateViewMode("days");
                 }}
-                className={`py-1 rounded-[2px] font-bold text-center transition-all ${
+                className={`py-1 rounded-[2px] font-bold text-center transition-all flex items-center justify-center gap-1.5 ${
                   activeTab === "date"
                     ? "bg-[#FEF08A] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
                     : "text-[#78716C]"
                 }`}
               >
-                📅 Ngày
+                <CalendarIcon size={13} strokeWidth={2.2} />
+                <span>Ngày</span>
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab("time")}
-                className={`py-1 rounded-[2px] font-bold text-center transition-all ${
+                className={`py-1 rounded-[2px] font-bold text-center transition-all flex items-center justify-center gap-1.5 ${
                   activeTab === "time"
                     ? "bg-[#FEF08A] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
                     : "text-[#78716C]"
                 }`}
               >
-                ⏰ Giờ
+                <Clock size={13} strokeWidth={2.2} />
+                <span>Giờ</span>
               </button>
             </div>
           )}
