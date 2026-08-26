@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { TabKey } from "../../types";
 import { SIDEBAR_TABS } from "./Sidebar";
 import { useAppStore } from "../../stores/appStore";
 
 // ==========================================
-// COMPONENT: MobileNav (Thanh điều hướng đáy với Icon Hiện Đại Sắc Nét)
+// COMPONENT: MobileNav (Thanh điều hướng đáy tự động ẩn khi mở bàn phím ảo)
 // ==========================================
 
 interface MobileNavProps {
@@ -18,9 +18,36 @@ export const MobileNav: React.FC<MobileNavProps> = ({
 }) => {
   const { tasks } = useAppStore();
   const activeTodayTasks = tasks.filter((t) => !t.completed).length;
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+
+  // Tự động phát hiện bàn phím ảo trên mobile để ẩn thanh điều hướng, chống bị đội lên
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.visualViewport) {
+        // Khi bàn phím ảo mở, chiều cao viewport bị giảm đáng kể
+        const isKeyboard = window.visualViewport.height < window.innerHeight * 0.8;
+        setIsKeyboardOpen(isKeyboard);
+      }
+    };
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleResize);
+    }
+    window.addEventListener("resize", handleResize);
+    return () => {
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", handleResize);
+      }
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  if (isKeyboardOpen) {
+    return null;
+  }
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FBF9F4] border-t-[1.5px] border-[#262626] shadow-[0px_-2px_0px_#262626] px-1 pt-1 pb-[max(env(safe-area-inset-bottom),4px)] select-none">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FBF9F4] border-t-[1.5px] border-[#262626] shadow-[0px_-2px_0px_#262626] px-1 py-1 select-none transition-transform duration-150">
       <div className="grid grid-cols-5 gap-1 max-w-md mx-auto">
         {SIDEBAR_TABS.map((tab) => {
           const isActive = activeTab === tab.key;
