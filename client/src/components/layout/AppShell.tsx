@@ -40,6 +40,7 @@ export const AppShell: React.FC<AppShellProps> = ({
     isPinLocked,
     unlockWithPin,
     lockApp,
+    paperStyle,
   } = useAppStore();
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -95,7 +96,7 @@ export const AppShell: React.FC<AppShellProps> = ({
     <div
       className={`min-h-screen bg-[#FBF9F4] text-[#1C1917] font-sans flex selection:bg-[#FEF08A] selection:text-[#1C1917] ${
         !isTiltEnabled ? "no-tilt" : ""
-      }`}
+      } ${paperStyle && paperStyle !== "blank" ? `paper-${paperStyle}` : ""}`}
     >
       {/* 1. Desktop Left Sidebar */}
       <Sidebar
@@ -105,7 +106,11 @@ export const AppShell: React.FC<AppShellProps> = ({
       />
 
       {/* 2. Main Workspace (Canvas bên phải) */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+      <div
+        className={`flex-1 flex flex-col min-w-0 min-h-screen ${
+          paperStyle && paperStyle !== "blank" ? `paper-${paperStyle}` : ""
+        }`}
+      >
         {/* Topbar Header với Native Status Bar Inset */}
         <header
           className={`sticky top-0 z-30 bg-[#FBF9F4] border-b-[1.5px] border-[#262626] px-3.5 sm:px-4 ${

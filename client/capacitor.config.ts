@@ -1,33 +1,32 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: 'com.sketchtask.app',
-  appName: 'SketchTask',
-  webDir: 'dist',
+  appId: "com.sketchtask.app",
+  appName: "SketchTask",
+  webDir: "dist",
   server: {
-    url: 'https://sketchtask-app.vercel.app',
+    url: "https://sketchtask-app.vercel.app",
     cleartext: true,
   },
   android: {
-    backgroundColor: '#FBF9F4',
+    backgroundColor: "#FBF9F4",
     allowMixedContent: true,
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 1200,
+      launchShowDuration: 0,
       launchAutoHide: true,
-      backgroundColor: '#FBF9F4',
-      androidSplashResourceName: 'splash',
-      androidScaleType: 'CENTER_CROP',
+      backgroundColor: "#FBF9F4",
+      androidSplashResourceName: "splash",
+      androidScaleType: "CENTER_CROP",
       showSpinner: false,
     },
     LocalNotifications: {
-      smallIcon: 'ic_stat_sketchtask',
-      iconColor: '#FEF08A',
-      sound: 'beep.wav',
+      smallIcon: "ic_stat_sketchtask",
+      iconColor: "#FEF08A",
+      sound: "beep.wav",
     },
   },
 };
 
 export default config;
-

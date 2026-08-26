@@ -20,27 +20,60 @@
 /* ========================================== */
 /* CHẤT LIỆU GIẤY (PAPER STYLES & PATTERNS)   */
 /* ========================================== */
-.paper-lined {
+.paper-lined,
+body.paper-lined {
   background-image: repeating-linear-gradient(
     transparent,
-    transparent 23px,
-    rgba(38, 38, 38, 0.08) 24px
+    transparent 27px,
+    rgba(38, 38, 38, 0.12) 28px
   ) !important;
+  background-attachment: local;
 }
 
-.paper-dots {
+.paper-dots,
+body.paper-dots {
   background-image: radial-gradient(
-    rgba(38, 38, 38, 0.18) 1.2px,
-    transparent 1.2px
+    rgba(38, 38, 38, 0.22) 1.5px,
+    transparent 1.5px
   ) !important;
-  background-size: 16px 16px !important;
+  background-size: 20px 20px !important;
+  background-attachment: local;
 }
 
-.paper-grid {
+.paper-grid,
+body.paper-grid {
   background-image: 
-    linear-gradient(to right, rgba(38, 38, 38, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(38, 38, 38, 0.08) 1px, transparent 1px) !important;
-  background-size: 16px 16px !important;
+    linear-gradient(to right, rgba(38, 38, 38, 0.11) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(38, 38, 38, 0.11) 1px, transparent 1px) !important;
+  background-size: 20px 20px !important;
+  background-attachment: local;
+}
+
+/* Dark Mode Paper Patterns */
+.dark .paper-lined,
+.dark body.paper-lined {
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 27px,
+    rgba(255, 255, 255, 0.09) 28px
+  ) !important;
+}
+
+.dark .paper-dots,
+.dark body.paper-dots {
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.18) 1.5px,
+    transparent 1.5px
+  ) !important;
+  background-size: 20px 20px !important;
+}
+
+.dark .paper-grid,
+.dark body.paper-grid {
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.08) 1px, transparent 1px) !important;
+  background-size: 20px 20px !important;
 }
 
 /* ========================================== */

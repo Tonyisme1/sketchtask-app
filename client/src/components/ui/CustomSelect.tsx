@@ -41,15 +41,12 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 
   const selectedOption = options.find((opt) => opt.value === value);
 
-  // Focus ô tìm kiếm khi mở dropdown
+  // Reset ô tìm kiếm khi mở dropdown (không autoFocus để tránh bật bàn phím trên mobile)
   useEffect(() => {
     if (isOpen) {
       setSearchQuery("");
-      if (options.length > 5) {
-        setTimeout(() => searchInputRef.current?.focus(), 60);
-      }
     }
-  }, [isOpen, options.length]);
+  }, [isOpen]);
 
   // Đóng dropdown khi click ra ngoài
   useEffect(() => {
