@@ -1116,56 +1116,40 @@ export const PlannerTab: React.FC = () => {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => setDeletingTaskId(task.id)}
-                        title="Xóa"
-                        className="opacity-40 group-hover:opacity-100 text-[#78716C] hover:text-red-600 p-1 shrink-0 active:translate-y-[0.5px]"
-                      >
-                        <X size={13} strokeWidth={2.5} />
-                      </button>
-                    </div>
-
-                    {/* Actions */}
-                    {!task.completed && (
-                      <div className="pt-1.5 border-t border-[#D4CEBF]/60 flex items-center justify-between text-xs">
-                        {isTaskForToday ? (
-                          <>
-                            <span className="text-[10px] text-emerald-800 font-bold bg-[#BBF7D0] px-1.5 py-0.2 rounded border border-[#262626] inline-flex items-center gap-1">
-                              <Star
-                                size={10}
-                                strokeWidth={2.5}
-                                className="fill-emerald-800"
-                              />
-                              <span>Hôm nay</span>
-                            </span>
+                      <div className="flex items-center gap-1 shrink-0 opacity-80 group-hover:opacity-100">
+                        {!task.completed && (
+                          isTaskForToday ? (
                             <button
                               type="button"
                               onClick={() => moveTaskToTomorrow(task.id)}
                               title="Dời sang ngày mai"
-                              className="flex items-center gap-1 px-2 py-0.5 bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-xs font-bold text-[#1C1917] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                              className="p-1 hover:bg-[#FEF08A] rounded border border-transparent hover:border-[#262626] text-[#78716C] hover:text-[#1C1917] active:translate-y-[0.5px] transition-all flex items-center gap-0.5 text-[11px] font-bold"
                             >
                               <ArrowRight size={12} strokeWidth={2.4} />
-                              <span>Ngày mai</span>
+                              <span className="hidden sm:inline">Mai</span>
                             </button>
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-[10px] text-[#78716C] font-mono">
-                              {selectedDateStr}
-                            </span>
+                          ) : (
                             <button
                               type="button"
                               onClick={() => moveTaskToToday(task.id)}
                               title="Kéo vào làm hôm nay"
-                              className="flex items-center gap-1 px-2.5 py-0.5 bg-[#BBF7D0] hover:bg-[#86EFAC] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-xs font-bold text-[#1C1917] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                              className="p-1 hover:bg-[#BBF7D0] rounded border border-transparent hover:border-[#262626] text-emerald-800 active:translate-y-[0.5px] transition-all flex items-center gap-0.5 text-[11px] font-bold"
                             >
                               <Sun size={12} strokeWidth={2.4} />
-                              <span>Làm hôm nay</span>
+                              <span className="hidden sm:inline">Hôm nay</span>
                             </button>
-                          </>
+                          )
                         )}
+
+                        <button
+                          onClick={() => setDeletingTaskId(task.id)}
+                          title="Xóa"
+                          className="p-1 hover:bg-rose-100 rounded border border-transparent hover:border-[#262626] text-[#78716C] hover:text-red-600 active:translate-y-[0.5px]"
+                        >
+                          <X size={13} strokeWidth={2.5} />
+                        </button>
                       </div>
-                    )}
+                    </div>
                   </div>
                 );
               })

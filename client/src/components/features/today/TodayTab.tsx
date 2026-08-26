@@ -760,7 +760,18 @@ export const TodayTab: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-0.5 shrink-0 opacity-80 group-hover:opacity-100">
+                  <div className="flex items-center gap-1 shrink-0 opacity-80 group-hover:opacity-100">
+                    {!task.completed && (
+                      <button
+                        type="button"
+                        onClick={() => moveTaskToTomorrow(task.id)}
+                        title="Dời sang ngày mai"
+                        className="p-1 hover:bg-[#FEF08A] rounded border border-transparent hover:border-[#262626] text-[#78716C] hover:text-[#1C1917] active:translate-y-[0.5px] transition-all flex items-center gap-0.5 text-[11px] font-bold"
+                      >
+                        <ArrowRight size={12} strokeWidth={2.4} />
+                        <span className="hidden sm:inline">Mai</span>
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => handleOpenEditModal(task)}
@@ -778,21 +789,6 @@ export const TodayTab: React.FC = () => {
                     </button>
                   </div>
                 </div>
-
-                {/* Hàng Dời Lịch Sang Ngày Mai */}
-                {!task.completed && (
-                  <div className="mt-2 pt-1.5 border-t border-[#D4CEBF]/60 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => moveTaskToTomorrow(task.id)}
-                      title="Dời sang ngày mai"
-                      className="flex items-center gap-1 px-2.5 py-0.5 bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-xs font-bold text-[#1C1917] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all select-none"
-                    >
-                      <ArrowRight size={12} strokeWidth={2.4} />
-                      <span>Ngày mai</span>
-                    </button>
-                  </div>
-                )}
               </div>
             );
           })
