@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { TaskDto, TaskPriority } from "../../types";
 import { useAppStore } from "../../stores/appStore";
 import { TextInput } from "./TextInput";
@@ -9,7 +10,7 @@ import { Edit3, X, Check, Tag as TagIcon, Plus } from "lucide-react";
 import { getTagStyle } from "../../utils/tagColors";
 
 // ==========================================
-// COMPONENT: EditTaskModal (Chuẩn Bottom Sheet Mobile & Dialog Desktop)
+// COMPONENT: EditTaskModal (Modal Toàn Màn Hình Chuẩn SettingsModal & Nền Mờ Sâu)
 // ==========================================
 
 interface EditTaskModalProps {
@@ -88,27 +89,26 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
     setIsAddingTag(false);
   };
 
-  return (
+  return createPortal(
     <div
       style={{
         position: "fixed",
         inset: 0,
         zIndex: 999999,
-        backgroundColor: "rgba(0,0,0,0.6)",
-        backdropFilter: "blur(14px)",
+        backgroundColor: "rgba(0, 0, 0, 0.82)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        touchAction: "none",
       }}
-      className="flex items-end sm:items-center justify-center p-0 sm:p-4 select-none animate-in fade-in duration-150"
+      className="flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-200 pointer-events-auto"
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg bg-[#FBF9F4] border-t-[2px] sm:border-[2px] border-[#262626] rounded-t-[20px] sm:rounded-[8px] shadow-[0px_-4px_0px_#262626] sm:shadow-[4px_4px_0px_#262626] p-4 sm:p-5 space-y-3.5 max-h-[90vh] overflow-y-auto no-scrollbar animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-2 duration-200"
+        className="relative w-full max-w-md bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[8px] shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col justify-between overflow-hidden animate-in zoom-in-95 duration-200 z-[1000000] max-h-[92vh]"
       >
-        {/* Grab Handle trên Mobile */}
-        <div className="w-10 h-1.5 bg-[#262626]/20 rounded-full mx-auto sm:hidden mb-1" />
-
         {/* Header Modal */}
-        <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
+        <div className="flex items-center justify-between pb-2.5 border-b border-[#262626] shrink-0">
           <div className="flex items-center gap-2">
             <span className="p-1.5 bg-[#FEF08A] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626]">
               <Edit3 size={15} strokeWidth={2.4} className="text-[#1C1917]" />
@@ -121,13 +121,14 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
             type="button"
             onClick={onClose}
             className="w-7 h-7 rounded bg-white hover:bg-rose-50 border border-[#262626] flex items-center justify-center text-[#78716C] hover:text-rose-600 active:translate-y-[0.5px] transition-all"
+            title="Đóng cửa sổ"
           >
             <X size={14} strokeWidth={2.4} />
           </button>
         </div>
 
-        {/* Form Chỉnh Sửa */}
-        <form onSubmit={handleSave} className="space-y-3.5 text-xs">
+        {/* Form Chỉnh Sửa Cuộn Mượt */}
+        <form onSubmit={handleSave} className="space-y-3.5 text-xs overflow-y-auto no-scrollbar py-3 flex-1">
           {/* 1. Tiêu Đề Công Việc */}
           <div>
             <label className="font-bold text-[#1C1917] block mb-1 text-[11px]">
@@ -164,98 +165,98 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 
             <div>
               <label className="font-bold text-[#1C1917] block mb-1 text-[11px]">
-                Hạn chót & Giờ:
+                Hạn chót & Giờ hẹn:
               </label>
               <CustomDuePicker
                 value={dueDate}
                 onChange={setDueDate}
                 mode="datetime"
-                className="w-full"
               />
             </div>
           </div>
 
           {/* 3. Mức Độ Ưu Tiên */}
-          <div className="p-2.5 bg-white border border-[#262626] rounded-[6px] shadow-[1px_1px_0px_#262626] space-y-1.5">
-            <span className="text-[11px] font-bold text-[#1C1917] block">
+          <div>
+            <label className="font-bold text-[#1C1917] block mb-1 text-[11px]">
               Mức độ ưu tiên:
-            </span>
-            <div className="grid grid-cols-3 gap-1.5">
+            </label>
+            <div className="grid grid-cols-3 gap-2">
               {[
                 {
                   key: "high",
                   label: "Gấp",
-                  dotClass: "bg-rose-500",
-                  activeClass:
-                    "bg-rose-100 text-rose-800 border-rose-400 font-bold shadow-[1.5px_1.5px_0px_#262626]",
+                  iconBg: "bg-rose-500",
+                  activeBorder: "border-rose-600 bg-rose-50 text-rose-800",
                 },
                 {
                   key: "medium",
                   label: "Vừa",
-                  dotClass: "bg-amber-400",
-                  activeClass:
-                    "bg-amber-100 text-amber-800 border-amber-400 font-bold shadow-[1.5px_1.5px_0px_#262626]",
+                  iconBg: "bg-amber-500",
+                  activeBorder: "border-amber-600 bg-amber-50 text-amber-800",
                 },
                 {
                   key: "low",
                   label: "Thấp",
-                  dotClass: "bg-emerald-500",
-                  activeClass:
-                    "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold shadow-[1.5px_1.5px_0px_#262626]",
+                  iconBg: "bg-emerald-500",
+                  activeBorder: "border-emerald-600 bg-emerald-50 text-emerald-800",
                 },
-              ].map((p) => (
-                <button
-                  key={p.key}
-                  type="button"
-                  onClick={() => setPriority(p.key as any)}
-                  className={`py-1.5 px-2 rounded-[4px] border text-xs transition-all flex items-center justify-center gap-1.5 ${
-                    priority === p.key
-                      ? p.activeClass
-                      : "border-[#D4CEBF] bg-[#FBF9F4] text-[#78716C] hover:text-[#1C1917]"
-                  } active:translate-y-[0.5px]`}
-                >
-                  <span className={`w-2 h-2 rounded-full ${p.dotClass}`} />
-                  <span>{p.label}</span>
-                </button>
-              ))}
+              ].map((p) => {
+                const isSelected = priority === p.key;
+                return (
+                  <button
+                    key={p.key}
+                    type="button"
+                    onClick={() => setPriority(p.key as TaskPriority)}
+                    className={`py-1.5 px-2 rounded-[5px] border-[1.5px] flex items-center justify-center gap-1.5 transition-all text-xs font-bold ${
+                      isSelected
+                        ? `${p.activeBorder} shadow-[1.5px_1.5px_0px_#262626]`
+                        : "border-[#D4CEBF] bg-white text-[#78716C] hover:border-[#262626]"
+                    }`}
+                  >
+                    <span className={`w-2 h-2 rounded-full ${p.iconBg}`} />
+                    <span>{p.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* 4. Nhãn Phân Loại (#Tag) */}
-          <div className="p-2.5 bg-white border border-[#262626] rounded-[6px] shadow-[1px_1px_0px_#262626] space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold text-[#1C1917] flex items-center gap-1">
-                <TagIcon size={12} />
-                <span>Nhãn (#tag):</span>
-              </span>
-              {selectedTag && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedTag("")}
-                  className="text-[10px] text-rose-600 font-bold hover:underline"
-                >
-                  Bỏ chọn tag
-                </button>
-              )}
-            </div>
+          {/* 4. Gán Nhãn #Tag */}
+          <div>
+            <label className="font-bold text-[#1C1917] block mb-1 text-[11px] flex items-center gap-1">
+              <TagIcon size={12} />
+              <span>Gán nhãn phân loại:</span>
+            </label>
 
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {tags.map((tag) => {
-                const tagStyle = getTagStyle(tag);
+            <div className="flex flex-wrap gap-1.5 items-center p-2 bg-white border border-[#D4CEBF] rounded-[6px]">
+              <button
+                type="button"
+                onClick={() => setSelectedTag("")}
+                className={`px-2 py-0.5 text-[11px] rounded-[3px] border transition-all ${
+                  !selectedTag
+                    ? "bg-[#262626] text-white border-[#262626] font-bold"
+                    : "bg-stone-50 text-[#78716C] border-[#E7E2D8] hover:border-[#262626]"
+                }`}
+              >
+                Không nhãn
+              </button>
+
+              {tags.map((t) => {
+                const isSelected = selectedTag === t;
+                const style = getTagStyle(t);
                 return (
                   <button
-                    key={tag}
+                    key={t}
                     type="button"
-                    onClick={() =>
-                      setSelectedTag(selectedTag === tag ? "" : tag)
-                    }
-                    className={`px-2 py-0.5 rounded-[3px] border text-[11px] font-medium transition-all ${
-                      selectedTag === tag
-                        ? `${tagStyle.bg} ${tagStyle.border} text-[#1C1917] shadow-[1px_1px_0px_#262626] -translate-y-[0.5px] font-bold`
-                        : "border-[#D4CEBF] bg-[#FBF9F4] text-[#78716C] hover:text-[#1C1917]"
-                    } active:translate-y-[0.5px]`}
+                    onClick={() => setSelectedTag(t)}
+                    className={`px-2 py-0.5 text-[11px] rounded-[3px] border transition-all flex items-center gap-1 ${
+                      isSelected
+                        ? "border-[#262626] shadow-[1px_1px_0px_#262626] font-bold ring-1 ring-[#262626]"
+                        : "border-[#D4CEBF] hover:border-[#262626]"
+                    } ${style.bg} ${style.color}`}
                   >
-                    #{tag}
+                    <span>#{t}</span>
+                    {isSelected && <Check size={10} strokeWidth={2.5} />}
                   </button>
                 );
               })}
@@ -263,20 +264,15 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
               {isAddingTag ? (
                 <input
                   type="text"
-                  placeholder="Tag mới..."
                   value={newTagInput}
-                  maxLength={15}
                   onChange={(e) => setNewTagInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleCreateNewTag(e);
-                    } else if (e.key === "Escape") {
-                      setIsAddingTag(false);
-                    }
-                  }}
                   onBlur={handleCreateNewTag}
-                  className="w-20 px-1.5 py-0.5 text-[11px] border border-[#262626] rounded-[3px] outline-none bg-[#FBF9F4]"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleCreateNewTag(e);
+                    if (e.key === "Escape") setIsAddingTag(false);
+                  }}
+                  placeholder="Tên tag mới..."
+                  className="px-1.5 py-0.5 text-[11px] border border-[#262626] rounded-[3px] bg-white outline-none w-24"
                 />
               ) : (
                 <button
@@ -292,7 +288,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
           </div>
 
           {/* 5. Nút Hành Động Ở Đáy Modal */}
-          <div className="pt-2 border-t border-[#D4CEBF] flex items-center justify-end gap-2">
+          <div className="pt-3 border-t border-[#262626] flex items-center justify-end gap-2 shrink-0">
             <Button
               type="button"
               variant="secondary"
@@ -315,6 +311,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };

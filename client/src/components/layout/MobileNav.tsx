@@ -19,8 +19,10 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   const { tasks } = useAppStore();
   const activeTodayTasks = tasks.filter((t) => !t.completed).length;
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
+  const [isScrollingDown, setIsScrollingDown] = useState(false);
 
   // Tự động phát hiện bàn phím ảo trên mobile để ẩn thanh điều hướng, chống bị đội lên
+  // 1. Tự động phát hiện bàn phím ảo trên mobile để ẩn thanh điều hướng, chống bị đội lên
   useEffect(() => {
     const handleResize = () => {
       if (window.visualViewport) {
@@ -42,12 +44,49 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     };
   }, []);
 
+  // 2. Tự động ẩn thanh menu khi cuộn xuống và xuất hiện lại ngay khi cuộn lên nhẹ hoặc ở đỉnh trang
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          // Nếu ở gần đỉnh trang (< 20px) thì luôn luôn hiện
+          if (currentScrollY <= 20) {
+            setIsScrollingDown(false);
+          } else if (currentScrollY > lastScrollY && currentScrollY - lastScrollY > 6) {
+            // Cuộn xuống một khoảng rõ ràng => ẩn thanh menu để tăng diện tích đọc
+            setIsScrollingDown(true);
+          } else if (currentScrollY < lastScrollY && lastScrollY - currentScrollY > 4) {
+            // Cuộn lên nhẹ => hiện thanh menu ngay lập tức
+            setIsScrollingDown(false);
+          }
+          lastScrollY = currentScrollY;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   if (isKeyboardOpen) {
     return null;
   }
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FBF9F4] border-t-[1.5px] border-[#262626] shadow-[0px_-2px_0px_#262626] px-1 py-1 select-none transition-transform duration-150">
+    <nav
+      className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FBF9F4] border-t-[1.5px] border-[#262626] shadow-[0px_-2px_0px_#262626] px-1 py-1 select-none transition-all duration-300 ease-out transform ${
+        isScrollingDown
+          ? "translate-y-full opacity-0 pointer-events-none"
+          : "translate-y-0 opacity-100 pointer-events-auto"
+      }`}
+    >
       <div className="grid grid-cols-5 gap-1 max-w-md mx-auto">
         {SIDEBAR_TABS.map((tab) => {
           const isActive = activeTab === tab.key;
