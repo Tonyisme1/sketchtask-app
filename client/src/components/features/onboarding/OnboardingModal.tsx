@@ -108,18 +108,6 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 }) => {
   const { dismissOnboarding, loadSampleData } = useAppStore();
   const [step, setStep] = useState(0);
-  const [showChillIntro, setShowChillIntro] = useState(true);
-
-  // Hiệu ứng chữ xuất hiện rồi biến mất về 2 phía ngoài
-  useEffect(() => {
-    if (isOpen) {
-      setShowChillIntro(true);
-      const timer = setTimeout(() => {
-        setShowChillIntro(false);
-      }, 1850);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -151,41 +139,15 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
         position: "fixed",
         inset: 0,
         zIndex: 999998,
-        backgroundColor: "rgba(0,0,0,0.78)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
+        backgroundColor: "rgba(0,0,0,0.72)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
         touchAction: "none",
       }}
-      className="flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-300 pointer-events-auto"
+      className="flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-200 pointer-events-auto"
     >
-      {/* 1. MÀN MỞ ĐẦU CHILL: Chữ xuất hiện rồi tách bay về 2 phía ngoài */}
-      {showChillIntro ? (
-        <div
-          onClick={() => setShowChillIntro(false)}
-          className="flex flex-col items-center justify-center cursor-pointer text-center p-6 space-y-2 select-none"
-        >
-          {/* Logo Icon & Tiêu đề tách về bên trái */}
-          <div className="animate-chill-left flex items-center justify-center gap-2.5">
-            <div className="w-9 h-9 bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] flex items-center justify-center -rotate-2">
-              <Sparkles size={18} className="text-[#1C1917]" />
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-md">
-              SketchTask
-            </h1>
-          </div>
-
-          {/* Slogan phác thảo tách về bên phải */}
-          <p className="animate-chill-right text-xs sm:text-sm font-bold text-[#FEF08A] tracking-wide pt-1">
-            ✦ Chậm rãi ghi chép • Thảnh thơi hoàn thành ✦
-          </p>
-
-          <span className="text-[10px] text-white/50 pt-4 font-mono animate-pulse">
-            Chạm để mở nhanh
-          </span>
-        </div>
-      ) : (
-        /* 2. MODAL CARD CHÍNH */
-        <div className="relative w-full max-w-sm bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[10px] shadow-[6px_6px_0px_#262626] overflow-hidden animate-in zoom-in-95 duration-300">
+      {/* Modal Card Chính */}
+      <div className="relative w-full max-w-sm bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[10px] shadow-[6px_6px_0px_#262626] overflow-hidden animate-in zoom-in-95 duration-200">
           {/* Paper Tape decoration */}
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-5 bg-[#FEF08A]/90 border-x border-[#262626]/40 rotate-1 shadow-sm pointer-events-none z-10" />
 
@@ -325,7 +287,6 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             </button>
           </div>
         </div>
-      )}
     </div>,
     document.body,
   );

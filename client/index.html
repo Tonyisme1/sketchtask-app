@@ -32,88 +32,105 @@
     <div id="root">
       <div
         style="
-          min-height: 100vh;
+          position: fixed;
+          inset: 0;
           background-color: #fbf9f4;
           display: flex;
           flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          z-index: 99999;
         "
       >
-        <!-- Topbar Placeholder Skeleton -->
-        <header
+        <div
           style="
-            height: 52px;
-            background-color: #fbf9f4;
-            border-bottom: 1.5px solid #262626;
-            box-shadow: 0px 2px 0px #262626;
+            width: 76px;
+            height: 76px;
+            background-color: #fef08a;
+            border: 2px solid #262626;
+            border-radius: 12px;
+            box-shadow: 3px 3px 0px #262626;
+            transform: rotate(-2deg);
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 16px;
+            justify-content: center;
+            position: relative;
           "
         >
-          <div style="display: flex; align-items: center; gap: 8px">
+          <div
+            style="
+              position: absolute;
+              left: 0;
+              top: 0;
+              bottom: 0;
+              width: 16px;
+              background-color: #fde047;
+              border-right: 2px solid #262626;
+              border-radius: 10px 0 0 10px;
+              display: flex;
+              flex-direction: column;
+              justify-content: space-evenly;
+              align-items: center;
+              padding: 4px 0;
+            "
+          >
             <div
               style="
-                width: 28px;
-                height: 28px;
-                background-color: #fef08a;
-                border: 1.5px solid #262626;
-                border-radius: 4px;
-                box-shadow: 1.5px 1.5px 0px #262626;
-                transform: rotate(-1.5deg);
+                width: 3.5px;
+                height: 3.5px;
+                background-color: #262626;
+                border-radius: 50%;
               "
             ></div>
-            <span
+            <div
               style="
-                font-family: 'Plus Jakarta Sans', sans-serif;
-                font-weight: 700;
-                font-size: 14px;
-                color: #1c1917;
+                width: 3.5px;
+                height: 3.5px;
+                background-color: #262626;
+                border-radius: 50%;
               "
-              >SketchTask</span
-            >
+            ></div>
+            <div
+              style="
+                width: 3.5px;
+                height: 3.5px;
+                background-color: #262626;
+                border-radius: 50%;
+              "
+            ></div>
+            <div
+              style="
+                width: 3.5px;
+                height: 3.5px;
+                background-color: #262626;
+                border-radius: 50%;
+              "
+            ></div>
           </div>
-          <div
-            style="
-              width: 32px;
-              height: 32px;
-              background-color: #ffffff;
-              border: 1.5px solid #262626;
-              border-radius: 4px;
-            "
-          ></div>
-        </header>
-
-        <!-- Main Content Skeleton -->
-        <main
+          <svg
+            style="width: 38px; height: 38px; margin-left: 10px"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#1C1917"
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <p
           style="
-            flex: 1;
-            max-width: 720px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 16px;
+            margin-top: 14px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 700;
+            font-size: 15px;
+            color: #1c1917;
+            letter-spacing: -0.2px;
           "
         >
-          <div
-            style="
-              height: 38px;
-              background-color: #ffffff;
-              border: 1.5px solid #262626;
-              border-radius: 6px;
-              box-shadow: 2px 2px 0px #262626;
-              margin-bottom: 16px;
-            "
-          ></div>
-          <div
-            style="
-              height: 54px;
-              background-color: #ffffff;
-              border: 1.5px solid #262626;
-              border-radius: 6px;
-              box-shadow: 2px 2px 0px #262626;
-            "
-          ></div>
-        </main>
+          SketchTask
+        </p>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>
