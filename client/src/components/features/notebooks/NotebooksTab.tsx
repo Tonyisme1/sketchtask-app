@@ -315,137 +315,151 @@ export const NotebooksTab: React.FC = () => {
                   onChange={(e) => setDrillTaskTitle(e.target.value)}
                   className="flex-1 text-xs sm:text-sm bg-[#FBF9F4]"
                 />
+                <button
+                  type="button"
+                  onClick={() => setIsExpandForm(!isExpandForm)}
+                  className={`px-2 py-1 border border-[#262626] rounded-[4px] text-xs font-bold transition-all flex items-center gap-0.5 shrink-0 ${
+                    isExpandForm || drillTaskDueDate || drillTaskPriority !== "medium"
+                      ? "bg-[#FEF08A] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
+                      : "bg-[#FBF9F4] text-[#78716C] hover:text-[#1C1917]"
+                  }`}
+                >
+                  <span>{isExpandForm ? "Thu gọn" : "+ Tùy chọn"}</span>
+                  {isExpandForm ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                </button>
                 <Button type="submit" variant="primary">
-                  + Thêm việc
+                  + Thêm
                 </Button>
               </div>
 
-              {/* Tùy Chọn Mở Rộng: Hạn Chót, Ưu Tiên, Tag */}
-              <div className="pt-2 border-t border-[#D4CEBF]/60 space-y-2 text-xs">
-                {/* 1. Chọn Hạn Chót */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[11px] font-bold text-[#78716C] shrink-0 w-16">
-                    Hạn chót:
-                  </span>
-                  <div className="flex-1 min-w-[200px]">
-                    <CustomDuePicker
-                      dueDate={drillTaskDueDate}
-                      dueTime={drillTaskDueTime}
-                      onDateChange={setDrillTaskDueDate}
-                      onTimeChange={setDrillTaskDueTime}
-                    />
+              {/* Tùy Chọn Mở Rộng: Hạn Chót, Ưu Tiên, Tag (Chỉ bung ra khi bấm + Tùy chọn) */}
+              {isExpandForm && (
+                <div className="pt-2 border-t border-[#D4CEBF]/60 space-y-2 text-xs animate-in slide-in-from-top-1">
+                  {/* 1. Chọn Hạn Chót */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] font-bold text-[#78716C] shrink-0 w-16">
+                      Hạn chót:
+                    </span>
+                    <div className="flex-1 min-w-[200px]">
+                      <CustomDuePicker
+                        dueDate={drillTaskDueDate}
+                        dueTime={drillTaskDueTime}
+                        onDateChange={setDrillTaskDueDate}
+                        onTimeChange={setDrillTaskDueTime}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* 2. Chọn Độ Ưu Tiên */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[11px] font-bold text-[#78716C] shrink-0 w-16">
-                    Ưu tiên:
-                  </span>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {[
-                      {
-                        key: "high",
-                        label: "Gấp",
-                        dotClass: "bg-rose-500",
-                        activeClass:
-                          "bg-rose-100 text-rose-800 border-rose-400 font-bold shadow-[1px_1px_0px_#262626]",
-                      },
-                      {
-                        key: "medium",
-                        label: "Vừa",
-                        dotClass: "bg-amber-400",
-                        activeClass:
-                          "bg-amber-100 text-amber-800 border-amber-400 font-bold shadow-[1px_1px_0px_#262626]",
-                      },
-                      {
-                        key: "low",
-                        label: "Thấp",
-                        dotClass: "bg-emerald-500",
-                        activeClass:
-                          "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold shadow-[1px_1px_0px_#262626]",
-                      },
-                    ].map((p) => (
-                      <button
-                        key={p.key}
-                        type="button"
-                        onClick={() => setDrillTaskPriority(p.key as any)}
-                        className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
-                          drillTaskPriority === p.key
-                            ? p.activeClass
-                            : "border-[#D4CEBF] bg-[#FBF9F4] text-[#78716C] hover:text-[#1C1917]"
-                        }`}
-                      >
-                        <span className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`} />
-                        <span>{p.label}</span>
-                      </button>
-                    ))}
+                  {/* 2. Chọn Độ Ưu Tiên */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] font-bold text-[#78716C] shrink-0 w-16">
+                      Ưu tiên:
+                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {[
+                        {
+                          key: "high",
+                          label: "Gấp",
+                          dotClass: "bg-rose-500",
+                          activeClass:
+                            "bg-rose-100 text-rose-800 border-rose-400 font-bold shadow-[1px_1px_0px_#262626]",
+                        },
+                        {
+                          key: "medium",
+                          label: "Vừa",
+                          dotClass: "bg-amber-400",
+                          activeClass:
+                            "bg-amber-100 text-amber-800 border-amber-400 font-bold shadow-[1px_1px_0px_#262626]",
+                        },
+                        {
+                          key: "low",
+                          label: "Thấp",
+                          dotClass: "bg-emerald-500",
+                          activeClass:
+                            "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold shadow-[1px_1px_0px_#262626]",
+                        },
+                      ].map((p) => (
+                        <button
+                          key={p.key}
+                          type="button"
+                          onClick={() => setDrillTaskPriority(p.key as any)}
+                          className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
+                            drillTaskPriority === p.key
+                              ? p.activeClass
+                              : "border-[#D4CEBF] bg-[#FBF9F4] text-[#78716C] hover:text-[#1C1917]"
+                          }`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`} />
+                          <span>{p.label}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                {/* 3. Chọn Nhãn #Tag */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[11px] font-bold text-[#78716C] shrink-0 w-16">
-                    Nhãn tag:
-                  </span>
-                  <div className="flex items-center gap-1.5 flex-wrap flex-1">
-                    {tags.map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => setDrillTaskTag(tag)}
-                        className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
-                          drillTaskTag === tag
-                            ? "bg-[#262626] text-white border-[#262626] font-bold shadow-[1px_1px_0px_#262626]"
-                            : "border-[#D4CEBF] bg-[#FBF9F4] text-[#78716C] hover:text-[#1C1917]"
-                        }`}
-                      >
-                        #{tag}
-                      </button>
-                    ))}
+                  {/* 3. Chọn Nhãn #Tag */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[11px] font-bold text-[#78716C] shrink-0 w-16">
+                      Nhãn tag:
+                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap flex-1">
+                      {tags.map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => setDrillTaskTag(tag)}
+                          className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
+                            drillTaskTag === tag
+                              ? "bg-[#262626] text-white border-[#262626] font-bold shadow-[1px_1px_0px_#262626]"
+                              : "border-[#D4CEBF] bg-[#FBF9F4] text-[#78716C] hover:text-[#1C1917]"
+                          }`}
+                        >
+                          #{tag}
+                        </button>
+                      ))}
 
-                    {isAddingTag ? (
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="text"
-                          placeholder="Tag mới..."
-                          value={newTagInput}
-                          onChange={(e) => setNewTagInput(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && handleCreateNewTag(e)}
-                          className="w-20 px-1.5 py-0.5 text-[11px] bg-white border border-[#262626] rounded outline-none"
-                          autoFocus
-                        />
+                      {isAddingTag ? (
+                        <div className="flex items-center gap-1">
+                          <input
+                            type="text"
+                            placeholder="Tag mới..."
+                            value={newTagInput}
+                            onChange={(e) => setNewTagInput(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleCreateNewTag(e)}
+                            className="w-20 px-1.5 py-0.5 text-[11px] bg-white border border-[#262626] rounded outline-none"
+                            autoFocus
+                          />
+                          <button
+                            type="button"
+                            onClick={handleCreateNewTag}
+                            className="px-1.5 py-0.5 bg-[#FEF08A] border border-[#262626] rounded text-[11px] font-bold"
+                          >
+                            Lưu
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setIsAddingTag(false)}
+                            className="text-[11px] text-[#78716C]"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
                         <button
                           type="button"
-                          onClick={handleCreateNewTag}
-                          className="px-1.5 py-0.5 bg-[#FEF08A] border border-[#262626] rounded text-[11px] font-bold"
+                          onClick={() => setIsAddingTag(true)}
+                          className="px-1.5 py-0.5 text-[11px] text-[#78716C] hover:text-[#1C1917] hover:underline"
                         >
-                          Lưu
+                          + Tag
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => setIsAddingTag(false)}
-                          className="text-[11px] text-[#78716C]"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setIsAddingTag(true)}
-                        className="px-1.5 py-0.5 text-[11px] text-[#78716C] hover:text-[#1C1917] hover:underline"
-                      >
-                        + Tag
-                      </button>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </form>
 
             {/* Filter Bar Cốt Lõi Bên Trong Sổ */}
-            <div className="p-1 bg-white border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-between gap-1 text-xs select-none">
+            <div className="p-1 bg-white border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-between gap-1 text-xs select-none flex-wrap">
               <div className="flex items-center gap-1">
                 {[
                   { key: "all", label: `Tất cả (${nbTotalCount})` },
@@ -467,7 +481,7 @@ export const NotebooksTab: React.FC = () => {
                 ))}
               </div>
 
-              {/* Lọc Ưu Tiên Nhanh */}
+              {/* Lọc Ưu Tiên Chuẩn SketchTask (Không Dính Lỗi Blue Native) */}
               <div className="flex items-center gap-1">
                 {priorityFilter !== "all" && (
                   <button
@@ -478,16 +492,18 @@ export const NotebooksTab: React.FC = () => {
                     ✕ Xóa lọc
                   </button>
                 )}
-                <select
-                  value={priorityFilter}
-                  onChange={(e) => setPriorityFilter(e.target.value as any)}
-                  className="px-1.5 py-1 bg-[#FBF9F4] border border-[#D4CEBF] rounded text-[11px] font-bold text-[#78716C] outline-none"
-                >
-                  <option value="all">Tất cả ưu tiên</option>
-                  <option value="high">🔴 Gấp</option>
-                  <option value="medium">🟡 Vừa</option>
-                  <option value="low">🟢 Thấp</option>
-                </select>
+                <div className="w-28 sm:w-32">
+                  <CustomSelect
+                    value={priorityFilter}
+                    onChange={(val) => setPriorityFilter(val as any)}
+                    options={[
+                      { value: "all", label: "Ưu tiên", icon: "lucide:SlidersHorizontal" },
+                      { value: "high", label: "🔴 Gấp", icon: "lucide:AlertCircle" },
+                      { value: "medium", label: "🟡 Vừa", icon: "lucide:Clock" },
+                      { value: "low", label: "🟢 Thấp", icon: "lucide:CheckCheck" },
+                    ]}
+                  />
+                </div>
               </div>
             </div>
 

@@ -790,45 +790,43 @@ export const PlannerTab: React.FC = () => {
                       return (
                         <div
                           key={t.id}
-                          className="p-2 bg-white border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2"
+                          className="p-2.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] flex flex-col sm:flex-row sm:items-center justify-between gap-2"
                         >
                           <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-xs text-[#1C1917] truncate">
+                            <p className="font-semibold text-xs text-[#1C1917] leading-snug break-words">
                               {t.title}
                             </p>
-                            <div className="flex items-center gap-1.5 mt-0.5 text-[10px]">
+                            <div className="flex items-center gap-1.5 mt-1 text-[10px] flex-wrap">
                               {nb && (
                                 <span
-                                  className="px-1.5 py-0.2 rounded border border-[#262626] text-[#1C1917] inline-flex items-center gap-1"
+                                  className="px-1.5 py-0.5 rounded border border-[#262626] text-[#1C1917] inline-flex items-center gap-1 max-w-[160px] font-medium"
                                   style={{ backgroundColor: nb.color || "#FEF08A" }}
                                 >
                                   <DynamicIcon name={nb.icon} size={10} strokeWidth={2.2} />
-                                  <span className="truncate max-w-[100px]">{nb.name}</span>
+                                  <span className="truncate">{nb.name}</span>
                                 </span>
                               )}
                               {t.tag && (
-                                <span className="text-[#78716C]">#{t.tag}</span>
+                                <span className="text-[#78716C] font-mono">#{t.tag}</span>
                               )}
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-1 shrink-0">
+                          <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center pt-1 sm:pt-0 border-t sm:border-t-0 border-[#D4CEBF]/40 w-full sm:w-auto justify-end">
                             <button
                               type="button"
                               onClick={() => {
                                 updateTask(t.id, { dueDate: selectedDateStr });
                               }}
-                              title={`Xếp vào ngày ${selectedDateStr}`}
-                              className="px-2 py-1 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded text-[10px] font-bold shadow-sm active:translate-y-[0.5px] flex items-center gap-1"
+                              className="px-2 py-1 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded-[3px] text-[10px] font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] flex items-center gap-1"
                             >
                               <CalendarIcon size={11} />
-                              <span>Xếp ngày {selectedDateStr.split("-").slice(1).reverse().join("/")}</span>
+                              <span>Xếp vào {selectedDateStr.split("-").slice(1).reverse().join("/")}</span>
                             </button>
                             <button
                               type="button"
                               onClick={() => moveTaskToToday(t.id)}
-                              title="Làm hôm nay"
-                              className="px-2 py-1 bg-[#BBF7D0] hover:bg-[#86EFAC] border border-[#262626] rounded text-[10px] font-bold shadow-sm active:translate-y-[0.5px] flex items-center gap-1"
+                              className="px-2 py-1 bg-[#BBF7D0] hover:bg-[#86EFAC] border border-[#262626] rounded-[3px] text-[10px] font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] flex items-center gap-1"
                             >
                               <Sun size={11} />
                               <span>Hôm nay</span>

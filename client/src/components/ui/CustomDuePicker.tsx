@@ -199,11 +199,19 @@ export const CustomDuePicker: React.FC<CustomDuePickerProps> = ({
         <span className="text-[10px] text-[#78716C] ml-1 shrink-0">▾</span>
       </button>
 
-      {/* Popover Custom Box (Right aligned, No overflow) */}
+      {/* Popover Custom Box (Mobile: Modal Centered An Toàn 100% Không Bị Che - Desktop: Absolute) */}
       {isOpen && (
-        <div
-          className={`absolute right-0 top-full mt-1.5 w-64 max-w-[calc(100vw-28px)] bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] z-50 p-3 space-y-2.5 animate-in fade-in zoom-in-95 text-xs text-[#1C1917] select-none`}
-        >
+        <>
+          <div
+            onClick={() => {
+              setIsOpen(false);
+              setDateViewMode("days");
+            }}
+            className="fixed inset-0 bg-black/40 z-[999998] backdrop-blur-[2px] sm:hidden"
+          />
+          <div
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 sm:absolute sm:top-full sm:mt-1.5 sm:left-auto sm:right-0 sm:translate-x-0 sm:translate-y-0 w-[275px] max-w-[calc(100vw-32px)] max-h-[85vh] overflow-y-auto no-scrollbar bg-[#FBF9F4] border-[2px] sm:border-[1.5px] border-[#262626] rounded-[8px] sm:rounded-[6px] shadow-[4px_4px_0px_#262626] sm:shadow-[3px_3px_0px_#262626] z-[999999] p-3.5 sm:p-3 space-y-2.5 animate-in fade-in zoom-in-95 text-xs text-[#1C1917] select-none"
+          >
           {/* Header */}
           <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]">
             <span className="font-bold text-xs flex items-center gap-1">
@@ -499,6 +507,7 @@ export const CustomDuePicker: React.FC<CustomDuePickerProps> = ({
             </button>
           </div>
         </div>
+        </>
       )}
     </div>
   );
