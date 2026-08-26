@@ -485,10 +485,11 @@ export const NotebooksTab: React.FC = () => {
                     value={priorityFilter}
                     onChange={(val) => setPriorityFilter(val as any)}
                     align="right"
+                    placeholder="Mức ưu tiên"
                     options={[
                       {
                         value: "all",
-                        label: "Ưu tiên",
+                        label: "Tất cả",
                         icon: "lucide:SlidersHorizontal",
                       },
                       {
