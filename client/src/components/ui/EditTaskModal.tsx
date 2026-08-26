@@ -128,17 +128,27 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
         </div>
 
         {/* Form Chỉnh Sửa Cuộn Mượt */}
-        <form onSubmit={handleSave} className="space-y-3.5 text-xs overflow-y-auto no-scrollbar py-3 flex-1">
-          {/* 1. Tiêu Đề Công Việc */}
+        <form
+          onSubmit={handleSave}
+          className="space-y-3.5 text-xs overflow-y-auto no-scrollbar py-3 flex-1"
+        >
+          {/* 1. Tiêu Đề Công Việc (Khung Nhiều Dòng Dễ Đọc & Sửa Trọn Vẹn) */}
           <div>
-            <label className="font-bold text-[#1C1917] block mb-1 text-[11px]">
-              Tiêu đề công việc:
-            </label>
-            <TextInput
+            <div className="flex items-center justify-between mb-1">
+              <label className="font-bold text-[#1C1917] text-[11px]">
+                Nội dung công việc:
+              </label>
+              <span className="text-[10px] font-mono text-[#78716C]">
+                {title.length}/250
+              </span>
+            </div>
+            <textarea
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Nhập tiêu đề việc cần làm..."
-              className="w-full bg-white text-xs sm:text-sm font-medium"
+              rows={3}
+              maxLength={250}
+              className="w-full bg-white text-xs sm:text-sm font-medium border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] p-2.5 outline-none resize-none focus:ring-1 focus:ring-[#262626] leading-relaxed text-[#1C1917] placeholder:text-[#A8A29E]"
             />
           </div>
 
@@ -198,7 +208,8 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
                   key: "low",
                   label: "Thấp",
                   iconBg: "bg-emerald-500",
-                  activeBorder: "border-emerald-600 bg-emerald-50 text-emerald-800",
+                  activeBorder:
+                    "border-emerald-600 bg-emerald-50 text-emerald-800",
                 },
               ].map((p) => {
                 const isSelected = priority === p.key;
