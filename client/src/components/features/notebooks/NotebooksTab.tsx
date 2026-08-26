@@ -484,6 +484,7 @@ export const NotebooksTab: React.FC = () => {
                   <CustomSelect
                     value={priorityFilter}
                     onChange={(val) => setPriorityFilter(val as any)}
+                    align="right"
                     options={[
                       {
                         value: "all",

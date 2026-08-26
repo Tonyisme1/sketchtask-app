@@ -7,6 +7,7 @@ import { EmptyStateDoodle } from "../../ui/EmptyStateDoodle";
 import { CustomSelect, SelectOption } from "../../ui/CustomSelect";
 import { CustomDuePicker } from "../../ui/CustomDuePicker";
 import { ConfirmModal } from "../../ui/ConfirmModal";
+import { EditTaskModal } from "../../ui/EditTaskModal";
 import { DynamicIcon } from "../../ui/DynamicIcon";
 import { getCardTilt } from "../../../utils/tilt";
 import { getTagStyle } from "../../../utils/tagColors";
@@ -26,6 +27,7 @@ import {
   PackageOpen,
   Layers,
   Sparkles,
+  Edit3,
 } from "lucide-react";
 
 // ==========================================
@@ -76,6 +78,7 @@ export const PlannerTab: React.FC = () => {
   const [isAddingTag, setIsAddingTag] = useState(false);
   const [newTagInput, setNewTagInput] = useState("");
   const [isExpandForm, setIsExpandForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<TaskDto | null>(null);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
   // Bộ Lọc Phân Tầng Nâng Cao (Task Command Center)
@@ -1157,13 +1160,24 @@ export const PlannerTab: React.FC = () => {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => setDeletingTaskId(task.id)}
-                        title="Xóa"
-                        className="opacity-40 group-hover:opacity-100 text-[#78716C] hover:text-red-600 p-1 shrink-0 active:translate-y-[0.5px]"
-                      >
-                        <X size={13} strokeWidth={2.5} />
-                      </button>
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => setEditingTask(task)}
+                          title="Sửa việc"
+                          className="opacity-60 group-hover:opacity-100 hover:bg-[#FEF08A] rounded border border-transparent hover:border-[#262626] text-[#78716C] hover:text-[#1C1917] p-1 active:translate-y-[0.5px] transition-all"
+                        >
+                          <Edit3 size={13} strokeWidth={2.2} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeletingTaskId(task.id)}
+                          title="Xóa"
+                          className="opacity-40 group-hover:opacity-100 text-[#78716C] hover:text-red-600 p-1 active:translate-y-[0.5px]"
+                        >
+                          <X size={13} strokeWidth={2.5} />
+                        </button>
+                      </div>
                     </div>
 
                     {/* Actions */}
@@ -1225,6 +1239,13 @@ export const PlannerTab: React.FC = () => {
           setDeletingTaskId(null);
         }}
         onCancel={() => setDeletingTaskId(null)}
+      />
+
+      {/* Edit Task Modal */}
+      <EditTaskModal
+        task={editingTask}
+        isOpen={Boolean(editingTask)}
+        onClose={() => setEditingTask(null)}
       />
     </div>
   );
