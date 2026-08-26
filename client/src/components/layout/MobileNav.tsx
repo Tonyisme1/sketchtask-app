@@ -21,7 +21,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isScrollingDown, setIsScrollingDown] = useState(false);
 
-  // Tự động phát hiện bàn phím ảo trên mobile để ẩn thanh điều hướng, chống bị đội lên
   // 1. Tự động phát hiện bàn phím ảo trên mobile để ẩn thanh điều hướng, chống bị đội lên
   useEffect(() => {
     const handleResize = () => {
@@ -79,7 +78,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   }
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FBF9F4] border-t-[1.5px] border-[#262626] shadow-[0px_-2px_0px_#262626] px-1 py-1 select-none transition-transform duration-150">
     <nav
       className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#FBF9F4] border-t-[1.5px] border-[#262626] shadow-[0px_-2px_0px_#262626] px-1 py-1 select-none transition-all duration-300 ease-out transform ${
         isScrollingDown
