@@ -5,6 +5,7 @@
 export type TaskTag = "Công việc" | "Cá nhân" | "Ý tưởng" | "Học tập" | string;
 export type TaskPriority = "low" | "medium" | "high";
 export type TaskStatus = "todo" | "in_progress" | "completed" | "archived";
+export type TaskTimeType = "scheduled" | "deadline";
 
 export interface TaskDto {
   id: string;
@@ -12,6 +13,11 @@ export interface TaskDto {
   description?: string | null;
   completed: boolean;
   dueDate?: string | null;
+  timeType?: TaskTimeType | string | null;
+  startTime?: string | null;
+  endTime?: string | null;
+  deadlineDate?: string | null;
+  deadlineTime?: string | null;
   tag?: string | null;
   priority?: string | null;
   status: string;
@@ -24,6 +30,11 @@ export interface CreateTaskRequest {
   title: string;
   description?: string;
   dueDate?: string;
+  timeType?: TaskTimeType | string;
+  startTime?: string;
+  endTime?: string;
+  deadlineDate?: string;
+  deadlineTime?: string;
   tag?: string;
   priority?: string;
   notebookId?: string;
@@ -34,6 +45,11 @@ export interface UpdateTaskRequest {
   description?: string;
   completed?: boolean;
   dueDate?: string;
+  timeType?: TaskTimeType | string;
+  startTime?: string;
+  endTime?: string;
+  deadlineDate?: string;
+  deadlineTime?: string;
   tag?: string;
   priority?: string;
   status?: string;
@@ -88,4 +104,5 @@ export interface CreateHabitRequest {
   name: string;
   frequency?: string;
   targetDaysPerWeek?: number;
+  completedDates?: string[];
 }

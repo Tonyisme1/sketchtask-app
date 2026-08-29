@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0",
+  "version": "1.6.0",
   "releaseDate": "2026-08-29",
-  "changelog": "✨ Phiên Bản Chính Thức v1.0.0 (SketchTask Official Release):\n• 🕒 Phân biệt rõ ràng Lịch Hẹn (Khung giờ bắt đầu - kết thúc) & Hạn Chót (Deadline ngày chót/giờ chót)\n• 📝 Toàn bộ ô nhập liệu tự co giãn chiều cao theo độ dài ký tự\n• ⚙️ Cài đặt hệ thống 4 Tab chuẩn hóa (1. Chung, 2. Giao diện, 3. Dữ liệu, 4. Giới thiệu & Điều khoản)\n• 🔍 Tìm kiếm phân tách tối ưu cho Di động (Bottom Sheet) và Máy tính\n• 🔔 Trạng thái thông báo hệ thống và nút gửi thử chuông phản hồi xúc giác",
+  "changelog": "✨ Phiên Bản Chuẩn Hóa v1.6.0 (SketchTask Official Release):\n• 🕒 Phân biệt rõ ràng Lịch Làm Việc (Khung giờ bắt đầu - kết thúc) & Hạn Chót (Deadline ngày chót/giờ chót)\n• 📝 Khung soạn thảo tiêu đề tự co giãn chiều cao theo độ dài ký tự\n• ⚙️ Cài đặt hệ thống 4 Tab chuẩn hóa (Chung, Giao diện, Dữ liệu, Giới thiệu & Điều khoản)\n• 🔍 Tìm kiếm phân tách tối ưu cho Di động (Bottom Sheet) và Máy tính\n• 🔔 Quản lý Trạng thái thông báo hệ thống và nút gửi thử chuông phản hồi xúc giác\n• 🛡️ Đồng bộ an toàn (Safe Upsert/Merge) bảo vệ dữ liệu chống ghi đè",
   "apkUrl": "https://github.com/Tonyisme1/sketchtask-app/actions",
   "downloadUrl": "https://sketchtask-app.vercel.app",
   "isForceUpdate": false

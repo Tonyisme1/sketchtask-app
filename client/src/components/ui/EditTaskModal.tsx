@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { TaskDto, TaskPriority } from "../../types";
 import { useAppStore } from "../../stores/appStore";
@@ -42,9 +42,15 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
     if (task) {
       setTitle(task.title || "");
       setNotebookId(task.notebookId || "");
-      setDueDate(task.dueDate || undefined);
+      const normalizedTimeType: "scheduled" | "deadline" | undefined =
+        task.timeType === "scheduled" || (task.timeType as any) === "event"
+          ? "scheduled"
+          : task.timeType === "deadline" || (task.timeType as any) === "task"
+            ? "deadline"
+            : undefined;
+
       setTimeData({
-        timeType: task.timeType,
+        timeType: normalizedTimeType,
         date: task.dueDate ? task.dueDate.split(" ")[0] : undefined,
         startTime: task.startTime,
         endTime: task.endTime,
@@ -122,13 +128,15 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
         WebkitBackdropFilter: "blur(20px)",
         touchAction: "none",
       }}
-      className="flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-200 pointer-events-auto"
+      className="flex items-end sm:items-center justify-center p-0 sm:p-4 select-none animate-in fade-in duration-200 pointer-events-auto"
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[8px] shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col justify-between overflow-hidden animate-in zoom-in-95 duration-200 z-[1000000] max-h-[92vh]"
+        className="relative w-full max-w-md bg-[#FBF9F4] border-t-[2px] sm:border-[2px] border-[#262626] rounded-t-[20px] sm:rounded-[8px] shadow-[0px_-4px_0px_#262626] sm:shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col justify-between overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 z-[1000000] max-h-[92vh]"
       >
+        {/* Grab handle trên mobile */}
+        <div className="w-12 h-1 bg-[#D4CEBF] rounded-full mx-auto mb-2.5 sm:hidden" />
         {/* Header Modal */}
         <div className="flex items-center justify-between pb-2.5 border-b border-[#262626] shrink-0">
           <div className="flex items-center gap-2">
@@ -287,14 +295,10 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
                     key={tg}
                     type="button"
                     onClick={() => setSelectedTag(tg)}
-                    style={{
-                      backgroundColor: isSelected ? style.bg : style.lightBg,
-                      color: style.text,
-                      borderColor: isSelected ? style.border : "#D4CEBF",
-                      fontWeight: isSelected ? "bold" : "normal",
-                    }}
                     className={`px-2 py-0.5 rounded-[4px] border text-[11px] flex items-center gap-1 transition-all ${
-                      isSelected ? "shadow-[1px_1px_0px_#262626]" : ""
+                      isSelected
+                        ? `${style.bg} ${style.border} ${style.text} font-bold shadow-[1px_1px_0px_#262626]`
+                        : "bg-[#FCFBF9] text-[#57534E] border-[#D4CEBF] hover:border-[#262626]"
                     }`}
                   >
                     <span>#{tg}</span>
@@ -350,7 +354,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
           <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#262626] shrink-0">
             <Button
               type="button"
-              variant="outline"
+              variant="secondary"
               size="sm"
               onClick={onClose}
               className="px-4 text-xs font-bold"

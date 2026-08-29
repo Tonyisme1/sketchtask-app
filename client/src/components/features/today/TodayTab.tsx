@@ -627,7 +627,7 @@ export const TodayTab: React.FC = () => {
             const assignedNotebook = notebooks.find(
               (n) => n.id === task.notebookId,
             );
-            const dueInfo = getTaskDueInfo(task.dueDate);
+            const dueInfo = getTaskDueInfo(task);
 
             return (
               <div

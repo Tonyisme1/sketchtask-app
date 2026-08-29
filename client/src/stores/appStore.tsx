@@ -6,14 +6,14 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { TaskDto, NotebookDto, HabitDto, TaskStatus, TaskPriority } from "../types";
+import { TaskDto, NotebookDto, HabitDto, TaskStatus, TaskPriority, TaskTimeType } from "../types";
 import { api, authStorage } from "../services/api";
 import { syncSocket } from "../services/syncSocket";
 import { smartMergeAppData } from "../utils/syncMerge";
 import { notificationService } from "../services/notificationService";
 import { sounds } from "../utils/soundEffects";
 
-export type { TaskDto, TaskPriority, NotebookDto, HabitDto, TaskStatus };
+export type { TaskDto, TaskPriority, NotebookDto, HabitDto, TaskStatus, TaskTimeType };
 
 // ==========================================
 // STORE: AppStore (Offline-First + Realtime WebSocket Sync Engine)
@@ -118,6 +118,11 @@ export interface AppContextType {
   addTask: (task: {
     title: string;
     dueDate?: string;
+    timeType?: TaskTimeType;
+    startTime?: string;
+    endTime?: string;
+    deadlineDate?: string;
+    deadlineTime?: string;
     tag?: string;
     notebookId?: string;
     priority?: TaskPriority;
@@ -746,6 +751,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       dailyMoods: current.dailyMoods,
       weeklyReflection: current.weeklyReflection,
       tags: current.tags,
+      updatedAt: new Date().toISOString(),
     };
 
     setSyncStatus("syncing");
@@ -788,6 +794,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           weeklyReflection:
             partialData?.weeklyReflection ?? current.weeklyReflection,
           tags: partialData?.tags ?? current.tags,
+          updatedAt: new Date().toISOString(),
         };
         pushDataToServer(fullPayload);
       }, 500);
@@ -1065,6 +1072,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const addTask = (taskData: {
     title: string;
     dueDate?: string;
+    timeType?: TaskTimeType;
+    startTime?: string;
+    endTime?: string;
+    deadlineDate?: string;
+    deadlineTime?: string;
     tag?: string;
     notebookId?: string;
     priority?: TaskPriority;
@@ -1073,6 +1085,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       id: `task-${Date.now()}`,
       title: taskData.title,
       dueDate: taskData.dueDate,
+      timeType: taskData.timeType,
+      startTime: taskData.startTime,
+      endTime: taskData.endTime,
+      deadlineDate: taskData.deadlineDate,
+      deadlineTime: taskData.deadlineTime,
       tag: taskData.tag as any,
       notebookId: taskData.notebookId,
       completed: false,

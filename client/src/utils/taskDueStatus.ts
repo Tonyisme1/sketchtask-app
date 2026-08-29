@@ -1,4 +1,4 @@
-﻿import { TaskDto } from "../types";
+import { TaskDto, TaskTimeType } from "../types";
 
 export type DueBadgeType = "today" | "tomorrow" | "overdue" | "future" | "none";
 
@@ -10,6 +10,9 @@ export interface TaskDueInfo {
   badgeBorder: string;
   badgeText: string;
   isOverdue: boolean;
+  badgeClass: string;
+  iconName: "clock" | "alert" | "calendar" | "hourglass";
+  timeType?: TaskTimeType;
 }
 
 export const getTaskDueInfo = (
@@ -24,11 +27,13 @@ export const getTaskDueInfo = (
       badgeBg: "bg-stone-100",
       badgeBorder: "border-stone-300",
       badgeText: "text-stone-600",
+      badgeClass: "bg-stone-100 border-stone-300 text-stone-600 border font-mono",
+      iconName: "calendar",
       isOverdue: false,
     };
   }
 
-  let timeType: "event" | "task" | undefined;
+  let timeType: TaskTimeType | undefined;
   let startTime: string | undefined;
   let endTime: string | undefined;
   let deadlineDate: string | undefined;
@@ -54,6 +59,8 @@ export const getTaskDueInfo = (
       badgeBg: "bg-stone-100",
       badgeBorder: "border-stone-300",
       badgeText: "text-stone-600",
+      badgeClass: "bg-stone-100 border-stone-300 text-stone-600 border font-mono",
+      iconName: "calendar",
       isOverdue: false,
     };
   }
@@ -78,8 +85,8 @@ export const getTaskDueInfo = (
   const isTomorrow = datePart === tomorrowStr;
   const isPast = datePart < todayStr;
 
-  // 1. Trường hợp LỊCH HẸN (Event)
-  if (timeType === "event" || (!timeType && startTime)) {
+  // 1. Trường hợp LỊCH HẸN / LỊCH LÀM (Event / Scheduled)
+  if (timeType === "event" || timeType === "scheduled" || (!timeType && startTime)) {
     const timeDisplay = endTime ? `${startTime || timePart} - ${endTime}` : (startTime || timePart || "Hôm nay");
     if (isToday) {
       return {
@@ -89,6 +96,9 @@ export const getTaskDueInfo = (
         badgeBg: "bg-[#FEF08A]",
         badgeBorder: "border-[#262626]",
         badgeText: "text-[#1C1917]",
+        badgeClass: "bg-[#FEF08A] border-[#262626] text-[#1C1917] border font-bold font-mono",
+        iconName: "clock",
+        timeType: "scheduled",
         isOverdue: false,
       };
     }
@@ -100,6 +110,9 @@ export const getTaskDueInfo = (
         badgeBg: "bg-[#BAE6FD]",
         badgeBorder: "border-[#262626]",
         badgeText: "text-[#1C1917]",
+        badgeClass: "bg-[#BAE6FD] border-[#262626] text-[#1C1917] border font-bold font-mono",
+        iconName: "clock",
+        timeType: "scheduled",
         isOverdue: false,
       };
     }
@@ -111,6 +124,9 @@ export const getTaskDueInfo = (
         badgeBg: "bg-[#FECDD3]",
         badgeBorder: "border-[#262626]",
         badgeText: "text-rose-900 font-bold",
+        badgeClass: "bg-[#FECDD3] border-[#262626] text-rose-900 font-bold border font-mono",
+        iconName: "alert",
+        timeType: "scheduled",
         isOverdue: true,
       };
     }
@@ -121,6 +137,9 @@ export const getTaskDueInfo = (
       badgeBg: "bg-[#DDD6FE]",
       badgeBorder: "border-[#262626]",
       badgeText: "text-[#1C1917]",
+      badgeClass: "bg-[#DDD6FE] border-[#262626] text-[#1C1917] border font-mono",
+      iconName: "calendar",
+      timeType: "scheduled",
       isOverdue: false,
     };
   }
@@ -134,6 +153,9 @@ export const getTaskDueInfo = (
       badgeBg: "bg-[#FECDD3]",
       badgeBorder: "border-[#262626]",
       badgeText: "text-rose-900 font-bold",
+      badgeClass: "bg-[#FECDD3] border-[#262626] text-rose-900 font-bold border font-mono",
+      iconName: "alert",
+      timeType: "deadline",
       isOverdue: true,
     };
   }
@@ -147,6 +169,9 @@ export const getTaskDueInfo = (
       badgeBg: "bg-[#FEF08A]",
       badgeBorder: "border-[#262626]",
       badgeText: "text-[#1C1917]",
+      badgeClass: "bg-[#FEF08A] border-[#262626] text-[#1C1917] border font-bold font-mono",
+      iconName: "hourglass",
+      timeType: "deadline",
       isOverdue: false,
     };
   }
@@ -160,6 +185,9 @@ export const getTaskDueInfo = (
       badgeBg: "bg-[#BAE6FD]",
       badgeBorder: "border-[#262626]",
       badgeText: "text-[#1C1917]",
+      badgeClass: "bg-[#BAE6FD] border-[#262626] text-[#1C1917] border font-bold font-mono",
+      iconName: "hourglass",
+      timeType: "deadline",
       isOverdue: false,
     };
   }
@@ -171,6 +199,9 @@ export const getTaskDueInfo = (
     badgeBg: "bg-[#DDD6FE]",
     badgeBorder: "border-[#262626]",
     badgeText: "text-[#1C1917]",
+    badgeClass: "bg-[#DDD6FE] border-[#262626] text-[#1C1917] border font-mono",
+    iconName: "hourglass",
+    timeType: "deadline",
     isOverdue: false,
   };
 };

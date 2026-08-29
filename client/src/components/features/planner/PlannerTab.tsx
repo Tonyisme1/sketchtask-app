@@ -1092,7 +1092,7 @@ export const PlannerTab: React.FC = () => {
                 const isTaskForToday =
                   task.dueDate?.includes(todayStr) ||
                   (selectedDateStr === todayStr && !task.dueDate);
-                const dueInfo = getTaskDueInfo(task.dueDate);
+                const dueInfo = getTaskDueInfo(task);
 
                 return (
                   <div

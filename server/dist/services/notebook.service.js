@@ -1,42 +1,99 @@
-let mockNotebooks = [
-    {
-        id: "nb-1",
-        name: "Dự án Task App",
-        description: "Sổ tay thiết kế và phát triển ứng dụng Digital Sketchbook",
-        color: "yellow",
-        icon: "🎨",
-        taskCount: 8,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-    },
-];
+import { prisma } from "../db.js";
 export class NotebookService {
-    static async getAll() {
-        return mockNotebooks;
+    /**
+     * Lấy danh sách toàn bộ sổ tay của người dùng kèm đếm số task
+     */
+    static async getAll(userId) {
+        const notebooks = await prisma.notebook.findMany({
+            where: { userId },
+            include: {
+                _count: {
+                    select: { tasks: true },
+                },
+            },
+            orderBy: { createdAt: "asc" },
+        });
+        return notebooks.map((nb) => ({
+            id: nb.id,
+            name: nb.name,
+            description: nb.description,
+            color: nb.color,
+            icon: nb.icon,
+            taskCount: nb._count.tasks,
+            createdAt: nb.createdAt.toISOString(),
+            updatedAt: nb.updatedAt.toISOString(),
+        }));
     }
-    static async create(data) {
-        const newNotebook = {
-            id: `nb-${Date.now()}`,
-            name: data.name,
-            description: data.description,
-            color: data.color || "yellow",
-            icon: data.icon || "📓",
+    /**
+     * Tạo cuốn sổ tay mới
+     */
+    static async create(userId, data) {
+        const created = await prisma.notebook.create({
+            data: {
+                userId,
+                name: data.name,
+                description: data.description || null,
+                color: data.color || "yellow",
+                icon: data.icon || "lucide:BookOpen",
+            },
+        });
+        return {
+            id: created.id,
+            name: created.name,
+            description: created.description,
+            color: created.color,
+            icon: created.icon,
             taskCount: 0,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            createdAt: created.createdAt.toISOString(),
+            updatedAt: created.updatedAt.toISOString(),
         };
-        mockNotebooks.push(newNotebook);
-        return newNotebook;
     }
-    static async update(id, data) {
-        const index = mockNotebooks.findIndex((n) => n.id === id);
-        if (index === -1)
+    /**
+     * Cập nhật cuốn sổ tay thuộc userId
+     */
+    static async update(userId, id, data) {
+        const existing = await prisma.notebook.findFirst({
+            where: { id, userId },
+        });
+        if (!existing)
             return null;
-        mockNotebooks[index] = {
-            ...mockNotebooks[index],
-            ...data,
-            updatedAt: new Date().toISOString(),
+        const updated = await prisma.notebook.update({
+            where: { id },
+            data: {
+                name: data.name !== undefined ? data.name : undefined,
+                description: data.description !== undefined ? data.description : undefined,
+                color: data.color !== undefined ? data.color : undefined,
+                icon: data.icon !== undefined ? data.icon : undefined,
+            },
+            include: {
+                _count: {
+                    select: { tasks: true },
+                },
+            },
+        });
+        return {
+            id: updated.id,
+            name: updated.name,
+            description: updated.description,
+            color: updated.color,
+            icon: updated.icon,
+            taskCount: updated._count.tasks,
+            createdAt: updated.createdAt.toISOString(),
+            updatedAt: updated.updatedAt.toISOString(),
         };
-        return mockNotebooks[index];
+    }
+    /**
+     * Xóa cuốn sổ tay thuộc userId
+     */
+    static async delete(userId, id) {
+        const existing = await prisma.notebook.findFirst({
+            where: { id, userId },
+        });
+        if (!existing)
+            return false;
+        await prisma.notebook.delete({
+            where: { id },
+        });
+        return true;
     }
 }

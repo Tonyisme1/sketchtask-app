@@ -41,7 +41,10 @@ export class AuthService {
       throw new Error("Không tìm thấy tài khoản với email này.");
     }
 
-    if (user.passwordHash && password) {
+    if (user.passwordHash) {
+      if (!password) {
+        throw new Error("Tài khoản này yêu cầu mật khẩu để đăng nhập.");
+      }
       const isMatch = await comparePassword(password, user.passwordHash);
       if (!isMatch) {
         throw new Error("Mật khẩu không chính xác.");

@@ -1,11 +1,14 @@
 import { Router } from "express";
 import { NotebookController } from "../controllers/notebook.controller.js";
+import { authenticate } from "../middlewares/authenticate.js";
 
 const router = Router();
+
+router.use(authenticate);
 
 router.get("/", NotebookController.getAll);
 router.post("/", NotebookController.create);
 router.patch("/:id", NotebookController.update);
+router.delete("/:id", NotebookController.delete);
 
 export default router;
-

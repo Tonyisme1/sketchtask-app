@@ -5,6 +5,7 @@ import { Button } from "../../ui/Button";
 import { ConfirmModal } from "../../ui/ConfirmModal";
 import { CustomAvatarPicker } from "../../ui/CustomAvatarPicker";
 import { CURRENT_APP_VERSION } from "../../../services/updateService";
+import { notificationService } from "../../../services/notificationService";
 import { sounds } from "../../../utils/soundEffects";
 import {
   Settings,
@@ -99,6 +100,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [pinModalMode, setPinModalMode] = useState<"setup" | "change" | "disable" | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [permStatus, setPermStatus] = useState<"granted" | "denied" | "default">("default");
 
   const [editingName, setEditingName] = useState(user.name);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -112,6 +114,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      notificationService.getPermissionStatus().then(setPermStatus);
+    }
+  }, [isOpen]);
 
   // Khóa cứng thanh cuộn khi mở modal
   useEffect(() => {
@@ -282,13 +290,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         WebkitBackdropFilter: "blur(20px)",
         touchAction: "none",
       }}
-      className="flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-200 pointer-events-auto"
+      className="flex items-end sm:items-center justify-center p-0 sm:p-4 select-none animate-in fade-in duration-200 pointer-events-auto"
     >
       {/* Settings Modal Box */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md h-[560px] max-h-[92vh] bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[8px] shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col justify-between overflow-hidden animate-in zoom-in-95 duration-200 z-[1000000]"
+        className="relative w-full max-w-md h-[560px] max-h-[92vh] bg-[#FBF9F4] border-t-[2px] sm:border-[2px] border-[#262626] rounded-t-[20px] sm:rounded-[8px] shadow-[0px_-4px_0px_#262626] sm:shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col justify-between overflow-hidden animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200 z-[1000000]"
       >
+        {/* Grab handle trên mobile */}
+        <div className="w-12 h-1 bg-[#D4CEBF] rounded-full mx-auto mb-2 sm:hidden" />
         {/* Header */}
         <div className="flex items-center justify-between pb-2.5 border-b border-[#262626]">
           <div className="flex items-center gap-2">

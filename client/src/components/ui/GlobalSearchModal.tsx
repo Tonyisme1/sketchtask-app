@@ -336,7 +336,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                   </div>
                   <div className="space-y-1">
                     {searchResults.tasks.map((task) => {
-                      const dueInfo = getTaskDueInfo(task.dueDate);
+                      const dueInfo = getTaskDueInfo(task);
                       return (
                         <div
                           key={task.id}

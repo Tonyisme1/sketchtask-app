@@ -2,7 +2,7 @@
 // SERVICE: updateService.ts (Tự Động Kiểm Tra Cập Nhật)
 // ==========================================
 
-export const CURRENT_APP_VERSION = "1.0.0";
+export const CURRENT_APP_VERSION = "1.6.0";
 
 export interface UpdateInfo {
   hasUpdate: boolean;
