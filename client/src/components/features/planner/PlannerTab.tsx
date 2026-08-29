@@ -1070,7 +1070,7 @@ export const PlannerTab: React.FC = () => {
                 const isTaskForToday =
                   task.dueDate?.includes(todayStr) ||
                   (selectedDateStr === todayStr && !task.dueDate);
-                const dueInfo = getTaskDueInfo(task);
+                const dueInfo = getTaskDueInfo(task.dueDate);
 
                 return (
                   <div
@@ -1103,28 +1103,22 @@ export const PlannerTab: React.FC = () => {
                             )}
                           </div>
                           <div className="mt-1 flex items-center gap-1.5 flex-wrap text-[10px]">
-                            {/* Badge Lịch làm / Hạn Chót */}
+                            {/* Badge Hạn Chót */}
                             {dueInfo && !task.completed && (
                               <span
                                 className={`px-1.5 py-0.5 rounded border inline-flex items-center gap-1 font-mono ${dueInfo.badgeClass}`}
                               >
-                                {dueInfo.iconName === "alert" ? (
+                                {dueInfo.type === "overdue" ? (
                                   <AlertCircle
                                     size={10}
                                     strokeWidth={2.5}
                                     className="text-rose-700"
                                   />
-                                ) : dueInfo.iconName === "hourglass" ? (
+                                ) : dueInfo.type === "today" ? (
                                   <Clock
                                     size={10}
                                     strokeWidth={2.2}
                                     className="text-amber-800"
-                                  />
-                                ) : dueInfo.iconName === "clock" ? (
-                                  <Clock
-                                    size={10}
-                                    strokeWidth={2.2}
-                                    className="text-[#1C1917]"
                                   />
                                 ) : (
                                   <CalendarIcon

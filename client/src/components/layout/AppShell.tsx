@@ -5,16 +5,25 @@ import { MobileNav } from "./MobileNav";
 import { useAppStore } from "../../stores/appStore";
 import { AuthModal } from "../features/auth/AuthModal";
 import { SettingsModal } from "../features/settings/SettingsModal";
-import { OnboardingModal } from "../features/onboarding/OnboardingModal";
+import { OnboardingModal } from "../features/today/onboarding/OnboardingModal";
 import { GlobalSearchModal } from "../ui/GlobalSearchModal";
 import { UpdateModal } from "../ui/UpdateModal";
 import { checkForAppUpdates, UpdateInfo } from "../../services/updateService";
 import { isNativePlatform } from "../../services/notificationService";
+import { registerBackHandler } from "../../utils/backNavigation";
 import { BrandLogo } from "../ui/BrandLogo";
 import { DynamicIcon } from "../ui/DynamicIcon";
 import { NotificationBell } from "../ui/NotificationBell";
 import { PinLockModal } from "../features/auth/PinLockModal";
-import { User, Settings, KeyRound, LogOut, Search, Sparkles, Lock } from "lucide-react";
+import {
+  User,
+  Settings,
+  KeyRound,
+  LogOut,
+  Search,
+  Sparkles,
+  Lock,
+} from "lucide-react";
 
 // ==========================================
 // COMPONENT: AppShell (Topbar với BrandLogo & Menu Avatar Hiện Đại)
@@ -73,6 +82,54 @@ export const AppShell: React.FC<AppShellProps> = ({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Đăng ký phím Back đóng các Modal trong AppShell
+  useEffect(() => {
+    if (
+      isAvatarMenuOpen ||
+      isSettingsModalOpen ||
+      isAuthModalOpen ||
+      isSearchModalOpen ||
+      isOnboardingOpen ||
+      Boolean(updateInfo)
+    ) {
+      const unregister = registerBackHandler(() => {
+        if (isAvatarMenuOpen) {
+          setIsAvatarMenuOpen(false);
+          return true;
+        }
+        if (isSearchModalOpen) {
+          setIsSearchModalOpen(false);
+          return true;
+        }
+        if (isSettingsModalOpen) {
+          setIsSettingsModalOpen(false);
+          return true;
+        }
+        if (isAuthModalOpen) {
+          setIsAuthModalOpen(false);
+          return true;
+        }
+        if (isOnboardingOpen) {
+          setIsOnboardingOpen(false);
+          return true;
+        }
+        if (updateInfo) {
+          setUpdateInfo(null);
+          return true;
+        }
+        return false;
+      });
+      return unregister;
+    }
+  }, [
+    isAvatarMenuOpen,
+    isSettingsModalOpen,
+    isAuthModalOpen,
+    isSearchModalOpen,
+    isOnboardingOpen,
+    updateInfo,
+  ]);
 
   // Đóng khi click ngoài
   useEffect(() => {
@@ -206,7 +263,11 @@ export const AppShell: React.FC<AppShellProps> = ({
                       }}
                       className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[3px] bg-white hover:bg-[#FEF08A] border border-[#D4CEBF] text-left transition-colors font-bold shadow-[1px_1px_0px_#262626]"
                     >
-                      <Sparkles size={14} className="text-amber-700" strokeWidth={2.2} />
+                      <Sparkles
+                        size={14}
+                        className="text-amber-700"
+                        strokeWidth={2.2}
+                      />
                       <span>Giới thiệu & Hướng dẫn</span>
                     </button>
 
@@ -220,7 +281,11 @@ export const AppShell: React.FC<AppShellProps> = ({
                         }}
                         className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[3px] bg-white hover:bg-amber-50 text-[#1C1917] border border-[#D4CEBF] text-left transition-colors font-bold shadow-[1px_1px_0px_#262626]"
                       >
-                        <Lock size={14} className="text-amber-700" strokeWidth={2.2} />
+                        <Lock
+                          size={14}
+                          className="text-amber-700"
+                          strokeWidth={2.2}
+                        />
                         <span>Khóa màn hình ngay</span>
                       </button>
                     )}

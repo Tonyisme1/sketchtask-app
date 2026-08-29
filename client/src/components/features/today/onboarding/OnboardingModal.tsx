@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { useAppStore } from "../../../stores/appStore";
+import { useAppStore } from "../../../../stores/appStore";
 import {
   CheckSquare,
   BookOpen,

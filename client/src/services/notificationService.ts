@@ -67,20 +67,30 @@ const showWebNotification = async (
 
 export const notificationService = {
   /**
-   * Kiểm tra quyền gửi thông báo hiện tại
+   * Lấy chi tiết trạng thái quyền gửi thông báo hiện tại (granted / denied / default)
    */
-  async checkPermission(): Promise<boolean> {
+  async getPermissionStatus(): Promise<"granted" | "denied" | "default"> {
     try {
       if (isNativePlatform()) {
         const perm = await LocalNotifications.checkPermissions();
-        return perm.display === "granted";
+        if (perm.display === "granted") return "granted";
+        if (perm.display === "denied") return "denied";
+        return "default";
       } else if ("Notification" in window) {
-        return Notification.permission === "granted";
+        return Notification.permission as "granted" | "denied" | "default";
       }
-      return false;
+      return "default";
     } catch {
-      return false;
+      return "default";
     }
+  },
+
+  /**
+   * Kiểm tra quyền gửi thông báo hiện tại
+   */
+  async checkPermission(): Promise<boolean> {
+    const status = await this.getPermissionStatus();
+    return status === "granted";
   },
 
   /**
@@ -102,7 +112,7 @@ export const notificationService = {
   },
 
   /**
-   * Gửi thông báo ngay lập tức (Instant Notification)
+   * Gửi thông báo ngay lập tức (Instant Notification / Test)
    */
   async sendInstant(title: string, body: string): Promise<void> {
     const hasPerm = await this.checkPermission();
@@ -135,10 +145,10 @@ export const notificationService = {
   },
 
   /**
-   * Lên lịch thông báo ngoài màn hình cho một công việc khi đến hạn
+   * Lên lịch thông báo ngoài màn hình cho một công việc khi đến hạn hoặc đến lịch làm
    */
   async scheduleTask(task: TaskDto): Promise<void> {
-    if (task.completed || !task.dueDate) {
+    if (task.completed || (!task.dueDate && !task.deadlineDate && !task.startTime)) {
       await this.cancelTask(task.id);
       return;
     }
@@ -147,18 +157,41 @@ export const notificationService = {
     if (!hasPerm) return;
 
     try {
-      // Parse ngày và giờ của dueDate
-      let targetDate: Date;
-      if (task.dueDate.includes("T") || task.dueDate.includes(":")) {
-        targetDate = new Date(task.dueDate);
+      const now = new Date();
+      let targetDate: Date | null = null;
+      let notifTitle = `⏰ Nhắc việc: ${task.title}`;
+      let notifBody = task.description || "Đến giờ thực hiện công việc của bạn rồi!";
+
+      // 1. Phân loại theo Hạn chót (Deadline)
+      if (task.timeType === "deadline" || task.deadlineDate) {
+        const dateStr = task.deadlineDate || (task.dueDate?.includes("-") ? task.dueDate.split(" ")[0] : null);
+        const timeStr = task.deadlineTime || (task.dueDate?.includes(":") ? (task.dueDate.includes(" ") ? task.dueDate.split(" ")[1] : task.dueDate) : "17:00");
+
+        if (dateStr) {
+          targetDate = new Date(`${dateStr}T${timeStr}:00`);
+          notifTitle = `⏳ Hạn chót: ${task.title}`;
+          notifBody = `Công việc sắp hết hạn lúc ${timeStr}! Hãy hoàn tất ngay nhé.`;
+        }
       } else {
-        // Nếu chỉ có ngày YYYY-MM-DD -> Mặc định nhắc lúc 09:00 sáng
-        targetDate = new Date(`${task.dueDate}T09:00:00`);
+        // 2. Phân loại theo Lịch làm việc (Scheduled Time Blocking)
+        const dateStr = task.dueDate?.includes("-") ? task.dueDate.split(" ")[0] : null;
+        const timeStr = task.startTime || (task.dueDate?.includes(":") ? (task.dueDate.includes(" ") ? task.dueDate.split(" ")[1] : task.dueDate) : "09:00");
+
+        if (dateStr) {
+          targetDate = new Date(`${dateStr}T${timeStr}:00`);
+          const timeRange = task.endTime ? `${timeStr} - ${task.endTime}` : timeStr;
+          notifTitle = `🕒 Lịch làm việc: ${task.title}`;
+          notifBody = `Khung giờ thực hiện: ${timeRange}. Bắt đầu làm ngay nào!`;
+        } else if (task.startTime) {
+          // Lên lịch trong ngày hôm nay
+          const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+          targetDate = new Date(`${todayStr}T${task.startTime}:00`);
+          notifTitle = `🕒 Lịch làm việc: ${task.title}`;
+          notifBody = `Đến giờ thực hiện lúc ${task.startTime}!`;
+        }
       }
 
-      const now = new Date();
-      // Nếu thời gian hẹn đã qua thì không lên lịch
-      if (targetDate.getTime() <= now.getTime()) {
+      if (!targetDate || targetDate.getTime() <= now.getTime()) {
         return;
       }
 
@@ -169,10 +202,8 @@ export const notificationService = {
           notifications: [
             {
               id: notifId,
-              title: `⏰ Nhắc việc: ${task.title}`,
-              body:
-                task.description ||
-                "Đến giờ thực hiện công việc rồi, hãy kiểm tra danh sách của bạn nhé!",
+              title: notifTitle,
+              body: notifBody,
               schedule: { at: targetDate },
               sound: "beep.wav",
               smallIcon: "ic_stat_sketchtask",
@@ -187,9 +218,8 @@ export const notificationService = {
         const msUntil = targetDate.getTime() - now.getTime();
         if (msUntil > 0 && msUntil < 86400000) {
           setTimeout(async () => {
-            await showWebNotification(`⏰ Nhắc việc: ${task.title}`, {
-              body:
-                task.description || "Đến giờ thực hiện công việc của bạn rồi!",
+            await showWebNotification(notifTitle, {
+              body: notifBody,
               tag: `task-${task.id}`,
             });
           }, msUntil);

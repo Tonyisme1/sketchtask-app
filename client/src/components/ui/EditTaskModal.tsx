@@ -8,6 +8,7 @@ import { CustomSelect } from "./CustomSelect";
 import { CustomDuePicker } from "./CustomDuePicker";
 import { Edit3, X, Check, Tag as TagIcon, Plus } from "lucide-react";
 import { getTagStyle } from "../../utils/tagColors";
+import { registerBackHandler } from "../../utils/backNavigation";
 
 // ==========================================
 // COMPONENT: EditTaskModal (Modal Toàn Màn Hình Chuẩn SettingsModal & Nền Mờ Sâu)
@@ -34,7 +35,6 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
   const [endTime, setEndTime] = useState<string | undefined>(undefined);
   const [deadlineDate, setDeadlineDate] = useState<string | undefined>(undefined);
   const [deadlineTime, setDeadlineTime] = useState<string | undefined>(undefined);
-
   const [priority, setPriority] = useState<"high" | "medium" | "low">("medium");
   const [selectedTag, setSelectedTag] = useState("");
   const [isAddingTag, setIsAddingTag] = useState(false);
@@ -57,6 +57,17 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
       setNewTagInput("");
     }
   }, [task, isOpen]);
+
+  // Đăng ký phím Back đóng modal
+  useEffect(() => {
+    if (isOpen) {
+      const unregister = registerBackHandler(() => {
+        onClose();
+        return true;
+      });
+      return unregister;
+    }
+  }, [isOpen, onClose]);
 
   // Khóa cuộn trang nền khi mở modal
   useEffect(() => {
@@ -82,11 +93,6 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
       title: title.trim(),
       notebookId: notebookId || undefined,
       dueDate: dueDate || undefined,
-      timeType,
-      startTime: startTime || undefined,
-      endTime: endTime || undefined,
-      deadlineDate: deadlineDate || undefined,
-      deadlineTime: deadlineTime || undefined,
       priority,
       tag: selectedTag || undefined,
     });
@@ -191,25 +197,12 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 
             <div>
               <label className="font-bold text-[#1C1917] block mb-1 text-[11px]">
-                Lịch làm & Hạn chót:
+                Hạn chót & Giờ hẹn:
               </label>
               <CustomDuePicker
                 value={dueDate}
-                timeType={timeType}
-                startTime={startTime}
-                endTime={endTime}
-                deadlineDate={deadlineDate}
-                deadlineTime={deadlineTime}
-                onSaveSchedule={(sched) => {
-                  setTimeType(sched.timeType || "scheduled");
-                  setDueDate(sched.dueDate);
-                  setStartTime(sched.startTime);
-                  setEndTime(sched.endTime);
-                  setDeadlineDate(sched.deadlineDate);
-                  setDeadlineTime(sched.deadlineTime);
-                }}
+                onChange={setDueDate}
                 mode="datetime"
-                className="w-full"
               />
             </div>
           </div>
