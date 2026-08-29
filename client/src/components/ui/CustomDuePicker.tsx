@@ -9,7 +9,6 @@ import {
   X,
 } from "lucide-react";
 import { getLocalTodayStr } from "../../utils/date";
-import { registerBackHandler } from "../../utils/backNavigation";
 
 // ==========================================
 // COMPONENT: CustomDuePicker (Modal Chọn Ngày & Kéo Giờ Căn Giữa Nền Mờ Toàn Màn Hình)
@@ -82,18 +81,6 @@ export const CustomDuePicker: React.FC<CustomDuePickerProps> = ({
       setSelectedMinute(parseInt(timePart.split(":")[1], 10) || 0);
     }
   }, [value, isOpen]);
-
-  // Đăng ký phím Back đóng bộ chọn thời gian
-  useEffect(() => {
-    if (isOpen) {
-      const unregister = registerBackHandler(() => {
-        setIsOpen(false);
-        setDateViewMode("days");
-        return true;
-      });
-      return unregister;
-    }
-  }, [isOpen]);
 
   // Khóa cuộn trang nền khi mở modal chọn ngày/giờ
   useEffect(() => {

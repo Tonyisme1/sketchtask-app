@@ -8,7 +8,6 @@ import { CustomSelect } from "./CustomSelect";
 import { CustomDuePicker } from "./CustomDuePicker";
 import { Edit3, X, Check, Tag as TagIcon, Plus } from "lucide-react";
 import { getTagStyle } from "../../utils/tagColors";
-import { registerBackHandler } from "../../utils/backNavigation";
 
 // ==========================================
 // COMPONENT: EditTaskModal (Modal Toàn Màn Hình Chuẩn SettingsModal & Nền Mờ Sâu)
@@ -30,11 +29,6 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
   const [title, setTitle] = useState("");
   const [notebookId, setNotebookId] = useState("");
   const [dueDate, setDueDate] = useState<string | undefined>(undefined);
-  const [timeType, setTimeType] = useState<"scheduled" | "deadline">("scheduled");
-  const [startTime, setStartTime] = useState<string | undefined>(undefined);
-  const [endTime, setEndTime] = useState<string | undefined>(undefined);
-  const [deadlineDate, setDeadlineDate] = useState<string | undefined>(undefined);
-  const [deadlineTime, setDeadlineTime] = useState<string | undefined>(undefined);
   const [priority, setPriority] = useState<"high" | "medium" | "low">("medium");
   const [selectedTag, setSelectedTag] = useState("");
   const [isAddingTag, setIsAddingTag] = useState(false);
@@ -46,28 +40,12 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
       setTitle(task.title || "");
       setNotebookId(task.notebookId || "");
       setDueDate(task.dueDate || undefined);
-      setTimeType(task.timeType || (task.deadlineDate ? "deadline" : "scheduled"));
-      setStartTime(task.startTime || undefined);
-      setEndTime(task.endTime || undefined);
-      setDeadlineDate(task.deadlineDate || undefined);
-      setDeadlineTime(task.deadlineTime || undefined);
       setPriority((task.priority as any) || "medium");
       setSelectedTag(task.tag || "");
       setIsAddingTag(false);
       setNewTagInput("");
     }
   }, [task, isOpen]);
-
-  // Đăng ký phím Back đóng modal
-  useEffect(() => {
-    if (isOpen) {
-      const unregister = registerBackHandler(() => {
-        onClose();
-        return true;
-      });
-      return unregister;
-    }
-  }, [isOpen, onClose]);
 
   // Khóa cuộn trang nền khi mở modal
   useEffect(() => {
@@ -286,7 +264,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
                       isSelected
                         ? "border-[#262626] shadow-[1px_1px_0px_#262626] font-bold ring-1 ring-[#262626]"
                         : "border-[#D4CEBF] hover:border-[#262626]"
-                    } ${style.bg} ${style.color}`}
+                    } ${style.bg} ${style.text}`}
                   >
                     <span>#{t}</span>
                     {isSelected && <Check size={10} strokeWidth={2.5} />}

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAppStore } from "../../../stores/appStore";
+import { TaskDto } from "../../../types";
 import { HandDrawnCheckbox } from "../../ui/HandDrawnCheckbox";
 import { Button } from "../../ui/Button";
 import { TextInput } from "../../ui/TextInput";

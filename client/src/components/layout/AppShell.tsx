@@ -10,7 +10,6 @@ import { GlobalSearchModal } from "../ui/GlobalSearchModal";
 import { UpdateModal } from "../ui/UpdateModal";
 import { checkForAppUpdates, UpdateInfo } from "../../services/updateService";
 import { isNativePlatform } from "../../services/notificationService";
-import { registerBackHandler } from "../../utils/backNavigation";
 import { BrandLogo } from "../ui/BrandLogo";
 import { DynamicIcon } from "../ui/DynamicIcon";
 import { NotificationBell } from "../ui/NotificationBell";
@@ -82,54 +81,6 @@ export const AppShell: React.FC<AppShellProps> = ({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
-
-  // Đăng ký phím Back đóng các Modal trong AppShell
-  useEffect(() => {
-    if (
-      isAvatarMenuOpen ||
-      isSettingsModalOpen ||
-      isAuthModalOpen ||
-      isSearchModalOpen ||
-      isOnboardingOpen ||
-      Boolean(updateInfo)
-    ) {
-      const unregister = registerBackHandler(() => {
-        if (isAvatarMenuOpen) {
-          setIsAvatarMenuOpen(false);
-          return true;
-        }
-        if (isSearchModalOpen) {
-          setIsSearchModalOpen(false);
-          return true;
-        }
-        if (isSettingsModalOpen) {
-          setIsSettingsModalOpen(false);
-          return true;
-        }
-        if (isAuthModalOpen) {
-          setIsAuthModalOpen(false);
-          return true;
-        }
-        if (isOnboardingOpen) {
-          setIsOnboardingOpen(false);
-          return true;
-        }
-        if (updateInfo) {
-          setUpdateInfo(null);
-          return true;
-        }
-        return false;
-      });
-      return unregister;
-    }
-  }, [
-    isAvatarMenuOpen,
-    isSettingsModalOpen,
-    isAuthModalOpen,
-    isSearchModalOpen,
-    isOnboardingOpen,
-    updateInfo,
-  ]);
 
   // Đóng khi click ngoài
   useEffect(() => {

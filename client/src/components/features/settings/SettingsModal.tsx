@@ -5,7 +5,6 @@ import { Button } from "../../ui/Button";
 import { ConfirmModal } from "../../ui/ConfirmModal";
 import { CustomAvatarPicker } from "../../ui/CustomAvatarPicker";
 import { CURRENT_APP_VERSION } from "../../../services/updateService";
-import { notificationService } from "../../../services/notificationService";
 import { sounds } from "../../../utils/soundEffects";
 import {
   Settings,
@@ -32,9 +31,6 @@ import {
   Key,
   ArrowRight,
   Play,
-  Bell,
-  BellRing,
-  BellOff,
 } from "lucide-react";
 import { PinLockModal } from "../auth/PinLockModal";
 
@@ -99,7 +95,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [pinModalMode, setPinModalMode] = useState<"setup" | "change" | "disable" | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [permStatus, setPermStatus] = useState<"granted" | "denied" | "default">("default");
 
   const [editingName, setEditingName] = useState(user.name);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -113,13 +108,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Nạp trạng thái quyền thông báo thực tế khi mở modal
-  useEffect(() => {
-    if (isOpen) {
-      notificationService.getPermissionStatus().then(setPermStatus);
-    }
-  }, [isOpen]);
 
   // Khóa cứng thanh cuộn khi mở modal
   useEffect(() => {
@@ -539,106 +527,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </button>
                   </div>
                 )}
-              </div>
-
-              {/* THÔNG BÁO & NHẮC NHỞ HỆ THỐNG (TRẠNG THÁI RÕ RÀNG) */}
-              <div className="p-3 bg-white border border-[#D4CEBF] rounded-[6px] space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    {permStatus === "granted" && isNotificationsEnabled ? (
-                      <BellRing size={14} className="text-emerald-700 animate-bounce" />
-                    ) : (
-                      <BellOff size={14} className="text-[#78716C]" />
-                    )}
-                    <span className="font-bold text-[11px] text-[#1C1917]">
-                      THÔNG BÁO & NHẮC NHỞ:
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      if (!isNotificationsEnabled && permStatus !== "granted") {
-                        const granted = await notificationService.requestPermission();
-                        setPermStatus(granted ? "granted" : "denied");
-                        setIsNotificationsEnabled(granted);
-                        if (granted) {
-                          showToast("✓ Đã cấp quyền thông báo thành công!");
-                          notificationService.sendInstant("🎉 SketchTask Thông Báo", "Thông báo nhắc việc đã sẵn sàng hoạt động!");
-                        } else {
-                          showToast("⚠️ Chưa được cấp quyền thông báo");
-                        }
-                      } else {
-                        setIsNotificationsEnabled(!isNotificationsEnabled);
-                      }
-                    }}
-                    className={`w-14 h-6 border-[1.5px] border-[#262626] rounded-[4px] transition-all p-0.5 flex items-center shadow-[1px_1px_0px_#262626] select-none ${
-                      isNotificationsEnabled && permStatus === "granted" ? "bg-[#BBF7D0] justify-end" : "bg-[#F3EFE6] justify-start"
-                    }`}
-                  >
-                    <span className="h-4 px-1 rounded-[2px] border border-[#262626] bg-white text-[8.5px] font-mono font-bold flex items-center justify-center">
-                      {isNotificationsEnabled && permStatus === "granted" ? "BẬT" : "TẮT"}
-                    </span>
-                  </button>
-                </div>
-
-                {/* Huy hiệu trạng thái quyền chi tiết */}
-                <div className="flex items-center justify-between pt-1 border-t border-[#D4CEBF]/60 text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-[#78716C]">Trạng thái quyền:</span>
-                    {permStatus === "granted" ? (
-                      <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-900 border border-emerald-400 rounded text-[10px] font-bold font-mono inline-flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-                        <span>ĐÃ CẤP QUYỀN</span>
-                      </span>
-                    ) : permStatus === "denied" ? (
-                      <span className="px-1.5 py-0.2 bg-rose-100 text-rose-900 border border-rose-400 rounded text-[10px] font-bold font-mono inline-flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
-                        <span>BỊ CHẶN (Vào Cài đặt máy mở lại)</span>
-                      </span>
-                    ) : (
-                      <span className="px-1.5 py-0.2 bg-amber-100 text-amber-900 border border-amber-400 rounded text-[10px] font-bold font-mono inline-flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
-                        <span>CHƯA CẤP QUYỀN</span>
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Nút Test thông báo hoặc Yêu cầu quyền */}
-                  {permStatus === "granted" ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        notificationService.sendInstant(
-                          "🔔 Thử Nghiệm Thông Báo",
-                          "Hệ thống thông báo và rung phản hồi của SketchTask đang hoạt động hoàn hảo!"
-                        );
-                        showToast("✓ Đã gửi 1 thông báo thử nghiệm!");
-                      }}
-                      className="px-2 py-0.5 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded text-[10px] font-bold shadow-sm shrink-0 active:translate-y-[0.5px]"
-                    >
-                      Gửi thử 🔔
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        const granted = await notificationService.requestPermission();
-                        setPermStatus(granted ? "granted" : "denied");
-                        if (granted) {
-                          setIsNotificationsEnabled(true);
-                          showToast("✓ Đã cấp quyền thông báo thành công!");
-                          notificationService.sendInstant("🎉 SketchTask Thông Báo", "Thông báo nhắc việc đã sẵn sàng!");
-                        } else {
-                          showToast("⚠️ Trình duyệt/máy đang chặn quyền thông báo");
-                        }
-                      }}
-                      className="px-2 py-0.5 bg-[#BBF7D0] hover:bg-[#86EFAC] border border-[#262626] rounded text-[10px] font-bold shadow-sm shrink-0 active:translate-y-[0.5px]"
-                    >
-                      Bật quyền 🔔
-                    </button>
-                  )}
-                </div>
               </div>
 
               {/* TÙY BIẾN KHÁC */}

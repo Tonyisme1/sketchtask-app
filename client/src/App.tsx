@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { TabKey } from "./types";
 import { AppProvider } from "./stores/appStore";
 import { AppShell } from "./components/layout/AppShell";
@@ -7,51 +7,13 @@ import { PlannerTab } from "./components/features/planner/PlannerTab";
 import { NotebooksTab } from "./components/features/notebooks/NotebooksTab";
 import { BraindumpTab } from "./components/features/braindump/BraindumpTab";
 import { ReviewTab } from "./components/features/review/ReviewTab";
-import {
-  initBackNavigationListener,
-  registerTabNavigateBack,
-} from "./utils/backNavigation";
 
 // ==========================================
-// MAIN APP CONTENT (Chuyển đổi 5 Tab & Nhớ Lịch Sử Back)
+// MAIN APP CONTENT (Chuyển đổi 5 Tab)
 // ==========================================
 
 function MainAppContent() {
   const [activeTab, setActiveTab] = useState<TabKey>("today");
-  const [tabHistory, setTabHistory] = useState<TabKey[]>(["today"]);
-
-  // Khởi tạo listener phím Back 1 lần
-  useEffect(() => {
-    initBackNavigationListener();
-  }, []);
-
-  // Đăng ký hành động Back chuyển tab trước đó
-  useEffect(() => {
-    const unregister = registerTabNavigateBack(() => {
-      if (tabHistory.length > 1) {
-        const newHistory = [...tabHistory];
-        newHistory.pop(); // Bỏ tab hiện tại
-        const prevTab = newHistory[newHistory.length - 1];
-        setTabHistory(newHistory);
-        setActiveTab(prevTab);
-        return true;
-      }
-      if (activeTab !== "today") {
-        setActiveTab("today");
-        setTabHistory(["today"]);
-        return true;
-      }
-      return false;
-    });
-    return unregister;
-  }, [tabHistory, activeTab]);
-
-  const handleTabChange = (nextTab: TabKey) => {
-    if (nextTab !== activeTab) {
-      setTabHistory((prev) => [...prev, nextTab]);
-      setActiveTab(nextTab);
-    }
-  };
 
   const renderActiveTabContent = () => {
     switch (activeTab) {
@@ -71,7 +33,7 @@ function MainAppContent() {
   };
 
   return (
-    <AppShell activeTab={activeTab} onTabChange={handleTabChange}>
+    <AppShell activeTab={activeTab} onTabChange={setActiveTab}>
       {renderActiveTabContent()}
     </AppShell>
   );

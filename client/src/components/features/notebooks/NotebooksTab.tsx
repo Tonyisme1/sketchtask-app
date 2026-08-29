@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAppStore } from "../../../stores/appStore";
 import { TaskDto, TaskPriority } from "../../../types";
 import { Button } from "../../ui/Button";
@@ -16,7 +16,6 @@ import { getCardTilt } from "../../../utils/tilt";
 import { getTagStyle } from "../../../utils/tagColors";
 import { getTaskDueInfo } from "../../../utils/taskDueStatus";
 import { getLocalTodayStr } from "../../../utils/date";
-import { registerBackHandler } from "../../../utils/backNavigation";
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -53,17 +52,6 @@ export const NotebooksTab: React.FC = () => {
   const [selectedNotebookId, setSelectedNotebookId] = useState<string | null>(
     null,
   );
-
-  // Đăng ký phím Back để thoát khỏi chi tiết sổ tay
-  useEffect(() => {
-    if (selectedNotebookId) {
-      const unregister = registerBackHandler(() => {
-        setSelectedNotebookId(null);
-        return true;
-      });
-      return unregister;
-    }
-  }, [selectedNotebookId]);
 
   const [isCreatingInline, setIsCreatingInline] = useState(false);
   const [newNbName, setNewNbName] = useState("");
