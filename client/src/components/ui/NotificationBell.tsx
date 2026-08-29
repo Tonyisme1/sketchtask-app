@@ -45,26 +45,37 @@ export const NotificationBell: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
-  const [hasSystemPerm, setHasSystemPerm] = useState(true);
+  const [permStatus, setPermStatus] = useState<"granted" | "denied" | "default">("default");
+  const [testSent, setTestSent] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Kiểm tra quyền thông báo khi mở popover
   useEffect(() => {
-    notificationService.checkPermission().then((granted) => {
-      setHasSystemPerm(granted);
+    notificationService.getPermissionStatus().then((status) => {
+      setPermStatus(status);
     });
   }, [isOpen]);
 
   const handleRequestSystemPermission = async () => {
     const granted = await notificationService.requestPermission();
-    setHasSystemPerm(granted);
+    const status = granted ? "granted" : "denied";
+    setPermStatus(status);
     if (granted) {
       setIsNotificationsEnabled(true);
       notificationService.sendInstant(
-        "SketchTask",
+        "🎉 SketchTask Thông Báo",
         "Đã bật thông báo thành công! Bạn sẽ nhận được nhắc nhở khi đến giờ hẹn."
       );
     }
+  };
+
+  const handleSendTestNotification = () => {
+    notificationService.sendInstant(
+      "🔔 Thử Nghiệm Chuông Nhắc Việc",
+      "Thông báo và rung phản hồi của SketchTask đang hoạt động hoàn hảo!"
+    );
+    setTestSent(true);
+    setTimeout(() => setTestSent(false), 2500);
   };
 
   const todayStr = new Date().toISOString().split("T")[0];
@@ -292,49 +303,70 @@ export const NotificationBell: React.FC = () => {
             </div>
           </div>
 
-          {/* Công Tắc Bật / Tắt Thông Báo */}
-          <div className="flex items-center justify-between p-1.5 bg-white border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626]">
-            <span className="flex items-center gap-1.5 text-[11px] font-bold text-[#1C1917]">
-              {isNotificationsEnabled ? (
-                <Bell size={12} strokeWidth={2.2} className="text-emerald-700" />
-              ) : (
-                <BellOff size={12} strokeWidth={2.2} className="text-red-600" />
-              )}
-              <span>Nhắc việc:</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => setIsNotificationsEnabled(!isNotificationsEnabled)}
-              className={`px-2 py-0.5 rounded-[3px] border-[1.5px] border-[#262626] text-[10px] font-bold transition-all flex items-center gap-1 active:translate-x-[0.5px] active:translate-y-[0.5px] ${
-                isNotificationsEnabled
-                  ? "bg-[#BBF7D0] text-emerald-900 shadow-[1px_1px_0px_#262626]"
-                  : "bg-[#FECDD3] text-red-900 shadow-[1px_1px_0px_#262626]"
-              }`}
-            >
-              <span>{isNotificationsEnabled ? "Đang Bật ✓" : "Đã Tắt ✕"}</span>
-            </button>
-          </div>
-
-          {/* Banner Bật Thông Báo Ngoài Màn Hình (Nếu chưa cấp quyền) */}
-          {!hasSystemPerm && isNotificationsEnabled && (
-            <div className="p-2 bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-bold text-[#1C1917] leading-tight">
-                  Nhận nhắc việc ra màn hình khóa
-                </p>
-                <p className="text-[9.5px] text-[#78716C] leading-tight mt-0.5">
-                  Chuông & rung đúng giờ hẹn
-                </p>
-              </div>
+          {/* Khối Điều Khiển & Trạng Thái Thông Báo */}
+          <div className="p-2 bg-white border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-[11px] font-bold text-[#1C1917]">
+                {isNotificationsEnabled ? (
+                  <Bell size={12} strokeWidth={2.2} className="text-emerald-700" />
+                ) : (
+                  <BellOff size={12} strokeWidth={2.2} className="text-red-600" />
+                )}
+                <span>Nhắc việc:</span>
+              </span>
               <button
                 type="button"
-                onClick={handleRequestSystemPermission}
-                className="px-2 py-1 bg-white border border-[#262626] rounded text-[10px] font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none whitespace-nowrap"
+                onClick={() => setIsNotificationsEnabled(!isNotificationsEnabled)}
+                className={`px-2 py-0.5 rounded-[3px] border-[1.5px] border-[#262626] text-[10px] font-bold transition-all flex items-center gap-1 active:translate-x-[0.5px] active:translate-y-[0.5px] ${
+                  isNotificationsEnabled
+                    ? "bg-[#BBF7D0] text-emerald-900 shadow-[1px_1px_0px_#262626]"
+                    : "bg-[#FECDD3] text-red-900 shadow-[1px_1px_0px_#262626]"
+                }`}
               >
-                Bật ngay
+                <span>{isNotificationsEnabled ? "Đang Bật ✓" : "Đã Tắt ✕"}</span>
               </button>
             </div>
-          )}
+
+            {/* Trạng thái quyền & Nút Test */}
+            <div className="flex items-center justify-between pt-1.5 border-t border-[#D4CEBF]/60 text-[10px]">
+              <div className="flex items-center gap-1">
+                {permStatus === "granted" ? (
+                  <span className="text-emerald-700 font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                    <span>Đã cấp quyền</span>
+                  </span>
+                ) : permStatus === "denied" ? (
+                  <span className="text-rose-700 font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+                    <span>Bị chặn trên máy</span>
+                  </span>
+                ) : (
+                  <span className="text-amber-700 font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+                    <span>Chưa cấp quyền</span>
+                  </span>
+                )}
+              </div>
+
+              {permStatus === "granted" ? (
+                <button
+                  type="button"
+                  onClick={handleSendTestNotification}
+                  className="px-2 py-0.5 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded text-[10px] font-bold shadow-sm shrink-0 active:translate-y-[0.5px] transition-all"
+                >
+                  {testSent ? "Đã gửi chuông! ✓" : "Gửi thử 🔔"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleRequestSystemPermission}
+                  className="px-2 py-0.5 bg-[#BBF7D0] hover:bg-[#86EFAC] border border-[#262626] rounded text-[10px] font-bold shadow-sm shrink-0 active:translate-y-[0.5px] transition-all"
+                >
+                  Bật quyền 🔔
+                </button>
+              )}
+            </div>
+          </div>
 
           {/* Danh Sách Thông Báo */}
           <div className="space-y-1.5 max-h-60 overflow-y-auto no-scrollbar pr-0.5">

@@ -31,6 +31,10 @@ import {
   Key,
   ArrowRight,
   Play,
+  Sliders,
+  Bell,
+  BellOff,
+  Palette,
 } from "lucide-react";
 import { PinLockModal } from "../auth/PinLockModal";
 
@@ -87,9 +91,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   } = useAppStore();
 
   const [mounted, setMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<"general" | "data" | "about">(
-    "general",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "general" | "appearance" | "data" | "about"
+  >("general");
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const [confirmArchiveOpen, setConfirmArchiveOpen] = useState(false);
   const [pinModalMode, setPinModalMode] = useState<"setup" | "change" | "disable" | null>(null);
@@ -305,10 +309,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
         </div>
 
-        {/* 3 Tab Navigation */}
-        <div className="grid grid-cols-3 gap-1 p-0.5 my-2.5 bg-white border border-[#262626] rounded-[4px]">
+        {/* 4 Tab Navigation Chuẩn */}
+        <div className="grid grid-cols-4 gap-1 p-1 my-2.5 bg-[#ECE8DF] border border-[#262626] rounded-[6px] text-center">
           {[
-            { key: "general", label: "Chung", Icon: User },
+            { key: "general", label: "Chung", Icon: Sliders },
+            { key: "appearance", label: "Giao diện", Icon: Sparkles },
             { key: "data", label: "Dữ liệu", Icon: Cloud },
             { key: "about", label: "Giới thiệu", Icon: Info },
           ].map((t) => {
@@ -318,13 +323,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 key={t.key}
                 type="button"
                 onClick={() => setActiveTab(t.key as any)}
-                className={`py-1.5 rounded-[2px] text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                className={`py-1.5 px-0.5 rounded-[4px] text-[11px] sm:text-xs font-bold flex items-center justify-center gap-1 transition-all ${
                   activeTab === t.key
-                    ? "bg-[#FEF08A] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
-                    : "text-[#78716C] hover:bg-[#F3EFE6]"
+                    ? "bg-[#FEF08A] text-[#1C1917] border border-[#262626] shadow-[1px_1px_0px_#262626]"
+                    : "text-[#78716C] hover:text-[#1C1917]"
                 }`}
               >
-                <IconComp size={13} strokeWidth={2.2} />
+                <IconComp size={12} strokeWidth={2.2} />
                 <span>{t.label}</span>
               </button>
             );
@@ -445,33 +450,96 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
               </div>
 
-              {/* TÙY BIẾN CHẤT LIỆU TRANG GIẤY */}
-              <div className="p-3 bg-white border border-[#D4CEBF] rounded-[6px] space-y-2">
-                <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
-                  <FileText size={13} strokeWidth={2.2} />
-                  <span>CHẤT LIỆU TRANG GIẤY:</span>
-                </span>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-0.5">
-                  {[
-                    { key: "blank", label: "Giấy Trơn", desc: "Ấm áp" },
-                    { key: "lined", label: "Kẻ Ngang", desc: "Nhật ký" },
-                    { key: "dots", label: "Chấm Bi", desc: "Bullet" },
-                    { key: "grid", label: "Ô Vuông", desc: "Kỹ thuật" },
-                  ].map((style) => (
-                    <button
-                      key={style.key}
-                      type="button"
-                      onClick={() => setPaperStyle(style.key as any)}
-                      className={`p-2 rounded-[4px] border text-center transition-all ${
-                        paperStyle === style.key
-                          ? "bg-[#FEF08A] border-[#262626] font-bold shadow-[1.5px_1.5px_0px_#262626]"
-                          : "bg-[#FBF9F4] border-[#D4CEBF] text-[#78716C] hover:text-[#1C1917]"
-                      }`}
-                    >
-                      <p className="text-xs font-bold text-[#1C1917]">{style.label}</p>
-                      <p className="text-[9px] text-[#78716C] mt-0.5">{style.desc}</p>
-                    </button>
-                  ))}
+              {/* THÔNG BÁO HỆ THỐNG & NHẮC VIỆC */}
+              <div className="p-3 bg-white border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2.5">
+                <div className="flex items-center justify-between pb-1.5 border-b border-[#E7E5E4]">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1 bg-amber-100 border border-amber-300 rounded text-amber-900">
+                      <Bell size={14} strokeWidth={2.2} />
+                    </span>
+                    <div>
+                      <h4 className="font-bold text-xs text-[#1C1917]">
+                        Thông Báo & Chuông Nhắc Việc
+                      </h4>
+                      <p className="text-[10px] text-[#78716C]">
+                        Nhắc nhở chính xác theo Lịch hẹn & Hạn chót
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsNotificationsEnabled(!isNotificationsEnabled)}
+                    className={`px-2.5 py-1 rounded-[4px] border-[1.5px] border-[#262626] text-[11px] font-bold transition-all active:translate-x-[0.5px] active:translate-y-[0.5px] ${
+                      isNotificationsEnabled
+                        ? "bg-[#BBF7D0] text-emerald-900 shadow-[1px_1px_0px_#262626]"
+                        : "bg-[#FECDD3] text-red-900 shadow-[1px_1px_0px_#262626]"
+                    }`}
+                  >
+                    {isNotificationsEnabled ? "Đang Bật ✓" : "Đã Tắt ✕"}
+                  </button>
+                </div>
+
+                {/* Trạng thái quyền thông báo & Nút gửi thử */}
+                <div className="flex items-center justify-between pt-1 text-[11px]">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[#78716C] font-medium">Quyền hệ thống:</span>
+                    {permStatus === "granted" ? (
+                      <span className="px-1.5 py-0.5 bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold rounded text-[10px] flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                        <span>ĐÃ CẤP QUYỀN</span>
+                      </span>
+                    ) : permStatus === "denied" ? (
+                      <span className="px-1.5 py-0.5 bg-rose-100 border border-rose-300 text-rose-800 font-bold rounded text-[10px] flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+                        <span>BỊ CHẶN</span>
+                      </span>
+                    ) : (
+                      <span className="px-1.5 py-0.5 bg-amber-100 border border-amber-300 text-amber-800 font-bold rounded text-[10px] flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+                        <span>CHƯA CẤP QUYỀN</span>
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    {permStatus !== "granted" ? (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const granted = await notificationService.requestPermission();
+                          setPermStatus(granted ? "granted" : "denied");
+                          if (granted) {
+                            setIsNotificationsEnabled(true);
+                            notificationService.sendInstant(
+                              "🎉 SketchTask Thông Báo",
+                              "Đã kích hoạt thông báo thành công! Bạn sẽ nhận được nhắc nhở khi đến giờ hẹn."
+                            );
+                            showToast("Đã cấp quyền thông báo thành công!");
+                          } else {
+                            showToast("Chưa được cấp quyền thông báo");
+                          }
+                        }}
+                        className="px-2.5 py-1 bg-[#BBF7D0] hover:bg-[#86EFAC] border border-[#262626] rounded text-[11px] font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
+                      >
+                        Bật quyền 🔔
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          notificationService.sendInstant(
+                            "🔔 Thử Nghiệm Chuông Nhắc Việc",
+                            "Thông báo và rung phản hồi của SketchTask đang hoạt động hoàn hảo!"
+                          );
+                          showToast("Đã gửi thông báo thử nghiệm!");
+                        }}
+                        className="px-2.5 py-1 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded text-[11px] font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] transition-all"
+                      >
+                        Gửi thử 🔔
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -529,10 +597,99 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 )}
               </div>
 
-              {/* TÙY BIẾN KHÁC */}
-              <div className="p-3 bg-white border border-[#D4CEBF] rounded-[6px] space-y-3">
+              {/* BẢO MẬT & MÃ PIN (APP LOCK) */}
+              <div className="p-3 bg-white border border-[#D4CEBF] rounded-[6px] space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
+                    <Lock size={13} className="text-amber-700" strokeWidth={2.2} />
+                    <span>KHÓA MÃ PIN BẢO VỆ:</span>
+                  </span>
+                  <span
+                    className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                      pinCode
+                        ? "bg-[#BBF7D0] text-emerald-900 border-[#262626]"
+                        : "bg-[#F3EFE6] text-[#78716C] border-[#D4CEBF]"
+                    }`}
+                  >
+                    {pinCode ? "Đã bật bảo vệ" : "Chưa cài đặt"}
+                  </span>
+                </div>
+
+                <p className="text-[10px] text-[#78716C] leading-relaxed">
+                  Khóa ứng dụng bằng mã PIN 4 số để bảo vệ sổ tay và ghi chú ý tưởng của bạn.
+                </p>
+
+                <div className="flex items-center gap-2 pt-1">
+                  {pinCode ? (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setPinModalMode("change")}
+                        className="flex-1 py-1.5 bg-[#FBF9F4] hover:bg-[#FEF08A] border border-[#262626] rounded text-xs font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
+                      >
+                        Đổi mã PIN
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPinModalMode("disable")}
+                        className="py-1.5 px-3 bg-white hover:bg-rose-50 text-rose-600 border border-rose-300 rounded text-xs font-bold active:translate-y-[0.5px]"
+                      >
+                        Tắt khóa
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setPinModalMode("setup")}
+                      className="w-full py-1.5 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded text-xs font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
+                    >
+                      + Thiết lập mã PIN (4 số)
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ==================================================== */}
+          {/* TAB 2: GIAO DIỆN */}
+          {/* ==================================================== */}
+          {activeTab === "appearance" && (
+            <div className="space-y-3 text-xs">
+              {/* TÙY BIẾN CHẤT LIỆU TRANG GIẤY */}
+              <div className="p-3 bg-white border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2">
+                <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
+                  <FileText size={13} strokeWidth={2.2} />
+                  <span>CHẤT LIỆU TRANG GIẤY:</span>
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 pt-0.5">
+                  {[
+                    { key: "blank", label: "Giấy Trơn", desc: "Ấm áp" },
+                    { key: "lined", label: "Kẻ Ngang", desc: "Nhật ký" },
+                    { key: "dots", label: "Chấm Bi", desc: "Bullet" },
+                    { key: "grid", label: "Ô Vuông", desc: "Kỹ thuật" },
+                  ].map((style) => (
+                    <button
+                      key={style.key}
+                      type="button"
+                      onClick={() => setPaperStyle(style.key as any)}
+                      className={`p-2 rounded-[4px] border text-center transition-all ${
+                        paperStyle === style.key
+                          ? "bg-[#FEF08A] border-[#262626] font-bold shadow-[1.5px_1.5px_0px_#262626]"
+                          : "bg-[#FBF9F4] border-[#D4CEBF] text-[#78716C] hover:text-[#1C1917]"
+                      }`}
+                    >
+                      <p className="text-xs font-bold text-[#1C1917]">{style.label}</p>
+                      <p className="text-[9px] text-[#78716C] mt-0.5">{style.desc}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* TÙY CHỌN HIỂN THỊ */}
+              <div className="p-3 bg-white border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-3">
                 <span className="font-bold text-[11px] text-[#1C1917] block">
-                  TÙY CHỌN KHÁC:
+                  TÙY CHỌN HIỂN THỊ:
                 </span>
 
                 {/* Độ nghiêng */}
@@ -590,58 +747,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       {isDarkMode ? "BẬT" : "TẮT"}
                     </span>
                   </button>
-                </div>
-              </div>
-
-              {/* BẢO MẬT & MÃ PIN (APP LOCK) */}
-              <div className="p-3 bg-white border border-[#D4CEBF] rounded-[6px] space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-[11px] text-[#1C1917] flex items-center gap-1.5">
-                    <Lock size={13} className="text-amber-700" strokeWidth={2.2} />
-                    <span>KHÓA MÃ PIN BẢO VỆ:</span>
-                  </span>
-                  <span
-                    className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded border ${
-                      pinCode
-                        ? "bg-[#BBF7D0] text-emerald-900 border-[#262626]"
-                        : "bg-[#F3EFE6] text-[#78716C] border-[#D4CEBF]"
-                    }`}
-                  >
-                    {pinCode ? "Đã bật bảo vệ" : "Chưa cài đặt"}
-                  </span>
-                </div>
-
-                <p className="text-[10px] text-[#78716C] leading-relaxed">
-                  Khóa ứng dụng bằng mã PIN 4 số để bảo vệ sổ tay và ghi chú ý tưởng của bạn.
-                </p>
-
-                <div className="flex items-center gap-2 pt-1">
-                  {pinCode ? (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => setPinModalMode("change")}
-                        className="flex-1 py-1.5 bg-[#FBF9F4] hover:bg-[#FEF08A] border border-[#262626] rounded text-xs font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
-                      >
-                        Đổi mã PIN
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPinModalMode("disable")}
-                        className="py-1.5 px-3 bg-white hover:bg-rose-50 text-rose-600 border border-rose-300 rounded text-xs font-bold active:translate-y-[0.5px]"
-                      >
-                        Tắt khóa
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setPinModalMode("setup")}
-                      className="w-full py-1.5 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded text-xs font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
-                    >
-                      + Thiết lập mã PIN (4 số)
-                    </button>
-                  )}
                 </div>
               </div>
             </div>

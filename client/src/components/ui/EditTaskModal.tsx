@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from "react";
+﻿import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { TaskDto, TaskPriority } from "../../types";
 import { useAppStore } from "../../stores/appStore";
-import { TextInput } from "./TextInput";
+import { AutoResizeTextarea } from "./AutoResizeTextarea";
 import { Button } from "./Button";
 import { CustomSelect } from "./CustomSelect";
-import { CustomDuePicker } from "./CustomDuePicker";
+import { CustomDuePicker, TaskTimeValue } from "./CustomDuePicker";
 import { Edit3, X, Check, Tag as TagIcon, Plus } from "lucide-react";
 import { getTagStyle } from "../../utils/tagColors";
+import { registerBackHandler } from "../../utils/backNavigation";
 
 // ==========================================
 // COMPONENT: EditTaskModal (Modal Toàn Màn Hình Chuẩn SettingsModal & Nền Mờ Sâu)
+// Tích hợp AutoResizeTextarea và Bộ Chọn Thời Gian Kép Chuẩn
 // ==========================================
 
 interface EditTaskModalProps {
@@ -29,6 +31,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
   const [title, setTitle] = useState("");
   const [notebookId, setNotebookId] = useState("");
   const [dueDate, setDueDate] = useState<string | undefined>(undefined);
+  const [timeData, setTimeData] = useState<TaskTimeValue | undefined>(undefined);
   const [priority, setPriority] = useState<"high" | "medium" | "low">("medium");
   const [selectedTag, setSelectedTag] = useState("");
   const [isAddingTag, setIsAddingTag] = useState(false);
@@ -40,6 +43,14 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
       setTitle(task.title || "");
       setNotebookId(task.notebookId || "");
       setDueDate(task.dueDate || undefined);
+      setTimeData({
+        timeType: task.timeType,
+        date: task.dueDate ? task.dueDate.split(" ")[0] : undefined,
+        startTime: task.startTime,
+        endTime: task.endTime,
+        deadlineDate: task.deadlineDate,
+        deadlineTime: task.deadlineTime,
+      });
       setPriority((task.priority as any) || "medium");
       setSelectedTag(task.tag || "");
       setIsAddingTag(false);
@@ -47,16 +58,22 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
     }
   }, [task, isOpen]);
 
+  // Đăng ký phím Back phần cứng
+  useEffect(() => {
+    if (!isOpen) return;
+    return registerBackHandler(() => {
+      onClose();
+      return true;
+    });
+  }, [isOpen, onClose]);
+
   // Khóa cuộn trang nền khi mở modal
   useEffect(() => {
     if (isOpen) {
       const originalOverflow = document.body.style.overflow;
-      const originalTouchAction = document.body.style.touchAction;
       document.body.style.overflow = "hidden";
-      document.body.style.touchAction = "none";
       return () => {
         document.body.style.overflow = originalOverflow;
-        document.body.style.touchAction = originalTouchAction;
       };
     }
   }, [isOpen]);
@@ -71,6 +88,11 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
       title: title.trim(),
       notebookId: notebookId || undefined,
       dueDate: dueDate || undefined,
+      timeType: timeData?.timeType,
+      startTime: timeData?.startTime,
+      endTime: timeData?.endTime,
+      deadlineDate: timeData?.deadlineDate,
+      deadlineTime: timeData?.deadlineTime,
       priority,
       tag: selectedTag || undefined,
     });
@@ -132,7 +154,7 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
           onSubmit={handleSave}
           className="space-y-3.5 text-xs overflow-y-auto no-scrollbar py-3 flex-1"
         >
-          {/* 1. Tiêu Đề Công Việc (Khung Nhiều Dòng Dễ Đọc & Sửa Trọn Vẹn) */}
+          {/* 1. Tiêu Đề Công Việc: Tự Co Giãn Theo Chuỗi Ký Tự */}
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="font-bold text-[#1C1917] text-[11px]">
@@ -142,154 +164,180 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
                 {title.length}/250
               </span>
             </div>
-            <textarea
+            <AutoResizeTextarea
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Nhập tiêu đề việc cần làm..."
-              rows={3}
+              minRows={2}
+              maxRows={6}
               maxLength={250}
-              className="w-full bg-white text-xs sm:text-sm font-medium border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] p-2.5 outline-none resize-none focus:ring-1 focus:ring-[#262626] leading-relaxed text-[#1C1917] placeholder:text-[#A8A29E]"
+              autoFocus
             />
           </div>
 
-          {/* 2. Cuốn Sổ & Hạn Chót */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {/* 2. Thuộc Cuốn Sổ & Bộ Chọn Thời Gian Kép */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="font-bold text-[#1C1917] block mb-1 text-[11px]">
+              <label className="font-bold text-[#1C1917] text-[11px] block mb-1">
                 Thuộc cuốn sổ:
               </label>
               <CustomSelect
                 value={notebookId}
-                onChange={setNotebookId}
-                placeholder="Chọn cuốn sổ..."
+                onChange={(val) => setNotebookId(val)}
                 options={[
-                  { value: "", label: "Không gán sổ", icon: "lucide:FileText" },
+                  { value: "", label: "Không gán sổ" },
                   ...notebooks.map((nb) => ({
                     value: nb.id,
                     label: nb.name,
-                    icon: nb.icon || "lucide:BookMarked",
+                    icon: nb.icon,
                   })),
                 ]}
+                className="w-full"
               />
             </div>
 
             <div>
-              <label className="font-bold text-[#1C1917] block mb-1 text-[11px]">
-                Hạn chót & Giờ hẹn:
+              <label className="font-bold text-[#1C1917] text-[11px] block mb-1">
+                Lịch hẹn & Hạn chót:
               </label>
               <CustomDuePicker
                 value={dueDate}
-                onChange={setDueDate}
-                mode="datetime"
+                timeData={timeData}
+                onChange={(val, tData) => {
+                  setDueDate(val);
+                  setTimeData(tData);
+                }}
+                className="w-full"
               />
             </div>
           </div>
 
           {/* 3. Mức Độ Ưu Tiên */}
           <div>
-            <label className="font-bold text-[#1C1917] block mb-1 text-[11px]">
+            <label className="font-bold text-[#1C1917] text-[11px] block mb-1.5">
               Mức độ ưu tiên:
             </label>
             <div className="grid grid-cols-3 gap-2">
-              {[
-                {
-                  key: "high",
-                  label: "Gấp",
-                  iconBg: "bg-rose-500",
-                  activeBorder: "border-rose-600 bg-rose-50 text-rose-800",
-                },
-                {
-                  key: "medium",
-                  label: "Vừa",
-                  iconBg: "bg-amber-500",
-                  activeBorder: "border-amber-600 bg-amber-50 text-amber-800",
-                },
-                {
-                  key: "low",
-                  label: "Thấp",
-                  iconBg: "bg-emerald-500",
-                  activeBorder:
-                    "border-emerald-600 bg-emerald-50 text-emerald-800",
-                },
-              ].map((p) => {
-                const isSelected = priority === p.key;
-                return (
-                  <button
-                    key={p.key}
-                    type="button"
-                    onClick={() => setPriority(p.key as TaskPriority)}
-                    className={`py-1.5 px-2 rounded-[5px] border-[1.5px] flex items-center justify-center gap-1.5 transition-all text-xs font-bold ${
-                      isSelected
-                        ? `${p.activeBorder} shadow-[1.5px_1.5px_0px_#262626]`
-                        : "border-[#D4CEBF] bg-white text-[#78716C] hover:border-[#262626]"
-                    }`}
-                  >
-                    <span className={`w-2 h-2 rounded-full ${p.iconBg}`} />
-                    <span>{p.label}</span>
-                  </button>
-                );
-              })}
+              <button
+                type="button"
+                onClick={() => setPriority("high")}
+                className={`py-1.5 px-2 rounded-[5px] border-[1.5px] font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                  priority === "high"
+                    ? "bg-[#FECDD3] text-rose-900 border-[#262626] shadow-[2px_2px_0px_#262626]"
+                    : "bg-white text-[#78716C] border-[#D4CEBF] hover:border-[#262626]"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-rose-500" />
+                <span>Gấp</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPriority("medium")}
+                className={`py-1.5 px-2 rounded-[5px] border-[1.5px] font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                  priority === "medium"
+                    ? "bg-[#FEF08A] text-amber-900 border-[#262626] shadow-[2px_2px_0px_#262626]"
+                    : "bg-white text-[#78716C] border-[#D4CEBF] hover:border-[#262626]"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                <span>Vừa</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPriority("low")}
+                className={`py-1.5 px-2 rounded-[5px] border-[1.5px] font-bold text-xs flex items-center justify-center gap-1.5 transition-all ${
+                  priority === "low"
+                    ? "bg-[#BBF7D0] text-emerald-900 border-[#262626] shadow-[2px_2px_0px_#262626]"
+                    : "bg-white text-[#78716C] border-[#D4CEBF] hover:border-[#262626]"
+                }`}
+              >
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span>Thấp</span>
+              </button>
             </div>
           </div>
 
-          {/* 4. Gán Nhãn #Tag */}
+          {/* 4. Gán Nhãn Phân Loại (#Tag) */}
           <div>
-            <label className="font-bold text-[#1C1917] block mb-1 text-[11px] flex items-center gap-1">
-              <TagIcon size={12} />
-              <span>Gán nhãn phân loại:</span>
-            </label>
-
-            <div className="flex flex-wrap gap-1.5 items-center p-2 bg-white border border-[#D4CEBF] rounded-[6px]">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="font-bold text-[#1C1917] text-[11px] flex items-center gap-1">
+                <TagIcon size={12} strokeWidth={2.2} />
+                <span>Gán nhãn phân loại:</span>
+              </label>
+            </div>
+            <div className="p-2 bg-white border border-[#262626] rounded-[5px] flex flex-wrap gap-1.5 max-h-28 overflow-y-auto no-scrollbar">
               <button
                 type="button"
                 onClick={() => setSelectedTag("")}
-                className={`px-2 py-0.5 text-[11px] rounded-[3px] border transition-all ${
+                className={`px-2 py-0.5 rounded-[4px] border text-[11px] font-medium transition-all ${
                   !selectedTag
-                    ? "bg-[#262626] text-white border-[#262626] font-bold"
-                    : "bg-stone-50 text-[#78716C] border-[#E7E2D8] hover:border-[#262626]"
+                    ? "bg-[#262626] text-white border-[#262626]"
+                    : "bg-gray-100 text-[#78716C] border-[#D4CEBF]"
                 }`}
               >
                 Không nhãn
               </button>
-
-              {tags.map((t) => {
-                const isSelected = selectedTag === t;
-                const style = getTagStyle(t);
+              {tags.map((tg) => {
+                const isSelected = selectedTag === tg;
+                const style = getTagStyle(tg);
                 return (
                   <button
-                    key={t}
+                    key={tg}
                     type="button"
-                    onClick={() => setSelectedTag(t)}
-                    className={`px-2 py-0.5 text-[11px] rounded-[3px] border transition-all flex items-center gap-1 ${
-                      isSelected
-                        ? "border-[#262626] shadow-[1px_1px_0px_#262626] font-bold ring-1 ring-[#262626]"
-                        : "border-[#D4CEBF] hover:border-[#262626]"
-                    } ${style.bg} ${style.text}`}
+                    onClick={() => setSelectedTag(tg)}
+                    style={{
+                      backgroundColor: isSelected ? style.bg : style.lightBg,
+                      color: style.text,
+                      borderColor: isSelected ? style.border : "#D4CEBF",
+                      fontWeight: isSelected ? "bold" : "normal",
+                    }}
+                    className={`px-2 py-0.5 rounded-[4px] border text-[11px] flex items-center gap-1 transition-all ${
+                      isSelected ? "shadow-[1px_1px_0px_#262626]" : ""
+                    }`}
                   >
-                    <span>#{t}</span>
-                    {isSelected && <Check size={10} strokeWidth={2.5} />}
+                    <span>#{tg}</span>
+                    {isSelected && <Check size={11} strokeWidth={2.5} />}
                   </button>
                 );
               })}
 
+              {/* Thêm nhanh tag mới */}
               {isAddingTag ? (
-                <input
-                  type="text"
-                  value={newTagInput}
-                  onChange={(e) => setNewTagInput(e.target.value)}
-                  onBlur={handleCreateNewTag}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleCreateNewTag(e);
-                    if (e.key === "Escape") setIsAddingTag(false);
-                  }}
-                  placeholder="Tên tag mới..."
-                  className="px-1.5 py-0.5 text-[11px] border border-[#262626] rounded-[3px] bg-white outline-none w-24"
-                />
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    value={newTagInput}
+                    onChange={(e) => setNewTagInput(e.target.value)}
+                    placeholder="Tên tag..."
+                    className="w-20 px-1.5 py-0.5 text-[11px] border border-[#262626] rounded focus:outline-none bg-[#FCFBF9]"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleCreateNewTag(e);
+                      if (e.key === "Escape") setIsAddingTag(false);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleCreateNewTag}
+                    className="p-1 bg-[#BBF7D0] border border-[#262626] rounded text-[10px] font-bold"
+                  >
+                    <Check size={10} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingTag(false)}
+                    className="p-1 bg-white border border-[#262626] rounded text-[10px]"
+                  >
+                    <X size={10} />
+                  </button>
+                </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => setIsAddingTag(true)}
-                  className="px-2 py-0.5 text-[11px] text-[#78716C] hover:text-[#1C1917] border border-dashed border-[#D4CEBF] rounded-[3px] flex items-center gap-0.5"
+                  className="px-2 py-0.5 border border-dashed border-[#78716C] rounded-[4px] text-[11px] text-[#78716C] hover:text-[#1C1917] hover:border-[#262626] flex items-center gap-1 bg-white"
                 >
                   <Plus size={11} />
                   <span>Tag mới</span>
@@ -298,31 +346,30 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
             </div>
           </div>
 
-          {/* 5. Nút Hành Động Ở Đáy Modal */}
-          <div className="pt-3 border-t border-[#262626] flex items-center justify-end gap-2 shrink-0">
+          {/* Footer Form: Nút Hủy & Nút Lưu Thay Đổi */}
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#262626] shrink-0">
             <Button
               type="button"
-              variant="secondary"
-              size="md"
+              variant="outline"
+              size="sm"
               onClick={onClose}
-              className="flex-1 sm:flex-none justify-center"
+              className="px-4 text-xs font-bold"
             >
               Hủy
             </Button>
             <Button
               type="submit"
               variant="primary"
-              size="md"
-              disabled={!title.trim()}
-              className="flex-1 sm:flex-none justify-center gap-1"
+              size="sm"
+              className="px-5 text-xs font-bold shadow-[2px_2px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center gap-1.5"
             >
-              <Check size={14} strokeWidth={2.5} />
+              <Check size={14} strokeWidth={2.4} />
               <span>Lưu thay đổi</span>
             </Button>
           </div>
         </form>
       </div>
     </div>,
-    document.body,
+    document.body
   );
 };

@@ -174,19 +174,19 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
         position: "fixed",
         inset: 0,
         zIndex: 999999,
-        backgroundColor: "rgba(38, 38, 38, 0.65)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
+        backgroundColor: "rgba(38, 38, 38, 0.70)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
         touchAction: "none",
       }}
-      className="flex items-start sm:items-center justify-center p-3 sm:p-4 pt-14 sm:pt-4 select-none animate-in fade-in duration-150 pointer-events-auto"
+      className="flex items-end sm:items-center justify-center p-0 sm:p-4 select-none animate-in fade-in duration-150 pointer-events-auto"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[8px] shadow-[6px_6px_0px_#262626] p-3.5 sm:p-4 flex flex-col space-y-2.5 animate-in zoom-in-95 duration-200 z-[1000000] max-h-[85vh] overflow-hidden"
+        className="relative w-full max-w-lg bg-[#FBF9F4] border-t-[2px] sm:border-[2px] border-[#262626] rounded-t-[22px] sm:rounded-[8px] shadow-[0px_-4px_16px_rgba(0,0,0,0.15)] sm:shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col space-y-3 animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-200 z-[1000000] max-h-[88vh] sm:max-h-[85vh] overflow-hidden"
       >
-        {/* Paper Tape Effect */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-5 bg-[#FEF08A]/90 border-x border-[#262626]/40 rotate-1 shadow-sm pointer-events-none" />
+        {/* Grab Handle cho Mobile */}
+        <div className="w-12 h-1.5 bg-[#D4CEBF] rounded-full mx-auto sm:hidden shrink-0" />
 
         {/* Search Input Bar */}
         <div className="flex items-center gap-2">
@@ -204,7 +204,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               }}
               onKeyDown={handleKeyDown}
               placeholder="Tìm việc, sổ tay, ý tưởng, thói quen..."
-              className="w-full pl-12 pr-8 py-2 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs sm:text-sm font-sans text-[#1C1917] placeholder:text-[#78716C] outline-none focus:bg-[#FFFDEB]"
+              className="w-full pl-12 pr-8 py-2.5 sm:py-2 bg-white border-[1.5px] border-[#262626] rounded-[5px] shadow-[1.5px_1.5px_0px_#262626] text-xs sm:text-sm font-sans text-[#1C1917] placeholder:text-[#78716C] outline-none focus:bg-[#FFFDEB]"
             />
             {query && (
               <button
@@ -213,7 +213,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                   setQuery("");
                   setSelectedIndex(0);
                 }}
-                className="absolute right-2.5 text-[#78716C] hover:text-[#1C1917] p-0.5"
+                className="absolute right-2.5 text-[#78716C] hover:text-[#1C1917] p-1"
               >
                 <X size={14} />
               </button>
@@ -224,7 +224,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
             type="button"
             onClick={onClose}
             title="Đóng tìm kiếm"
-            className="px-2.5 py-2 bg-[#F3EFE6] hover:bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-xs font-bold text-[#78716C] hover:text-[#1C1917] active:translate-y-[0.5px] shrink-0"
+            className="px-3 py-2.5 sm:py-2 bg-[#F3EFE6] hover:bg-white border-[1.5px] border-[#262626] rounded-[5px] shadow-[1px_1px_0px_#262626] text-xs font-bold text-[#1C1917] active:translate-y-[0.5px] shrink-0"
           >
             Đóng
           </button>
@@ -473,8 +473,9 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
         {/* Footer Hint */}
         <div className="pt-2 border-t-[1.5px] border-[#262626] flex items-center justify-between text-[10px] text-[#78716C] bg-[#FBF9F4] shrink-0 font-sans">
           <span className="hidden sm:inline">Dùng ↑ ↓ để chọn • Nhấn Enter để mở</span>
-          <span className="sm:hidden">Chạm vào mục để mở</span>
-          <span>ESC để đóng</span>
+          <span className="sm:hidden">Chạm kết quả để mở</span>
+          <span className="hidden sm:inline">ESC để đóng</span>
+          <span className="sm:hidden">Chạm ngoài để thoát</span>
         </div>
       </div>
     </div>,

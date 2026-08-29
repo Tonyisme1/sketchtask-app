@@ -1,126 +1,176 @@
-import { TaskDto } from "../types";
+﻿import { TaskDto } from "../types";
 
-export type DueStatusType = "overdue" | "today" | "upcoming" | "no-due";
+export type DueBadgeType = "today" | "tomorrow" | "overdue" | "future" | "none";
 
 export interface TaskDueInfo {
-  type: DueStatusType;
+  type: DueBadgeType;
   label: string;
-  badgeClass: string;
-  iconName: "alert" | "clock" | "hourglass" | "calendar";
-  timeType?: "scheduled" | "deadline";
+  icon: "clock" | "alert" | "calendar" | "hourglass";
+  badgeBg: string;
+  badgeBorder: string;
+  badgeText: string;
+  isOverdue: boolean;
 }
 
-/**
- * Tính toán mức độ hạn chót của công việc dựa trên TaskDto hoặc chuỗi dueDate
- */
 export const getTaskDueInfo = (
-  taskOrDueDate?: TaskDto | string
-): TaskDueInfo | null => {
-  if (!taskOrDueDate) return null;
+  taskOrDueDate: TaskDto | string | undefined,
+  referenceDate: Date = new Date()
+): TaskDueInfo => {
+  if (!taskOrDueDate) {
+    return {
+      type: "none",
+      label: "",
+      icon: "calendar",
+      badgeBg: "bg-stone-100",
+      badgeBorder: "border-stone-300",
+      badgeText: "text-stone-600",
+      isOverdue: false,
+    };
+  }
 
-  let dueDate: string | undefined;
-  let timeType: "scheduled" | "deadline" = "scheduled";
+  let timeType: "event" | "task" | undefined;
   let startTime: string | undefined;
   let endTime: string | undefined;
   let deadlineDate: string | undefined;
   let deadlineTime: string | undefined;
+  let rawDueDate = "";
 
   if (typeof taskOrDueDate === "string") {
-    dueDate = taskOrDueDate;
+    rawDueDate = taskOrDueDate;
   } else {
-    dueDate = taskOrDueDate.dueDate;
-    timeType = taskOrDueDate.timeType || (taskOrDueDate.deadlineDate ? "deadline" : "scheduled");
+    rawDueDate = taskOrDueDate.dueDate || "";
+    timeType = taskOrDueDate.timeType;
     startTime = taskOrDueDate.startTime;
     endTime = taskOrDueDate.endTime;
     deadlineDate = taskOrDueDate.deadlineDate;
     deadlineTime = taskOrDueDate.deadlineTime;
   }
 
-  // 1. Phân loại theo LỊCH LÀM VIỆC (Scheduled Time Blocking)
-  if (timeType === "scheduled") {
-    const timeDisplay = startTime
-      ? endTime
-        ? `${startTime} - ${endTime}`
-        : startTime
-      : dueDate?.includes(":")
-        ? dueDate.includes(" ") ? dueDate.split(" ")[1] : dueDate
-        : null;
-
-    const datePart = dueDate?.split(" ")[0].split("T")[0];
-
+  if (!rawDueDate && !deadlineDate && !startTime) {
     return {
-      type: "today",
-      label: timeDisplay ? `🕒 ${timeDisplay}` : (datePart || "Lịch làm"),
-      badgeClass: "bg-[#FEF08A] text-[#1C1917] border-[#262626] font-bold shadow-[0.5px_0.5px_0px_#262626]",
-      iconName: "clock",
-      timeType: "scheduled",
+      type: "none",
+      label: "",
+      icon: "calendar",
+      badgeBg: "bg-stone-100",
+      badgeBorder: "border-stone-300",
+      badgeText: "text-stone-600",
+      isOverdue: false,
     };
   }
 
-  // 2. Phân loại theo HẠN CHÓT (Deadline)
-  const targetDateStr = deadlineDate || (dueDate ? dueDate.split(" ")[0].split("T")[0] : null);
-  const targetTimeStr = deadlineTime || (dueDate?.includes(":") ? (dueDate.includes(" ") ? dueDate.split(" ")[1] : dueDate) : null);
+  const datePart = (deadlineDate || rawDueDate.split(" ")[0] || "").trim();
+  const timePart = (deadlineTime || startTime || (rawDueDate.includes(" ") ? rawDueDate.split(" ")[1] : "")).trim();
 
-  if (!targetDateStr) return null;
+  // So sánh ngày
+  const refYear = referenceDate.getFullYear();
+  const refMonth = String(referenceDate.getMonth() + 1).padStart(2, "0");
+  const refDay = String(referenceDate.getDate()).padStart(2, "0");
+  const todayStr = `${refYear}-${refMonth}-${refDay}`;
 
-  const now = new Date();
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const tomorrow = new Date(referenceDate);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomYear = tomorrow.getFullYear();
+  const tomMonth = String(tomorrow.getMonth() + 1).padStart(2, "0");
+  const tomDay = String(tomorrow.getDate()).padStart(2, "0");
+  const tomorrowStr = `${tomYear}-${tomMonth}-${tomDay}`;
 
-  // Quá hạn Deadline
-  if (targetDateStr < todayStr) {
-    const taskDate = new Date(targetDateStr);
-    const todayDate = new Date(todayStr);
-    const diffDays = Math.max(
-      1,
-      Math.round(
-        (todayDate.getTime() - taskDate.getTime()) / (1000 * 60 * 60 * 24)
-      )
-    );
+  const isToday = datePart === todayStr;
+  const isTomorrow = datePart === tomorrowStr;
+  const isPast = datePart < todayStr;
+
+  // 1. Trường hợp LỊCH HẸN (Event)
+  if (timeType === "event" || (!timeType && startTime)) {
+    const timeDisplay = endTime ? `${startTime || timePart} - ${endTime}` : (startTime || timePart || "Hôm nay");
+    if (isToday) {
+      return {
+        type: "today",
+        label: `🕒 ${timeDisplay}`,
+        icon: "clock",
+        badgeBg: "bg-[#FEF08A]",
+        badgeBorder: "border-[#262626]",
+        badgeText: "text-[#1C1917]",
+        isOverdue: false,
+      };
+    }
+    if (isTomorrow) {
+      return {
+        type: "tomorrow",
+        label: `🕒 Mai ${timeDisplay}`,
+        icon: "clock",
+        badgeBg: "bg-[#BAE6FD]",
+        badgeBorder: "border-[#262626]",
+        badgeText: "text-[#1C1917]",
+        isOverdue: false,
+      };
+    }
+    if (isPast) {
+      return {
+        type: "overdue",
+        label: `🕒 Đã qua (${datePart.slice(5).replace("-", "/")})`,
+        icon: "alert",
+        badgeBg: "bg-[#FECDD3]",
+        badgeBorder: "border-[#262626]",
+        badgeText: "text-rose-900 font-bold",
+        isOverdue: true,
+      };
+    }
+    return {
+      type: "future",
+      label: `🕒 ${datePart.slice(5).replace("-", "/")} ${timeDisplay}`,
+      icon: "calendar",
+      badgeBg: "bg-[#DDD6FE]",
+      badgeBorder: "border-[#262626]",
+      badgeText: "text-[#1C1917]",
+      isOverdue: false,
+    };
+  }
+
+  // 2. Trường hợp VIỆC CẦN LÀM / HẠN CHÓT (Task / Deadline)
+  if (isPast) {
     return {
       type: "overdue",
-      label: diffDays === 1 ? "Quá hạn 1 ngày" : `Quá hạn ${diffDays} ngày`,
-      badgeClass: "bg-rose-100 text-rose-800 border-rose-300 font-bold",
-      iconName: "alert",
-      timeType: "deadline",
+      label: `⏳ Quá hạn: ${datePart.slice(5).replace("-", "/")}`,
+      icon: "alert",
+      badgeBg: "bg-[#FECDD3]",
+      badgeBorder: "border-[#262626]",
+      badgeText: "text-rose-900 font-bold",
+      isOverdue: true,
     };
   }
 
-  // Hạn chót Hôm nay
-  if (targetDateStr === todayStr) {
+  if (isToday) {
+    const timeDisplay = timePart ? `Hạn ${timePart}` : "Hôm nay";
     return {
       type: "today",
-      label: targetTimeStr ? `Hạn: ${targetTimeStr}` : "Hạn hôm nay",
-      badgeClass: "bg-amber-100 text-amber-900 border-amber-300 font-bold",
-      iconName: "hourglass",
-      timeType: "deadline",
+      label: `⏳ ${timeDisplay}`,
+      icon: "hourglass",
+      badgeBg: "bg-[#FEF08A]",
+      badgeBorder: "border-[#262626]",
+      badgeText: "text-[#1C1917]",
+      isOverdue: false,
     };
   }
 
-  // Hạn chót Ngày mai
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`;
-
-  if (targetDateStr === tomorrowStr) {
+  if (isTomorrow) {
+    const timeDisplay = timePart ? `Hạn Mai ${timePart}` : "Ngày mai";
     return {
-      type: "upcoming",
-      label: targetTimeStr ? `Hạn: Mai ${targetTimeStr}` : "Hạn ngày mai",
-      badgeClass: "bg-emerald-50 text-emerald-800 border-emerald-300 font-medium",
-      iconName: "calendar",
-      timeType: "deadline",
+      type: "tomorrow",
+      label: `⏳ ${timeDisplay}`,
+      icon: "hourglass",
+      badgeBg: "bg-[#BAE6FD]",
+      badgeBorder: "border-[#262626]",
+      badgeText: "text-[#1C1917]",
+      isOverdue: false,
     };
   }
-
-  // Các ngày xa hơn: định dạng DD/MM
-  const parts = targetDateStr.split("-");
-  const formatted = parts.length === 3 ? `${parts[2]}/${parts[1]}` : targetDateStr;
 
   return {
-    type: "upcoming",
-    label: targetTimeStr ? `Hạn: ${formatted} ${targetTimeStr}` : `Hạn: ${formatted}`,
-    badgeClass: "bg-emerald-50 text-emerald-800 border-emerald-300 font-medium",
-    iconName: "calendar",
-    timeType: "deadline",
+    type: "future",
+    label: `⏳ Hạn: ${datePart.slice(5).replace("-", "/")}${timePart ? ` ${timePart}` : ""}`,
+    icon: "hourglass",
+    badgeBg: "bg-[#DDD6FE]",
+    badgeBorder: "border-[#262626]",
+    badgeText: "text-[#1C1917]",
+    isOverdue: false,
   };
 };
-

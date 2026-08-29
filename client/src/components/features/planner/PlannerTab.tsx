@@ -3,10 +3,10 @@ import { useAppStore } from "../../../stores/appStore";
 import { TaskDto } from "../../../types";
 import { HandDrawnCheckbox } from "../../ui/HandDrawnCheckbox";
 import { Button } from "../../ui/Button";
-import { TextInput } from "../../ui/TextInput";
+import { AutoResizeTextarea } from "../../ui/AutoResizeTextarea";
 import { EmptyStateDoodle } from "../../ui/EmptyStateDoodle";
 import { CustomSelect, SelectOption } from "../../ui/CustomSelect";
-import { CustomDuePicker } from "../../ui/CustomDuePicker";
+import { CustomDuePicker, TaskTimeValue } from "../../ui/CustomDuePicker";
 import { ConfirmModal } from "../../ui/ConfirmModal";
 import { EditTaskModal } from "../../ui/EditTaskModal";
 import { DynamicIcon } from "../../ui/DynamicIcon";
@@ -68,6 +68,7 @@ export const PlannerTab: React.FC = () => {
 
   const [dayTaskTitle, setDayTaskTitle] = useState<string>("");
   const [dayTaskTime, setDayTaskTime] = useState<string | undefined>(undefined);
+  const [dayTaskTimeData, setDayTaskTimeData] = useState<TaskTimeValue | undefined>(undefined);
   const [selectedPriority, setSelectedPriority] = useState<
     "high" | "medium" | "low"
   >("medium");
@@ -96,6 +97,34 @@ export const PlannerTab: React.FC = () => {
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [isBacklogDrawerOpen, setIsBacklogDrawerOpen] = useState(false);
+
+  const handleAddDayTask = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!dayTaskTitle.trim()) return;
+
+    const finalDueDate = dayTaskTime
+      ? `${selectedDateStr} ${dayTaskTime}`
+      : selectedDateStr;
+
+    addTask({
+      title: dayTaskTitle.trim(),
+      dueDate: finalDueDate,
+      timeType: dayTaskTimeData?.timeType,
+      startTime: dayTaskTimeData?.startTime,
+      endTime: dayTaskTimeData?.endTime,
+      deadlineDate: dayTaskTimeData?.deadlineDate,
+      deadlineTime: dayTaskTimeData?.deadlineTime,
+      tag: selectedTag,
+      notebookId: selectedNotebookId || undefined,
+      priority: selectedPriority,
+    });
+
+    setDayTaskTitle("");
+    setDayTaskTime(undefined);
+    setDayTaskTimeData(undefined);
+    setSelectedPriority("medium");
+    setIsExpandForm(false);
+  };
 
   // Danh sách các việc từ Sổ tay chưa lên lịch (Unscheduled Tasks)
   const unscheduledTasks = tasks.filter((t) => !t.completed && !t.dueDate);
@@ -239,26 +268,6 @@ export const PlannerTab: React.FC = () => {
     return selectedDateStr;
   };
 
-  const handleAddDayTask = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!dayTaskTitle.trim()) return;
-
-    const finalDue = dayTaskTime
-      ? `${selectedDateStr} ${dayTaskTime}`
-      : `${selectedDateStr}`;
-
-    addTask({
-      title: dayTaskTitle.trim(),
-      dueDate: finalDue,
-      tag: selectedTag,
-      notebookId: selectedNotebookId || undefined,
-      priority: selectedPriority,
-    });
-
-    setDayTaskTitle("");
-    setDayTaskTime(undefined);
-    setSelectedPriority("medium");
-  };
 
   const handleCreateNewTag = (e: React.FormEvent) => {
     e.preventDefault();
@@ -511,16 +520,19 @@ export const PlannerTab: React.FC = () => {
             </span>
           </div>
 
-          {/* Quick Add Form (Mặc định thu gọn siêu mỏng) */}
+          {/* Quick Add Form (Tự động co giãn theo độ dài ký tự) */}
           <form
             onSubmit={handleAddDayTask}
             className="p-2.5 bg-[#FBF9F4] border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2 select-none"
           >
-            <div className="flex items-center gap-1.5">
-              <TextInput
+            <div className="flex items-start gap-1.5">
+              <AutoResizeTextarea
                 placeholder={`Lên lịch việc mới cho ${getDayFormattedTitle()}...`}
                 value={dayTaskTitle}
                 maxLength={250}
+                minRows={1}
+                maxRows={5}
+                onEnterPress={() => handleAddDayTask()}
                 onChange={(e) => setDayTaskTitle(e.target.value)}
                 className="flex-1 text-xs sm:text-sm bg-white font-medium"
               />
@@ -528,10 +540,10 @@ export const PlannerTab: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsExpandForm(!isExpandForm)}
-                className={`px-2 py-1.5 rounded-[4px] border text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 ${
+                className={`h-[38px] px-2.5 rounded-[5px] border-[1.5px] text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 active:translate-y-[0.5px] ${
                   isExpandForm || dayTaskTime || selectedNotebookId
-                    ? "bg-[#FEF08A] border-[#262626] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
-                    : "bg-white border-[#D4CEBF] text-[#78716C] hover:border-[#262626] hover:text-[#1C1917]"
+                    ? "bg-[#FEF08A] border-[#262626] text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626]"
+                    : "bg-white border-[#262626] text-[#1C1917] hover:bg-gray-50 shadow-[1px_1px_0px_#262626]"
                 }`}
                 title="Tùy chọn mở rộng (Giờ hẹn, Sổ tay, Tag, Ưu tiên)"
               >
@@ -539,7 +551,13 @@ export const PlannerTab: React.FC = () => {
                 <span className="text-[9px]">{isExpandForm ? "▲" : "▾"}</span>
               </button>
 
-              <Button type="submit" variant="primary" size="md" disabled={!dayTaskTitle.trim()}>
+              <Button
+                type="submit"
+                variant="primary"
+                size="md"
+                disabled={!dayTaskTitle.trim()}
+                className="h-[38px] px-3 shrink-0"
+              >
                 + Lên lịch
               </Button>
             </div>
@@ -644,8 +662,11 @@ export const PlannerTab: React.FC = () => {
                     <div className="flex-1 min-w-0">
                       <CustomDuePicker
                         value={dayTaskTime}
-                        onChange={setDayTaskTime}
-                        mode="time-only"
+                        timeData={dayTaskTimeData}
+                        onChange={(val, tData) => {
+                          setDayTaskTime(val);
+                          setDayTaskTimeData(tData);
+                        }}
                         className="w-full"
                       />
                     </div>

@@ -3,10 +3,10 @@ import { useAppStore } from "../../../stores/appStore";
 import { TaskDto } from "../../../types";
 import { Button } from "../../ui/Button";
 import { HandDrawnCheckbox } from "../../ui/HandDrawnCheckbox";
-import { TextInput } from "../../ui/TextInput";
+import { AutoResizeTextarea } from "../../ui/AutoResizeTextarea";
 import { EmptyStateDoodle } from "../../ui/EmptyStateDoodle";
 import { CustomSelect, SelectOption } from "../../ui/CustomSelect";
-import { CustomDuePicker } from "../../ui/CustomDuePicker";
+import { CustomDuePicker, TaskTimeValue } from "../../ui/CustomDuePicker";
 import { ConfirmModal } from "../../ui/ConfirmModal";
 import { EditTaskModal } from "../../ui/EditTaskModal";
 import { DynamicIcon } from "../../ui/DynamicIcon";
@@ -57,6 +57,7 @@ export const TodayTab: React.FC = () => {
 
   const [newTitle, setNewTitle] = useState("");
   const [newDueTime, setNewDueTime] = useState<string | undefined>(undefined);
+  const [newTimeData, setNewTimeData] = useState<TaskTimeValue | undefined>(undefined);
   const [selectedPriority, setSelectedPriority] = useState<
     "high" | "medium" | "low"
   >("medium");
@@ -103,6 +104,11 @@ export const TodayTab: React.FC = () => {
     addTask({
       title: newTitle.trim(),
       dueDate: finalDueDate,
+      timeType: newTimeData?.timeType,
+      startTime: newTimeData?.startTime,
+      endTime: newTimeData?.endTime,
+      deadlineDate: newTimeData?.deadlineDate,
+      deadlineTime: newTimeData?.deadlineTime,
       tag: selectedTag,
       notebookId: selectedNotebookId || undefined,
       priority: selectedPriority,
@@ -110,6 +116,7 @@ export const TodayTab: React.FC = () => {
 
     setNewTitle("");
     setNewDueTime(undefined);
+    setNewTimeData(undefined);
     setSelectedPriority("medium");
     setInputError(false);
   };
@@ -222,27 +229,31 @@ export const TodayTab: React.FC = () => {
         )}
       </div>
 
-      {/* 2. Quick Add Bar Tinh Gọn (Chống Ngộp Mobile) */}
+      {/* 2. Quick Add Bar Tinh Gọn & Tự Co Giãn Chiều Cao */}
       <form onSubmit={handleAddTask}>
         <div className="p-2.5 sm:p-3 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] space-y-2">
-          {/* Hàng Nhập Liệu Chính */}
-          <div className="flex gap-2">
-            <TextInput
+          {/* Hàng Nhập Liệu Chính: Tự động phình to theo độ dài ký tự */}
+          <div className="flex items-start gap-2">
+            <AutoResizeTextarea
               placeholder="Thêm việc mới..."
               value={newTitle}
               maxLength={250}
-              error={inputError}
+              minRows={1}
+              maxRows={5}
+              onEnterPress={() => handleAddTask()}
               onChange={(e) => {
                 setNewTitle(e.target.value);
                 if (inputError) setInputError(false);
               }}
-              className="flex-1 text-xs sm:text-sm"
+              className={`flex-1 text-xs sm:text-sm ${
+                inputError ? "border-rose-500 bg-rose-50/30" : ""
+              }`}
             />
             <Button
               type="submit"
               variant="primary"
               size="md"
-              className="shrink-0"
+              className="shrink-0 h-[38px] px-3.5"
             >
               <Plus size={15} strokeWidth={2.5} />
               <span className="hidden sm:inline">Thêm</span>
@@ -386,8 +397,11 @@ export const TodayTab: React.FC = () => {
 
                 <CustomDuePicker
                   value={newDueTime}
-                  onChange={setNewDueTime}
-                  mode="time-only"
+                  timeData={newTimeData}
+                  onChange={(val, tData) => {
+                    setNewDueTime(val);
+                    setNewTimeData(tData);
+                  }}
                   className="w-full"
                 />
               </div>
