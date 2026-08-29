@@ -1,7 +1,7 @@
 {
-  "version": "1.6.0",
-  "releaseDate": "2026-08-25",
-  "changelog": "✨ Bản Cập Nhật Lớn v1.6.0:\n• 🎨 Cài đặt dạng Bottom Sheet trượt đáy mượt mà trên Mobile & làm mờ nền sâu\n• 🔍 Tối ưu Tìm Kiếm Toàn Cục (Thêm nút Đóng, chuẩn hóa cho điện thoại)\n• 📊 Biểu đồ Thống kê Năng suất Phác thảo 7 ngày & Chuỗi Thói Quen\n• 🏷️ Bộ Lọc Nâng Cao (Lọc theo mức độ ưu tiên 🔴 Gấp / 🟡 Vừa / 🟢 Thấp & Nhãn Tag)\n• 🔑 Tối ưu Đăng Nhập Tài Khoản & Đồng Bộ Đám Mây",
+  "version": "1.7.0",
+  "releaseDate": "2026-08-29",
+  "changelog": "✨ Bản Cập Nhật Lớn v1.7.0:\n• 🕒 Phân biệt rõ ràng Lịch Làm Việc (Khung giờ bắt đầu - kết thúc) & Hạn Chót (Deadline)\n• 🏷️ Badge trạng thái phân cấp (Màu vàng ấm cho Lịch làm / Đỏ cảnh báo cho Quá hạn)\n• 🔔 Nâng cấp Quản lý Trạng thái Thông báo & Nút Gửi Thử nghiệm trong Cài đặt\n• 🔄 Điều hướng phím Back thông minh (Đóng modal / Quay về tab trước không bị văng app)\n• 📝 Khung soạn thảo tiêu đề 3 dòng rộng rãi khi sửa việc",
   "apkUrl": "https://github.com/Tonyisme1/sketchtask-app/actions",
   "downloadUrl": "https://sketchtask-app.vercel.app",
   "isForceUpdate": false
