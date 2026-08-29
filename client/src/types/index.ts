@@ -5,6 +5,7 @@
 export type TaskTag = "Công việc" | "Cá nhân" | "Ý tưởng" | "Học tập" | string;
 export type TaskPriority = "low" | "medium" | "high";
 export type TaskStatus = "todo" | "in_progress" | "completed" | "archived";
+export type TaskTimeType = "scheduled" | "deadline";
 
 export interface TaskDto {
   id: string;
@@ -12,6 +13,11 @@ export interface TaskDto {
   description?: string;
   completed: boolean;
   dueDate?: string;
+  timeType?: TaskTimeType;
+  startTime?: string;
+  endTime?: string;
+  deadlineDate?: string;
+  deadlineTime?: string;
   tag?: TaskTag;
   priority?: TaskPriority;
   status: TaskStatus;

@@ -29,6 +29,12 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
   const [title, setTitle] = useState("");
   const [notebookId, setNotebookId] = useState("");
   const [dueDate, setDueDate] = useState<string | undefined>(undefined);
+  const [timeType, setTimeType] = useState<"scheduled" | "deadline">("scheduled");
+  const [startTime, setStartTime] = useState<string | undefined>(undefined);
+  const [endTime, setEndTime] = useState<string | undefined>(undefined);
+  const [deadlineDate, setDeadlineDate] = useState<string | undefined>(undefined);
+  const [deadlineTime, setDeadlineTime] = useState<string | undefined>(undefined);
+
   const [priority, setPriority] = useState<"high" | "medium" | "low">("medium");
   const [selectedTag, setSelectedTag] = useState("");
   const [isAddingTag, setIsAddingTag] = useState(false);
@@ -40,6 +46,11 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
       setTitle(task.title || "");
       setNotebookId(task.notebookId || "");
       setDueDate(task.dueDate || undefined);
+      setTimeType(task.timeType || (task.deadlineDate ? "deadline" : "scheduled"));
+      setStartTime(task.startTime || undefined);
+      setEndTime(task.endTime || undefined);
+      setDeadlineDate(task.deadlineDate || undefined);
+      setDeadlineTime(task.deadlineTime || undefined);
       setPriority((task.priority as any) || "medium");
       setSelectedTag(task.tag || "");
       setIsAddingTag(false);
@@ -71,6 +82,11 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
       title: title.trim(),
       notebookId: notebookId || undefined,
       dueDate: dueDate || undefined,
+      timeType,
+      startTime: startTime || undefined,
+      endTime: endTime || undefined,
+      deadlineDate: deadlineDate || undefined,
+      deadlineTime: deadlineTime || undefined,
       priority,
       tag: selectedTag || undefined,
     });
@@ -175,12 +191,25 @@ export const EditTaskModal: React.FC<EditTaskModalProps> = ({
 
             <div>
               <label className="font-bold text-[#1C1917] block mb-1 text-[11px]">
-                Hạn chót & Giờ hẹn:
+                Lịch làm & Hạn chót:
               </label>
               <CustomDuePicker
                 value={dueDate}
-                onChange={setDueDate}
+                timeType={timeType}
+                startTime={startTime}
+                endTime={endTime}
+                deadlineDate={deadlineDate}
+                deadlineTime={deadlineTime}
+                onSaveSchedule={(sched) => {
+                  setTimeType(sched.timeType || "scheduled");
+                  setDueDate(sched.dueDate);
+                  setStartTime(sched.startTime);
+                  setEndTime(sched.endTime);
+                  setDeadlineDate(sched.deadlineDate);
+                  setDeadlineTime(sched.deadlineTime);
+                }}
                 mode="datetime"
+                className="w-full"
               />
             </div>
           </div>

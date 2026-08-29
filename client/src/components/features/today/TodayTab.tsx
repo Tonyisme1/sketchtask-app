@@ -613,7 +613,7 @@ export const TodayTab: React.FC = () => {
             const assignedNotebook = notebooks.find(
               (n) => n.id === task.notebookId,
             );
-            const dueInfo = getTaskDueInfo(task.dueDate);
+            const dueInfo = getTaskDueInfo(task);
 
             return (
               <div
@@ -650,22 +650,28 @@ export const TodayTab: React.FC = () => {
                       </div>
 
                       <div className="mt-1.5 flex items-center gap-1.5 flex-wrap text-[10px]">
-                        {/* 1. Badge Hạn Chót Phân Cấp (Đỏ / Cam / Xanh) */}
+                        {/* 1. Badge Lịch làm việc / Hạn chót Phân Cấp */}
                         {dueInfo && !task.completed && (
                           <span
                             className={`px-1.5 py-0.5 rounded border inline-flex items-center gap-1 font-mono ${dueInfo.badgeClass}`}
                           >
-                            {dueInfo.type === "overdue" ? (
+                            {dueInfo.iconName === "alert" ? (
                               <AlertCircle
                                 size={10}
                                 strokeWidth={2.5}
                                 className="text-rose-700"
                               />
-                            ) : dueInfo.type === "today" ? (
+                            ) : dueInfo.iconName === "hourglass" ? (
                               <Clock
                                 size={10}
                                 strokeWidth={2.2}
                                 className="text-amber-800"
+                              />
+                            ) : dueInfo.iconName === "clock" ? (
+                              <Clock
+                                size={10}
+                                strokeWidth={2.2}
+                                className="text-[#1C1917]"
                               />
                             ) : (
                               <Calendar

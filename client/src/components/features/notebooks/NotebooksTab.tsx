@@ -523,7 +523,7 @@ export const NotebooksTab: React.FC = () => {
                 />
               ) : (
                 filteredTasks.map((t, idx) => {
-                  const dueInfo = getTaskDueInfo(t.dueDate);
+                  const dueInfo = getTaskDueInfo(t);
                   return (
                     <div
                       key={t.id}
@@ -554,24 +554,30 @@ export const NotebooksTab: React.FC = () => {
                             </p>
                           </div>
 
-                          {/* Badges: Hạn Chót, Ưu Tiên, Tag */}
+                          {/* Badges: Lịch làm / Hạn Chót, Ưu Tiên, Tag */}
                           <div className="mt-1 flex items-center gap-1.5 flex-wrap text-[10px]">
-                            {/* 1. Badge Hạn Chót */}
+                            {/* 1. Badge Lịch làm / Hạn Chót */}
                             {dueInfo && !t.completed && (
                               <span
                                 className={`px-1.5 py-0.5 rounded border inline-flex items-center gap-1 font-mono ${dueInfo.badgeClass}`}
                               >
-                                {dueInfo.type === "overdue" ? (
+                                {dueInfo.iconName === "alert" ? (
                                   <AlertCircle
                                     size={10}
                                     strokeWidth={2.5}
                                     className="text-rose-700"
                                   />
-                                ) : dueInfo.type === "today" ? (
+                                ) : dueInfo.iconName === "hourglass" ? (
                                   <Clock
                                     size={10}
                                     strokeWidth={2.2}
                                     className="text-amber-800"
+                                  />
+                                ) : dueInfo.iconName === "clock" ? (
+                                  <Clock
+                                    size={10}
+                                    strokeWidth={2.2}
+                                    className="text-[#1C1917]"
                                   />
                                 ) : (
                                   <CalendarIcon
