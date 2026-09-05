@@ -20,4 +20,10 @@ export const config = {
   databaseUrl: process.env.DATABASE_URL || "file:./dev.db",
   jwtSecret: rawJwtSecret || defaultSecret,
   isProduction,
+  adminEmails: new Set(
+    (process.env.ADMIN_EMAILS || "")
+      .split(",")
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean),
+  ),
 };
