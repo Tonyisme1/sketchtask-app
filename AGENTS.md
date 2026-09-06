@@ -9,7 +9,7 @@ Trước khi viết hoặc chỉnh sửa bất kỳ dòng code UI/Frontend/Backe
 
 Mỗi khi nhận yêu cầu tạo mới hoặc sửa giao diện, Agent phải tuân theo 4 bước tuần tự:
 
-1. **Đọc ngữ cảnh:** Tham chiếu `.design/DESIGN-PRINCIPLES.md`, `.design/TOKENS.md`, `.design/COMPONENTS.md` và `.design/FEATURES-AND-TABS.md`.
+1. **Đọc ngữ cảnh:** Tham chiếu `.design/README.md`, `.design/CURRENT-STATE.md`, `.design/PRINCIPLES.md`, `.design/TOKENS.md` và `.design/COMPONENTS.md`. Mô tả tính năng nằm trong `.docs/FEATURES.md`.
 2. **Kiểm tra Token & Component:** Ưu tiên tái sử dụng component đã đặc tả trong `COMPONENTS.md`. Tuyệt đối không tự sáng chế style mới nếu pattern cũ đã đáp ứng được.
 3. **Thực thi Code:** Viết code có cấu trúc, có comment chia theo từng phần rõ ràng (`// === PHẦN X: ... ===`). Đảm bảo đủ các trạng thái giao diện (Default, Hover, Active, Disabled, Loading, Error, Empty).
 4. **Tự kiểm tra (Self-Audit):** Rà soát lại mã nguồn dựa trên danh sách _Negative Constraints_ ở Mục 2 và _Thực Chiến Quy Chuẩn_ ở Mục 4.

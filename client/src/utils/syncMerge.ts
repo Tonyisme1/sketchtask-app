@@ -38,6 +38,13 @@ export function mergeTasks(localTasks: TaskDto[], remoteTasks: TaskDto[]): TaskD
       const rTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
       if (lTime > rTime) {
         map.set(lTask.id, lTask);
+      } else if (
+        // Older servers do not return parentTaskId. Keep the local hierarchy
+        // metadata instead of silently flattening the task tree on pull.
+        !Object.prototype.hasOwnProperty.call(existing, "parentTaskId") &&
+        lTask.parentTaskId
+      ) {
+        map.set(lTask.id, { ...existing, parentTaskId: lTask.parentTaskId });
       }
     }
   }
@@ -165,4 +172,3 @@ export function smartMergeAppData(localData: RawSyncData, remoteData: RawSyncDat
     tags: mergedTags,
   };
 }
-

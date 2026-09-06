@@ -14,6 +14,7 @@ export interface UpdateInfo {
 }
 
 const SOURCES = [
+  "/version.json",
   "https://sketchtask-app.vercel.app/version.json",
   "https://raw.githubusercontent.com/Tonyisme1/sketchtask-app/main/client/public/version.json",
   "https://sketchtask-app.onrender.com/api/version",
@@ -27,7 +28,6 @@ export const checkForAppUpdates = async (): Promise<UpdateInfo | null> => {
     try {
       const res = await fetch(`${url}?t=${Date.now()}`, {
         method: "GET",
-        headers: { "Cache-Control": "no-cache" },
         cache: "no-store",
       });
 

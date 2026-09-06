@@ -1,0 +1,35 @@
+import { useEffect, useRef } from "react";
+import { registerBackHandler } from "../utils/backNavigation";
+
+/**
+ * Hook tự động liên kết phím Back (Android Back Button & Gesture / Web PopState) với việc đóng Modal.
+ * Khi Modal mở: Đăng ký handler đóng và thêm 1 entry vào history để nút Back đóng modal thay vì thoát ứng dụng.
+ */
+export function useModalBackClose(isOpen: boolean, onClose: () => void) {
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // 1. Push history state
+    const stateId = `modal_${Date.now()}`;
+    window.history.pushState({ modalId: stateId }, "");
+
+    // 2. Register back handler cho Capacitor Android & Web PopState
+    let isClosedByBack = false;
+    const unregister = registerBackHandler(() => {
+      isClosedByBack = true;
+      onCloseRef.current();
+      return true;
+    });
+
+    return () => {
+      unregister();
+      // Nếu modal được đóng bằng UI (click overlay, drag down, nút submit), dọn dẹp history entry
+      if (!isClosedByBack && window.history.state?.modalId === stateId) {
+        window.history.back();
+      }
+    };
+  }, [isOpen]);
+}

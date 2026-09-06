@@ -1,523 +1,832 @@
-import React, { useState } from "react";
-import { useAppStore } from "../../../stores/appStore";
-import { Button } from "../../ui/Button";
-import { TextInput } from "../../ui/TextInput";
-import { ConfirmModal } from "../../ui/ConfirmModal";
-import { EmptyStateDoodle } from "../../ui/EmptyStateDoodle";
-import { DynamicIcon } from "../../ui/DynamicIcon";
+import React, { useState, useMemo } from "react";
 import {
-  Smile,
-  Sprout,
-  PenLine,
   Flame,
-  X,
+  CheckCircle2,
   Sparkles,
-  BarChart3,
-  Trophy,
-  Target,
-  Zap,
+  BookOpen,
   TrendingUp,
+  Award,
+  Plus,
+  Edit3,
+  Trash2,
+  X,
+  Layers,
+  Check,
+  User,
+  Settings,
 } from "lucide-react";
-import { getLocalTodayStr, isTaskForDate } from "../../../utils/date";
+import { TabKey, HabitDto, TaskDto } from "../../../types";
+import { useAppStore } from "../../../stores/appStore";
+import { getLocalTodayStr, formatShortDayMonth } from "../../../utils/date";
+import { HandDrawnCheckbox } from "../../ui/core/HandDrawnCheckbox";
+import { useScrollLock } from "../../../hooks/useScrollLock";
+import { getTagStyle } from "../../../utils/tagColors";
+import { DynamicIcon } from "../../ui";
 
-// ==========================================
-// COMPONENT: ReviewTab (Tổng Kết & Thống Kê Năng Suất Phác Thảo)
-// ==========================================
+interface ReviewTabProps {
+  onNavigateTab?: (tab: TabKey) => void;
+  onNavigateRoute?: (path: string) => void;
+}
 
-const DAY_LABELS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+type TimeHorizon = "week" | "month" | "all";
 
-const MOODS = [
-  { key: "lucide:SmilePlus", label: "Tuyệt vời" },
-  { key: "lucide:Smile", label: "Ổn thỏa" },
-  { key: "lucide:Meh", label: "Bình thường" },
-  { key: "lucide:Frown", label: "Áp lực" },
-  { key: "lucide:Bed", label: "Mệt mỏi" },
-];
+const SHORT_DAYS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
-export const ReviewTab: React.FC = () => {
+export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateRoute }) => {
   const {
+    user,
+    tasks,
     habits,
-    addHabit,
-    toggleHabitDay,
-    deleteHabit,
-    dailyMoods,
-    setDailyMood,
+    notebooks,
+    journalEntries,
     weeklyReflection,
     setWeeklyReflection,
-    tasks,
+    toggleHabitDay,
+    addHabit,
+    updateHabit,
+    deleteHabit,
+    openAuthModal,
   } = useAppStore();
 
-  const [newHabitName, setNewHabitName] = useState("");
-  const [reflectionSaved, setReflectionSaved] = useState(false);
-  const [deletingHabitId, setDeletingHabitId] = useState<string | null>(null);
+  const now = new Date();
+  const todayStr = getLocalTodayStr(now);
 
-  // Lấy 7 ngày trong tuần hiện tại
-  const getCurrentWeekDates = () => {
-    const now = new Date();
-    const currentDay = now.getDay();
-    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
+  // Bộ lọc khung thời gian
+  const [timeHorizon, setTimeHorizon] = useState<TimeHorizon>("week");
 
+  // State cho Modal Quản lý thói quen
+  const [isHabitManagerOpen, setIsHabitManagerOpen] = useState(false);
+  const [editingHabitId, setEditingHabitId] = useState<string | null>(null);
+  const [draftHabitName, setDraftHabitName] = useState("");
+  const [draftFrequency, setDraftFrequency] = useState<HabitDto["frequency"]>("daily");
+
+  // State thông báo lưu phản tư
+  const [isSavedNotice, setIsSavedNotice] = useState(false);
+
+  useScrollLock(isHabitManagerOpen);
+
+  // ==========================================
+  // 1. TÍNH TOÁN DANH SÁCH NGÀY THEO KHUNG THỜI GIAN
+  // ==========================================
+  const currentWeekDays = useMemo(() => {
     const monday = new Date(now);
-    monday.setDate(now.getDate() + mondayOffset);
+    const dayOfWeek = monday.getDay();
+    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    monday.setDate(monday.getDate() + diffToMonday);
 
     const days = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
       const dateStr = getLocalTodayStr(d);
-      const isToday = getLocalTodayStr(now) === dateStr;
-
       days.push({
-        label: DAY_LABELS[i],
+        dateStr,
+        dayName: SHORT_DAYS[i],
         dayNum: d.getDate(),
-        monthNum: d.getMonth() + 1,
-        date: dateStr,
-        isToday,
+        isToday: dateStr === todayStr,
       });
     }
     return days;
-  };
+  }, [now, todayStr]);
 
-  const weekDays = getCurrentWeekDates();
-  const todayStr = getLocalTodayStr();
-  const todayMood = dailyMoods[todayStr];
+  const weekDatesList = useMemo(() => currentWeekDays.map((d) => d.dateStr), [currentWeekDays]);
 
-  const handleAddHabit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newHabitName.trim()) return;
-    addHabit(newHabitName.trim());
-    setNewHabitName("");
-  };
+  // ==========================================
+  // 2. LỌC TẬP TASK THEO KHUNG THỜI GIAN (TUẦN / THÁNG / TOÀN BỘ)
+  // ==========================================
+  const currentPeriodTasks = useMemo(() => {
+    const currentMonthPrefix = todayStr.substring(0, 7); // YYYY-MM
 
-  // 1. Thống kê số lượng task hoàn thành từng ngày trong 7 ngày qua
-  const dailyTaskStats = weekDays.map((day) => {
-    const completedTasksOnDay = tasks.filter((t) => {
-      if (!t.completed) return false;
-      return isTaskForDate(t.dueDate, day.date);
-    }).length;
+    return tasks.filter((t) => {
+      const effectiveDate = t.dueDate ? t.dueDate.split(" ")[0] : t.createdAt?.split("T")[0] || "";
+      if (timeHorizon === "week") {
+        return weekDatesList.includes(effectiveDate);
+      }
+      if (timeHorizon === "month") {
+        return effectiveDate.startsWith(currentMonthPrefix);
+      }
+      return true; // "all"
+    });
+  }, [tasks, timeHorizon, weekDatesList, todayStr]);
 
-    const totalTasksOnDay = tasks.filter((t) => {
-      return isTaskForDate(t.dueDate, day.date);
-    }).length;
+  // Các việc đã hoàn thành trong kỳ
+  const completedPeriodTasks = useMemo(() => {
+    return currentPeriodTasks.filter((t) => t.completed);
+  }, [currentPeriodTasks]);
+
+  // Các việc còn đang làm trong kỳ
+  const pendingPeriodTasks = useMemo(() => {
+    return currentPeriodTasks.filter((t) => !t.completed);
+  }, [currentPeriodTasks]);
+
+  const totalPeriodTasks = currentPeriodTasks.length;
+  const completedCount = completedPeriodTasks.length;
+  const completionRate = totalPeriodTasks > 0 ? Math.round((completedCount / totalPeriodTasks) * 100) : 0;
+
+  // Hiệu suất trung bình mỗi ngày
+  const dailyVelocity = (completedCount / (timeHorizon === "week" ? 7 : timeHorizon === "month" ? 30 : 60)).toFixed(1);
+
+  // ==========================================
+  // 3. THỐNG KÊ BIỂU ĐỒ NĂNG SUẤT 7 NGÀY
+  // ==========================================
+  const dailyActivityStats = useMemo(() => {
+    const dailyCounts = currentWeekDays.map((day) => {
+      const count = tasks.filter((t) => {
+        if (!t.completed) return false;
+        const effectiveDate = t.dueDate ? t.dueDate.split(" ")[0] : "";
+        return effectiveDate === day.dateStr;
+      }).length;
+      return {
+        ...day,
+        count,
+      };
+    });
+
+    const maxDailyCount = Math.max(...dailyCounts.map((d) => d.count), 1);
+    return { dailyCounts, maxDailyCount };
+  }, [tasks, currentWeekDays]);
+
+  // ==========================================
+  // 4. PHÂN TÍCH PHÂN BỔ 3 CHIỀU: SỔ TAY, NHÃN & ƯU TIÊN
+  // ==========================================
+
+  // (A) Phân bổ theo Sổ Tay
+  const notebookDistribution = useMemo(() => {
+    const counts: Record<string, number> = {};
+    completedPeriodTasks.forEach((t) => {
+      const key = t.notebookId || "inbox";
+      counts[key] = (counts[key] || 0) + 1;
+    });
+
+    return notebooks.map((nb) => {
+      const count = counts[nb.id] || 0;
+      const percent = completedCount > 0 ? Math.round((count / completedCount) * 100) : 0;
+      return {
+        id: nb.id,
+        name: nb.name,
+        color: nb.color,
+        count,
+        percent,
+      };
+    }).filter((item) => item.count > 0);
+  }, [completedPeriodTasks, notebooks, completedCount]);
+
+  // (B) Phân bổ theo Nhãn (#Tag)
+  const tagDistribution = useMemo(() => {
+    const counts: Record<string, number> = {};
+    completedPeriodTasks.forEach((t) => {
+      if (t.tag) {
+        counts[t.tag] = (counts[t.tag] || 0) + 1;
+      }
+    });
+
+    return Object.entries(counts)
+      .map(([tag, count]) => ({
+        tag,
+        count,
+        percent: completedCount > 0 ? Math.round((count / completedCount) * 100) : 0,
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+  }, [completedPeriodTasks, completedCount]);
+
+  // (C) Phân bổ theo Mức Độ Ưu Tiên
+  const priorityDistribution = useMemo(() => {
+    let high = 0;
+    let medium = 0;
+    let low = 0;
+
+    completedPeriodTasks.forEach((t) => {
+      const p = t.priority || "medium";
+      if (p === "high") high++;
+      else if (p === "low") low++;
+      else medium++;
+    });
 
     return {
-      ...day,
-      completedCount: completedTasksOnDay,
-      totalCount: totalTasksOnDay,
+      high,
+      medium,
+      low,
+      highPercent: completedCount > 0 ? Math.round((high / completedCount) * 100) : 0,
+      mediumPercent: completedCount > 0 ? Math.round((medium / completedCount) * 100) : 0,
+      lowPercent: completedCount > 0 ? Math.round((low / completedCount) * 100) : 0,
     };
-  });
+  }, [completedPeriodTasks, completedCount]);
 
-  const maxCompleted = Math.max(
-    1,
-    ...dailyTaskStats.map((d) => d.completedCount),
-  );
+  // ==========================================
+  // 5. THỐNG KÊ THÓI QUEN KỶ LUẬT TUẦN
+  // ==========================================
+  const weeklyHabitStats = useMemo(() => {
+    if (habits.length === 0) return { completionRate: 0, totalChecks: 0, maxStreak: 0 };
 
-  // 2. Tìm ngày làm việc năng suất nhất
-  const bestDayStat = [...dailyTaskStats].sort(
-    (a, b) => b.completedCount - a.completedCount,
-  )[0];
+    let totalPossible = habits.length * 7;
+    let totalChecks = 0;
+    let maxStreak = 0;
 
-  // 3. Tổng số lượt check thói quen trong tuần
-  const totalHabitChecks = habits.reduce((acc, h) => {
-    const checksInWeek = weekDays.filter((d) =>
-      h.completedDates.includes(d.date),
-    ).length;
-    return acc + checksInWeek;
-  }, 0);
+    habits.forEach((habit) => {
+      if (habit.streak && habit.streak > maxStreak) maxStreak = habit.streak;
+      weekDatesList.forEach((dateStr) => {
+        if (habit.completedDates?.includes(dateStr)) totalChecks++;
+      });
+    });
 
-  // 4. Tính Điểm Năng Suất (0 - 100)
-  const completedTasksCount = tasks.filter((t) => t.completed).length;
-  const totalTasksCount = tasks.length;
-  const completionRate =
-    totalTasksCount > 0
-      ? Math.round((completedTasksCount / totalTasksCount) * 100)
-      : 0;
+    const rate = Math.round((totalChecks / totalPossible) * 100);
+    return { completionRate: rate, totalChecks, maxStreak };
+  }, [habits, weekDatesList]);
 
-  const productivityScore = Math.min(
-    100,
-    Math.round(completionRate * 0.7 + Math.min(30, totalHabitChecks * 5)),
-  );
+  // Submit sửa/tạo thói quen
+  const handleHabitSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!draftHabitName.trim()) return;
+    if (editingHabitId) {
+      updateHabit(editingHabitId, { name: draftHabitName.trim(), frequency: draftFrequency });
+    } else {
+      addHabit(draftHabitName.trim(), draftFrequency);
+    }
+    setEditingHabitId(null);
+    setDraftHabitName("");
+  };
+
+  const handleReflectionChange = (text: string) => {
+    setWeeklyReflection(text);
+    setIsSavedNotice(true);
+    setTimeout(() => setIsSavedNotice(false), 2000);
+  };
 
   return (
-    <div className="space-y-4 max-w-3xl lg:max-w-6xl mx-auto">
-      {/* 1. Header Tổng Quan & Điểm Năng Suất */}
-      <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1917]">
-            Nhìn Lại & Năng Suất
-          </h2>
-          <p className="text-[11px] text-[#78716C]">
-            Theo dõi tiến độ, phân tích hiệu suất và duy trì thói quen
-          </p>
+    <div className="w-full min-w-0 space-y-4 pb-20 select-none animate-in fade-in duration-150">
+      {/* 0. Khối Profile Cá Nhân Chuẩn YouTube "You" */}
+      <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-4 sm:p-5 shadow-[2.5px_2.5px_0px_#262626] space-y-3.5">
+        <div className="flex items-center gap-3.5 sm:gap-4">
+          <div
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-[12px] border-[1.5px] border-[#262626] flex items-center justify-center shadow-[2px_2px_0px_#262626] shrink-0 -rotate-1"
+            style={{ backgroundColor: user.avatarBg || "#DDD6FE" }}
+          >
+            <DynamicIcon name={user.avatar || "lucide:User"} size={30} strokeWidth={2.2} className="text-[#1C1917]" />
+          </div>
+
+          <div className="min-w-0 flex-1 space-y-0.5">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base sm:text-xl font-black text-[#1C1917] truncate leading-tight">
+                {user.name}
+              </h2>
+              <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-[#FEF08A] text-[#1C1917] border border-[#262626] font-bold shrink-0">
+                {user.isSignedIn ? "Thành viên" : "Khách"}
+              </span>
+            </div>
+            <p className="text-xs text-[#78716C] font-mono truncate">
+              {user.isSignedIn ? user.email : "@khach_chua_dang_nhap"}
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-1.5 font-mono text-xs font-bold bg-[#FEF08A] px-2.5 py-1 border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626]">
-          <Trophy size={13} strokeWidth={2.5} className="text-amber-700" />
-          <span>{productivityScore}/100 Điểm</span>
+
+        {/* 2 Nút Hành Động Chuẩn YouTube: [ Quản lý tài khoản ] và [ Cài đặt hệ thống ] */}
+        <div className="grid grid-cols-2 gap-2 pt-0.5">
+          <button
+            type="button"
+            onClick={() => {
+              openAuthModal();
+            }}
+            className="w-full py-2 px-3 rounded-[6px] bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] text-xs font-bold text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center gap-1.5 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer transition-all truncate"
+          >
+            <User size={14} strokeWidth={2.2} />
+            <span className="truncate">{user.isSignedIn ? "Tài khoản" : "Đăng nhập"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onNavigateTab?.("settings")}
+            className="w-full py-2 px-3 rounded-[6px] bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] text-xs font-bold text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center gap-1.5 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer transition-all truncate"
+          >
+            <Settings size={14} strokeWidth={2.2} />
+            <span className="truncate">Cài đặt</span>
+          </button>
         </div>
       </div>
 
-      {/* BỐ CỤC 2 CỘT TRÊN DESKTOP */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
-        {/* CỘT TRÁI (Biểu đồ năng suất 7 ngày + Tâm trạng hôm nay) */}
-        <div className="lg:col-span-6 space-y-4">
-          {/* 2. BẢNG THỐNG KÊ & BIỂU ĐỒ NĂNG SUẤT 7 NGÀY (PHÁC THẢO MỰC) */}
-          <div className="p-3.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2.5px_2.5px_0px_#262626] space-y-3">
-            {/* Header Biểu Đồ */}
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-xs sm:text-sm text-[#1C1917] flex items-center gap-1.5">
-                <BarChart3
-                  size={16}
-                  strokeWidth={2.2}
-                  className="text-indigo-700"
-                />
-                <span>BIỂU ĐỒ HOÀN THÀNH (7 NGÀY)</span>
+      {/* 1. Bộ Lọc Khung Thời Gian (Xếp dọc: Tiêu đề ở trên, thanh chọn ở dưới) */}
+      <div className="space-y-2 pt-1 pb-1">
+        <div className="flex items-center gap-1.5 text-xs font-black text-[#1C1917] uppercase tracking-wider font-mono">
+          <TrendingUp size={15} strokeWidth={2.4} className="text-[#1C1917]" />
+          <span>Thống kê năng suất</span>
+        </div>
+
+        {/* Thanh chuyển đổi khung thời gian: Tuần này | Tháng này | Tất cả */}
+        <div className="grid grid-cols-3 gap-1 bg-[#FAF8F3] border-[1.5px] border-[#262626] p-1 rounded-[6px] shadow-[1.5px_1.5px_0px_#262626]">
+          <button
+            type="button"
+            onClick={() => setTimeHorizon("week")}
+            className={`py-1.5 px-2 rounded-[4px] text-xs font-bold transition-all cursor-pointer text-center active:translate-y-[0.5px] ${
+              timeHorizon === "week"
+                ? "bg-[#FEF08A] text-[#1C1917] border border-[#262626] shadow-[1px_1px_0px_#262626]"
+                : "text-[#78716C] hover:text-[#1C1917]"
+            }`}
+          >
+            Tuần này
+          </button>
+          <button
+            type="button"
+            onClick={() => setTimeHorizon("month")}
+            className={`py-1.5 px-2 rounded-[4px] text-xs font-bold transition-all cursor-pointer text-center active:translate-y-[0.5px] ${
+              timeHorizon === "month"
+                ? "bg-[#BAE6FD] text-[#1C1917] border border-[#262626] shadow-[1px_1px_0px_#262626]"
+                : "text-[#78716C] hover:text-[#1C1917]"
+            }`}
+          >
+            Tháng này
+          </button>
+          <button
+            type="button"
+            onClick={() => setTimeHorizon("all")}
+            className={`py-1.5 px-2 rounded-[4px] text-xs font-bold transition-all cursor-pointer text-center active:translate-y-[0.5px] ${
+              timeHorizon === "all"
+                ? "bg-[#BBF7D0] text-emerald-950 border border-[#262626] shadow-[1px_1px_0px_#262626]"
+                : "text-[#78716C] hover:text-[#1C1917]"
+            }`}
+          >
+            Tất cả
+          </button>
+        </div>
+      </div>
+
+      {/* 2. KHỐI 4 THẺ CHỈ SỐ NĂNG SUẤT CỐT LÕI (CORE PRODUCTIVITY METRICS) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+        {/* Card 1: Tỷ lệ hoàn thành */}
+        <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3 sm:p-3.5 shadow-[2px_2px_0px_#262626] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs font-bold text-[#1C1917]">
+            <span className="flex items-center gap-1">
+              <CheckCircle2 size={14} className="text-emerald-700" strokeWidth={2.4} />
+              <span>Hoàn thành</span>
+            </span>
+            <span className="font-mono text-[10px] px-1.5 py-0.2 bg-[#BBF7D0] border border-[#262626] rounded">
+              {completionRate}%
+            </span>
+          </div>
+          <div className="mt-2 flex items-baseline gap-1">
+            <span className="font-mono text-xl sm:text-2xl font-black text-[#1C1917]">
+              {completedCount}/{totalPeriodTasks}
+            </span>
+            <span className="text-xs text-[#78716C]">đã xong</span>
+          </div>
+        </div>
+
+        {/* Card 2: Tốc độ xử lý công việc */}
+        <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3 sm:p-3.5 shadow-[2px_2px_0px_#262626] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs font-bold text-[#1C1917]">
+            <span className="flex items-center gap-1">
+              <TrendingUp size={14} className="text-sky-700" strokeWidth={2.4} />
+              <span>Tốc độ</span>
+            </span>
+          </div>
+          <div className="mt-2 flex items-baseline gap-1">
+            <span className="font-mono text-xl sm:text-2xl font-black text-[#1C1917]">
+              {dailyVelocity}
+            </span>
+            <span className="text-xs text-[#78716C]">việc / ngày</span>
+          </div>
+        </div>
+
+        {/* Card 3: Kỷ luật thói quen */}
+        <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3 sm:p-3.5 shadow-[2px_2px_0px_#262626] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs font-bold text-[#1C1917]">
+            <span className="flex items-center gap-1">
+              <Flame size={14} className="text-orange-600" strokeWidth={2.4} />
+              <span>Thói quen</span>
+            </span>
+            <span className="font-mono text-[10px] px-1.5 py-0.2 bg-[#FED7AA] border border-[#262626] rounded">
+              <span className="inline-flex items-center gap-1">
+                <Flame size={10} strokeWidth={2.4} />
+                {weeklyHabitStats.maxStreak} ngày
               </span>
-              <span className="text-[10px] font-mono text-[#78716C] bg-[#FBF9F4] px-1.5 py-0.5 rounded border border-[#D4CEBF]">
-                Tuần này
+            </span>
+          </div>
+          <div className="mt-2 flex items-baseline gap-1">
+            <span className="font-mono text-xl sm:text-2xl font-black text-[#1C1917]">
+              {weeklyHabitStats.completionRate}%
+            </span>
+            <span className="text-xs text-[#78716C]">đạt</span>
+          </div>
+        </div>
+
+        {/* Card 4: Ghi chép & Đúc kết */}
+        <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3 sm:p-3.5 shadow-[2px_2px_0px_#262626] flex flex-col justify-between">
+          <div className="flex items-center justify-between text-xs font-bold text-[#1C1917]">
+            <span className="flex items-center gap-1">
+              <BookOpen size={14} className="text-purple-700" strokeWidth={2.4} />
+              <span>Nhật ký</span>
+            </span>
+          </div>
+          <div className="mt-2 flex items-baseline gap-1">
+            <span className="font-mono text-xl sm:text-2xl font-black text-[#1C1917]">
+              {journalEntries.length}
+            </span>
+            <span className="text-xs text-[#78716C]">bài viết</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. BỐ CỤC 2 CỘT: (TRÁI) BIỂU ĐỒ & THÓI QUEN  -  (PHẢI) PHÂN BỔ & SỔ PHẢN TƯ */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        {/* CỘT TRÁI (7 PHẦN): Biểu đồ năng suất 7 ngày + Ma trận thói quen */}
+        <div className="lg:col-span-7 space-y-4">
+          {/* (A) BIỂU ĐỒ NĂNG SUẤT 7 NGÀY GẦN NHẤT */}
+          <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3.5 sm:p-4 shadow-[2px_2px_0px_#262626] space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
+              <div className="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[#1C1917]">
+                <TrendingUp size={16} className="text-sky-700" strokeWidth={2.4} />
+                <span>Hoàn thành 7 ngày</span>
+              </div>
+              <span className="text-[10px] text-[#78716C] font-mono">
+                {completedCount} việc
               </span>
             </div>
 
-            {/* 4 Thẻ Chỉ Số Nhanh */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-              <div className="p-2 sm:p-2.5 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex flex-col justify-between min-h-[60px]">
-                <span className="text-[10px] text-[#78716C] font-medium flex items-center gap-1">
-                  <Target size={11} className="text-emerald-700 shrink-0" />
-                  <span>Tỷ lệ xong</span>
-                </span>
-                <p className="font-mono font-bold text-base text-[#1C1917] mt-0.5">
-                  {completionRate}%
-                </p>
-              </div>
+            <div className="grid grid-cols-7 gap-2 pt-2 items-end min-h-[140px] px-1">
+              {dailyActivityStats.dailyCounts.map((day) => {
+                const barHeight =
+                  day.count > 0
+                    ? Math.max(Math.round((day.count / dailyActivityStats.maxDailyCount) * 90), 16)
+                    : 6;
 
-              <div className="p-2 sm:p-2.5 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex flex-col justify-between min-h-[60px]">
-                <span className="text-[10px] text-[#78716C] font-medium flex items-center gap-1">
-                  <Zap size={11} className="text-amber-600 shrink-0" />
-                  <span>Ngày cao nhất</span>
-                </span>
-                <p className="font-mono font-bold text-xs sm:text-sm text-[#1C1917] mt-0.5 leading-tight">
-                  {bestDayStat && bestDayStat.completedCount > 0 ? (
-                    <span>
-                      <span className="text-sm font-black">
-                        {bestDayStat.label}
-                      </span>{" "}
-                      <span className="text-[10.5px] text-[#78716C]">
-                        ({bestDayStat.completedCount} việc)
-                      </span>
+                return (
+                  <div key={day.dateStr} className="flex flex-col items-center gap-1.5 h-full justify-end">
+                    <span className="font-mono text-[10px] font-bold text-[#1C1917]">
+                      {day.count > 0 ? day.count : ""}
                     </span>
-                  ) : (
-                    <span className="text-[11px] text-[#78716C]">Chưa có</span>
-                  )}
-                </p>
-              </div>
+                    <div
+                      className={`w-full rounded-[4px] border-[1.5px] border-[#262626] transition-all ${
+                        day.isToday
+                          ? "bg-[#FEF08A] shadow-[1.5px_1.5px_0px_#262626]"
+                          : day.count > 0
+                          ? "bg-[#BAE6FD] shadow-[1px_1px_0px_#262626]"
+                          : "bg-[#F3EFE6] border-dashed border-[#D4CEBF]"
+                      }`}
+                      style={{ height: `${barHeight}px` }}
+                      title={`${day.dayName} (${day.dayNum}): ${day.count} việc hoàn thành`}
+                    />
+                    <div className="text-center">
+                      <span
+                        className={`text-[10px] sm:text-xs font-bold block ${
+                          day.isToday ? "text-[#1C1917]" : "text-[#78716C]"
+                        }`}
+                      >
+                        {day.dayName}
+                      </span>
+                      <span className="text-[9px] font-mono text-[#A8A29E]">
+                        {day.dayNum}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
-              <div className="p-2 sm:p-2.5 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex flex-col justify-between min-h-[60px]">
-                <span className="text-[10px] text-[#78716C] font-medium flex items-center gap-1">
-                  <Flame size={11} className="text-orange-600 shrink-0" />
-                  <span>Thói quen</span>
-                </span>
-                <p className="font-mono font-bold text-base text-[#1C1917] mt-0.5">
-                  {totalHabitChecks}{" "}
-                  <span className="text-[10px] text-[#78716C] font-normal">
-                    lượt
-                  </span>
-                </p>
+          {/* (B) BẢNG MA TRẬN THÓI QUEN TUẦN NÀY (7-Day Habit Discipline Grid) */}
+          <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3.5 sm:p-4 shadow-[2px_2px_0px_#262626] space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
+              <div className="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[#1C1917]">
+                <Flame size={16} className="text-orange-600" strokeWidth={2.4} />
+                <span>Thói quen tuần ({habits.length})</span>
               </div>
-
-              <div className="p-2 sm:p-2.5 bg-[#FBF9F4] border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex flex-col justify-between min-h-[60px]">
-                <span className="text-[10px] text-[#78716C] font-medium flex items-center gap-1">
-                  <TrendingUp size={11} className="text-indigo-700 shrink-0" />
-                  <span>Đánh giá</span>
-                </span>
-                <div className="font-bold text-xs text-[#1C1917] mt-0.5 leading-tight flex items-center gap-1">
-                  {productivityScore >= 80 ? (
-                    <>
-                      <span>Xuất sắc!</span>
-                      <Flame size={13} className="text-amber-500 fill-amber-500 shrink-0" />
-                    </>
-                  ) : productivityScore >= 50 ? (
-                    <>
-                      <span>Khá tốt!</span>
-                      <Sparkles size={13} className="text-amber-500 shrink-0" />
-                    </>
-                  ) : (
-                    <>
-                      <span>Cố lên!</span>
-                      <Sprout size={13} className="text-emerald-600 shrink-0" />
-                    </>
-                  )}
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsHabitManagerOpen(true)}
+                className="px-2.5 py-1 bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-[10px] font-bold text-[#1C1917] flex items-center gap-1 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
+              >
+                <Plus size={11} strokeWidth={2.6} />
+                <span>Quản lý</span>
+              </button>
             </div>
 
-            {/* Biểu Đồ Cột Nét Mực 7 Ngày */}
-            <div className="pt-2 border-t border-[#D4CEBF]/60">
-              <div className="h-28 flex items-end justify-between gap-1.5 sm:gap-3 px-1 pt-4">
-                {dailyTaskStats.map((d) => {
-                  const heightPercent =
-                    maxCompleted > 0
-                      ? Math.max(12, (d.completedCount / maxCompleted) * 100)
-                      : 12;
+            {habits.length === 0 ? (
+              <div className="py-6 text-center text-[#78716C] space-y-1.5">
+                <p className="text-xs font-bold text-[#1C1917]">Chưa có thói quen</p>
+                <p className="text-[11px]">Thêm thói quen để theo dõi chuỗi ngày kỷ luật.</p>
+              </div>
+            ) : (
+              <div className="space-y-2 overflow-x-auto no-scrollbar">
+                {/* Header 7 ngày */}
+                <div className="grid grid-cols-12 gap-1 text-[10px] font-bold text-[#78716C] pb-1 border-b border-[#262626]/20 font-mono">
+                  <span className="col-span-5 truncate">Thói quen</span>
+                  {currentWeekDays.map((day) => (
+                    <span
+                      key={day.dateStr}
+                      className={`col-span-1 text-center ${
+                        day.isToday ? "text-[#1C1917] font-black underline" : ""
+                      }`}
+                    >
+                      {day.dayName}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Danh sách các dòng thói quen */}
+                {habits.map((habit) => {
                   return (
                     <div
-                      key={d.date}
-                      className="flex-1 flex flex-col items-center gap-1 h-full justify-end group"
+                      key={habit.id}
+                      className="grid grid-cols-12 gap-1 items-center p-1.5 bg-[#FAF8F3] hover:bg-[#F3EFE6] border border-[#262626] rounded-[6px] shadow-[1px_1px_0px_#262626]"
                     >
-                      <span className="text-[10px] font-mono font-bold text-[#78716C] group-hover:text-[#1C1917]">
-                        {d.completedCount > 0 ? d.completedCount : ""}
-                      </span>
-                      <div
-                        style={{ height: `${heightPercent}%` }}
-                        className={`w-full max-w-[36px] rounded-t-[3px] border-[1.5px] border-[#262626] transition-all duration-300 ${
-                          d.isToday
-                            ? "bg-[#FEF08A] shadow-[1.5px_0px_0px_#262626]"
-                            : d.completedCount > 0
-                              ? "bg-[#BBF7D0] shadow-[1px_0px_0px_#262626]"
-                              : "bg-[#F3EFE6] opacity-60"
-                        }`}
-                      />
-                      <div className="text-center pt-1">
-                        <p
-                          className={`text-[10px] font-mono leading-none ${d.isToday ? "font-bold text-[#1C1917] underline decoration-[#FEF08A] decoration-2" : "text-[#78716C]"}`}
-                        >
-                          {d.label}
-                        </p>
-                        <p className="text-[8px] font-mono text-[#A8A29E] mt-0.5">
-                          {d.dayNum}/{d.monthNum}
-                        </p>
+                      <div className="col-span-5 flex items-center gap-1.5 min-w-0 pr-1">
+                        <span className="text-xs font-bold text-[#1C1917] truncate">
+                          {habit.name}
+                        </span>
+                        {habit.streak && habit.streak > 0 ? (
+                          <span className="text-[9px] font-mono font-bold text-orange-800 shrink-0">
+                            <span className="inline-flex items-center gap-0.5">
+                              <Flame size={9} strokeWidth={2.4} />
+                              {habit.streak}
+                            </span>
+                          </span>
+                        ) : null}
                       </div>
+
+                      {/* 7 Ô Checkbox cho 7 ngày */}
+                      {currentWeekDays.map((day) => {
+                        const isDone = habit.completedDates?.includes(day.dateStr);
+                        return (
+                          <div
+                            key={day.dateStr}
+                            className="col-span-1 flex items-center justify-center"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => toggleHabitDay(habit.id, day.dateStr)}
+                              className={`w-6 h-6 rounded-[3px] border transition-all flex items-center justify-center text-xs active:scale-90 cursor-pointer ${
+                                isDone
+                                  ? "bg-[#BBF7D0] border-[#262626] text-emerald-950 font-bold shadow-[0.5px_0.5px_0px_#262626]"
+                                  : "bg-white border-[#D4CEBF] text-transparent hover:border-[#262626]"
+                              }`}
+                              title={`${habit.name} - ${day.dayName} (${day.dayNum})`}
+                            >
+                              {isDone ? <Check size={12} strokeWidth={3} /> : null}
+                            </button>
+                          </div>
+                        );
+                      })}
                     </div>
                   );
                 })}
               </div>
-            </div>
-          </div>
-
-          {/* 3. TÂM TRẠNG HÔM NAY (1 CHẠM LÀ XONG) */}
-          <div className="p-3.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2.5px_2.5px_0px_#262626] space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-xs sm:text-sm text-[#1C1917] flex items-center gap-1.5">
-                <Smile size={16} strokeWidth={2.2} />
-                <span>Hôm nay bạn cảm thấy thế nào?</span>
-              </span>
-              <span className="text-[11px] font-mono text-[#78716C]">
-                {new Date().getDate()}/{new Date().getMonth() + 1}
-              </span>
-            </div>
-
-            {/* 5 Nút Cảm Xúc To Rõ 1 Hàng */}
-            <div className="grid grid-cols-5 gap-1.5">
-              {MOODS.map((m) => {
-                const isSelected = todayMood === m.key;
-                return (
-                  <button
-                    key={m.key}
-                    type="button"
-                    onClick={() => setDailyMood(todayStr, m.key)}
-                    className={`py-2 rounded-[4px] border-[1.5px] flex flex-col items-center justify-center transition-all ${
-                      isSelected
-                        ? "bg-[#FEF08A] border-[#262626] shadow-[2px_2px_0px_#262626] -translate-y-[1px] font-bold scale-105"
-                        : "bg-[#FBF9F4] border-[#D4CEBF] text-[#78716C] hover:bg-white hover:border-[#262626]"
-                    } active:translate-y-[0.5px]`}
-                  >
-                    <DynamicIcon name={m.key} size={22} strokeWidth={2.2} />
-                    <span className="text-[10px] sm:text-[11px] mt-1">
-                      {m.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Dải Lịch Sử 7 Ngày Trong Tuần */}
-            <div className="pt-2 border-t border-[#D4CEBF]/60 flex items-center justify-between text-xs px-1">
-              {weekDays.map((d) => (
-                <div key={d.date} className="flex flex-col items-center">
-                  <span
-                    className={`text-[10px] font-mono ${d.isToday ? "font-bold text-[#1C1917] underline decoration-[#FEF08A] decoration-2" : "text-[#78716C]"}`}
-                  >
-                    {d.label}
-                  </span>
-                  <div className="h-5 flex items-center justify-center mt-0.5">
-                    {dailyMoods[d.date] ? (
-                      <DynamicIcon
-                        name={dailyMoods[d.date]}
-                        size={16}
-                        strokeWidth={2.2}
-                      />
-                    ) : (
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#F3EFE6] border border-[#D4CEBF]" />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+            )}
           </div>
         </div>
 
-        {/* CỘT PHẢI (Thói quen & Đúc kết tuần) */}
-        <div className="lg:col-span-6 space-y-4">
-          {/* 3. THEO DÕI THÓI QUEN (BỐ CỤC 2 TẦNG - TÊN KHÔNG BAO GIỜ BỊ CHE) */}
-          <div className="bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2.5px_2.5px_0px_#262626] overflow-hidden space-y-0">
-            <div className="p-3 bg-[#F3EFE6] border-b border-[#262626] font-bold text-xs sm:text-sm flex justify-between items-center">
-              <span className="flex items-center gap-1.5">
-                <Sprout size={16} strokeWidth={2.2} />
-                <span>THÓI QUEN (7 NGÀY)</span>
-              </span>
-              <span className="font-mono text-xs text-[#78716C] font-normal">
-                {habits.length} thói quen
-              </span>
-            </div>
-
-            {/* Ô Thêm Thói Quen */}
-            <form
-              onSubmit={handleAddHabit}
-              className="p-3 border-b border-[#D4CEBF] flex gap-2 bg-[#FBF9F4]"
-            >
-              <TextInput
-                placeholder="Nhập thói quen mới (vd: Uống 2L nước, Chạy bộ 30p, Đọc sách)..."
-                value={newHabitName}
-                onChange={(e) => setNewHabitName(e.target.value)}
-                className="flex-1 text-xs sm:text-sm bg-white"
-              />
-              <Button type="submit" variant="primary" size="md">
-                + Thêm
-              </Button>
-            </form>
-
-            {/* Danh Sách Thói Quen Từng Thẻ (2 Hàng) */}
-            <div className="divide-y divide-[#D4CEBF]">
-              {habits.length === 0 ? (
-                <div className="p-6">
-                  <EmptyStateDoodle
-                    icon="lucide:Sprout"
-                    title="Chưa có thói quen nào"
-                    message="Hãy nhập thói quen bạn muốn rèn luyện phía trên để bắt đầu theo dõi nhé."
-                  />
-                </div>
-              ) : (
-                habits.map((habit) => {
-                  const weekCompletedDays = weekDays.filter((d) =>
-                    habit.completedDates.includes(d.date),
-                  ).length;
-
-                  return (
-                    <div
-                      key={habit.id}
-                      className="p-3.5 space-y-2.5 hover:bg-[#FBF9F4] transition-colors group"
-                    >
-                      {/* HÀNG 1: TÊN THÓI QUEN ĐẦY ĐỦ 100% */}
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <Sparkles
-                            size={14}
-                            strokeWidth={2.2}
-                            className="text-amber-500 shrink-0"
-                          />
-                          <h4 className="font-bold text-sm sm:text-base text-[#1C1917] leading-snug break-words">
-                            {habit.name}
-                          </h4>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-xs font-mono font-bold bg-[#FEF08A] text-[#1C1917] px-2 py-0.5 rounded border border-[#262626] shadow-[1px_1px_0px_#262626] inline-flex items-center gap-1">
-                            <Flame
-                              size={12}
-                              strokeWidth={2.2}
-                              className="text-amber-600"
-                            />
-                            <span>{weekCompletedDays}/7 ngày</span>
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setDeletingHabitId(habit.id)}
-                            title="Xóa thói quen"
-                            className="w-6 h-6 rounded border border-transparent hover:border-rose-400 hover:bg-rose-50 text-[#78716C] hover:text-rose-600 flex items-center justify-center transition-colors"
-                          >
-                            <X size={13} strokeWidth={2.5} />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* HÀNG 2: 7 NÚT CHECK TRÒN TO RÕ */}
-                      <div className="grid grid-cols-7 gap-1.5 pt-1 border-t border-[#D4CEBF]/40 select-none">
-                        {weekDays.map((d) => {
-                          const isDone = habit.completedDates.includes(d.date);
-                          return (
-                            <button
-                              key={d.date}
-                              type="button"
-                              onClick={() => toggleHabitDay(habit.id, d.date)}
-                              className={`flex flex-col items-center justify-center py-1.5 rounded-[4px] border-[1.5px] transition-all ${
-                                isDone
-                                  ? "bg-[#BBF7D0] border-[#262626] shadow-[1.5px_1.5px_0px_#262626] -translate-y-[0.5px]"
-                                  : "bg-[#FBF9F4] border-[#D4CEBF] text-[#78716C] hover:bg-white hover:border-[#262626]"
-                              } active:translate-y-[0.5px]`}
-                            >
-                              <span
-                                className={`text-[9px] font-mono leading-none ${d.isToday ? "font-bold text-[#1C1917] underline decoration-[#FEF08A] decoration-2" : "text-[#78716C]"}`}
-                              >
-                                {d.label}
-                              </span>
-                              <div className="mt-1">
-                                {isDone ? (
-                                  <span className="font-bold text-xs leading-none text-[#1C1917]">
-                                    ✓
-                                  </span>
-                                ) : (
-                                  <span className="inline-block w-2.5 h-2.5 rounded-full border border-[#D4CEBF] bg-white" />
-                                )}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-          {/* 4. GHI CHÉP ĐÚC KẾT TUẦN */}
-          <div className="p-3.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2.5px_2.5px_0px_#262626] space-y-2">
-            <div className="flex items-center justify-between pb-1 border-b border-[#D4CEBF]">
-              <h3 className="font-bold text-xs sm:text-sm text-[#1C1917] flex items-center gap-1.5">
-                <PenLine size={16} strokeWidth={2.2} />
-                <span>Đúc kết tuần này</span>
-              </h3>
-              {reflectionSaved && (
-                <span className="text-[10px] font-mono text-emerald-800 bg-[#BBF7D0] px-2 py-0.5 rounded font-bold border border-[#262626]">
-                  ✓ Đã lưu
+        {/* CỘT PHẢI (5 PHẦN): Phân tích chi tiết 3 chiều & Sổ phản tư chiến lược */}
+        <div className="lg:col-span-5 space-y-4">
+          {/* (A) SỔ PHẢN TƯ & ĐÚC KẾT CHIẾN LƯỢC */}
+          <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3.5 sm:p-4 shadow-[2.5px_2.5px_0px_#262626] space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
+              <div className="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[#1C1917]">
+                <Sparkles size={16} className="text-amber-700" strokeWidth={2.4} />
+                <span>Ghi chú tuần</span>
+              </div>
+              {isSavedNotice && (
+                <span className="text-[10px] text-emerald-800 font-bold animate-in fade-in">
+                  <span className="inline-flex items-center gap-1">
+                    <Check size={11} strokeWidth={3} />
+                    Đã lưu
+                  </span>
                 </span>
               )}
             </div>
 
-            <textarea
-              rows={3}
-              value={weeklyReflection}
-              onChange={(e) => {
-                setWeeklyReflection(e.target.value);
-                setReflectionSaved(true);
-                setTimeout(() => setReflectionSaved(false), 2000);
-              }}
-              placeholder="Viết một vài dòng đúc kết cảm nhận của bạn trong tuần..."
-              className="w-full p-2.5 bg-[#FBF9F4] border border-[#262626] rounded-[4px] text-xs sm:text-sm text-[#1C1917] font-serif italic outline-none leading-relaxed"
-            />
+            <div className="space-y-2">
+              <textarea
+                value={weeklyReflection}
+                onChange={(e) => handleReflectionChange(e.target.value)}
+                placeholder="Nhập ..... của bạn "
+                rows={3}
+                className="w-full p-2.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] text-xs text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:bg-[#FFFDF8] shadow-[1.5px_1.5px_0px_#262626] resize-none leading-relaxed font-sans"
+              />
+            </div>
           </div>
+
+          {/* (B) PHÂN BỔ KHỐI LƯỢNG THEO SỔ TAY & NHÃN */}
+          <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3.5 sm:p-4 shadow-[2px_2px_0px_#262626] space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
+              <div className="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[#1C1917]">
+                <Layers size={15} className="text-[#57534E]" />
+                <span>Phân bổ công việc</span>
+              </div>
+            </div>
+
+            {/* Phân bổ Sổ tay */}
+            {notebookDistribution.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-[#78716C] uppercase tracking-wider font-mono block">
+                  Theo Sổ tay:
+                </span>
+                <div className="space-y-1.5">
+                  {notebookDistribution.map((item) => (
+                    <div key={item.id} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs font-bold text-[#1C1917]">
+                        <span className="truncate">{item.name}</span>
+                        <span className="font-mono text-[11px] text-[#57534E]">
+                          {item.count} việc ({item.percent}%)
+                        </span>
+                      </div>
+                      <div className="w-full h-1.5 bg-[#FAF8F3] border border-[#262626] rounded-[2px] overflow-hidden">
+                        <div
+                          className="h-full bg-[#DDD6FE] border-r border-[#262626]"
+                          style={{ width: `${item.percent}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Phân bổ Nhãn */}
+            {tagDistribution.length > 0 && (
+              <div className="space-y-2 pt-2 border-t border-[#262626]/10">
+                <span className="text-[10px] font-bold text-[#78716C] uppercase tracking-wider font-mono block">
+                  Theo Nhãn (#Tag):
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {tagDistribution.map((item) => (
+                    <span
+                      key={item.tag}
+                      style={getTagStyle(item.tag)}
+                      className="px-2 py-0.5 rounded border border-[#262626] font-bold text-[10px] shadow-[0.5px_0.5px_0px_#262626]"
+                    >
+                      #{item.tag} ({item.count})
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Phân bổ Mức độ Ưu tiên */}
+            <div className="space-y-1.5 pt-2 border-t border-[#262626]/10">
+              <span className="text-[10px] font-bold text-[#78716C] uppercase tracking-wider font-mono block">
+                Độ ưu tiên:
+              </span>
+              <div className="grid grid-cols-3 gap-1.5 text-center font-bold text-[10px]">
+                <div className="p-1 bg-rose-50 border border-rose-300 rounded text-rose-950">
+                  <span className="inline-flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                    Gấp: {priorityDistribution.high}
+                  </span>
+                </div>
+                <div className="p-1 bg-amber-50 border border-amber-300 rounded text-amber-950">
+                  <span className="inline-flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                    Vừa: {priorityDistribution.medium}
+                  </span>
+                </div>
+                <div className="p-1 bg-emerald-50 border border-emerald-300 rounded text-emerald-950">
+                  <span className="inline-flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    Thấp: {priorityDistribution.low}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* (C) BẢNG VÀNG THÀNH TỰU ĐÃ HOÀN THÀNH */}
+          {completedPeriodTasks.length > 0 && (
+            <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3.5 sm:p-4 shadow-[2px_2px_0px_#262626] space-y-2">
+              <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]">
+                <div className="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[#1C1917]">
+                  <Award size={15} className="text-amber-700" />
+                  <span>Vừa hoàn thành</span>
+                </div>
+                <span className="text-[10px] font-mono text-[#78716C]">
+                  {completedPeriodTasks.length} việc
+                </span>
+              </div>
+              <div className="space-y-1.5 max-h-[160px] overflow-y-auto no-scrollbar pr-1">
+                {completedPeriodTasks.slice(0, 8).map((t) => (
+                  <div
+                    key={t.id}
+                    className="flex items-center gap-2 p-1.5 bg-[#FAF8F3] border border-[#262626] rounded-[4px] text-xs font-bold text-[#1C1917]"
+                  >
+                    <Check size={12} className="text-emerald-700" strokeWidth={3} />
+                    <span className="line-through text-[#57534E] truncate flex-1 font-medium">
+                      {t.title}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Modal Xóa Thói Quen */}
-      <ConfirmModal
-        isOpen={deletingHabitId !== null}
-        title="Xóa thói quen"
-        message="Bạn có chắc muốn xóa thói quen này không?"
-        onConfirm={() => {
-          if (deletingHabitId) deleteHabit(deletingHabitId);
-          setDeletingHabitId(null);
-        }}
-        onCancel={() => setDeletingHabitId(null)}
-      />
+      {/* MODAL QUẢN LÝ THÓI QUEN */}
+      {isHabitManagerOpen && (
+        <div
+          className="fixed inset-0 z-[70] flex items-end justify-center bg-black/45 p-0 md:items-center md:p-6 animate-in fade-in duration-150"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setIsHabitManagerOpen(false);
+          }}
+        >
+          <section
+            role="dialog"
+            aria-modal="true"
+            className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-t-[18px] md:rounded-[8px] shadow-[3px_3px_0px_#262626] p-4 animate-in slide-in-from-bottom-5 md:zoom-in-95 duration-200"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3 pb-3 mb-3 border-b-[1.5px] border-[#262626]">
+              <div>
+                <h2 className="text-base font-bold text-[#1C1917]">Quản lý thói quen</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsHabitManagerOpen(false)}
+                className="w-8 h-8 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center justify-center hover:bg-[#FECDD3] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+              >
+                <X size={16} strokeWidth={2.4} />
+              </button>
+            </div>
+
+            <form onSubmit={handleHabitSubmit} className="space-y-3">
+              <div>
+                <label className="block mb-1 text-[11px] font-bold text-[#1C1917]">
+                  Tên thói quen
+                </label>
+                <input
+                  value={draftHabitName}
+                  onChange={(e) => setDraftHabitName(e.target.value)}
+                  placeholder="Ví dụ: Uống 2L nước, Đọc 15 trang sách..."
+                  className="w-full h-9 px-2.5 bg-white border-[1.5px] border-[#262626] rounded-[4px] text-xs text-[#1C1917] outline-none focus:ring-1 focus:ring-[#262626]"
+                  autoFocus
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-1">
+                {editingHabitId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingHabitId(null);
+                      setDraftHabitName("");
+                    }}
+                    className="h-9 px-3 bg-white border-[1.5px] border-[#262626] rounded-[4px] text-xs font-bold active:translate-x-[0.5px] active:translate-y-[0.5px]"
+                  >
+                    Hủy
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={!draftHabitName.trim()}
+                  className="h-9 px-3.5 bg-[#BBF7D0] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-xs font-bold text-emerald-950 disabled:opacity-50 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                >
+                  {editingHabitId ? "Lưu thay đổi" : "+ Thêm thói quen"}
+                </button>
+              </div>
+            </form>
+
+            <div className="mt-4 pt-3 border-t border-[#D4CEBF] space-y-2">
+              <p className="text-[11px] font-bold text-[#78716C] uppercase tracking-wider">
+                Danh sách thói quen ({habits.length})
+              </p>
+              {habits.length === 0 ? (
+                <p className="text-xs text-[#78716C] py-2">Chưa có thói quen nào.</p>
+              ) : (
+                habits.map((habit) => (
+                  <div
+                    key={habit.id}
+                    className="flex items-center gap-2 p-2 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626]"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold truncate text-[#1C1917]">{habit.name}</p>
+                      <p className="text-[10px] text-[#78716C]">
+                        {habit.frequency === "daily" ? "Mỗi ngày" : "Mỗi tuần"} ·
+                        <Flame size={10} className="text-orange-600" strokeWidth={2.4} />
+                        {habit.streak || 0} ngày liên tiếp
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingHabitId(habit.id);
+                        setDraftHabitName(habit.name);
+                        setDraftFrequency(habit.frequency);
+                      }}
+                      className="w-7 h-7 bg-[#BAE6FD] border border-[#262626] rounded-[4px] flex items-center justify-center active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                    >
+                      <Edit3 size={13} strokeWidth={2.3} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteHabit(habit.id)}
+                      className="w-7 h-7 bg-[#FECDD3] border border-[#262626] rounded-[4px] flex items-center justify-center active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                    >
+                      <Trash2 size={13} strokeWidth={2.3} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 };

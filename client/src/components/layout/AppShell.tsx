@@ -1,28 +1,30 @@
 import React, { useState, useRef, useEffect } from "react";
-import { TabKey } from "../../types";
+import { NavigationTarget, TabKey } from "../../types";
 import { Sidebar } from "./Sidebar";
 import { MobileNav } from "./MobileNav";
+import { ContextAwareFab } from "./ContextAwareFab";
 import { useAppStore } from "../../stores/appStore";
 import { AuthModal } from "../features/auth/AuthModal";
-import { SettingsModal } from "../features/settings/SettingsModal";
 import { OnboardingModal } from "../features/today/onboarding/OnboardingModal";
-import { GlobalSearchModal } from "../ui/GlobalSearchModal";
-import { UpdateModal } from "../ui/UpdateModal";
-import { checkForAppUpdates, UpdateInfo } from "../../services/updateService";
+import {
+  BrandLogo,
+  DynamicIcon,
+} from "../ui";
 import { isNativePlatform } from "../../services/notificationService";
-import { BrandLogo } from "../ui/BrandLogo";
-import { DynamicIcon } from "../ui/DynamicIcon";
-import { NotificationBell } from "../ui/NotificationBell";
 import { PinLockModal } from "../features/auth/PinLockModal";
+import { GlobalTaskCreateModal } from "../ui/overlays/GlobalTaskCreateModal";
+import { GlobalSearchModal } from "../ui/overlays/GlobalSearchModal";
+import { NotificationDrawer } from "../ui/overlays/NotificationDrawer";
 import {
   User,
   Settings,
-  KeyRound,
-  LogOut,
+  PanelLeft,
   Search,
-  Sparkles,
-  Lock,
+  Bell,
+  ArrowLeft,
 } from "lucide-react";
+import { getLocalTodayStr } from "../../utils/date";
+import { getTaskTemporalState, isTaskDueToday } from "../../utils/taskSemantics";
 
 // ==========================================
 // COMPONENT: AppShell (Topbar với BrandLogo & Menu Avatar Hiện Đại)
@@ -30,13 +32,15 @@ import {
 
 interface AppShellProps {
   activeTab: TabKey;
-  onTabChange: (tab: TabKey) => void;
+  onTabChange: (tab: TabKey, target?: NavigationTarget) => void;
+  onNavigateRoute?: (path: string) => void;
   children: React.ReactNode;
 }
 
 export const AppShell: React.FC<AppShellProps> = ({
   activeTab,
   onTabChange,
+  onNavigateRoute,
   children,
 }) => {
   const {
@@ -44,45 +48,65 @@ export const AppShell: React.FC<AppShellProps> = ({
     logout,
     isTiltEnabled,
     isFirstVisit,
+    dismissOnboarding,
     pinCode,
     isPinLocked,
     unlockWithPin,
     lockApp,
     paperStyle,
+    completedTaskPrompt,
+    dismissCompletedTaskPrompt,
+    openJournalWithTask,
+    isSidebarOpen,
+    toggleSidebar,
+    activeTaskSubTab,
+    selectedPlannerDate,
+    tasks,
+    isAuthModalOpen,
+    openAuthModal,
+    closeAuthModal,
   } = useAppStore();
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+  const [isGlobalTaskCreateOpen, setIsGlobalTaskCreateOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
-  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const avatarMenuRef = useRef<HTMLDivElement>(null);
 
-  // Tự động kiểm tra cập nhật ngầm trong background khi mở app
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      checkForAppUpdates().then((info) => {
-        if (info && info.hasUpdate) {
-          setUpdateInfo(info);
-        }
-      });
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, []);
+  // Đếm thông báo / việc cần làm gấp
+  const alertCount = React.useMemo(() => {
+    const overdue = tasks.filter(
+      (t) =>
+        !t.completed &&
+        (getTaskTemporalState(t) === "overdue" ||
+          getTaskTemporalState(t) === "pastScheduled")
+    ).length;
+    const dueToday = tasks.filter((t) => !t.completed && isTaskDueToday(t)).length;
+    return overdue + dueToday;
+  }, [tasks]);
 
-  // Phím tắt bàn phím toàn cục Ctrl + K / Cmd + K để mở tìm kiếm
+  const isPersonalOrSettingsTab = activeTab === "review" || activeTab === "settings";
+
+  // Tự động cuộn lên đầu trang khi chuyển qua tab khác
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [activeTab]);
+
+  // Phím tắt bàn phím toàn cục: Ctrl + B (Đóng/Mở Sidebar)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
         e.preventDefault();
-        setIsSearchModalOpen((prev) => !prev);
+        toggleSidebar();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [toggleSidebar]);
 
-  // Đóng khi click ngoài
+  // Đóng khi click ngoài (dùng pointerdown để xử lý đồng bộ mượt mà không chặn sự kiện click trên mobile)
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (
@@ -93,11 +117,41 @@ export const AppShell: React.FC<AppShellProps> = ({
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
     };
+  }, []);
+
+  const [isScrollingDown, setIsScrollingDown] = useState(false);
+
+  // Theo dõi cuộn trang: cuốn đi mượt mà khi vuốt xuống, xuất hiện tức thì khi vuốt nhẹ lên
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY;
+        // Ở đỉnh trang (top <= 15px): luôn khóa mở Header cố định
+        if (currentScrollY <= 15) {
+          setIsScrollingDown(false);
+        } else if (currentScrollY > lastScrollY + 6) {
+          // Vuốt xuống -> Header cuốn đi tự nhiên
+          setIsScrollingDown(true);
+          setIsAvatarMenuOpen(false);
+        } else if (currentScrollY < lastScrollY - 2) {
+          // Chỉ cần vuốt nhẹ lên -> Header trượt xuống xuất hiện ngay lập tức
+          setIsScrollingDown(false);
+        }
+        lastScrollY = currentScrollY;
+        ticking = false;
+      });
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
@@ -111,6 +165,7 @@ export const AppShell: React.FC<AppShellProps> = ({
         activeTab={activeTab}
         onTabChange={onTabChange}
         onOpenIntro={() => setIsOnboardingOpen(true)}
+        onOpenSettings={() => onTabChange("settings")}
       />
 
       {/* 2. Main Workspace (Canvas bên phải) */}
@@ -119,202 +174,140 @@ export const AppShell: React.FC<AppShellProps> = ({
           paperStyle && paperStyle !== "blank" ? `paper-${paperStyle}` : ""
         }`}
       >
-        {/* Topbar Header với Native Status Bar Inset */}
+        {/* Topbar Header: Liền mạch với nền sổ tay, cuốn đi khi vuốt xuống & trượt xuống khi vuốt nhẹ lên */}
         <header
-          className={`sticky top-0 z-30 bg-[#FBF9F4] border-b-[1.5px] border-[#262626] px-3.5 sm:px-4 ${
+          className={`sticky top-0 z-30 bg-[#FBF9F4] border-b border-[#262626]/20 px-3 sm:px-5 md:px-8 lg:px-8 xl:px-10 ${
             isNativePlatform()
               ? "pt-11 pb-2.5"
-              : "pt-[max(env(safe-area-inset-top),10px)] pb-2.5"
-          } shadow-[0px_2px_0px_#262626] flex items-center justify-between transition-all`}
+              : "pt-[max(env(safe-area-inset-top),8px)] pb-2"
+          } flex items-center justify-between transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform min-h-[50px] sm:min-h-[56px] ${
+            isScrollingDown
+              ? "-translate-y-full md:translate-y-0"
+              : "translate-y-0"
+          }`}
         >
-          {/* Brand Logo */}
-          <BrandLogo size="md" />
-
-          {/* Right: Search Button + Notification Bell + Avatar Button with Menu Popover */}
-          <div className="flex items-center gap-2">
-            {/* Nút Tìm Kiếm Toàn Cục Ctrl + K */}
-            <button
-              type="button"
-              onClick={() => setIsSearchModalOpen(true)}
-              title="Tìm kiếm nhanh (Ctrl + K)"
-              className="h-8 px-2 sm:px-2.5 bg-white hover:bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center gap-1.5 text-xs font-bold text-[#1C1917] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all select-none"
-            >
-              <Search size={14} strokeWidth={2.4} />
-              <span className="hidden sm:inline">Tìm kiếm</span>
-              <kbd className="hidden sm:inline text-[9px] font-mono px-1 py-0.2 bg-[#F3EFE6] border border-[#D4CEBF] rounded text-[#78716C]">
-                Ctrl K
-              </kbd>
-            </button>
-
-            <NotificationBell />
-
-            <div ref={avatarMenuRef} className="relative">
+          {/* Header Left: Logo ở các tab, Nút Quay lại ⬅ ở trang Cài Đặt (như YouTube) */}
+          <div className="flex items-center gap-2 min-w-0">
+            {!isSidebarOpen && (
               <button
                 type="button"
-                onClick={() => setIsAvatarMenuOpen(!isAvatarMenuOpen)}
-                title="Hồ sơ & Cài đặt"
-                className="w-8 h-8 border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] hover:-translate-y-[0.5px] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all select-none"
-                style={{ backgroundColor: user.avatarBg || "#BBF7D0" }}
+                onClick={toggleSidebar}
+                className="hidden md:flex h-8 px-2.5 bg-white hover:bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] items-center gap-1.5 text-xs font-bold text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer shrink-0"
+                title="Mở thanh menu bên (Ctrl + B)"
+                aria-label="Mở thanh menu bên"
               >
-                <DynamicIcon
-                  name={user.avatar || "lucide:User"}
-                  size={17}
-                  strokeWidth={2.2}
-                />
+                <PanelLeft size={15} strokeWidth={2.4} />
+                <span>Menu</span>
+              </button>
+            )}
+
+            {activeTab === "settings" ? (
+              <div className="flex items-center gap-2 min-w-0">
+                <button
+                  type="button"
+                  onClick={() => onTabChange("review")}
+                  className="p-1.5 bg-white hover:bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer shrink-0"
+                  title="Quay lại Cá nhân"
+                  aria-label="Quay lại Cá nhân"
+                >
+                  <ArrowLeft size={16} strokeWidth={2.4} />
+                </button>
+                <h1 className="text-base sm:text-lg font-black text-[#1C1917] tracking-tight truncate">
+                  Cài đặt
+                </h1>
+              </div>
+            ) : activeTab === "review" ? (
+              <button
+                type="button"
+                onClick={openAuthModal}
+                className="flex items-center gap-2 px-2.5 py-1 bg-white hover:bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer min-w-0 max-w-[200px] sm:max-w-[240px]"
+                title="Chuyển đổi tài khoản / Đăng nhập"
+              >
+                <div
+                  className="w-5 h-5 rounded-[4px] border border-[#262626] flex items-center justify-center shrink-0 text-[#1C1917]"
+                  style={{ backgroundColor: user.avatarBg || "#DDD6FE" }}
+                >
+                  <DynamicIcon
+                    name={user.avatar || (user.isSignedIn ? "lucide:UserCheck" : "lucide:User")}
+                    size={13}
+                    strokeWidth={2.2}
+                  />
+                </div>
+                <span className="text-xs font-bold truncate">
+                  {user.isSignedIn ? user.name : "Đăng nhập / Đổi Acc"}
+                </span>
+                <span className="text-[11px] text-[#78716C] font-mono shrink-0 ml-0.5">⇄</span>
+              </button>
+            ) : (
+              <div className={isSidebarOpen ? "md:hidden" : "block"}>
+                <BrandLogo size="md" />
+              </div>
+            )}
+          </div>
+
+          {/* Header Right: Actions (Thông Báo, Tìm Kiếm, Cài Đặt) - Ẩn hoàn toàn khi ở trang Cài Đặt */}
+          {activeTab !== "settings" && (
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* 1. Chuông Thông Báo */}
+              <button
+                type="button"
+                onClick={() => setIsNotificationOpen(true)}
+                title="Thông báo & Nhắc việc"
+                className="relative w-8 h-8 border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] bg-white hover:bg-[#FAF8F3] transition-all select-none cursor-pointer active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+              >
+                <Bell size={15} strokeWidth={2.2} />
+                {alertCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold flex items-center justify-center border border-[#262626] shadow-[0.5px_0.5px_0px_#262626]">
+                    {alertCount > 9 ? "9+" : alertCount}
+                  </span>
+                )}
               </button>
 
-              {/* Avatar Dropdown Popover */}
-              {isAvatarMenuOpen && (
-                <div className="absolute right-0 mt-2 w-60 bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] z-50 p-3 space-y-2.5 animate-in fade-in zoom-in-95 text-xs text-[#1C1917] select-none">
-                  {/* User Info Header */}
-                  <div className="flex items-center gap-2.5 pb-2 border-b border-[#D4CEBF]">
-                    <div
-                      className="w-8 h-8 border border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center justify-center text-[#1C1917]"
-                      style={{ backgroundColor: user.avatarBg || "#BBF7D0" }}
-                    >
-                      <DynamicIcon
-                        name={user.avatar || "lucide:User"}
-                        size={17}
-                        strokeWidth={2.2}
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-xs text-[#1C1917] truncate">
-                        {user.name}
-                      </p>
-                      <p className="text-[10px] text-[#78716C] truncate font-mono">
-                        {user.isSignedIn
-                          ? user.email
-                          : "Khách (Chưa đăng nhập)"}
-                      </p>
-                    </div>
-                  </div>
+              {/* 2. Nút Tìm Kiếm */}
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(true)}
+                title="Tìm kiếm toàn bộ ứng dụng"
+                className="w-8 h-8 border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] bg-white hover:bg-[#FAF8F3] transition-all select-none cursor-pointer active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+              >
+                <Search size={15} strokeWidth={2.2} />
+              </button>
 
-                  {/* Menu Items */}
-                  <div className="space-y-1">
-                    {/* Mục Mở Cài Đặt Hệ Thống */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsAvatarMenuOpen(false);
-                        setIsSettingsModalOpen(true);
-                      }}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[3px] bg-white hover:bg-[#F3EFE6] border border-[#D4CEBF] text-left transition-colors font-bold shadow-[1px_1px_0px_#262626]"
-                    >
-                      <Settings size={14} strokeWidth={2.2} />
-                      <span>Cài đặt hệ thống</span>
-                    </button>
-
-                    {/* Mục Mở Giới Thiệu Ứng Dụng (Intro) */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsAvatarMenuOpen(false);
-                        setIsOnboardingOpen(true);
-                      }}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[3px] bg-white hover:bg-[#FEF08A] border border-[#D4CEBF] text-left transition-colors font-bold shadow-[1px_1px_0px_#262626]"
-                    >
-                      <Sparkles
-                        size={14}
-                        className="text-amber-700"
-                        strokeWidth={2.2}
-                      />
-                      <span>Giới thiệu & Hướng dẫn</span>
-                    </button>
-
-                    {/* Mục Khóa Ứng Dụng khi đã bật mã PIN */}
-                    {pinCode && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsAvatarMenuOpen(false);
-                          lockApp();
-                        }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[3px] bg-white hover:bg-amber-50 text-[#1C1917] border border-[#D4CEBF] text-left transition-colors font-bold shadow-[1px_1px_0px_#262626]"
-                      >
-                        <Lock
-                          size={14}
-                          className="text-amber-700"
-                          strokeWidth={2.2}
-                        />
-                        <span>Khóa màn hình ngay</span>
-                      </button>
-                    )}
-
-                    {/* Nút Mở Đăng Nhập / Tạo Tài Khoản */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsAvatarMenuOpen(false);
-                        setIsAuthModalOpen(true);
-                      }}
-                      className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[3px] text-[#1C1917] bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] text-left transition-colors font-bold shadow-[1px_1px_0px_#262626]"
-                    >
-                      <KeyRound size={14} strokeWidth={2.2} />
-                      <span>
-                        {user.isSignedIn
-                          ? "Quản lý tài khoản"
-                          : "Đăng nhập / Đăng ký"}
-                      </span>
-                    </button>
-
-                    {/* Mục Đăng xuất khi đã đăng nhập */}
-                    {user.isSignedIn && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          logout();
-                          setIsAvatarMenuOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[3px] text-red-600 hover:bg-[#FECDD3]/50 text-left transition-colors font-bold pt-1.5 border-t border-[#D4CEBF]/60"
-                      >
-                        <LogOut size={14} strokeWidth={2.2} />
-                        <span>Đăng xuất</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
+              {/* 3. Ở Tab Cá Nhân: Nút Cài Đặt (như icon bánh răng của YouTube You tab) */}
+              {activeTab === "review" && (
+                <button
+                  type="button"
+                  onClick={() => onTabChange("settings")}
+                  title="Cài đặt hệ thống"
+                  className="w-8 h-8 border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] bg-white hover:bg-[#FEF08A] transition-all select-none cursor-pointer active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+                >
+                  <Settings size={15} strokeWidth={2.2} />
+                </button>
               )}
             </div>
-          </div>
+          )}
         </header>
-
-        {/* Modal Tìm Kiếm Toàn Cục Ctrl + K */}
-        <GlobalSearchModal
-          isOpen={isSearchModalOpen}
-          onClose={() => setIsSearchModalOpen(false)}
-          onNavigate={onTabChange}
-        />
-
-        {/* Modal Cài Đặt Hệ Thống */}
-        <SettingsModal
-          isOpen={isSettingsModalOpen}
-          onClose={() => setIsSettingsModalOpen(false)}
-          onOpenAuth={() => setIsAuthModalOpen(true)}
-          onOpenIntro={() => setIsOnboardingOpen(true)}
-        />
 
         {/* Modal Đăng nhập / Tạo tài khoản / Quản lý tài khoản */}
         <AuthModal
           isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
+          onClose={closeAuthModal}
           onBackToSettings={() => {
-            setIsAuthModalOpen(false);
-            setIsSettingsModalOpen(true);
+            closeAuthModal();
+            onTabChange("settings");
           }}
         />
 
-        {/* Modal Tự Động Báo Cập Nhật Mới */}
-        <UpdateModal
-          updateInfo={updateInfo}
-          onClose={() => setUpdateInfo(null)}
-        />
-
-        {/* Onboarding chào mừng lần đầu vào app hoặc mở thủ công */}
-        <OnboardingModal
-          isOpen={isOnboardingOpen || isFirstVisit}
-          onClose={() => setIsOnboardingOpen(false)}
-        />
+        {/* Onboarding Giới thiệu chỉ khi người dùng chủ động mở */}
+        {isOnboardingOpen && (
+          <OnboardingModal
+            isOpen={isOnboardingOpen}
+            onClose={() => {
+              setIsOnboardingOpen(false);
+              dismissOnboarding();
+            }}
+          />
+        )}
 
         {/* Màn Hình Khóa Mã PIN Bảo Vệ Sổ Tay */}
         {pinCode && isPinLocked && (
@@ -326,17 +319,51 @@ export const AppShell: React.FC<AppShellProps> = ({
           />
         )}
 
+        <GlobalTaskCreateModal
+          isOpen={isGlobalTaskCreateOpen}
+          onClose={() => setIsGlobalTaskCreateOpen(false)}
+          initialDate={
+            (activeTab === "planner" || (activeTab === "tasks" && activeTaskSubTab === "planner"))
+              ? selectedPlannerDate
+              : undefined
+          }
+        />
+
+        {/* Modal Tìm Kiếm Toàn Cục */}
+        <GlobalSearchModal
+          isOpen={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+          onNavigateTab={onTabChange}
+        />
+
+        {/* Drawer / Popover Trung Tâm Thông Báo & Nhắc Việc */}
+        <NotificationDrawer
+          isOpen={isNotificationOpen}
+          onClose={() => setIsNotificationOpen(false)}
+          onNavigateTab={onTabChange}
+        />
+
         {/* Main Content Area với hiệu ứng Lật Trang Êm Ái khi đổi Tab */}
         <main
-          key={activeTab}
-          className="flex-1 px-3 sm:px-6 md:px-8 py-4 sm:py-6 pb-24 md:pb-10 max-w-6xl w-full mx-auto animate-page-flip"
+          key={`${activeTab}-${activeTaskSubTab}`}
+          className={`flex-1 min-w-0 px-3 sm:px-5 md:px-8 lg:px-8 xl:px-10 py-3.5 sm:py-5 pb-24 md:pb-10 w-full max-w-none ${activeTab === "settings" ? "" : "mobile-tab-enter motion-reduce:animate-none"}`}
         >
           {children}
         </main>
       </div>
 
+      <ContextAwareFab
+        activeTab={activeTab}
+        activeTaskSubTab={activeTaskSubTab}
+        onCreateTask={() => setIsGlobalTaskCreateOpen(true)}
+      />
+
       {/* 3. Mobile Bottom Navigation Dock */}
-      <MobileNav activeTab={activeTab} onTabChange={onTabChange} />
+      <MobileNav
+        activeTab={activeTab}
+        activeTaskSubTab={activeTaskSubTab}
+        onTabChange={onTabChange}
+      />
     </div>
   );
 };

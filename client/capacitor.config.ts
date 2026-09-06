@@ -4,10 +4,8 @@ const config: CapacitorConfig = {
   appId: "com.sketchtask.app",
   appName: "SketchTask",
   webDir: "dist",
-  server: {
-    url: "https://sketchtask-app.vercel.app",
-    cleartext: true,
-  },
+  // Do not set server.url here. Release APKs must load the bundled dist files
+  // so the app can open and remain usable without an internet connection.
   android: {
     backgroundColor: "#FBF9F4",
     allowMixedContent: true,

@@ -134,11 +134,19 @@ body.paper-grid {
   -webkit-tap-highlight-color: transparent;
 }
 
+html,
+body,
+input,
+button,
+textarea,
+select {
+  font-family: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
 body {
   margin: 0;
   background-color: var(--bg-canvas);
   color: var(--text-main);
-  font-family: "Inter", "Plus Jakarta Sans", system-ui, sans-serif;
   -webkit-touch-callout: none;
   overscroll-behavior-y: none;
 }
@@ -342,4 +350,176 @@ body {
 }
 .animate-task-pop {
   animation: taskPop 0.24s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* 7. Chuyển cảnh mobile theo hướng, không dùng animation fade/zoom chung */
+@keyframes mobileTabEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes mobilePanelEnter {
+  from {
+    opacity: 0.92;
+    transform: translate3d(100%, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes mobilePanelExit {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    opacity: 0.92;
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+@keyframes mobilePanelBackEnter {
+  from {
+    opacity: 0.92;
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes mobileBottomSheetEnter {
+  from {
+    opacity: 0.92;
+    transform: translate3d(0, 24px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes mobileScrimEnter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.mobile-tab-enter,
+.mobile-panel-enter,
+.mobile-panel-exit,
+.mobile-panel-back-enter,
+.mobile-scrim-enter,
+.mobile-toast-enter {
+  animation-fill-mode: both;
+}
+
+@media (max-width: 767px) {
+  .mobile-tab-enter {
+    animation: mobileTabEnter 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+  }
+
+  .mobile-panel-enter {
+    animation: mobilePanelEnter 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+  }
+
+  .mobile-panel-exit {
+    animation: mobilePanelExit 180ms cubic-bezier(0.7, 0, 0.84, 0);
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+
+  .mobile-panel-back-enter {
+    animation: mobilePanelBackEnter 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+  }
+
+  .mobile-bottom-sheet-enter {
+    animation: mobileBottomSheetEnter 220ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, opacity;
+  }
+
+  .mobile-scrim-enter {
+    animation: mobileScrimEnter 180ms ease-out;
+  }
+
+  .mobile-toast-enter {
+    animation: mobileTabEnter 180ms ease-out;
+  }
+}
+
+/* 7. Hiệu ứng chạy chữ khi rê chuột vào mục dài trong Dropdown (Hover Text Marquee) */
+@keyframes textMarquee {
+  0% { transform: translateX(0%); }
+  40% { transform: translateX(calc(-100% + 200px)); }
+  60% { transform: translateX(calc(-100% + 200px)); }
+  100% { transform: translateX(0%); }
+}
+.group:hover .animate-marquee-hover {
+  display: inline-block;
+  white-space: nowrap;
+  animation: textMarquee 6s ease-in-out infinite;
+}
+
+/* 8. Placeholder cho Rich Note WYSIWYG Editor */
+.rich-note-editor:empty:before {
+  content: attr(data-placeholder);
+  color: #a8a29e;
+  pointer-events: none;
+  display: block;
+}
+
+/* Keep rich-text tools out of the mobile editing surface until text is focused. */
+.note-editor-toolbar--hidden,
+.note-editor-toolbar--active {
+  display: block;
+}
+
+@keyframes mobileEditorToolbarEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (max-width: 767px) {
+  .note-editor-toolbar--hidden {
+    display: none;
+  }
+
+  .note-editor-toolbar--active {
+    position: fixed;
+    left: max(8px, env(safe-area-inset-left));
+    right: max(8px, env(safe-area-inset-right));
+    bottom: calc(var(--note-keyboard-offset, 0px) + env(safe-area-inset-bottom));
+    z-index: 60;
+    animation: mobileEditorToolbarEnter 160ms ease-out;
+    will-change: transform, opacity;
+  }
+}
+
+/* 9. Tuân thủ Cài đặt Giảm Chuyển Động (prefers-reduced-motion) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

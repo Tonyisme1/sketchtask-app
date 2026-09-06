@@ -26,6 +26,7 @@ export class TaskService {
       priority: t.priority,
       status: t.status,
       notebookId: t.notebookId,
+      parentTaskId: t.parentTaskId,
       createdAt: t.createdAt.toISOString(),
       updatedAt: t.updatedAt.toISOString(),
     }));
@@ -51,6 +52,7 @@ export class TaskService {
         priority: data.priority || "medium",
         status: "todo",
         notebookId: data.notebookId || null,
+        parentTaskId: data.parentTaskId || null,
       },
     });
 
@@ -69,6 +71,7 @@ export class TaskService {
       priority: created.priority,
       status: created.status,
       notebookId: created.notebookId,
+      parentTaskId: created.parentTaskId,
       createdAt: created.createdAt.toISOString(),
       updatedAt: created.updatedAt.toISOString(),
     };
@@ -110,6 +113,7 @@ export class TaskService {
                 : "todo"
               : undefined,
         notebookId: data.notebookId !== undefined ? data.notebookId : undefined,
+        parentTaskId: data.parentTaskId !== undefined ? data.parentTaskId : undefined,
       },
     });
 
@@ -128,6 +132,7 @@ export class TaskService {
       priority: updated.priority,
       status: updated.status,
       notebookId: updated.notebookId,
+      parentTaskId: updated.parentTaskId,
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),
     };

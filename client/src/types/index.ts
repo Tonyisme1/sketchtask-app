@@ -22,6 +22,7 @@ export interface TaskDto {
   priority?: TaskPriority;
   status: TaskStatus;
   notebookId?: string;
+  parentTaskId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -65,12 +66,42 @@ export interface StickyNoteDto {
   updatedAt: string;
 }
 
+export interface JournalEntryDto {
+  id: string;
+  date: string; // YYYY-MM-DD
+  time: string; // HH:mm
+  content: string;
+  notebookId?: string; // Sổ tay / mảng chủ đề
+  linkedTaskId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type Task = TaskDto;
 export type Notebook = NotebookDto;
 export type Habit = HabitDto;
 export type StickyNote = StickyNoteDto;
+export type JournalEntry = JournalEntryDto;
 
-export type TabKey = "today" | "planner" | "notebooks" | "braindump" | "review";
+export type TabKey =
+  | "dashboard"
+  | "tasks"
+  | "notes"
+  | "today"
+  | "planner"
+  | "deadlines"
+  | "notebooks"
+  | "journal"
+  | "settings"
+  | "review";
+
+export interface NavigationTarget {
+  taskId?: string;
+  notebookId?: string;
+  noteId?: string;
+  journalEntryId?: string;
+  date?: string;
+}
 
 export interface TabConfig {
   key: TabKey;

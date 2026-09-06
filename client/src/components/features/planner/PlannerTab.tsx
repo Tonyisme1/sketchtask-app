@@ -1,166 +1,156 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useAppStore } from "../../../stores/appStore";
 import { TaskDto } from "../../../types";
-import { HandDrawnCheckbox } from "../../ui/HandDrawnCheckbox";
-import { Button } from "../../ui/Button";
-import { AutoResizeTextarea } from "../../ui/AutoResizeTextarea";
-import { EmptyStateDoodle } from "../../ui/EmptyStateDoodle";
-import { CustomSelect, SelectOption } from "../../ui/CustomSelect";
-import { CustomDuePicker, TaskTimeValue } from "../../ui/CustomDuePicker";
-import { ConfirmModal } from "../../ui/ConfirmModal";
-import { EditTaskModal } from "../../ui/EditTaskModal";
-import { DynamicIcon } from "../../ui/DynamicIcon";
-import { getCardTilt } from "../../../utils/tilt";
-import { getTagStyle } from "../../../utils/tagColors";
-import { getTaskDueInfo } from "../../../utils/taskDueStatus";
+import { getLocalTodayStr, formatShortDayMonth } from "../../../utils/date";
 import {
-  Calendar as CalendarIcon,
-  Sun,
-  ArrowRight,
-  Clock,
-  X,
-  Star,
-  AlertCircle,
-  SlidersHorizontal,
-  ChevronDown,
-  ChevronUp,
-  BookOpen,
-  PackageOpen,
-  Layers,
-  Sparkles,
-  Edit3,
-} from "lucide-react";
+  getTaskEffectiveDate,
+  moveTaskToDate,
+  getTaskTemporalState,
+  normalizeTaskTimeType,
+  isTaskUnscheduled,
+  isTaskForSpecificDate,
+} from "../../../utils/taskSemantics";
+import { PlannerHeader, PlannerViewMode } from "./PlannerHeader";
+import { PlannerCalendar } from "./PlannerCalendar";
+import { PlannerWeekView } from "./PlannerWeekView";
+import { PlannerYearView } from "./PlannerYearView";
+import { TodayScheduleNotes } from "../today/TodayScheduleNotes";
+import { TodayComposerSidebar } from "../today/TodayComposerSidebar";
+import { TaskList } from "../shared/TaskList";
+import { FilterBar } from "../shared/FilterBar";
+import { PlannerBacklog } from "./PlannerBacklog";
+import { ArrowLeft, Lock, ListTodo } from "lucide-react";
 
-// ==========================================
-// COMPONENT: PlannerTab (Kế Hoạch & Task Command Center)
-// ==========================================
-
-const DAY_NAMES = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"];
+const DAY_NAMES = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"];
 const SHORT_DAY_NAMES = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
-import { getLocalTodayStr } from "../../../utils/date";
+export interface PlannerTabProps {
+  targetDateStr?: string;
+  targetTaskId?: string;
+  fromTab?: "deadlines" | "overview";
+  onBackToDeadlines?: () => void;
+  onClearTarget?: () => void;
+}
 
-export const PlannerTab: React.FC = () => {
+export const PlannerTab: React.FC<PlannerTabProps> = ({
+  targetDateStr,
+  targetTaskId,
+  fromTab,
+  onBackToDeadlines,
+  onClearTarget,
+}) => {
   const {
     tasks,
-    addTask,
     updateTask,
     toggleTask,
     deleteTask,
-    moveTaskToToday,
-    moveTaskToTomorrow,
-    notebooks,
-    tags,
-    addTag,
-    deleteTag,
+    moveTaskToNextDay,
     hideCompletedTasks,
+    setSelectedPlannerDate,
   } = useAppStore();
 
   const now = new Date();
   const todayStr = getLocalTodayStr(now);
 
-  const [viewMode, setViewMode] = useState<"month" | "week">("month");
-  const [isCalendarCollapsed, setIsCalendarCollapsed] =
-    useState<boolean>(false);
+  // Chế độ xem: "week" (Tuần) | "month" (Tháng) | "year" (Năm)
+  const [viewMode, setViewMode] = useState<PlannerViewMode>("week");
+
+  // Màn hình hiển thị: "overview" (theo viewMode) | "day" (chi tiết ngày) | "backlog" (hộp chờ)
+  const [plannerScreen, setPlannerScreen] = useState<"overview" | "day" | "backlog">("overview");
+
+  // Offsets thời gian
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [monthOffset, setMonthOffset] = useState<number>(0);
+  const [yearOffset, setYearOffset] = useState<number>(0);
+
+  // Ngày đang được chọn để xem chi tiết trong DayPlanView
   const [selectedDateStr, setSelectedDateStr] = useState<string>(todayStr);
 
-  const [dayTaskTitle, setDayTaskTitle] = useState<string>("");
-  const [dayTaskTime, setDayTaskTime] = useState<string | undefined>(undefined);
-  const [dayTaskTimeData, setDayTaskTimeData] = useState<TaskTimeValue | undefined>(undefined);
-  const [selectedPriority, setSelectedPriority] = useState<
-    "high" | "medium" | "low"
-  >("medium");
-  const [selectedTag, setSelectedTag] = useState<string>(
-    tags[0] || "Công việc",
-  );
-  const [selectedNotebookId, setSelectedNotebookId] = useState<string>("");
+  // Đồng bộ ngày được chọn sang global store cho FAB thông minh
+  React.useEffect(() => {
+    setSelectedPlannerDate(selectedDateStr);
+  }, [selectedDateStr, setSelectedPlannerDate]);
 
-  const [isAddingTag, setIsAddingTag] = useState(false);
-  const [newTagInput, setNewTagInput] = useState("");
-  const [isExpandForm, setIsExpandForm] = useState(false);
-  const [editingTask, setEditingTask] = useState<TaskDto | null>(null);
+  // Drawer Panel State
+  const [activeTask, setActiveTask] = useState<TaskDto | null>(null);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
-  // Bộ Lọc Phân Tầng Nâng Cao (Task Command Center)
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "active" | "completed"
-  >("all");
-  const [priorityFilter, setPriorityFilter] = useState<
-    "all" | "high" | "medium" | "low"
-  >("all");
+  // Lắng nghe khi được chuyển từ Tab Hạn định sang
+  React.useEffect(() => {
+    if (!targetDateStr && !targetTaskId) return;
+
+    if (targetDateStr) {
+      setSelectedDateStr(targetDateStr);
+      setPlannerScreen("day");
+    } else {
+      // An undated search result belongs in the backlog, not in today's list.
+      setPlannerScreen("backlog");
+    }
+
+    if (targetTaskId) {
+      const found = tasks.find((t) => t.id === targetTaskId);
+      if (found && targetDateStr) {
+        setActiveTask(found);
+      }
+    }
+    onClearTarget?.();
+  }, [targetDateStr, targetTaskId, tasks, onClearTarget]);
+
+  // Filter state cho DayPlanView
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
+  const [timeTypeFilter, setTimeTypeFilter] = useState<"all" | "scheduled" | "deadline">("all");
+  const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all");
   const [notebookFilter, setNotebookFilter] = useState<string>("all");
-  const [timeFilter, setTimeFilter] = useState<"all" | "timed" | "allday">(
-    "all",
-  );
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
-  const [isBacklogDrawerOpen, setIsBacklogDrawerOpen] = useState(false);
 
-  const handleAddDayTask = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    if (!dayTaskTitle.trim()) return;
+  // Danh sách các việc chưa sắp lịch (Hộp chờ)
+  const unscheduledTasks = useMemo(() => {
+    return tasks.filter((t) => !t.completed && isTaskUnscheduled(t));
+  }, [tasks]);
 
-    const finalDueDate = dayTaskTime
-      ? `${selectedDateStr} ${dayTaskTime}`
-      : selectedDateStr;
-
-    addTask({
-      title: dayTaskTitle.trim(),
-      dueDate: finalDueDate,
-      timeType: dayTaskTimeData?.timeType,
-      startTime: dayTaskTimeData?.startTime,
-      endTime: dayTaskTimeData?.endTime,
-      deadlineDate: dayTaskTimeData?.deadlineDate,
-      deadlineTime: dayTaskTimeData?.deadlineTime,
-      tag: selectedTag,
-      notebookId: selectedNotebookId || undefined,
-      priority: selectedPriority,
-    });
-
-    setDayTaskTitle("");
-    setDayTaskTime(undefined);
-    setDayTaskTimeData(undefined);
-    setSelectedPriority("medium");
-    setIsExpandForm(false);
-  };
-
-  // Danh sách các việc từ Sổ tay chưa lên lịch (Unscheduled Tasks)
-  const unscheduledTasks = tasks.filter((t) => !t.completed && !t.dueDate);
-
-  const getWeekDates = () => {
-    const currentDay = now.getDay();
-    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
-
-    const baseMonday = new Date(now);
-    baseMonday.setDate(now.getDate() + mondayOffset + weekOffset * 7);
+  // ==========================================
+  // 1. TÍNH TOÁN DỮ LIỆU TUẦN (WEEK VIEW)
+  // ==========================================
+  const { weekDays, weekLabel } = useMemo(() => {
+    const currentMonday = new Date(now);
+    const dayOfWeek = currentMonday.getDay();
+    const distanceToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    currentMonday.setDate(currentMonday.getDate() + distanceToMonday + weekOffset * 7);
 
     const days = [];
     for (let i = 0; i < 7; i++) {
-      const d = new Date(baseMonday);
-      d.setDate(baseMonday.getDate() + i);
-      const dateStr = getLocalTodayStr(d);
-      const dayNum = d.getDate();
-      const monthNum = d.getMonth() + 1;
-      const formattedDate = `${String(dayNum).padStart(2, "0")}/${String(monthNum).padStart(2, "0")}`;
-
+      const d = new Date(currentMonday);
+      d.setDate(currentMonday.getDate() + i);
+      const dStr = getLocalTodayStr(d);
       days.push({
-        dayName: DAY_NAMES[i],
-        shortDayName: SHORT_DAY_NAMES[i],
-        dayNum,
-        formattedDate,
-        dateStr,
+        dateStr: dStr,
+        dayName: SHORT_DAY_NAMES[i],
+        dayNum: d.getDate(),
+        isToday: dStr === todayStr,
       });
     }
-    return days;
-  };
 
-  const getMonthMatrix = () => {
+    const startD = new Date(currentMonday);
+    const endD = new Date(currentMonday);
+    endD.setDate(startD.getDate() + 6);
+
+    const label = `${startD.getDate()}/${startD.getMonth() + 1} - ${endD.getDate()}/${endD.getMonth() + 1}/${endD.getFullYear()}`;
+
+    return {
+      weekDays: days,
+      weekLabel: `Tuần ${label}`,
+    };
+  }, [now, weekOffset, todayStr]);
+
+  // ==========================================
+  // 2. TÍNH TOÁN DỮ LIỆU THÁNG (MONTH VIEW)
+  // ==========================================
+  const { monthLabel, matrix: monthMatrix } = useMemo(() => {
     const targetDate = new Date(
       now.getFullYear(),
       now.getMonth() + monthOffset,
-      1,
+      1
     );
     const year = targetDate.getFullYear();
     const month = targetDate.getMonth();
@@ -172,1103 +162,536 @@ export const PlannerTab: React.FC = () => {
     startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
 
     const totalDays = lastDay.getDate();
-    const matrix: {
-      dayNum: number;
-      dateStr: string;
-      isCurrentMonth: boolean;
-    }[] = [];
+    const matrix = [];
 
+    // Ngày tháng trước
     const prevMonthLastDay = new Date(year, month, 0).getDate();
     for (let i = startDayOfWeek - 1; i >= 0; i--) {
-      const d = prevMonthLastDay - i;
-      const prevMonth = month === 0 ? 11 : month - 1;
-      const prevYear = month === 0 ? year - 1 : year;
-      const dateStr = `${prevYear}-${String(prevMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-      matrix.push({ dayNum: d, dateStr, isCurrentMonth: false });
+      const dayNum = prevMonthLastDay - i;
+      const d = new Date(year, month - 1, dayNum);
+      matrix.push({
+        dayNum,
+        dateStr: getLocalTodayStr(d),
+        isCurrentMonth: false,
+      });
     }
 
-    for (let d = 1; d <= totalDays; d++) {
-      const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-      matrix.push({ dayNum: d, dateStr, isCurrentMonth: true });
+    // Ngày tháng này
+    for (let dayNum = 1; dayNum <= totalDays; dayNum++) {
+      const d = new Date(year, month, dayNum);
+      matrix.push({
+        dayNum,
+        dateStr: getLocalTodayStr(d),
+        isCurrentMonth: true,
+      });
     }
 
-    let nextDay = 1;
-    while (matrix.length % 7 !== 0) {
-      const nextMonth = month === 11 ? 0 : month + 1;
-      const nextYear = month === 11 ? year + 1 : year;
-      const dateStr = `${nextYear}-${String(nextMonth + 1).padStart(2, "0")}-${String(nextDay).padStart(2, "0")}`;
-      matrix.push({ dayNum: nextDay, dateStr, isCurrentMonth: false });
-      nextDay++;
+    // Ngày tháng sau bù đủ 35 hoặc 42 ô
+    const totalSlots = matrix.length <= 35 ? 35 : 42;
+    const remaining = totalSlots - matrix.length;
+    for (let dayNum = 1; dayNum <= remaining; dayNum++) {
+      const d = new Date(year, month + 1, dayNum);
+      matrix.push({
+        dayNum,
+        dateStr: getLocalTodayStr(d),
+        isCurrentMonth: false,
+      });
     }
 
     return {
       monthLabel: `Tháng ${month + 1}, ${year}`,
       matrix,
     };
+  }, [now, monthOffset]);
+
+  // ==========================================
+  // 3. TÍNH TOÁN DỮ LIỆU NĂM (YEAR VIEW)
+  // ==========================================
+  const currentYear = now.getFullYear() + yearOffset;
+  const yearLabel = `Năm ${currentYear}`;
+
+  // Tiêu đề Header phụ thuộc vào viewMode
+  const currentTitleLabel =
+    viewMode === "week"
+      ? weekLabel
+      : viewMode === "month"
+      ? monthLabel
+      : yearLabel;
+
+  // Lấy các task cho một ngày cụ thể
+  const getTasksForDate = (dateStr: string): TaskDto[] => {
+    return tasks.filter((t) => isTaskForSpecificDate(t, dateStr));
   };
 
-  const weekDays = getWeekDates();
-  const { monthLabel, matrix: monthMatrix } = getMonthMatrix();
+  // Tính tóm tắt task cho một ngày
+  const getTaskSummaryForDate = (dateStr: string) => {
+    const dayTasks = getTasksForDate(dateStr);
+    return dayTasks.reduce(
+      (summary, task) => {
+        const normalizedTimeType = normalizeTaskTimeType(task);
+        const isScheduled = normalizedTimeType === "scheduled";
+        const isDeadline = normalizedTimeType === "deadline";
+        const temporalState = getTaskTemporalState(task);
 
-  const selectedDayTasks = tasks.filter((t) => {
-    if (t.dueDate?.includes(selectedDateStr)) return true;
-    if (selectedDateStr === todayStr && !t.dueDate) return true;
-    return false;
-  });
+        summary.total += 1;
+        if (task.completed) summary.completed += 1;
+        else summary.active += 1;
 
-  const filteredDayTasks = selectedDayTasks.filter((task) => {
-    if (hideCompletedTasks && statusFilter === "all" && task.completed)
-      return false;
-    const matchStatus =
-      statusFilter === "all"
-        ? true
-        : statusFilter === "active"
+        if (isScheduled && !task.completed) summary.scheduled += 1;
+        if (!task.completed && isDeadline && temporalState === "overdue")
+          summary.overdue += 1;
+        if (!task.completed && isScheduled && temporalState === "pastScheduled")
+          summary.pastScheduled += 1;
+        return summary;
+      },
+      { total: 0, active: 0, completed: 0, overdue: 0, pastScheduled: 0, scheduled: 0 }
+    );
+  };
+
+  const getTaskCountForDate = (dateStr: string) => {
+    return getTaskSummaryForDate(dateStr).total;
+  };
+
+  // Điều hướng Prev / Next / Today
+  const handlePrev = () => {
+    if (viewMode === "week") setWeekOffset((prev) => prev - 1);
+    else if (viewMode === "month") setMonthOffset((prev) => prev - 1);
+    else setYearOffset((prev) => prev - 1);
+  };
+
+  const handleNext = () => {
+    if (viewMode === "week") setWeekOffset((prev) => prev + 1);
+    else if (viewMode === "month") setMonthOffset((prev) => prev + 1);
+    else setYearOffset((prev) => prev + 1);
+  };
+
+  const handleResetToCurrent = () => {
+    if (viewMode === "week") setWeekOffset(0);
+    else if (viewMode === "month") setMonthOffset(0);
+    else setYearOffset(0);
+  };
+
+  // Xử lý khi chọn một ngày
+  const handleSelectDate = (dateStr: string) => {
+    setSelectedDateStr(dateStr);
+    setPlannerScreen("day");
+  };
+
+  // Xử lý khi chọn tháng từ Year View
+  const handleSelectMonthFromYear = (monthIndex: number) => {
+    const targetMonthOffset =
+      (currentYear - now.getFullYear()) * 12 + (monthIndex - now.getMonth());
+    setMonthOffset(targetMonthOffset);
+    setViewMode("month");
+  };
+
+  // Danh sách công việc của ngày đang chọn trong DayPlanView
+  const selectedDayTasks = useMemo(() => {
+    return tasks.filter((t) => {
+      const taskDate = getTaskEffectiveDate(t);
+      return taskDate === selectedDateStr;
+    });
+  }, [tasks, selectedDateStr]);
+
+  // Lọc danh sách công việc của ngày
+  const filteredTasks = useMemo(() => {
+    return selectedDayTasks.filter((task) => {
+      if (hideCompletedTasks && statusFilter === "all" && task.completed)
+        return false;
+
+      const matchStatus =
+        statusFilter === "all"
+          ? true
+          : statusFilter === "active"
           ? !task.completed
           : task.completed;
 
-    const matchPriority =
-      priorityFilter === "all"
-        ? true
-        : (task.priority || "medium") === priorityFilter;
+      const normalizedTimeType = normalizeTaskTimeType(task);
+      const isScheduled = normalizedTimeType === "scheduled";
+      const isDeadline = normalizedTimeType === "deadline";
 
-    const matchNotebook =
-      notebookFilter === "all"
-        ? true
-        : notebookFilter === "none"
+      const matchTimeType =
+        timeTypeFilter === "all"
+          ? true
+          : timeTypeFilter === "scheduled"
+          ? isScheduled
+          : isDeadline;
+
+      const matchPriority =
+        priorityFilter === "all"
+          ? true
+          : (task.priority || "medium") === priorityFilter;
+
+      const matchNotebook =
+        notebookFilter === "all"
+          ? true
+          : notebookFilter === "none"
           ? !task.notebookId
           : task.notebookId === notebookFilter;
 
-    const hasSpecificTime =
-      task.dueDate &&
-      (task.dueDate.includes("T") || task.dueDate.includes(":"));
-    const matchTime =
-      timeFilter === "all"
-        ? true
-        : timeFilter === "timed"
-          ? hasSpecificTime
-          : !hasSpecificTime;
+      const matchTag =
+        tagFilter === "all"
+          ? true
+          : tagFilter === "none"
+          ? !task.tag
+          : task.tag === tagFilter;
 
-    const matchTag = tagFilter === "all" ? true : task.tag === tagFilter;
-    return (
-      matchStatus && matchPriority && matchNotebook && matchTime && matchTag
-    );
-  });
+      return matchStatus && matchTimeType && matchPriority && matchNotebook && matchTag;
+    });
+  }, [
+    selectedDayTasks,
+    hideCompletedTasks,
+    statusFilter,
+    timeTypeFilter,
+    priorityFilter,
+    notebookFilter,
+    tagFilter,
+  ]);
 
+  // Format tiêu đề ngày
   const getDayFormattedTitle = () => {
     const parts = selectedDateStr.split("-");
     if (parts.length === 3) {
       const d = new Date(
-        Number(parts[0]),
-        Number(parts[1]) - 1,
-        Number(parts[2]),
+        parseInt(parts[0], 10),
+        parseInt(parts[1], 10) - 1,
+        parseInt(parts[2], 10)
       );
-      const dayIdx = d.getDay() === 0 ? 6 : d.getDay() - 1;
-      return `${DAY_NAMES[dayIdx]} (${parts[2]}/${parts[1]})`;
+      const dayOfWeekIndex = d.getDay() === 0 ? 6 : d.getDay() - 1;
+      const dayName = DAY_NAMES[dayOfWeekIndex] || "Ngày";
+      return `${dayName}, ${parts[2]}/${parts[1]}/${parts[0]}`;
     }
     return selectedDateStr;
   };
 
+  const activeAdvancedFilterCount =
+    (timeTypeFilter !== "all" ? 1 : 0) +
+    (priorityFilter !== "all" ? 1 : 0) +
+    (notebookFilter !== "all" ? 1 : 0) +
+    (tagFilter !== "all" ? 1 : 0);
 
-  const handleCreateNewTag = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTagInput.trim()) {
-      setIsAddingTag(false);
-      return;
-    }
-    addTag(newTagInput.trim());
-    setSelectedTag(newTagInput.trim());
-    setNewTagInput("");
-    setIsAddingTag(false);
+  // Xếp việc từ backlog vào ngày đang chọn
+  const handleScheduleFromBacklog = (taskId: string, targetDateStr: string) => {
+    const task = tasks.find((item) => item.id === taskId);
+    if (!task) return;
+    updateTask(taskId, moveTaskToDate(task, targetDateStr));
   };
 
-  const notebookOptions: SelectOption[] = [
-    { value: "", label: "Không gán sổ", icon: "lucide:FileText" },
-    ...notebooks.map((nb) => ({
-      value: nb.id,
-      label: nb.name,
-      icon: nb.icon || "lucide:BookMarked",
-    })),
-  ];
-
   return (
-    <div className="space-y-3.5 max-w-3xl lg:max-w-6xl mx-auto">
-      {/* 1. Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
-        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1917]">
-          Kế Hoạch
-        </h2>
+    <div className="space-y-4 w-full min-w-0 pb-16 select-none animate-in fade-in duration-150">
+      {/* ========================================== */}
+      {/* MÀN HÌNH TỔNG QUAN (TUẦN / THÁNG / NĂM) */}
+      {/* ========================================== */}
+      {plannerScreen === "overview" && (
+        <div className="space-y-3 animate-in fade-in duration-150">
+          {/* Header Planner Điều Hướng 3 Chế Độ */}
+          <PlannerHeader
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            titleLabel={currentTitleLabel}
+            onPrev={handlePrev}
+            onNext={handleNext}
+            onToday={handleResetToCurrent}
+            unscheduledCount={unscheduledTasks.length}
+            onOpenBacklog={() => setPlannerScreen("backlog")}
+          />
 
-        <div className="flex items-center gap-1 p-0.5 bg-white border border-[#262626] rounded-[4px]">
-          <button
-            type="button"
-            onClick={() => setViewMode("month")}
-            className={`px-2 py-0.5 rounded-[2px] text-xs font-bold transition-all ${
-              viewMode === "month"
-                ? "bg-[#FEF08A] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
-                : "text-[#78716C]"
-            }`}
-          >
-            Lịch Tháng
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode("week")}
-            className={`px-2 py-0.5 rounded-[2px] text-xs font-bold transition-all ${
-              viewMode === "week"
-                ? "bg-[#FEF08A] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
-                : "text-[#78716C]"
-            }`}
-          >
-            Lịch Tuần
-          </button>
-        </div>
-      </div>
-
-      {/* BỐ CỤC 2 CỘT TRÊN DESKTOP (Lịch Trái - Chi Tiết Phải) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-start">
-        {/* CỘT TRÁI (Lịch Tháng / Tuần) */}
-        <div className="lg:col-span-5 space-y-3 lg:sticky lg:top-16">
-          {/* 2. Lịch Tháng */}
-          {viewMode === "month" && (
-            <div className="p-3 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2.5px_2.5px_0px_#262626] space-y-2">
-              <div className="flex items-center justify-between pb-1 border-b border-[#D4CEBF]">
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => setMonthOffset(monthOffset - 1)}
-                    className="px-2 py-0.5 bg-[#FBF9F4] border border-[#262626] rounded text-xs font-bold hover:bg-white"
-                  >
-                    ←
-                  </button>
-                  <span className="font-bold text-xs sm:text-sm text-[#1C1917]">
-                    {monthLabel}
-                  </span>
-                  <button
-                    onClick={() => setMonthOffset(monthOffset + 1)}
-                    className="px-2 py-0.5 bg-[#FBF9F4] border border-[#262626] rounded text-xs font-bold hover:bg-white"
-                  >
-                    →
-                  </button>
-
-                  {monthOffset !== 0 && (
-                    <button
-                      onClick={() => {
-                        setMonthOffset(0);
-                        setSelectedDateStr(todayStr);
-                      }}
-                      className="px-1.5 py-0.5 bg-[#FEF08A] border border-[#262626] rounded text-[10px] font-bold"
-                    >
-                      Hôm nay
-                    </button>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setIsCalendarCollapsed(!isCalendarCollapsed)}
-                  className="px-2 py-0.5 bg-[#F3EFE6] border border-[#D4CEBF] rounded text-[11px] font-medium text-[#78716C] lg:hidden"
-                >
-                  {isCalendarCollapsed ? "▾ Mở lịch" : "▴ Thu gọn"}
-                </button>
-              </div>
-
-              {(!isCalendarCollapsed || window.innerWidth >= 1024) && (
-                <div className="space-y-1 animate-in fade-in">
-                  <div className="grid grid-cols-7 gap-1 text-center font-bold text-[10px] text-[#78716C]">
-                    {SHORT_DAY_NAMES.map((d) => (
-                      <div key={d}>{d}</div>
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-7 gap-1 select-none">
-                    {monthMatrix.map((item) => {
-                      const isSelected = selectedDateStr === item.dateStr;
-                      const isToday = todayStr === item.dateStr;
-                      const dayTaskCount = tasks.filter(
-                        (t) =>
-                          t.dueDate?.includes(item.dateStr) ||
-                          (isToday && !t.dueDate),
-                      ).length;
-
-                      return (
-                        <button
-                          key={item.dateStr}
-                          type="button"
-                          onClick={() => setSelectedDateStr(item.dateStr)}
-                          className={`min-h-[34px] sm:min-h-[38px] p-0.5 rounded-[3px] border flex flex-col justify-between items-center transition-all ${
-                            isSelected
-                              ? "bg-[#FEF08A] border-[#262626] shadow-[1.5px_1.5px_0px_#262626] font-bold z-10"
-                              : isToday
-                                ? "bg-white border-[#262626]"
-                                : item.isCurrentMonth
-                                  ? "bg-[#FBF9F4] border-[#D4CEBF] text-[#1C1917] hover:bg-white"
-                                  : "border-transparent text-[#A8A29E]"
-                          }`}
-                        >
-                          <span
-                            className={`font-mono text-[11px] ${
-                              isToday && !isSelected
-                                ? "underline decoration-[#FEF08A] font-bold"
-                                : ""
-                            }`}
-                          >
-                            {item.dayNum}
-                          </span>
-
-                          {dayTaskCount > 0 ? (
-                            <span
-                              className={`text-[9px] font-mono font-bold px-1 rounded-[2px] border border-[#262626] leading-none py-0.2 ${
-                                isSelected
-                                  ? "bg-white text-[#1C1917]"
-                                  : "bg-[#BBF7D0] text-[#1C1917]"
-                              }`}
-                            >
-                              {dayTaskCount}v
-                            </span>
-                          ) : (
-                            <span className="h-2" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Lịch Tuần */}
+          {/* 1. VIEW TUẦN (WEEK VIEW) */}
           {viewMode === "week" && (
-            <div className="p-3 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2.5px_2.5px_0px_#262626] space-y-2">
-              <div className="flex items-center justify-between pb-1 border-b border-[#D4CEBF]">
-                <button
-                  onClick={() => setWeekOffset(weekOffset - 1)}
-                  className="px-2 py-0.5 bg-white border border-[#262626] rounded text-xs font-bold hover:bg-[#FBF9F4]"
-                >
-                  ← Trước
-                </button>
-                <span className="font-bold text-xs font-mono">
-                  Tuần{" "}
-                  {weekOffset === 0
-                    ? "này"
-                    : `${weekOffset > 0 ? `+${weekOffset}` : weekOffset}`}
-                </span>
-                <button
-                  onClick={() => setWeekOffset(weekOffset + 1)}
-                  className="px-2 py-0.5 bg-white border border-[#262626] rounded text-xs font-bold hover:bg-[#FBF9F4]"
-                >
-                  Sau →
-                </button>
-              </div>
+            <PlannerWeekView
+              weekDays={weekDays}
+              todayStr={todayStr}
+              getTasksForDate={getTasksForDate}
+              onSelectDate={handleSelectDate}
+              onSelectTask={(task) => {
+                const taskDate = getTaskEffectiveDate(task) || selectedDateStr;
+                setSelectedDateStr(taskDate);
+                setActiveTask(task);
+                setPlannerScreen("day");
+              }}
+              onToggleTask={toggleTask}
+              onQuickAddForDate={(dateStr) => {
+                setSelectedDateStr(dateStr);
+                setActiveTask(null);
+                setPlannerScreen("day");
+              }}
+            />
+          )}
 
-              <div className="grid grid-cols-7 gap-1 select-none">
-                {weekDays.map((col) => {
-                  const isSelected = selectedDateStr === col.dateStr;
-                  const isToday = todayStr === col.dateStr;
-                  const dayTaskCount = tasks.filter(
-                    (t) =>
-                      t.dueDate?.includes(col.dateStr) ||
-                      (isToday && !t.dueDate),
-                  ).length;
+          {/* 2. VIEW THÁNG (MONTH VIEW) */}
+          {viewMode === "month" && (
+            <PlannerCalendar
+              selectedDateStr={selectedDateStr}
+              onSelectDate={handleSelectDate}
+              todayStr={todayStr}
+              monthMatrix={monthMatrix}
+              getTaskCountForDate={getTaskCountForDate}
+              getTaskSummaryForDate={getTaskSummaryForDate}
+            />
+          )}
 
-                  return (
-                    <button
-                      key={col.dateStr}
-                      type="button"
-                      onClick={() => setSelectedDateStr(col.dateStr)}
-                      className={`flex flex-col items-center justify-center p-1 rounded-[4px] border-[1.5px] min-h-[50px] transition-all ${
-                        isSelected
-                          ? "bg-[#FEF08A] border-[#262626] shadow-[2px_2px_0px_#262626] -translate-y-[1px]"
-                          : "bg-white border-[#262626] text-[#78716C] hover:bg-[#FBF9F4]"
-                      }`}
-                    >
-                      <span
-                        className={`text-[10px] font-bold ${isSelected ? "text-[#1C1917]" : "text-[#78716C]"}`}
-                      >
-                        {col.shortDayName}
-                      </span>
-                      <span className="font-mono text-xs sm:text-sm font-bold text-[#1C1917]">
-                        {col.dayNum}
-                      </span>
-                      <div className="h-1.5 flex items-center justify-center">
-                        {dayTaskCount > 0 && (
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full border border-[#262626] ${
-                              isSelected ? "bg-[#1C1917]" : "bg-[#BBF7D0]"
-                            }`}
-                          />
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+          {/* 3. VIEW NĂM (YEAR VIEW) */}
+          {viewMode === "year" && (
+            <PlannerYearView
+              year={currentYear}
+              todayStr={todayStr}
+              tasks={tasks}
+              onSelectMonth={handleSelectMonthFromYear}
+              onSelectDate={handleSelectDate}
+            />
           )}
         </div>
+      )}
 
-        {/* CỘT PHẢI (Khung Chi Tiết Kế Hoạch & Command Center) */}
-        <div className="lg:col-span-7 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2.5px_2.5px_0px_#262626] p-3 sm:p-4 space-y-2.5">
-          <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
-            <h3 className="font-bold text-xs sm:text-sm text-[#1C1917] flex items-center gap-1.5">
-              <CalendarIcon size={15} strokeWidth={2.2} />
-              <span>{getDayFormattedTitle()}</span>
-            </h3>
+      {/* ========================================== */}
+      {/* MÀN HÌNH CHI TIẾT NGÀY (GIỐNG Y HỆT TAB HÔM NAY) */}
+      {/* ========================================== */}
+      {plannerScreen === "day" && (() => {
+        const isPastDate = selectedDateStr < todayStr;
+        const completedCount = selectedDayTasks.filter((t) => t.completed).length;
+        const totalCount = selectedDayTasks.length;
+        const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-            <span className="font-mono text-xs font-bold bg-[#F3EFE6] px-2 py-0.5 rounded-[2px] border border-[#D4CEBF]">
-              {selectedDayTasks.filter((t) => t.completed).length}/
-              {selectedDayTasks.length} Xong
-            </span>
-          </div>
-
-          {/* Quick Add Form (Tự động co giãn theo độ dài ký tự) */}
-          <form
-            onSubmit={handleAddDayTask}
-            className="p-2.5 bg-[#FBF9F4] border border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] space-y-2 select-none"
-          >
-            <div className="flex items-start gap-1.5">
-              <AutoResizeTextarea
-                placeholder={`Lên lịch việc mới cho ${getDayFormattedTitle()}...`}
-                value={dayTaskTitle}
-                maxLength={250}
-                minRows={1}
-                maxRows={5}
-                onEnterPress={() => handleAddDayTask()}
-                onChange={(e) => setDayTaskTitle(e.target.value)}
-                className="flex-1 text-xs sm:text-sm bg-white font-medium"
-              />
-              
-              <button
-                type="button"
-                onClick={() => setIsExpandForm(!isExpandForm)}
-                className={`h-[38px] px-2.5 rounded-[5px] border-[1.5px] text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 active:translate-y-[0.5px] ${
-                  isExpandForm || dayTaskTime || selectedNotebookId
-                    ? "bg-[#FEF08A] border-[#262626] text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626]"
-                    : "bg-white border-[#262626] text-[#1C1917] hover:bg-gray-50 shadow-[1px_1px_0px_#262626]"
-                }`}
-                title="Tùy chọn mở rộng (Giờ hẹn, Sổ tay, Tag, Ưu tiên)"
-              >
-                <span>Tùy chọn</span>
-                <span className="text-[9px]">{isExpandForm ? "▲" : "▾"}</span>
-              </button>
-
-              <Button
-                type="submit"
-                variant="primary"
-                size="md"
-                disabled={!dayTaskTitle.trim()}
-                className="h-[38px] px-3 shrink-0"
-              >
-                + Lên lịch
-              </Button>
-            </div>
-
-            {/* Phần Tùy Chọn Mở Rộng: Chỉ bung ra khi người dùng bấm nút [ Tùy chọn ▾ ] */}
-            {isExpandForm && (
-              <div className="pt-2 border-t border-[#D4CEBF]/60 space-y-2 text-xs animate-in slide-in-from-top-1">
-                {/* 1. Dải Tag */}
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[11px] font-bold text-[#78716C] shrink-0 w-14">
-                    Nhãn:
-                  </span>
-                  <div className="flex items-center gap-1.5 flex-wrap flex-1">
-                    {tags.map((tag) => {
-                      const tagStyle = getTagStyle(tag);
-                      return (
-                        <div
-                          key={tag}
-                          className="group/tag relative inline-flex items-center"
-                        >
-                          <button
-                            type="button"
-                            onClick={() => setSelectedTag(tag)}
-                            className={`px-2 py-0.5 rounded-[2px] border text-[11px] font-medium transition-all ${
-                              selectedTag === tag
-                                ? `${tagStyle.bg} ${tagStyle.border} text-[#1C1917] shadow-[1px_1px_0px_#262626] -translate-y-[0.5px] font-bold`
-                                : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
-                            }`}
-                          >
-                            #{tag}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteTag(tag);
-                              if (selectedTag === tag && tags.length > 1) {
-                                setSelectedTag(tags.find((t) => t !== tag) || "");
-                              }
-                            }}
-                            title={`Xóa #${tag}`}
-                            className="opacity-0 group-hover/tag:opacity-100 text-[9px] text-[#78716C] hover:text-red-500 ml-0.5 p-0.5"
-                          >
-                            <X size={10} strokeWidth={2.5} />
-                          </button>
-                        </div>
-                      );
-                    })}
-
-                    {isAddingTag ? (
-                      <input
-                        type="text"
-                        placeholder="Tên tag..."
-                        value={newTagInput}
-                        maxLength={15}
-                        onChange={(e) => setNewTagInput(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleCreateNewTag(e);
-                          } else if (e.key === "Escape") {
-                            setIsAddingTag(false);
-                          }
-                        }}
-                        onBlur={handleCreateNewTag}
-                        className="w-18 px-1.5 py-0.5 text-[11px] border border-[#262626] rounded-[2px] outline-none bg-white font-sans"
-                      />
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setIsAddingTag(true)}
-                        className="px-1.5 py-0.5 text-[11px] text-[#78716C] hover:text-[#1C1917] border border-dashed border-[#D4CEBF] rounded-[2px]"
-                      >
-                        + Tag
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* 2. Cuốn Sổ & Giờ Hẹn Gọn Gàng */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-[#D4CEBF]/40">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-bold text-[#78716C] shrink-0 w-14">
-                      Sổ tay:
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <CustomSelect
-                        options={notebookOptions}
-                        value={selectedNotebookId}
-                        onChange={setSelectedNotebookId}
-                        placeholder="Gán sổ tay"
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] font-bold text-[#78716C] shrink-0 w-14">
-                      Giờ hẹn:
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <CustomDuePicker
-                        value={dayTaskTime}
-                        timeData={dayTaskTimeData}
-                        onChange={(val, tData) => {
-                          setDayTaskTime(val);
-                          setDayTaskTimeData(tData);
-                        }}
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* 3. Chọn Mức Độ Ưu Tiên */}
-                <div className="flex items-center gap-1.5 pt-1 border-t border-[#D4CEBF]/40">
-                  <span className="text-[11px] font-bold text-[#78716C] shrink-0 w-14">
-                    Ưu tiên:
-                  </span>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {[
-                      {
-                        key: "high",
-                        label: "Gấp",
-                        dotClass: "bg-rose-500",
-                        activeClass:
-                          "bg-rose-100 text-rose-800 border-rose-400 font-bold shadow-[1px_1px_0px_#262626]",
-                      },
-                      {
-                        key: "medium",
-                        label: "Vừa",
-                        dotClass: "bg-amber-400",
-                        activeClass:
-                          "bg-amber-100 text-amber-800 border-amber-400 font-bold shadow-[1px_1px_0px_#262626]",
-                      },
-                      {
-                        key: "low",
-                        label: "Thấp",
-                        dotClass: "bg-emerald-500",
-                        activeClass:
-                          "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold shadow-[1px_1px_0px_#262626]",
-                      },
-                    ].map((p) => (
-                      <button
-                        key={p.key}
-                        type="button"
-                        onClick={() => setSelectedPriority(p.key as any)}
-                        className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
-                          selectedPriority === p.key
-                            ? p.activeClass
-                            : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
-                        }`}
-                      >
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`}
-                        />
-                        <span>{p.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </form>
-
-          {/* 4. Filter Bar Khoa Học & Không Bao Giờ Rớt Dòng (Task Command Center) */}
-          <div className="space-y-1.5 select-none">
-            <div className="p-1 bg-white border border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] flex items-center justify-between gap-1 sm:gap-2 text-xs overflow-x-auto no-scrollbar">
-              {/* Nhóm lọc trạng thái chính */}
-              <div className="flex items-center gap-1 shrink-0">
-                {[
-                  { key: "all", label: "Tất cả" },
-                  { key: "active", label: "Cần làm" },
-                  { key: "completed", label: "Đã xong" },
-                ].map((f) => (
-                  <button
-                    key={f.key}
-                    type="button"
-                    onClick={() => setStatusFilter(f.key as any)}
-                    className={`px-2 sm:px-2.5 py-1 rounded-[3px] border text-xs font-bold transition-all whitespace-nowrap shrink-0 ${
-                      statusFilter === f.key
-                        ? "bg-[#262626] text-white border-[#262626] shadow-[1px_1px_0px_#262626]"
-                        : "bg-[#FBF9F4] text-[#78716C] border-[#D4CEBF] hover:text-[#1C1917]"
-                    }`}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Nhóm nút bên phải: Bộ Lọc Nâng Cao & Xóa Lọc */}
-              <div className="flex items-center gap-1 shrink-0">
-                {(statusFilter !== "all" ||
-                  priorityFilter !== "all" ||
-                  notebookFilter !== "all" ||
-                  timeFilter !== "all" ||
-                  tagFilter !== "all") && (
+        return (
+          <div className="space-y-4 animate-in fade-in duration-150">
+            {/* 1. Header Quay Lại & Tên Ngày & Tiến Độ Đồng Bộ TodayHeader */}
+            <div className="pb-2 border-b border-[#262626] space-y-1.5 animate-in fade-in duration-150 select-none">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-center gap-2">
                   <button
                     type="button"
                     onClick={() => {
-                      setStatusFilter("all");
-                      setPriorityFilter("all");
-                      setNotebookFilter("all");
-                      setTimeFilter("all");
-                      setTagFilter("all");
+                      if (fromTab === "deadlines" && onBackToDeadlines) {
+                        onBackToDeadlines();
+                      } else {
+                        setPlannerScreen("overview");
+                      }
                     }}
-                    title="Xóa toàn bộ lọc"
-                    className="px-1.5 sm:px-2 py-1 rounded-[3px] bg-rose-50 border border-rose-300 text-rose-700 text-[11px] font-bold flex items-center gap-0.5 hover:bg-rose-100 active:translate-y-[0.5px] whitespace-nowrap shrink-0"
+                    className="flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-1 bg-[#FAF8F3] hover:bg-[#F3EFE6] border-[1.5px] border-[#262626] rounded-[5px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] transition-all"
                   >
-                    <X size={12} strokeWidth={2.5} />
-                    <span className="hidden xs:inline sm:inline">Xóa</span>
-                  </button>
-                )}
-
-                {/* Nút Hộp Việc Chờ Lên Lịch Từ Sổ Tay */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsBacklogDrawerOpen(!isBacklogDrawerOpen);
-                    if (isFilterDrawerOpen) setIsFilterDrawerOpen(false);
-                  }}
-                  className={`px-2 sm:px-2.5 py-1 rounded-[3px] border-[1.5px] text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 ${
-                    isBacklogDrawerOpen
-                      ? "bg-[#BBF7D0] border-[#262626] text-emerald-950 shadow-[1px_1px_0px_#262626]"
-                      : "bg-white border-[#D4CEBF] text-[#78716C] hover:text-[#1C1917]"
-                  }`}
-                >
-                  <PackageOpen size={13} strokeWidth={2.2} className="text-emerald-800" />
-                  <span className="hidden xs:inline sm:inline">Việc chờ xếp lịch</span>
-                  <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-full bg-[#262626] text-white font-bold">
-                    {unscheduledTasks.length}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsFilterDrawerOpen(!isFilterDrawerOpen);
-                    if (isBacklogDrawerOpen) setIsBacklogDrawerOpen(false);
-                  }}
-                  className={`px-2 sm:px-2.5 py-1 rounded-[3px] border-[1.5px] text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 ${
-                    isFilterDrawerOpen ||
-                    priorityFilter !== "all" ||
-                    notebookFilter !== "all" ||
-                    timeFilter !== "all" ||
-                    tagFilter !== "all"
-                      ? "bg-[#FEF08A] border-[#262626] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
-                      : "bg-white border-[#D4CEBF] text-[#78716C] hover:text-[#1C1917]"
-                  }`}
-                >
-                  <SlidersHorizontal size={13} strokeWidth={2.2} />
-                  <span>Lọc</span>
-                  {(priorityFilter !== "all" ? 1 : 0) +
-                    (notebookFilter !== "all" ? 1 : 0) +
-                    (timeFilter !== "all" ? 1 : 0) +
-                    (tagFilter !== "all" ? 1 : 0) >
-                    0 && (
-                    <span className="w-4 h-4 rounded-full bg-[#262626] text-white text-[10px] flex items-center justify-center font-mono font-bold shrink-0">
-                      {(priorityFilter !== "all" ? 1 : 0) +
-                        (notebookFilter !== "all" ? 1 : 0) +
-                        (timeFilter !== "all" ? 1 : 0) +
-                        (tagFilter !== "all" ? 1 : 0)}
+                    <ArrowLeft size={13} strokeWidth={2.4} />
+                    <span className="hidden sm:inline">
+                      {fromTab === "deadlines"
+                        ? "Quay lại Hạn định"
+                        : `Quay lại ${viewMode === "week" ? "Tuần" : viewMode === "year" ? "Năm" : "Lịch Tháng"}`}
                     </span>
-                  )}
-                  {isFilterDrawerOpen ? (
-                    <ChevronUp size={12} />
-                  ) : (
-                    <ChevronDown size={12} />
-                  )}
-                </button>
-              </div>
-            </div>
+                    <span className="sm:hidden">
+                      {fromTab === "deadlines" ? "Hạn" : viewMode === "week" ? "Tuần" : viewMode === "year" ? "Năm" : "Lịch"}
+                    </span>
+                  </button>
 
-            {/* Ngăn Kéo: Hộp Việc Từ Sổ Tay Chưa Lên Lịch (Unscheduled Backlog Drawer) */}
-            {isBacklogDrawerOpen && (
-              <div className="p-3.5 bg-[#BBF7D0]/30 border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] space-y-2.5 animate-in slide-in-from-top-2 duration-150 text-xs">
-                <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]/20">
-                  <div className="flex items-center gap-1.5 font-bold text-[#1C1917]">
-                    <PackageOpen size={15} className="text-emerald-800" />
-                    <span>HỘP VIỆC TỪ SỔ TAY CHỜ LÊN LỊCH:</span>
-                  </div>
-                  <span className="text-[11px] font-mono text-[#78716C]">
-                    {unscheduledTasks.length} việc
-                  </span>
-                </div>
-
-                {unscheduledTasks.length === 0 ? (
-                  <p className="text-xs text-[#78716C] py-2 text-center italic">
-                    Tuyệt vời! Tất cả công việc trong các sổ tay đều đã được lên lịch.
-                  </p>
-                ) : (
-                  <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1 no-scrollbar">
-                    {unscheduledTasks.map((t) => {
-                      const nb = notebooks.find((n) => n.id === t.notebookId);
-                      return (
-                        <div
-                          key={t.id}
-                          className="p-2.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-xs text-[#1C1917] leading-snug break-words">
-                              {t.title}
-                            </p>
-                            <div className="flex items-center gap-1.5 mt-1 text-[10px] flex-wrap">
-                              {nb && (
-                                <span
-                                  className="px-1.5 py-0.5 rounded border border-[#262626] text-[#1C1917] inline-flex items-center gap-1 max-w-[160px] font-medium"
-                                  style={{ backgroundColor: nb.color || "#FEF08A" }}
-                                >
-                                  <DynamicIcon name={nb.icon} size={10} strokeWidth={2.2} />
-                                  <span className="truncate">{nb.name}</span>
-                                </span>
-                              )}
-                              {t.tag && (
-                                <span className="text-[#78716C] font-mono">#{t.tag}</span>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center pt-1 sm:pt-0 border-t sm:border-t-0 border-[#D4CEBF]/40 w-full sm:w-auto justify-end">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                updateTask(t.id, { dueDate: selectedDateStr });
-                              }}
-                              className="px-2 py-1 bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] rounded-[3px] text-[10px] font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] flex items-center gap-1"
-                            >
-                              <CalendarIcon size={11} />
-                              <span>Xếp vào {selectedDateStr.split("-").slice(1).reverse().join("/")}</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => moveTaskToToday(t.id)}
-                              className="px-2 py-1 bg-[#BBF7D0] hover:bg-[#86EFAC] border border-[#262626] rounded-[3px] text-[10px] font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] flex items-center gap-1"
-                            >
-                              <Sun size={11} />
-                              <span>Hôm nay</span>
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Khung Bộ Lọc Nâng Cao Mở Rộng Cho Planner */}
-            {isFilterDrawerOpen && (
-              <div className="p-3 bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] space-y-2.5 animate-in slide-in-from-top-2 duration-150 text-xs">
-                {/* 1. Mức Độ Ưu Tiên */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">
-                    Ưu tiên:
-                  </span>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {[
-                      { key: "all", label: "Tất cả" },
-                      {
-                        key: "high",
-                        label: "Gấp",
-                        dotClass: "bg-rose-500",
-                        activeClass:
-                          "bg-rose-100 text-rose-800 border-rose-400 font-bold shadow-[1px_1px_0px_#262626]",
-                      },
-                      {
-                        key: "medium",
-                        label: "Vừa",
-                        dotClass: "bg-amber-400",
-                        activeClass:
-                          "bg-amber-100 text-amber-800 border-amber-400 font-bold shadow-[1px_1px_0px_#262626]",
-                      },
-                      {
-                        key: "low",
-                        label: "Thấp",
-                        dotClass: "bg-emerald-500",
-                        activeClass:
-                          "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold shadow-[1px_1px_0px_#262626]",
-                      },
-                    ].map((p) => (
-                      <button
-                        key={p.key}
-                        type="button"
-                        onClick={() => setPriorityFilter(p.key as any)}
-                        className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
-                          priorityFilter === p.key
-                            ? p.activeClass ||
-                              "bg-[#262626] text-white border-[#262626] font-bold"
-                            : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
-                        }`}
-                      >
-                        {p.dotClass && (
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`}
-                          />
-                        )}
-                        <span>{p.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 2. Theo Cuốn Sổ (Dropdown CustomSelect gọn gàng) */}
-                <div className="flex items-center gap-2 pt-2 border-t border-[#D4CEBF]/60">
-                  <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">
-                    Cuốn sổ:
-                  </span>
-                  <div className="flex-1 min-w-0 max-w-xs">
-                    <CustomSelect
-                      value={notebookFilter}
-                      onChange={(val) => setNotebookFilter(val)}
-                      options={[
-                        {
-                          value: "all",
-                          label: "Tất cả sổ tay",
-                          count: selectedDayTasks.length,
-                        },
-                        ...notebooks.map((nb) => ({
-                          value: nb.id,
-                          label: nb.name,
-                          icon: nb.icon || "lucide:BookMarked",
-                          count: selectedDayTasks.filter(
-                            (t) => t.notebookId === nb.id,
-                          ).length,
-                        })),
-                        {
-                          value: "none",
-                          label: "Chưa gán sổ",
-                          count: selectedDayTasks.filter((t) => !t.notebookId)
-                            .length,
-                        },
-                      ]}
-                    />
-                  </div>
-                </div>
-
-                {/* 3. Thời Gian & Giờ Hẹn */}
-                <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-[#D4CEBF]/60">
-                  <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">
-                    Thời gian:
-                  </span>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() => setTimeFilter("all")}
-                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all whitespace-nowrap ${
-                        timeFilter === "all"
-                          ? "bg-[#262626] text-white border-[#262626] font-bold shadow-[1px_1px_0px_#262626]"
-                          : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
-                      }`}
-                    >
-                      Tất cả
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTimeFilter(timeFilter === "timed" ? "all" : "timed")
-                      }
-                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
-                        timeFilter === "timed"
-                          ? "bg-[#262626] text-white border-[#262626] font-bold shadow-[1px_1px_0px_#262626]"
-                          : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
-                      }`}
-                    >
-                      <Clock size={12} strokeWidth={2.2} />
-                      <span>Có giờ hẹn</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTimeFilter(
-                          timeFilter === "allday" ? "all" : "allday",
-                        )
-                      }
-                      className={`px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 whitespace-nowrap ${
-                        timeFilter === "allday"
-                          ? "bg-amber-500 text-white border-amber-600 font-bold shadow-[1px_1px_0px_#262626]"
-                          : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
-                      }`}
-                    >
-                      <Sun size={12} strokeWidth={2.2} />
-                      <span>Cả ngày</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* 4. Nhãn Phân Loại (#Tag Dropdown CustomSelect gọn gàng) */}
-                <div className="flex items-center gap-2 pt-2 border-t border-[#D4CEBF]/60">
-                  <span className="text-[11px] font-bold text-[#78716C] w-16 shrink-0">
-                    Nhãn tag:
-                  </span>
-                  <div className="flex-1 min-w-0 max-w-xs">
-                    <CustomSelect
-                      value={tagFilter}
-                      onChange={(val) => setTagFilter(val)}
-                      options={[
-                        {
-                          value: "all",
-                          label: "Tất cả thẻ tag",
-                          count: selectedDayTasks.length,
-                        },
-                        ...tags.map((tag) => ({
-                          value: tag,
-                          label: `#${tag}`,
-                          count: selectedDayTasks.filter((t) => t.tag === tag)
-                            .length,
-                        })),
-                      ]}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Task List */}
-          <div className="space-y-2 pt-0.5">
-            {filteredDayTasks.length === 0 ? (
-              <EmptyStateDoodle
-                icon="lucide:Calendar"
-                title="Chưa có việc nào"
-                message="Hãy lên lịch việc mới phía trên nếu bạn có dự định nhé."
-              />
-            ) : (
-              filteredDayTasks.map((task, idx) => {
-                const assignedNotebook = notebooks.find(
-                  (n) => n.id === task.notebookId,
-                );
-                const isTaskForToday =
-                  task.dueDate?.includes(todayStr) ||
-                  (selectedDateStr === todayStr && !task.dueDate);
-                const dueInfo = getTaskDueInfo(task);
-
-                return (
-                  <div
-                    key={task.id}
-                    className={`group p-2.5 sm:p-3 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] space-y-2 transition-all animate-task-pop ${getCardTilt(
-                      idx,
-                    )}`}
-                  >
-                    <div className="flex items-start justify-between gap-2.5">
-                      <div className="flex items-start gap-2.5 flex-1 min-w-0">
-                        <div className="pt-0.5 shrink-0">
-                          <HandDrawnCheckbox
-                            checked={task.completed}
-                            onChange={() => toggleTask(task.id)}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="relative inline-block max-w-full">
-                            <p
-                              className={`text-xs sm:text-sm font-semibold leading-snug break-all ${
-                                task.completed
-                                  ? "text-[#78716C]"
-                                  : "text-[#1C1917]"
-                              }`}
-                            >
-                              {task.title}
-                            </p>
-                            {task.completed && (
-                              <div className="absolute top-1/2 left-0 right-0 h-[1.5px] bg-[#78716C] animate-ink-strike -translate-y-1/2 pointer-events-none" />
-                            )}
-                          </div>
-                          <div className="mt-1 flex items-center gap-1.5 flex-wrap text-[10px]">
-                            {/* Badge Hạn Chót */}
-                            {dueInfo && !task.completed && (
-                              <span
-                                className={`px-1.5 py-0.5 rounded border inline-flex items-center gap-1 font-mono ${dueInfo.badgeClass}`}
-                              >
-                                {dueInfo.type === "overdue" ? (
-                                  <AlertCircle
-                                    size={10}
-                                    strokeWidth={2.5}
-                                    className="text-rose-700"
-                                  />
-                                ) : dueInfo.type === "today" ? (
-                                  <Clock
-                                    size={10}
-                                    strokeWidth={2.2}
-                                    className="text-amber-800"
-                                  />
-                                ) : (
-                                  <CalendarIcon
-                                    size={10}
-                                    strokeWidth={2.2}
-                                    className="text-emerald-700"
-                                  />
-                                )}
-                                <span>{dueInfo.label}</span>
-                              </span>
-                            )}
-
-                            {task.tag && (
-                              <span
-                                className={`${getTagStyle(task.tag).bg} ${getTagStyle(task.tag).text} px-1.5 py-0.5 rounded border ${getTagStyle(task.tag).border} font-medium`}
-                              >
-                                #{task.tag}
-                              </span>
-                            )}
-                            {assignedNotebook && (
-                              <span
-                                className="px-1.5 py-0.2 rounded border border-[#262626] max-w-[130px] truncate inline-flex items-center gap-1 font-medium text-[#1C1917]"
-                                style={{
-                                  backgroundColor:
-                                    assignedNotebook.color || "#FEF08A",
-                                }}
-                              >
-                                <DynamicIcon
-                                  name={assignedNotebook.icon}
-                                  size={11}
-                                  strokeWidth={2.2}
-                                />
-                                <span className="truncate">
-                                  {assignedNotebook.name}
-                                </span>
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => setEditingTask(task)}
-                          title="Sửa việc"
-                          className="opacity-60 group-hover:opacity-100 hover:bg-[#FEF08A] rounded border border-transparent hover:border-[#262626] text-[#78716C] hover:text-[#1C1917] p-1 active:translate-y-[0.5px] transition-all"
-                        >
-                          <Edit3 size={13} strokeWidth={2.2} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setDeletingTaskId(task.id)}
-                          title="Xóa"
-                          className="opacity-40 group-hover:opacity-100 text-[#78716C] hover:text-red-600 p-1 active:translate-y-[0.5px]"
-                        >
-                          <X size={13} strokeWidth={2.5} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    {!task.completed && (
-                      <div className="pt-1.5 border-t border-[#D4CEBF]/60 flex items-center justify-between text-xs">
-                        {isTaskForToday ? (
-                          <>
-                            <span className="text-[10px] text-emerald-800 font-bold bg-[#BBF7D0] px-1.5 py-0.2 rounded border border-[#262626] inline-flex items-center gap-1">
-                              <Star
-                                size={10}
-                                strokeWidth={2.5}
-                                className="fill-emerald-800"
-                              />
-                              <span>Hôm nay</span>
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => moveTaskToTomorrow(task.id)}
-                              title="Dời sang ngày mai"
-                              className="flex items-center gap-1 px-2 py-0.5 bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-xs font-bold text-[#1C1917] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
-                            >
-                              <ArrowRight size={12} strokeWidth={2.4} />
-                              <span>Ngày mai</span>
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <span className="text-[10px] text-[#78716C] font-mono">
-                              {selectedDateStr}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => moveTaskToToday(task.id)}
-                              title="Kéo vào làm hôm nay"
-                              className="flex items-center gap-1 px-2.5 py-0.5 bg-[#BBF7D0] hover:bg-[#86EFAC] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-xs font-bold text-[#1C1917] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
-                            >
-                              <Sun size={12} strokeWidth={2.4} />
-                              <span>Làm hôm nay</span>
-                            </button>
-                          </>
-                        )}
-                      </div>
+                  <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                    <h2 className="min-w-0 flex-1 truncate whitespace-nowrap font-bold text-sm sm:text-lg text-[#1C1917]">
+                      {getDayFormattedTitle()}
+                    </h2>
+                    {selectedDateStr === todayStr && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 bg-[#FEF08A] border border-[#262626] rounded-full text-[#1C1917]">
+                        Hôm nay
+                      </span>
+                    )}
+                    {isPastDate && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 bg-[#F3EFE6] border border-[#D4CEBF] rounded-full text-[#78716C] flex items-center gap-1">
+                        <Lock size={10} strokeWidth={2.4} />
+                        <span>Quá khứ</span>
+                      </span>
                     )}
                   </div>
-                );
-              })
+                </div>
+
+                {/* Badge Thống Kê Hoàn Thành */}
+                <div className="flex items-center justify-end gap-2 sm:justify-start">
+                  <div className="font-mono text-xs font-bold bg-white px-2.5 py-0.5 border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-[#1C1917]">
+                    {completedCount}/{totalCount}
+                  </div>
+                </div>
+              </div>
+
+              {/* Thanh Tiến Độ Hoàn Thành Mini Nét Mực */}
+              {totalCount > 0 && (
+                <div className="w-full h-1.5 bg-white border border-[#262626] rounded-[2px] overflow-hidden shadow-[1px_1px_0px_#262626]">
+                  <div
+                    className="h-full bg-[#BBF7D0] border-r border-[#262626] transition-all duration-300"
+                    style={{ width: `${progressPercent}%` }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Banner Cảnh Báo Khóa Tạo Việc Cho Ngày Quá Khứ */}
+            {isPastDate && (
+              <div className="flex items-center gap-2 p-2.5 bg-amber-50 border-[1.5px] border-amber-300 rounded-[6px] text-xs text-amber-950 font-medium shadow-[1px_1px_0px_#262626] animate-in fade-in">
+                <Lock size={14} className="text-amber-800 shrink-0" strokeWidth={2.4} />
+                <span>
+                  <strong>Lưu ý:</strong> Đây là ngày trong quá khứ nên hệ thống đã khóa chức năng thêm việc mới. Bạn có thể tick hoàn thành, dời ngày sang hôm nay/tương lai hoặc xóa việc.
+                </span>
+              </div>
             )}
+
+            {/* 2. BỘ LỌC 2 TẦNG DÙNG CHUNG INLINE (Y HỆT TAB HÔM NAY) */}
+            <FilterBar
+              statusFilter={statusFilter}
+              onStatusChange={setStatusFilter}
+              timeTypeFilter={timeTypeFilter}
+              onTimeTypeChange={setTimeTypeFilter}
+              priorityFilter={priorityFilter}
+              onPriorityChange={setPriorityFilter}
+              notebookFilter={notebookFilter}
+              onNotebookChange={setNotebookFilter}
+              tagFilter={tagFilter}
+              onTagChange={setTagFilter}
+              isDrawerOpen={isFilterDrawerOpen}
+              onToggleDrawer={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
+              onResetFilters={() => {
+                setPriorityFilter("all");
+                setNotebookFilter("all");
+                setTagFilter("all");
+                setTimeTypeFilter("all");
+              }}
+              activeFilterCount={activeAdvancedFilterCount}
+            />
+
+            {/* 3. BỐ CỤC 2 CỘT: KHU VỰC CÔNG VIỆC (TRÁI) & PANEL THÊM/SỬA VIỆC (PHẢI) */}
+            <div className="flex flex-col lg:flex-row gap-4 items-start w-full">
+              {/* KHU VỰC TRÁI: (A) Lịch Hẹn Nằm Trên -> (B) Danh Sách Task Nằm Dưới */}
+              <div className="flex-1 min-w-0 space-y-4 w-full">
+                {/* (A) PHẦN TRÊN: LỊCH HẸN & KHUNG GIỜ CỦA NGÀY (TodayScheduleNotes) */}
+                {(() => {
+                  const scheduledDayTasks = filteredTasks.filter((t) => {
+                    if (t.parentTaskId) return false;
+                    const normTime = normalizeTaskTimeType(t);
+                    return normTime === "scheduled" || (Boolean(t.startTime) && normTime !== "deadline");
+                  });
+
+                  if (scheduledDayTasks.length === 0) return null;
+
+                  return (
+                    <TodayScheduleNotes
+                      scheduledTasks={scheduledDayTasks}
+                      onToggle={toggleTask}
+                      onEdit={(task) => {
+                        setActiveTask(task);
+                      }}
+                      onDelete={setDeletingTaskId}
+                      onAddSubtask={(parent) => {
+                        setActiveTask(parent);
+                      }}
+                      onClick={(task) => setActiveTask(task)}
+                      activeTaskId={activeTask?.id}
+                      title="Lịch hẹn trong ngày"
+                    />
+                  );
+                })()}
+
+                {/* (B) PHẦN DƯỚI: DANH SÁCH CÔNG VIỆC CẦN LÀM TRONG NGÀY */}
+                {(() => {
+                  const todoDayTasks = filteredTasks.filter((t) => {
+                    const normTime = normalizeTaskTimeType(t);
+                    return !(normTime === "scheduled" || (Boolean(t.startTime) && normTime !== "deadline"));
+                  });
+
+                  return (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between pb-1 border-b border-[#262626]/20">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-[#1C1917]">
+                          <ListTodo size={14} className="text-[#57534E]" />
+                          <span>Công việc cần làm trong ngày ({todoDayTasks.length})</span>
+                        </div>
+                      </div>
+
+                      <TaskList
+                        tasks={todoDayTasks}
+                        emptyMessage="Chưa có công việc nào trong ngày này"
+                        emptySubMessage={isPastDate ? "Ngày trong quá khứ không có công việc nào." : "Thêm công việc để bắt đầu lên kế hoạch!"}
+                        emptyActionText={isPastDate ? undefined : "+ Thêm việc vào ngày này"}
+                        onEmptyAction={undefined}
+                        onToggle={toggleTask}
+                        onEdit={(task) => setActiveTask(task)}
+                        onDelete={deleteTask}
+                        onMoveTomorrow={moveTaskToNextDay}
+                        onAddSubtask={(parent) => setActiveTask(parent)}
+                        onClick={(task) => setActiveTask(task)}
+                        variant="planner"
+                        hideDate={true}
+                        baseDateStr={selectedDateStr}
+                        activeTaskId={activeTask?.id}
+                      />
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* CỘT CẠNH PHẢI: Panel Thao Tác Thêm & Sửa Việc Của Ngày Đó (Khóa khi là ngày quá khứ và không có activeTask) */}
+              <div className="shrink-0 sticky top-16 self-start w-full sm:w-auto">
+                {isPastDate && !activeTask ? (
+                  <div className="p-4 bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[8px] shadow-[2px_2px_0px_#262626] text-center space-y-2.5 w-full sm:w-[320px]">
+                    <div className="w-10 h-10 mx-auto rounded-full bg-amber-100 border-[1.5px] border-[#262626] flex items-center justify-center text-amber-900 shadow-[1.5px_1.5px_0px_#262626]">
+                      <Lock size={18} strokeWidth={2.4} />
+                    </div>
+                    <h4 className="font-bold text-xs sm:text-sm text-[#1C1917]">Đã khóa tạo việc mới</h4>
+                    <p className="text-[11px] text-[#78716C] leading-relaxed">
+                      Đây là ngày trong quá khứ. Bạn không thể tạo thêm việc mới. Bấm vào một công việc cũ để xem hoặc dời sang ngày mới.
+                    </p>
+                  </div>
+                ) : activeTask ? (
+                  <TodayComposerSidebar
+                    isOpen={true}
+                    onToggle={() => {}}
+                    parentTask={null}
+                    editingTask={activeTask}
+                    onSelectTask={setActiveTask}
+                    onClearParentTask={() => {}}
+                    onCancelEdit={() => setActiveTask(null)}
+                    onDeleteTask={(id) => {
+                      deleteTask(id);
+                      if (activeTask?.id === id) setActiveTask(null);
+                    }}
+                    onMoveTomorrow={(id) => {
+                      moveTaskToNextDay(id);
+                      setActiveTask(null);
+                    }}
+                    onAddSubtaskToTask={(parent) => setActiveTask(parent)}
+                  />
+                ) : null}
+              </div>
+            </div>
           </div>
+        );
+      })()}
+
+      {/* ========================================== */}
+      {/* MÀN HÌNH HỘP CHỜ (UNSCHEDULED BACKLOG) */}
+      {/* ========================================== */}
+      {plannerScreen === "backlog" && (
+        <div className="space-y-3 animate-in fade-in duration-150">
+          <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
+            <button
+              type="button"
+              onClick={() => setPlannerScreen("overview")}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF8F3] hover:bg-[#F3EFE6] border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] transition-all"
+            >
+              <ArrowLeft size={14} strokeWidth={2.4} />
+              <span>Quay lại Kế hoạch</span>
+            </button>
+            <h3 className="font-bold text-sm text-[#1C1917]">
+              Hộp Chờ Công Việc ({unscheduledTasks.length})
+            </h3>
+          </div>
+
+          <PlannerBacklog
+            isOpen={plannerScreen === "backlog"}
+            onClose={() => setPlannerScreen("overview")}
+            tasks={unscheduledTasks}
+            onScheduleToDate={handleScheduleFromBacklog}
+            onEdit={(task: TaskDto) => {
+              setActiveTask(task);
+              if (task.dueDate) {
+                setSelectedDateStr(task.dueDate.split(" ")[0]);
+                setPlannerScreen("day");
+              }
+            }}
+          />
         </div>
-      </div>
-
-      {/* Confirm Delete Modal */}
-      <ConfirmModal
-        isOpen={deletingTaskId !== null}
-        title="Gỡ bỏ công việc"
-        message="Bạn có chắc muốn xóa việc này không?"
-        onConfirm={() => {
-          if (deletingTaskId) deleteTask(deletingTaskId);
-          setDeletingTaskId(null);
-        }}
-        onCancel={() => setDeletingTaskId(null)}
-      />
-
-      {/* Edit Task Modal */}
-      <EditTaskModal
-        task={editingTask}
-        isOpen={Boolean(editingTask)}
-        onClose={() => setEditingTask(null)}
-      />
+      )}
     </div>
   );
 };

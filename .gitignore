@@ -15,6 +15,8 @@ client/android/.idea/
 client/android/local.properties
 client/android/app/src/main/assets/public/
 client/android/app/src/main/assets/capacitor.config.json
+client/android/app/capacitor.build.gradle
+client/android/capacitor.settings.gradle
 
 # Database & Storage
 *.db
@@ -23,6 +25,10 @@ server/prisma/*.db
 server/prisma/*.db-journal
 
 # Environment & Local Secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
 .env.local
 .env.*.local
 *.log
@@ -37,4 +43,3 @@ Thumbs.db
 *.tmp*
 .vscode/
 .idea/
-

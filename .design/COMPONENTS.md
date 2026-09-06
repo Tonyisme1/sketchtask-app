@@ -1,61 +1,83 @@
-# COMPONENTS.md
+# UI Components
 
-Tài liệu đặc tả các UI Component chuẩn mực trong hệ thống thiết kế sổ tay phác thảo (**SketchTask UI Library**).
+Đặc tả các component đang có trong `client/src`. Ưu tiên tái sử dụng component hiện có trước khi tạo component mới.
 
----
+## Core Components
 
-## 1. Core Components
+### Button
 
-### 1.1. HandDrawnCheckbox (Hộp Kiểm Vẽ Tay)
-- **Kích thước:** `20px x 20px`.
-- **Viền:** `1.5px` nét mực `#262626`.
-- **Hiệu ứng khi check:** Xuất hiện nét vẽ chữ V mực đen kèm hoạt ảnh phác thảo mượt mà.
+- Dùng cho hành động chính/phụ và phải có tên dễ hiểu.
+- Primary dùng accent yellow; secondary dùng surface; danger dùng coral.
+- Có `focus-visible` và phản hồi active bằng hard shadow.
+- Vùng chạm mobile tối thiểu khoảng 36px.
 
-### 1.2. Button (Nút Bấm Xúc Giác)
-- **Biến thể:**
-  - `primary`: Nền vàng chanh `#FEF08A`, viền `1.5px #262626`, bóng cứng `shadow-[2px_2px_0px_#262626]`.
-  - `secondary`: Nền trắng `#FFFFFF`, viền `1.5px #262626`, bóng cứng `shadow-[2px_2px_0px_#262626]`.
-  - `danger`: Nền hồng nhạt `#FFE4E6`, chữ đỏ đậm `#BE123C`, viền `1.5px #BE123C`.
-- **Hiệu ứng Click (Tactile Feedback):**
-  ```css
-  active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none
-  ```
+### HandDrawnCheckbox
 
----
+- Dùng để hoàn thành task hoặc chọn trạng thái.
+- Viền mực, trạng thái checked rõ ràng, keyboard/touch được.
+- Không xoay checkbox hoặc container chứa checkbox.
 
-## 2. Advanced Interactive Components
+### TaskCard
 
-### 2.1. SegmentedFilterToolbar (Thanh Bộ Lọc Phân Tầng 2 Lớp)
-Được thiết kế để giải phóng không gian màn hình và tối ưu hóa trải nghiệm mobile:
-- **Tầng 1 (Core Segment):** 
-  - Bên trái: `[ Tất cả ] [ ⏳ Cần làm ] [ ✓ Đã xong ]`.
-  - Bên phải: Nút `[ ⚡ Bộ lọc (activeCount) ]` kèm icon `SlidersHorizontal` + nút `[ ✕ Xóa lọc ]` khi có bộ lọc đang bật.
-- **Tầng 2 (Expandable Command Drawer):**
-  - Mở ra 4 nhóm tiêu chí: Mức độ ưu tiên (`🔴 Gấp` / `🟡 Vừa` / `🟢 Thấp`), Cuốn sổ, Hạn chót, và Nhãn `#Tag`.
+- Hiển thị title, checkbox, thời gian, priority, tag, notebook và thao tác.
+- Title có thể giới hạn dòng trên mobile nhưng nội dung đầy đủ phải xem được khi sửa.
+- Card có border/shadow cứng; rotation chỉ ở card độc lập và trong giới hạn token.
+- Trạng thái completed, hover, active và disabled phải dễ phân biệt.
 
-### 2.2. MobileBottomSheetModal (Modal Dạng Bottom Sheet Trượt Đáy)
-- **Vị trí trên Mobile:** Trượt từ đáy màn hình (`slide-in-from-bottom-6`).
-- **Hình dáng:** Bo góc trên `rounded-t-[22px]`, thanh gạt grab handle `w-10 h-1 rounded-full bg-[#D4CEBF]` ở trên đầu.
-- **Nền mờ:** `backdrop-filter: blur(16px)` kết hợp `rgba(0,0,0,0.75)` tối màu, chạm vào vùng mờ để đóng.
+### AutoResizeTextarea
 
-### 2.3. PriorityBadge (Huy Hiệu Mức Độ Ưu Tiên)
-- `🔴 Gấp (High)`: `bg-rose-50 text-rose-700 border-rose-300 font-bold font-mono`.
-- `🟡 Vừa (Medium)`: Ẩn mặc định để giảm nhiễu thị giác, hiển thị trong form tạo việc.
-- `🟢 Thấp (Low)`: `bg-emerald-50 text-emerald-700 border-emerald-300 font-mono`.
+- Dùng cho quick add và nội dung dài.
+- Không khóa scroll trang khi keyboard mở.
+- Quick add phải có giới hạn chiều cao; nội dung vượt giới hạn được cuộn nội bộ.
+- Hành vi Enter/Ctrl+Enter phải được quyết định theo ngữ cảnh, không mặc định áp dụng mọi nơi.
 
-### 2.4. TaskCard (Thẻ Công Việc Nét Mực)
-- **Viền:** `1.5px #262626`, bo góc `6px`.
-- **Bóng cứng:** `shadow-[2px_2px_0px_#262626]`.
-- **Nghiêng nhẹ (Card Tilt):** Xoay nhẹ tự nhiên dựa trên vị trí index (`getCardTilt`).
-- **Trạng thái hoàn thành:** Làm mờ 65%, gạch ngang bằng đường mực `animate-ink-strike`.
+## Selection Components
 
----
+### CustomSelect
 
-## 3. Feedback & Data Visualization Components
+- Dùng thay native select trong UI production.
+- Danh sách dài được cuộn trong panel riêng.
+- Có trạng thái mở, đóng, focus, keyboard, empty và disabled.
+- Không dùng cho lựa chọn cần lịch hoặc wheel picker.
 
-### 3.1. ProductivitySketchChart (Biểu Đồ Năng Suất Vẽ Tay)
-- Biểu đồ 7 ngày thể hiện số việc hoàn thành bằng các cột nét mực có bóng đổ cứng.
-- Hiển thị Điểm Năng Suất `/100`, Chuỗi Thói Quen (Streak), và Ngày Đạt Đỉnh Năng Suất.
+### CustomDuePicker
 
-### 3.2. EmptyStateDoodle (Trạng Thái Trống Nét Phác)
-- Kết hợp icon minh họa vẽ nét với lời động viên nhẹ nhàng, tích cực, không gây áp lực.
+- Dùng chung logic `scheduled` và `deadline`.
+- Wheel picker chọn giờ/phút.
+- Variant theo ngữ cảnh là `Planned` nếu chưa có trong source:
+  - `today`: chỉ chọn giờ/phút cho hôm nay.
+  - `planner`: chọn ngày và giờ đầy đủ.
+  - `datetime`: dùng trong edit flow hoặc nơi cần ngày cụ thể.
+- Mobile là bottom sheet; desktop giữ nút đóng riêng.
+- Không dùng native date/time control.
+
+## Layout Components
+
+### MobileNav
+
+- Điều hướng cố định dưới màn hình trên mobile.
+- Ẩn khi keyboard mở hoặc khi người dùng cuộn xuống.
+- Không được che input, footer hoặc nội dung task.
+
+### Bottom Sheet / Modal
+
+- Mobile trượt từ dưới lên, có grab handle và vùng nội dung cuộn độc lập.
+- Desktop căn giữa và có nút đóng rõ ràng.
+- Khi mobile dùng grab handle để đóng thì phải có accessibility label và keyboard fallback.
+- Click vùng nền có thể đóng nếu không làm mất dữ liệu đang nhập.
+
+### Filter Toolbar
+
+- Tầng chính chỉ giữ các filter thường dùng.
+- Filter nâng cao mở trong panel riêng và có thể cuộn trên mobile.
+- Phải hiển thị trạng thái active và nút xóa filter khi cần.
+
+### EmptyStateDoodle
+
+- Dùng cho danh sách rỗng.
+- Có hướng dẫn bước tiếp theo và CTA phù hợp.
+- Decoration không được lấn vào vùng thao tác chính.
+
+## States Và Accessibility
+
+Component bất đồng bộ cần xử lý loading, empty, error và success. Mọi control tương tác cần tên accessible, focus-visible, keyboard support và trạng thái disabled rõ ràng.

@@ -6,7 +6,6 @@ import {
   BookOpen,
   Lightbulb,
   Flame,
-  ChevronRight,
   ChevronLeft,
   Sparkles,
   Cloud,
@@ -15,9 +14,11 @@ import {
   Calendar,
   Clock,
   ShieldCheck,
-  Search,
   ArrowRight,
 } from "lucide-react";
+
+import { useScrollLock } from "../../../../hooks/useScrollLock";
+import { useModalBackClose } from "../../../../hooks/useModalBackClose";
 
 // ==========================================
 // COMPONENT: OnboardingModal (Hướng Dẫn Sử Dụng Chi Tiết & Chào Mừng)
@@ -26,7 +27,7 @@ import {
 const STEPS = [
   {
     stepNumber: "01",
-    IconComponent: Edit3,
+    IconComponent: Sparkles,
     iconBg: "#FEF08A",
     title: "Chào mừng đến SketchTask!",
     subtitle: "Sổ tay công việc số phong cách vẽ tay",
@@ -69,13 +70,13 @@ const STEPS = [
         color: "text-amber-800",
         bg: "bg-[#FEF08A]",
         name: "Hạn chót & Mức độ ưu tiên",
-        desc: "Bấm [+ Tùy chọn] để gán giờ hẹn, nhãn #Tag và mức độ 🔴 Gấp / 🟡 Vừa / 🟢 Thấp.",
+        desc: "Bấm [+ Tùy chọn] để gán giờ hẹn, nhãn #Tag và mức độ Gấp / Vừa / Thấp.",
       },
       {
         Icon: ArrowRight,
         color: "text-sky-800",
         bg: "bg-[#BAE6FD]",
-        name: "Dời lịch 1 giây [ ➔ Mai ]",
+        name: "Dời lịch 1 giây [Mai]",
         desc: "Chưa kịp làm xong? Bấm nút [Mai] trên thẻ việc để tự động dời sang ngày mai.",
       },
     ],
@@ -158,18 +159,18 @@ const STEPS = [
         desc: "Bấm Avatar góc trên → Đăng nhập Google/Email để đồng bộ giữa Điện thoại & Máy tính.",
       },
       {
-        Icon: Search,
-        color: "text-amber-800",
-        bg: "bg-[#FEF08A]",
-        name: "Tìm kiếm toàn cục (Ctrl + K)",
-        desc: "Tìm tức thì bất kỳ việc, sổ tay hay ghi chú nào với thuật toán không dấu siêu tốc.",
-      },
-      {
         Icon: ShieldCheck,
         color: "text-emerald-800",
         bg: "bg-[#BBF7D0]",
         name: "Mã PIN bảo mật riêng cho máy",
         desc: "Cài đặt mã khóa 4 số trong phần Cài đặt để bảo vệ riêng tư khi mang máy ra ngoài.",
+      },
+      {
+        Icon: Sparkles,
+        color: "text-amber-800",
+        bg: "bg-[#FEF08A]",
+        name: "Thu gọn menu làm việc (Ctrl + B)",
+        desc: "Bấm Ctrl + B để mở rộng tối đa không gian soạn thảo và tập trung tuyệt đối.",
       },
     ],
   },
@@ -186,25 +187,15 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 }) => {
   const { dismissOnboarding, loadSampleData } = useAppStore();
   const [step, setStep] = useState(0);
+  useScrollLock(isOpen);
+  useModalBackClose(isOpen, () => {
+    onClose?.();
+  });
 
   // MỖI KHI MỞ LẠI MODAL (TỪ CÀI ĐẶT HOẶC AVATAR): LUÔN QUAY LẠI BƯỚC ĐẦU TIÊN (BƯỚC 0)
   useEffect(() => {
     if (isOpen) {
       setStep(0);
-    }
-  }, [isOpen]);
-
-  // Khóa cuộn màn hình phía sau khi mở modal hướng dẫn
-  useEffect(() => {
-    if (isOpen) {
-      const originalOverflow = document.body.style.overflow;
-      const originalTouchAction = document.body.style.touchAction;
-      document.body.style.overflow = "hidden";
-      document.body.style.touchAction = "none";
-      return () => {
-        document.body.style.overflow = originalOverflow;
-        document.body.style.touchAction = originalTouchAction;
-      };
     }
   }, [isOpen]);
 
@@ -234,24 +225,27 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
   return createPortal(
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Giới thiệu SketchTask"
       style={{
         position: "fixed",
         inset: 0,
         zIndex: 999998,
         backgroundColor: "rgba(0,0,0,0.72)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
       }}
-      className="flex items-center justify-center p-3 sm:p-4 select-none animate-in fade-in duration-200 pointer-events-auto"
+      className="flex items-center justify-center p-3 sm:p-4 select-none mobile-scrim-enter pointer-events-auto"
       onClick={handleClose}
     >
       {/* Modal Card Chính */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-md bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[10px] shadow-[6px_6px_0px_#262626] overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[92vh]"
+        className="relative w-full max-w-md bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[10px] shadow-[6px_6px_0px_#262626] overflow-hidden mobile-bottom-sheet-enter flex flex-col max-h-[92vh]"
       >
         {/* Paper Tape decoration */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-5 bg-[#FEF08A]/90 border-x border-[#262626]/40 rotate-1 shadow-sm pointer-events-none z-10" />
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-5 bg-[#FEF08A]/90 border-x border-[#262626]/40 rotate-1 shadow-[1px_1px_0px_#262626] pointer-events-none z-10" />
+        {/* Băng dính Washi Tape trang trí */}
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-24 h-5 bg-[#FEF08A]/90 border-x border-[#262626]/40 rotate-1 shadow-[1px_1px_0px_#262626] pointer-events-none z-10" />
 
         {/* Close button */}
         <button
@@ -367,7 +361,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               onClick={handleNext}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-[#262626] hover:bg-[#1C1917] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#A8A29E] text-xs font-bold text-white active:translate-y-[0.5px] active:shadow-none transition-all"
             >
-              <span>{isLast ? "Bắt đầu sử dụng ngay" : "Tiếp theo ➔"}</span>
+              <span>{isLast ? "Bắt đầu sử dụng ngay" : "Tiếp theo"}</span>
               {isLast && <Sparkles size={13} className="text-amber-300" />}
             </button>
           </div>

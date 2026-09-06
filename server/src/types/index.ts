@@ -22,6 +22,7 @@ export interface TaskDto {
   priority?: string | null;
   status: string;
   notebookId?: string | null;
+  parentTaskId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -38,6 +39,7 @@ export interface CreateTaskRequest {
   tag?: string;
   priority?: string;
   notebookId?: string;
+  parentTaskId?: string;
 }
 
 export interface UpdateTaskRequest {
@@ -54,6 +56,7 @@ export interface UpdateTaskRequest {
   priority?: string;
   status?: string;
   notebookId?: string;
+  parentTaskId?: string;
 }
 
 export type NotebookColor =

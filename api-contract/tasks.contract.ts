@@ -22,6 +22,7 @@ export interface TaskDto {
   priority?: TaskPriority | null;
   status: TaskStatus;
   notebookId?: string | null;
+  parentTaskId?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -38,6 +39,7 @@ export interface CreateTaskRequest {
   tag?: TaskTag | null;
   priority?: TaskPriority | null;
   notebookId?: string | null;
+  parentTaskId?: string | null;
 }
 
 export interface UpdateTaskRequest {
@@ -54,4 +56,5 @@ export interface UpdateTaskRequest {
   priority?: TaskPriority | null;
   status?: TaskStatus;
   notebookId?: string | null;
+  parentTaskId?: string | null;
 }

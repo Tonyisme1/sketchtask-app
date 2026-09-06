@@ -3,12 +3,15 @@
 // ==========================================
 
 const getApiBaseUrl = () => {
-  // 1. Ưu tiên biến môi trường khi deploy lên Cloud (Vercel / Production)
+  // Dev luôn đi qua Vite Proxy để không vô tình gọi nhầm backend production.
+  if (import.meta.env.DEV) return "/api/v1";
+
+  // Production dùng URL backend được cấu hình trong môi trường deploy.
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL.replace(/\/$/, "");
   }
 
-  // 2. Chế độ Dev: Dùng relative path qua Vite Proxy (Cổng 5173 chuyển tiếp sang 5000)
+  // Fallback an toàn khi chưa cấu hình biến môi trường.
   // Giúp điện thoại qua Wi-Fi kết nối mượt mà 100% không bị tường lửa Windows chặn cổng 5000
   return "/api/v1";
 };
@@ -16,7 +19,13 @@ const getApiBaseUrl = () => {
 export const getWsUrl = (token?: string) => {
   const tokenQuery = token ? `?token=${encodeURIComponent(token)}` : "";
 
-  // 1. Biến môi trường Cloud
+  // Dev dùng host hiện tại của Vite, tương ứng với proxy WebSocket /ws.
+  if (import.meta.env.DEV && typeof window !== "undefined") {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${protocol}//${window.location.host}/ws${tokenQuery}`;
+  }
+
+  // Production dùng URL WebSocket được cấu hình trong môi trường deploy.
   if (import.meta.env.VITE_WS_URL) {
     return `${import.meta.env.VITE_WS_URL.replace(/\/$/, "")}/ws${tokenQuery}`;
   }
@@ -30,7 +39,7 @@ export const getWsUrl = (token?: string) => {
     return `${wsBase}/ws${tokenQuery}`;
   }
 
-  // 2. Chế độ Dev: Tự động lấy ws:// theo host hiện tại của trình duyệt (cổng 5173 qua Vite Proxy)
+  // Fallback theo host hiện tại nếu môi trường chưa cấu hình URL.
   if (typeof window !== "undefined") {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = window.location.host; // e.g. 192.168.2.7:5173 hoặc localhost:5173
@@ -135,4 +144,72 @@ export const api = {
         body: JSON.stringify(payload),
       }),
   },
+
+  admin: {
+    getOverview: () => request<AdminOverview>("/admin/overview"),
+
+    listUsers: (search = "", page = 1, pageSize = 20) => {
+      const params = new URLSearchParams({
+        search,
+        page: String(page),
+        pageSize: String(pageSize),
+      });
+      return request<AdminUserList>(`/admin/users?${params.toString()}`);
+    },
+
+    getUserData: (userId: string) =>
+      request<AdminUserData>(`/admin/users/${encodeURIComponent(userId)}/data`),
+  },
 };
+
+export interface AdminUserSummary {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string | null;
+  avatarBg?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  _count: {
+    tasks: number;
+    notebooks: number;
+    stickyNotes: number;
+    habits: number;
+  };
+}
+
+export interface AdminOverview {
+  totals: {
+    users: number;
+    tasks: number;
+    notebooks: number;
+    stickyNotes: number;
+    habits: number;
+  };
+  latestUsers: AdminUserSummary[];
+}
+
+export interface AdminUserList {
+  items: AdminUserSummary[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface AdminUserData {
+  user: Omit<AdminUserSummary, "_count">;
+  tasks: unknown[];
+  notebooks: unknown[];
+  stickyNotes: unknown[];
+  habits: unknown[];
+  dailyMoods: Record<string, string>;
+  weeklyReflection: string;
+  tags: string[];
+  dataAvailability: {
+    notes: "local-only";
+    journalEntries: "local-only";
+  };
+}

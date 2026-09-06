@@ -29,9 +29,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'Plus Jakarta Sans', 'system-ui', 'sans-serif'],
-        hand: ['Caveat', 'Patrick Hand', 'cursive'],
-        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        hand: ['Patrick Hand', 'Caveat', 'cursive'],
+        mono: ['"JetBrains Mono"', 'Fira Code', 'monospace'],
       },
       boxShadow: {
         'ink-sm': '1.5px 1.5px 0px #262626',

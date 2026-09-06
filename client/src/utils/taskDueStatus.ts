@@ -1,6 +1,13 @@
 import { TaskDto, TaskTimeType } from "../types";
+import { formatShortDayMonth } from "./date";
+import {
+  getTaskEffectiveDate,
+  getTaskEffectiveTime,
+  getTaskTemporalState,
+  normalizeTaskTimeType,
+} from "./taskSemantics";
 
-export type DueBadgeType = "today" | "tomorrow" | "overdue" | "future" | "none";
+export type DueBadgeType = "today" | "tomorrow" | "overdue" | "past" | "future" | "none";
 
 export interface TaskDueInfo {
   type: DueBadgeType;
@@ -51,7 +58,8 @@ export const getTaskDueInfo = (
     deadlineTime = taskOrDueDate.deadlineTime;
   }
 
-  if (!rawDueDate && !deadlineDate && !startTime) {
+  // Không có thông tin thời gian nào
+  if (!rawDueDate && !deadlineDate && !startTime && !deadlineTime) {
     return {
       type: "none",
       label: "",
@@ -65,8 +73,20 @@ export const getTaskDueInfo = (
     };
   }
 
-  const datePart = (deadlineDate || rawDueDate.split(" ")[0] || "").trim();
-  const timePart = (deadlineTime || startTime || (rawDueDate.includes(" ") ? rawDueDate.split(" ")[1] : "")).trim();
+  const normalizedTimeType =
+    typeof taskOrDueDate === "string"
+      ? timeType
+      : normalizeTaskTimeType(taskOrDueDate);
+  const isScheduled = normalizedTimeType === "scheduled";
+  const isDeadline = normalizedTimeType === "deadline";
+
+  const datePart = typeof taskOrDueDate === "string"
+    ? rawDueDate.split(" ")[0].trim()
+    : getTaskEffectiveDate(taskOrDueDate) || "";
+
+  const timePart = typeof taskOrDueDate === "string"
+    ? (rawDueDate.includes(" ") ? rawDueDate.split(" ")[1] : "").trim()
+    : getTaskEffectiveTime(taskOrDueDate) || "";
 
   // So sánh ngày
   const refYear = referenceDate.getFullYear();
@@ -81,17 +101,44 @@ export const getTaskDueInfo = (
   const tomDay = String(tomorrow.getDate()).padStart(2, "0");
   const tomorrowStr = `${tomYear}-${tomMonth}-${tomDay}`;
 
-  const isToday = datePart === todayStr;
+  const isToday = !datePart || datePart === todayStr;
   const isTomorrow = datePart === tomorrowStr;
-  const isPast = datePart < todayStr;
+  const isPastDate = Boolean(datePart && datePart < todayStr);
+  const temporalState =
+    typeof taskOrDueDate === "string"
+      ? undefined
+      : getTaskTemporalState(taskOrDueDate, referenceDate);
+  const isPast = temporalState === "pastScheduled" || temporalState === "overdue" || isPastDate;
 
-  // 1. Trường hợp LỊCH HẸN / LỊCH LÀM (Event / Scheduled)
-  if (timeType === "event" || timeType === "scheduled" || (!timeType && startTime)) {
-    const timeDisplay = endTime ? `${startTime || timePart} - ${endTime}` : (startTime || timePart || "Hôm nay");
+  // 1. Trường hợp LỊCH HẸN / LỊCH LÀM VIỆC (Scheduled / Event)
+  if (isScheduled) {
+    const timeDisplay = endTime
+      ? `${startTime || timePart} - ${endTime}`
+      : startTime || timePart || "";
+
+    if (temporalState === "pastScheduled" || (typeof taskOrDueDate === "string" && isPast)) {
+      const pastLabel = isToday
+        ? "Lịch hẹn đã qua"
+        : `Lịch hẹn đã qua (${formatShortDayMonth(datePart)})`;
+
+      return {
+        type: "past",
+        label: pastLabel,
+        icon: "alert",
+        badgeBg: "bg-[#FED7AA]",
+        badgeBorder: "border-[#262626]",
+        badgeText: "text-[#7C2D12] font-bold",
+        badgeClass: "bg-[#FED7AA] border-[#262626] text-[#7C2D12] font-bold border font-mono",
+        iconName: "alert",
+        timeType: "scheduled",
+        isOverdue: false,
+      };
+    }
+
     if (isToday) {
       return {
         type: "today",
-        label: `🕒 ${timeDisplay}`,
+        label: timeDisplay || "Hôm nay",
         icon: "clock",
         badgeBg: "bg-[#FEF08A]",
         badgeBorder: "border-[#262626]",
@@ -102,10 +149,11 @@ export const getTaskDueInfo = (
         isOverdue: false,
       };
     }
+
     if (isTomorrow) {
       return {
         type: "tomorrow",
-        label: `🕒 Mai ${timeDisplay}`,
+        label: `Mai ${timeDisplay}`.trim(),
         icon: "clock",
         badgeBg: "bg-[#BAE6FD]",
         badgeBorder: "border-[#262626]",
@@ -116,92 +164,91 @@ export const getTaskDueInfo = (
         isOverdue: false,
       };
     }
-    if (isPast) {
-      return {
-        type: "overdue",
-        label: `🕒 Đã qua (${datePart.slice(5).replace("-", "/")})`,
-        icon: "alert",
-        badgeBg: "bg-[#FECDD3]",
-        badgeBorder: "border-[#262626]",
-        badgeText: "text-rose-900 font-bold",
-        badgeClass: "bg-[#FECDD3] border-[#262626] text-rose-900 font-bold border font-mono",
-        iconName: "alert",
-        timeType: "scheduled",
-        isOverdue: true,
-      };
-    }
+
     return {
       type: "future",
-      label: `🕒 ${datePart.slice(5).replace("-", "/")} ${timeDisplay}`,
-      icon: "calendar",
+      label: `${formatShortDayMonth(datePart)} ${timeDisplay}`.trim(),
+      icon: "clock",
       badgeBg: "bg-[#DDD6FE]",
       badgeBorder: "border-[#262626]",
       badgeText: "text-[#1C1917]",
-      badgeClass: "bg-[#DDD6FE] border-[#262626] text-[#1C1917] border font-mono",
-      iconName: "calendar",
+      badgeClass: "bg-[#DDD6FE] border-[#262626] text-[#1C1917] border font-mono font-medium",
+      iconName: "clock",
       timeType: "scheduled",
       isOverdue: false,
     };
   }
 
-  // 2. Trường hợp VIỆC CẦN LÀM / HẠN CHÓT (Task / Deadline)
-  if (isPast) {
+  // 2. Trường hợp HẠN HOÀN THÀNH / DEADLINE hoặc KHÔNG CÓ LOẠI
+  if (temporalState === "overdue" || (typeof taskOrDueDate === "string" && isPast)) {
+    const overdueLabel = isToday
+      ? "Quá giờ"
+      : `Quá hạn: ${formatShortDayMonth(datePart)}`;
+
     return {
       type: "overdue",
-      label: `⏳ Quá hạn: ${datePart.slice(5).replace("-", "/")}`,
+      label: overdueLabel,
       icon: "alert",
-      badgeBg: "bg-[#FECDD3]",
-      badgeBorder: "border-[#262626]",
-      badgeText: "text-rose-900 font-bold",
-      badgeClass: "bg-[#FECDD3] border-[#262626] text-rose-900 font-bold border font-mono",
+      badgeBg: "bg-rose-50",
+      badgeBorder: "border-rose-300",
+      badgeText: "text-rose-700 font-bold",
+      badgeClass: "bg-rose-50 border-rose-300 text-rose-700 font-bold border font-mono",
       iconName: "alert",
-      timeType: "deadline",
+      timeType: isDeadline ? "deadline" : undefined,
       isOverdue: true,
     };
   }
 
   if (isToday) {
-    const timeDisplay = timePart ? `Hạn ${timePart}` : "Hôm nay";
+    const timeDisplay = isDeadline
+      ? (timePart ? `Hạn ${timePart}` : "Hạn hôm nay")
+      : (timePart || "Hôm nay");
+
     return {
       type: "today",
-      label: `⏳ ${timeDisplay}`,
-      icon: "hourglass",
-      badgeBg: "bg-[#FEF08A]",
+      label: timeDisplay,
+      icon: isDeadline ? "hourglass" : "calendar",
+      badgeBg: isDeadline ? "bg-[#FECDD3]" : "bg-[#FEF08A]",
       badgeBorder: "border-[#262626]",
       badgeText: "text-[#1C1917]",
-      badgeClass: "bg-[#FEF08A] border-[#262626] text-[#1C1917] border font-bold font-mono",
-      iconName: "hourglass",
-      timeType: "deadline",
+      badgeClass: `${isDeadline ? "bg-[#FECDD3]" : "bg-[#FEF08A]"} border-[#262626] text-[#1C1917] border font-bold font-mono`,
+      iconName: isDeadline ? "hourglass" : "calendar",
+      timeType: isDeadline ? "deadline" : undefined,
       isOverdue: false,
     };
   }
 
   if (isTomorrow) {
-    const timeDisplay = timePart ? `Hạn Mai ${timePart}` : "Ngày mai";
+    const timeDisplay = isDeadline
+      ? (timePart ? `Hạn Mai ${timePart}` : "Hạn ngày mai")
+      : `Mai${timePart ? ` ${timePart}` : ""}`;
+
     return {
       type: "tomorrow",
-      label: `⏳ ${timeDisplay}`,
-      icon: "hourglass",
+      label: timeDisplay,
+      icon: isDeadline ? "hourglass" : "calendar",
       badgeBg: "bg-[#BAE6FD]",
       badgeBorder: "border-[#262626]",
       badgeText: "text-[#1C1917]",
       badgeClass: "bg-[#BAE6FD] border-[#262626] text-[#1C1917] border font-bold font-mono",
-      iconName: "hourglass",
-      timeType: "deadline",
+      iconName: isDeadline ? "hourglass" : "calendar",
+      timeType: isDeadline ? "deadline" : undefined,
       isOverdue: false,
     };
   }
 
   return {
     type: "future",
-    label: `⏳ Hạn: ${datePart.slice(5).replace("-", "/")}${timePart ? ` ${timePart}` : ""}`,
-    icon: "hourglass",
+    label: isDeadline
+      ? `Hạn ${formatShortDayMonth(datePart)}${timePart ? ` ${timePart}` : ""}`
+      : `${formatShortDayMonth(datePart)}${timePart ? ` ${timePart}` : ""}`,
+    icon: isDeadline ? "hourglass" : "calendar",
     badgeBg: "bg-[#DDD6FE]",
     badgeBorder: "border-[#262626]",
     badgeText: "text-[#1C1917]",
-    badgeClass: "bg-[#DDD6FE] border-[#262626] text-[#1C1917] border font-mono",
-    iconName: "hourglass",
-    timeType: "deadline",
+    badgeClass: "bg-[#DDD6FE] border-[#262626] text-[#1C1917] border font-mono font-medium",
+    iconName: isDeadline ? "hourglass" : "calendar",
+    timeType: isDeadline ? "deadline" : undefined,
     isOverdue: false,
   };
 };

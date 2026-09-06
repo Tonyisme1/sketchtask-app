@@ -20,6 +20,7 @@ export interface SyncPayload {
     priority?: string | null;
     status?: string;
     notebookId?: string | null;
+    parentTaskId?: string | null;
     createdAt?: string;
     updatedAt?: string;
   }>;
@@ -193,6 +194,7 @@ export class SyncService {
                 priority: t.priority || "medium",
                 status: t.status || (t.completed ? "completed" : "todo"),
                 notebookId: validNotebookId,
+                parentTaskId: t.parentTaskId || null,
                 createdAt: t.createdAt ? new Date(t.createdAt) : new Date(),
                 updatedAt: clientUpdatedAt,
               },
@@ -221,6 +223,7 @@ export class SyncService {
                         : "todo"
                       : existing.status,
                 notebookId: t.notebookId !== undefined ? validNotebookId : existing.notebookId,
+                parentTaskId: t.parentTaskId !== undefined ? t.parentTaskId : existing.parentTaskId,
                 updatedAt: clientUpdatedAt,
               },
             });

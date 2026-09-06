@@ -6,14 +6,23 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { TaskDto, NotebookDto, HabitDto, TaskStatus, TaskPriority, TaskTimeType } from "../types";
+import { TaskDto, NotebookDto, HabitDto, TaskStatus, TaskPriority, TaskTimeType, JournalEntryDto } from "../types";
 import { api, authStorage } from "../services/api";
 import { syncSocket } from "../services/syncSocket";
 import { smartMergeAppData } from "../utils/syncMerge";
 import { notificationService } from "../services/notificationService";
 import { sounds } from "../utils/soundEffects";
+import { generateSample50Tasks } from "../data/sample50Tasks";
+import { getLocalTodayStr, getNextDayStr } from "../utils/date";
+import {
+  constrainTaskToParent,
+  getInheritedParentSchedule,
+  getTaskEffectiveDate,
+  moveTaskToDate,
+  wouldCreateTaskCycle,
+} from "../utils/taskSemantics";
 
-export type { TaskDto, TaskPriority, NotebookDto, HabitDto, TaskStatus, TaskTimeType };
+export type { TaskDto, TaskPriority, NotebookDto, HabitDto, TaskStatus, TaskTimeType, JournalEntryDto };
 
 // ==========================================
 // STORE: AppStore (Offline-First + Realtime WebSocket Sync Engine)
@@ -83,6 +92,11 @@ export interface AppContextType {
   isOnline: boolean;
   syncNow: () => Promise<boolean>;
 
+  // Auth In-App Modal
+  isAuthModalOpen: boolean;
+  openAuthModal: () => void;
+  closeAuthModal: () => void;
+
   // Onboarding
   isFirstVisit: boolean;
   dismissOnboarding: () => void;
@@ -96,8 +110,15 @@ export interface AppContextType {
   setHideCompletedTasks: (hide: boolean) => void;
   isNotificationsEnabled: boolean;
   setIsNotificationsEnabled: (enabled: boolean) => void;
+  isNotificationPanelOpen: boolean;
+  notificationActiveTab: "all" | "unread" | "overdue" | "pastScheduled";
+  openNotificationPanel: (tab?: "all" | "unread" | "overdue" | "pastScheduled") => void;
+  closeNotificationPanel: () => void;
   isDarkMode: boolean;
   setIsDarkMode: (enabled: boolean) => void;
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
+  setSidebarOpen: (open: boolean) => void;
   isSoundEnabled: boolean;
   setIsSoundEnabled: (enabled: boolean) => void;
   soundVolume: number;
@@ -111,12 +132,14 @@ export interface AppContextType {
   lockApp: () => void;
   triggerHaptic: () => void;
   loadSampleData: () => void;
+  loadSample50Tasks: () => void;
   archiveOldTasks: (days?: number) => number;
 
   // Tasks
   tasks: TaskDto[];
   addTask: (task: {
     title: string;
+    description?: string;
     dueDate?: string;
     timeType?: TaskTimeType;
     startTime?: string;
@@ -125,11 +148,13 @@ export interface AppContextType {
     deadlineTime?: string;
     tag?: string;
     notebookId?: string;
+    parentTaskId?: string;
     priority?: TaskPriority;
   }) => TaskDto;
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
   moveTaskToTomorrow: (id: string) => void;
+  moveTaskToNextDay: (id: string, baseDateStr?: string) => void;
   moveTaskToToday: (id: string) => void;
   updateTask: (id: string, updates: Partial<TaskDto>) => void;
 
@@ -159,7 +184,8 @@ export interface AppContextType {
 
   // Habits (Review)
   habits: HabitDto[];
-  addHabit: (name: string) => void;
+  addHabit: (name: string, frequency?: HabitDto["frequency"]) => void;
+  updateHabit: (id: string, updates: Partial<Pick<HabitDto, "name" | "frequency" | "targetDaysPerWeek">>) => void;
   toggleHabitDay: (habitId: string, dateStr: string) => void;
   deleteHabit: (id: string) => void;
 
@@ -170,9 +196,44 @@ export interface AppContextType {
   // Weekly Reflection
   weeklyReflection: string;
   setWeeklyReflection: (text: string) => void;
+
+  // Journal (Nhật ký theo ngày & giờ)
+  journalEntries: JournalEntryDto[];
+  addJournalEntry: (data: {
+    date: string;
+    time: string;
+    content: string;
+    notebookId?: string;
+    linkedTaskId?: string;
+  }) => JournalEntryDto;
+  updateJournalEntry: (id: string, updates: Partial<JournalEntryDto>) => void;
+  deleteJournalEntry: (id: string) => void;
+  journalPromptTask: TaskDto | null;
+  setJournalPromptTask: (task: TaskDto | null) => void;
+  openJournalWithTask: (task: TaskDto) => void;
+  completedTaskPrompt: TaskDto | null;
+  dismissCompletedTaskPrompt: () => void;
+
+  // Active Task SubTab (Hôm nay | Kế hoạch | Hạn định)
+  activeTaskSubTab: "today" | "planner" | "deadlines";
+  setActiveTaskSubTab: (subTab: "today" | "planner" | "deadlines") => void;
+  selectedPlannerDate: string;
+  setSelectedPlannerDate: (date: string) => void;
+
+  // Active Note SubTab (Ghi chú | Nhật ký)
+  activeNoteSubTab: "notes" | "journal";
+  setActiveNoteSubTab: (subTab: "notes" | "journal") => void;
 }
 
-const STORAGE_KEY = "sketchtask_local_storage_v2";
+export const APP_STORAGE_KEY = "sketchtask_local_storage_v2";
+const STORAGE_KEY = APP_STORAGE_KEY;
+
+// Keep an explicit null in sync payloads so clearing a parent is persisted on the server.
+const serializeTasksForSync = (taskList: TaskDto[]) =>
+  taskList.map((task) => ({
+    ...task,
+    parentTaskId: task.parentTaskId || null,
+  }));
 
 const INITIAL_TAGS: string[] = [
   "Công việc",
@@ -351,6 +412,74 @@ const INITIAL_MOODS: Record<string, string> = {
 const INITIAL_REFLECTION =
   "Một tuần làm việc năng suất và trọn vẹn! Đã hoàn thiện toàn bộ hệ thống SVG Icons sắc nét và đồng bộ hóa đám mây Realtime.";
 
+const INITIAL_JOURNAL: JournalEntryDto[] = [
+  {
+    id: "jn-1",
+    date: todayStr,
+    time: "08:35",
+    content: "Bắt đầu ngày mới với việc hoàn thiện quy chuẩn viền mực 1.5px và hard offset shadow cho hệ thống.",
+    notebookId: "nb-2",
+    linkedTaskId: "task-1",
+    createdAt: new Date(now.getTime() - 4 * 3600 * 1000).toISOString(),
+    updatedAt: new Date(now.getTime() - 4 * 3600 * 1000).toISOString(),
+  },
+  {
+    id: "jn-2",
+    date: todayStr,
+    time: "10:20",
+    content: "Review lại hiệu năng tải component Sổ tay & Nhật ký, mọi thao tác cuộn và lật trang đều mượt mà 60fps.",
+    notebookId: "nb-1",
+    linkedTaskId: "task-2",
+    createdAt: new Date(now.getTime() - 2 * 3600 * 1000).toISOString(),
+    updatedAt: new Date(now.getTime() - 2 * 3600 * 1000).toISOString(),
+  },
+  {
+    id: "jn-3",
+    date: todayStr,
+    time: "14:15",
+    content: "Đã uống đủ nước và thư giãn 15 phút giữa giờ. Cảm thấy tràn đầy năng lượng để tiếp tục công việc buổi chiều!",
+    notebookId: "nb-3",
+    linkedTaskId: "task-3",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "jn-4",
+    date: todayStr,
+    time: "17:00",
+    content: "Ý tưởng: Đã thử nghiệm thành công bộ chọn Sổ tay trực tiếp trên từng dòng nhật ký.",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+  {
+    id: "jn-5",
+    date: yesterdayStr,
+    time: "09:00",
+    content: "Khởi động tuần mới: Lập danh mục các mục tiêu quan trọng cần hoàn thành trong tháng.",
+    notebookId: "nb-1",
+    createdAt: new Date(yesterday.getTime() - 3 * 3600 * 1000).toISOString(),
+    updatedAt: new Date(yesterday.getTime() - 3 * 3600 * 1000).toISOString(),
+  },
+  {
+    id: "jn-6",
+    date: yesterdayStr,
+    time: "16:45",
+    content: "Đọc xong chương 3 về Tư duy thiết kế tương tác người dùng. Rút ra nhiều bài học giá trị về Visual Hierarchy.",
+    notebookId: "nb-5",
+    createdAt: new Date(yesterday.getTime() + 4 * 3600 * 1000).toISOString(),
+    updatedAt: new Date(yesterday.getTime() + 4 * 3600 * 1000).toISOString(),
+  },
+  {
+    id: "jn-7",
+    date: yesterdayStr,
+    time: "21:30",
+    content: "Tổng kết chi tiêu trong tuần và cân đối ngân sách cho các dự án sắp tới.",
+    notebookId: "nb-4",
+    createdAt: new Date(yesterday.getTime() + 9 * 3600 * 1000).toISOString(),
+    updatedAt: new Date(yesterday.getTime() + 9 * 3600 * 1000).toISOString(),
+  },
+];
+
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -378,6 +507,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isOnline, setIsOnline] = useState<boolean>(
     typeof navigator !== "undefined" ? navigator.onLine : true,
   );
+
+  // --- Auth Modal In-App ---
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const openAuthModal = useCallback(() => setIsAuthModalOpen(true), []);
+  const closeAuthModal = useCallback(() => setIsAuthModalOpen(false), []);
 
   // --- First visit onboarding ---
   const [isFirstVisit, setIsFirstVisit] = useState<boolean>(() => {
@@ -419,6 +553,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         return true;
       }
     });
+
+  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
+  const [notificationActiveTab, setNotificationActiveTab] = useState<
+    "all" | "unread" | "overdue" | "pastScheduled"
+  >("all");
+
+  const openNotificationPanel = (
+    tab: "all" | "unread" | "overdue" | "pastScheduled" = "all"
+  ) => {
+    setNotificationActiveTab(tab);
+    setIsNotificationPanelOpen(true);
+  };
+
+  const closeNotificationPanel = () => {
+    setIsNotificationPanelOpen(false);
+  };
 
   const setIsNotificationsEnabled = (enabled: boolean) => {
     setIsNotificationsEnabledState(enabled);
@@ -464,6 +614,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     }
   }, [isDarkMode]);
+
+  // --- Sidebar Collapse / Expand State ---
+  const [isSidebarOpen, setIsSidebarOpenState] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_sidebar_open`);
+      return saved !== null ? JSON.parse(saved) : true;
+    } catch {
+      return true;
+    }
+  });
+
+  const toggleSidebar = () => {
+    setIsSidebarOpenState((prev) => {
+      const next = !prev;
+      localStorage.setItem(`${STORAGE_KEY}_sidebar_open`, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const setSidebarOpen = (open: boolean) => {
+    setIsSidebarOpenState(open);
+    localStorage.setItem(`${STORAGE_KEY}_sidebar_open`, JSON.stringify(open));
+  };
+
+  // --- Active Task SubTab (Hôm nay | Kế hoạch | Hạn định) ---
+  const [activeTaskSubTab, setActiveTaskSubTab] = useState<"today" | "planner" | "deadlines">("today");
+  const [selectedPlannerDate, setSelectedPlannerDate] = useState<string>(() => getLocalTodayStr());
+
+  // --- Active Note SubTab (Ghi chú | Nhật ký) ---
+  const [activeNoteSubTab, setActiveNoteSubTab] = useState<"notes" | "journal">("notes");
 
   // --- Sound Effects & Paper Style Settings ---
   const [isSoundEnabled, setIsSoundEnabledState] = useState<boolean>(() => {
@@ -625,6 +805,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   });
 
+  const [journalEntries, setJournalEntries] = useState<JournalEntryDto[]>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_journal`);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return INITIAL_JOURNAL;
+    } catch {
+      return INITIAL_JOURNAL;
+    }
+  });
+
+  const [journalPromptTask, setJournalPromptTask] = useState<TaskDto | null>(null);
+  const [completedTaskPrompt, setCompletedTaskPrompt] = useState<TaskDto | null>(null);
+
   const [theme, setTheme] = useState<ColorTheme>("warm");
 
   // Flag ngăn loop sync khi nhận update từ socket
@@ -637,7 +833,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       localStorage.setItem(key, value);
     } catch (err: any) {
       if (err?.name === "QuotaExceededError" || err?.code === 22) {
-        console.warn(`⚠️ LocalStorage đầy bộ nhớ khi lưu ${key}. Đang kích hoạt cơ chế bảo vệ an toàn.`);
+        console.warn(`LocalStorage đầy bộ nhớ khi lưu ${key}. Đang kích hoạt cơ chế bảo vệ an toàn.`);
       }
     }
   };
@@ -686,6 +882,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     safeSetItem(`${STORAGE_KEY}_reflection`, weeklyReflection);
   }, [weeklyReflection]);
 
+  useEffect(() => {
+    safeSetItem(`${STORAGE_KEY}_journal`, JSON.stringify(journalEntries));
+  }, [journalEntries]);
+
   // Ref lưu dữ liệu mới nhất để push/pull an toàn mà không làm re-trigger hooks
   const appDataRef = useRef({
     tasks,
@@ -722,7 +922,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Online / Offline Detection
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
+    const handleOnline = () => {
+      setIsOnline(true);
+      if (authStorage.getToken()) {
+        syncSocket.connect();
+      }
+    };
     const handleOffline = () => {
       setIsOnline(false);
       setSyncStatus("offline");
@@ -738,13 +943,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   // --- HÀM ĐỒNG BỘ ĐẨY DỮ LIỆU LÊN SERVER ---
-  const pushDataToServer = useCallback(async (overrideData?: any) => {
+  const pushDataToServer = useCallback(async (overrideData?: any): Promise<boolean> => {
     const token = authStorage.getToken();
-    if (!appDataRef.current.isSignedIn || !token) return;
+    if (!appDataRef.current.isSignedIn || !token) return false;
+
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setSyncStatus("offline");
+      return false;
+    }
 
     const current = appDataRef.current;
     const payload = overrideData || {
-      tasks: current.tasks,
+      tasks: serializeTasksForSync(current.tasks),
       notebooks: current.notebooks,
       stickyNotes: current.stickyNotes,
       habits: current.habits,
@@ -765,11 +975,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setSyncStatus("synced");
         setLastSyncedAt(nowStr);
         localStorage.setItem(`${STORAGE_KEY}_last_synced`, nowStr);
+        return true;
       } else {
-        setSyncStatus("error");
+        setSyncStatus(
+          typeof navigator !== "undefined" && !navigator.onLine
+            ? "offline"
+            : "error",
+        );
+        return false;
       }
     } catch {
-      setSyncStatus("error");
+      setSyncStatus(
+        typeof navigator !== "undefined" && !navigator.onLine
+          ? "offline"
+          : "error",
+      );
+      return false;
     }
   }, []);
 
@@ -786,7 +1007,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       syncDebounceTimer.current = setTimeout(() => {
         const current = appDataRef.current;
         const fullPayload = {
-          tasks: partialData?.tasks ?? current.tasks,
+          tasks: serializeTasksForSync(partialData?.tasks ?? current.tasks),
           notebooks: partialData?.notebooks ?? current.notebooks,
           stickyNotes: partialData?.stickyNotes ?? current.stickyNotes,
           habits: partialData?.habits ?? current.habits,
@@ -805,6 +1026,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   // --- HÀM KÉO VÀ HỢP NHẤT DỮ LIỆU TỪ SERVER VỀ CLIENT (SMART MERGE) ---
   const pullDataFromServer = useCallback(async (): Promise<boolean> => {
     if (!authStorage.getToken()) return false;
+
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setSyncStatus("offline");
+      return false;
+    }
 
     setSyncStatus("syncing");
     try {
@@ -852,22 +1078,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         localStorage.setItem(`${STORAGE_KEY}_last_synced`, nowStr);
         return true;
       } else {
-        setSyncStatus("error");
+        setSyncStatus(
+          typeof navigator !== "undefined" && !navigator.onLine
+            ? "offline"
+            : "error",
+        );
         return false;
       }
     } catch {
-      setSyncStatus("error");
+      setSyncStatus(
+        typeof navigator !== "undefined" && !navigator.onLine
+          ? "offline"
+          : "error",
+      );
       return false;
     }
   }, [pushDataToServer]);
 
   // Đồng bộ thủ công khi user bấm nút "Đồng bộ ngay"
-  const syncNow = async (): Promise<boolean> => {
+  const syncNow = useCallback(async (): Promise<boolean> => {
     if (!user.isSignedIn) return false;
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setSyncStatus("offline");
+      return false;
+    }
+
     await pushDataToServer();
-    const result = await pullDataFromServer();
-    return Boolean(result);
-  };
+    return pullDataFromServer();
+  }, [pullDataFromServer, pushDataToServer, user.isSignedIn]);
+
+  // Retry local changes after the device comes back online. Local state is
+  // already usable while offline; this only restores cloud synchronization.
+  useEffect(() => {
+    if (!isOnline || !user.isSignedIn) return;
+
+    const retryTimer = window.setTimeout(() => {
+      void syncNow();
+    }, 250);
+
+    return () => window.clearTimeout(retryTimer);
+  }, [isOnline, syncNow, user.isSignedIn]);
 
   // --- XỬ LÝ KHỞI TẠO VÀ WEBSOCKET REALTIME (CHỈ CHẠY 1 LẦN KHI MOUNT) ---
   useEffect(() => {
@@ -887,8 +1137,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             });
             // Mở kết nối WebSocket
             syncSocket.connect();
-            // Kéo dữ liệu
-            pullDataFromServer();
           } else {
             // Token hết hạn
             authStorage.removeToken();
@@ -1045,32 +1293,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
-  // Nạp lại toàn bộ dữ liệu mẫu lớn thử tải
+  // Nạp lại toàn bộ dữ liệu mẫu lớn thử tải với 50 task phong phú
   const loadSampleData = () => {
-    setTasks(INITIAL_TASKS);
-    setNotebooks(INITIAL_NOTEBOOKS);
+    const sampleTasks = generateSample50Tasks();
+    const updatedNotebooks = INITIAL_NOTEBOOKS.map((nb) => ({
+      ...nb,
+      taskCount: sampleTasks.filter((t) => t.notebookId === nb.id).length,
+    }));
+
+    setTasks(sampleTasks);
+    setNotebooks(updatedNotebooks);
     setStickyNotes(INITIAL_STICKY_NOTES);
     setHabits(INITIAL_HABITS);
     setDailyMoods(INITIAL_MOODS);
     setWeeklyReflection(INITIAL_REFLECTION);
     setTags(INITIAL_TAGS);
+    setJournalEntries(INITIAL_JOURNAL);
 
     if (user.isSignedIn) {
       pushDataToServer({
-        tasks: INITIAL_TASKS,
-        notebooks: INITIAL_NOTEBOOKS,
+        tasks: sampleTasks,
+        notebooks: updatedNotebooks,
         stickyNotes: INITIAL_STICKY_NOTES,
         habits: INITIAL_HABITS,
         dailyMoods: INITIAL_MOODS,
         weeklyReflection: INITIAL_REFLECTION,
         tags: INITIAL_TAGS,
+        journalEntries: INITIAL_JOURNAL,
       });
     }
   };
 
+  const loadSample50Tasks = loadSampleData;
+
   // --- CÁC HÀM CRUD DATA (OFFLINE-FIRST + AUTO SYNC TRỰC TIẾP KHI USER THAO TÁC) ---
   const addTask = (taskData: {
     title: string;
+    description?: string;
     dueDate?: string;
     timeType?: TaskTimeType;
     startTime?: string;
@@ -1079,11 +1338,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     deadlineTime?: string;
     tag?: string;
     notebookId?: string;
+    parentTaskId?: string;
     priority?: TaskPriority;
   }) => {
     const newTask: TaskDto = {
       id: `task-${Date.now()}`,
       title: taskData.title,
+      description: taskData.description,
       dueDate: taskData.dueDate,
       timeType: taskData.timeType,
       startTime: taskData.startTime,
@@ -1092,12 +1353,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       deadlineTime: taskData.deadlineTime,
       tag: taskData.tag as any,
       notebookId: taskData.notebookId,
+      parentTaskId: taskData.parentTaskId,
       completed: false,
       status: "todo",
       priority: taskData.priority || "medium",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+
+    const parentTask = taskData.parentTaskId
+      ? tasks.find((candidate) => candidate.id === taskData.parentTaskId)
+      : undefined;
+    if (
+      !parentTask ||
+      wouldCreateTaskCycle(newTask.id, taskData.parentTaskId, tasks)
+    ) {
+      newTask.parentTaskId = undefined;
+    } else {
+      Object.assign(newTask, getInheritedParentSchedule(parentTask));
+      Object.assign(newTask, constrainTaskToParent(newTask, {}, parentTask));
+    }
 
     setTasks((prev) => {
       const next = [newTask, ...prev];
@@ -1106,7 +1381,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     });
 
     // Lên lịch thông báo ngoài màn hình nếu task có ngày giờ hẹn
-    if (newTask.dueDate) {
+    if (getTaskEffectiveDate(newTask)) {
       notificationService.scheduleTask(newTask);
     }
 
@@ -1147,7 +1422,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           if (isSoundEnabled) {
             sounds.playPencilCheck(soundVolume);
           }
-        } else if (updatedTask.dueDate) {
+        } else if (getTaskEffectiveDate(updatedTask)) {
           notificationService.scheduleTask(updatedTask);
         }
 
@@ -1185,29 +1460,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const moveTaskToTomorrow = (id: string) => {
+  const moveTaskToNextDay = (id: string, baseDateStr?: string) => {
+    const currentTodayStr = getLocalTodayStr();
     setTasks((prev) => {
-      const next = prev.map((t) =>
-        t.id === id
-          ? {
-              ...t,
-              dueDate: tomorrowStr,
-              updatedAt: new Date().toISOString(),
-            }
-          : t,
-      );
+      const next = prev.map((t) => {
+        if (t.id !== id) return t;
+
+        // Use the normalized date so scheduled tasks never read deadlineDate.
+        const currentTaskDate =
+          baseDateStr || getTaskEffectiveDate(t) || currentTodayStr;
+
+        // Nếu ngày gốc ở quá khứ (< today), luôn đưa về ngày mai của hiện tại để không bị kẹt trong quá khứ!
+        const targetNextDate =
+          currentTaskDate < currentTodayStr
+            ? getNextDayStr(currentTodayStr)
+            : getNextDayStr(currentTaskDate);
+
+        return {
+          ...t,
+          ...moveTaskToDate(t, targetNextDate),
+          updatedAt: new Date().toISOString(),
+        };
+      });
       triggerDebouncedPush({ tasks: next });
       return next;
     });
   };
 
+  const moveTaskToTomorrow = (id: string) => {
+    moveTaskToNextDay(id, getLocalTodayStr());
+  };
+
   const moveTaskToToday = (id: string) => {
+    const currentTodayStr = getLocalTodayStr();
     setTasks((prev) => {
       const next = prev.map((t) =>
         t.id === id
           ? {
               ...t,
-              dueDate: todayStr,
+              ...moveTaskToDate(t, currentTodayStr),
               updatedAt: new Date().toISOString(),
             }
           : t,
@@ -1220,11 +1511,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const updateTask = (id: string, updates: Partial<TaskDto>) => {
     setTasks((prev) => {
       const oldTask = prev.find((t) => t.id === id);
+      if (!oldTask) return prev;
+
+      const hasParentUpdate = Object.prototype.hasOwnProperty.call(
+        updates,
+        "parentTaskId",
+      );
+      const requestedParentId = hasParentUpdate
+        ? updates.parentTaskId
+        : oldTask.parentTaskId;
+      let safeUpdates = updates;
+
+      if (
+        requestedParentId &&
+        wouldCreateTaskCycle(id, requestedParentId, prev)
+      ) {
+        safeUpdates = { ...safeUpdates, parentTaskId: undefined };
+      } else {
+        const parentTask = requestedParentId
+          ? prev.find((candidate) => candidate.id === requestedParentId)
+          : undefined;
+        if (hasParentUpdate && parentTask) {
+          safeUpdates = {
+            ...safeUpdates,
+            ...getInheritedParentSchedule(parentTask),
+          };
+        }
+        safeUpdates = constrainTaskToParent(oldTask, safeUpdates, parentTask);
+      }
+
       const next = prev.map((t) =>
         t.id === id
           ? {
               ...t,
-              ...updates,
+              ...safeUpdates,
               updatedAt: new Date().toISOString(),
             }
           : t,
@@ -1234,7 +1554,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       // Nếu có cập nhật dueDate, cập nhật lại lịch thông báo
       const updated = next.find((t) => t.id === id);
       if (updated) {
-        if (updated.dueDate && !updated.completed) {
+        if (getTaskEffectiveDate(updated) && !updated.completed) {
           notificationService.scheduleTask(updated);
         } else {
           notificationService.cancelTask(id);
@@ -1242,13 +1562,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       }
 
       // Nếu chuyển đổi notebookId, cập nhật số lượng taskCount của 2 cuốn sổ
-      if (updates.notebookId !== undefined && oldTask && oldTask.notebookId !== updates.notebookId) {
+      if (safeUpdates.notebookId !== undefined && oldTask.notebookId !== safeUpdates.notebookId) {
         setNotebooks((prevNb) =>
           prevNb.map((nb) => {
             if (nb.id === oldTask.notebookId) {
               return { ...nb, taskCount: Math.max(0, (nb.taskCount || 1) - 1), updatedAt: new Date().toISOString() };
             }
-            if (nb.id === updates.notebookId) {
+            if (nb.id === safeUpdates.notebookId) {
               return { ...nb, taskCount: (nb.taskCount || 0) + 1, updatedAt: new Date().toISOString() };
             }
             return nb;
@@ -1399,11 +1719,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     deleteStickyNote(noteId);
   };
 
-  const addHabit = (name: string) => {
+  const addHabit = (name: string, frequency: HabitDto["frequency"] = "daily") => {
     const newHabit: HabitDto = {
       id: `habit-${Date.now()}`,
       name,
-      frequency: "daily",
+      frequency,
       completedDates: [],
       streak: 0,
       createdAt: new Date().toISOString(),
@@ -1411,6 +1731,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     };
     setHabits((prev) => {
       const next = [...prev, newHabit];
+      triggerDebouncedPush({ habits: next });
+      return next;
+    });
+  };
+
+  const updateHabit = (
+    id: string,
+    updates: Partial<Pick<HabitDto, "name" | "frequency" | "targetDaysPerWeek">>,
+  ) => {
+    setHabits((prev) => {
+      const next = prev.map((habit) =>
+        habit.id === id
+          ? { ...habit, ...updates, updatedAt: new Date().toISOString() }
+          : habit,
+      );
       triggerDebouncedPush({ habits: next });
       return next;
     });
@@ -1460,6 +1795,57 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     triggerDebouncedPush({ weeklyReflection: text });
   };
 
+  // ----------------------------------------------------
+  // JOURNAL (Nhật ký theo ngày & giờ)
+  // ----------------------------------------------------
+  const addJournalEntry = (data: {
+    date: string;
+    time: string;
+    content: string;
+    notebookId?: string;
+    linkedTaskId?: string;
+  }): JournalEntryDto => {
+    const newEntry: JournalEntryDto = {
+      id: `journal-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+      date: data.date,
+      time: data.time,
+      content: data.content,
+      notebookId: data.notebookId,
+      linkedTaskId: data.linkedTaskId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setJournalEntries((prev) => {
+      const next = [...prev, newEntry];
+      return next;
+    });
+    return newEntry;
+  };
+
+  const updateJournalEntry = (id: string, updates: Partial<JournalEntryDto>) => {
+    setJournalEntries((prev) => {
+      const next = prev.map((item) =>
+        item.id === id
+          ? { ...item, ...updates, updatedAt: new Date().toISOString() }
+          : item
+      );
+      return next;
+    });
+  };
+
+  const deleteJournalEntry = (id: string) => {
+    setJournalEntries((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const openJournalWithTask = (task: TaskDto) => {
+    setJournalPromptTask(task);
+    setCompletedTaskPrompt(null);
+  };
+
+  const dismissCompletedTaskPrompt = () => {
+    setCompletedTaskPrompt(null);
+  };
+
   const archiveOldTasks = (days = 60): number => {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
@@ -1497,6 +1883,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         lastSyncedAt,
         isOnline,
         syncNow,
+        isAuthModalOpen,
+        openAuthModal,
+        closeAuthModal,
         isFirstVisit,
         dismissOnboarding,
         theme,
@@ -1507,8 +1896,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setHideCompletedTasks,
         isNotificationsEnabled,
         setIsNotificationsEnabled,
+        isNotificationPanelOpen,
+        notificationActiveTab,
+        openNotificationPanel,
+        closeNotificationPanel,
         isDarkMode,
         setIsDarkMode,
+        isSidebarOpen,
+        toggleSidebar,
+        setSidebarOpen,
         isSoundEnabled,
         setIsSoundEnabled,
         soundVolume,
@@ -1522,12 +1918,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         lockApp,
         triggerHaptic,
         loadSampleData,
+        loadSample50Tasks,
         archiveOldTasks,
         tasks,
         addTask,
         toggleTask,
         deleteTask,
         moveTaskToTomorrow,
+        moveTaskToNextDay,
         moveTaskToToday,
         updateTask,
         tags,
@@ -1545,12 +1943,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         convertNoteToNotebookTask,
         habits,
         addHabit,
+        updateHabit,
         toggleHabitDay,
         deleteHabit,
         dailyMoods,
         setDailyMood,
         weeklyReflection,
         setWeeklyReflection: handleSetWeeklyReflection,
+        journalEntries,
+        addJournalEntry,
+        updateJournalEntry,
+        deleteJournalEntry,
+        journalPromptTask,
+        setJournalPromptTask,
+        openJournalWithTask,
+        completedTaskPrompt,
+        dismissCompletedTaskPrompt,
+        activeTaskSubTab,
+        setActiveTaskSubTab,
+        selectedPlannerDate,
+        setSelectedPlannerDate,
+        activeNoteSubTab,
+        setActiveNoteSubTab,
       }}
     >
       {children}

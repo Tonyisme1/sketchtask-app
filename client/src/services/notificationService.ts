@@ -180,13 +180,13 @@ export const notificationService = {
         if (dateStr) {
           targetDate = new Date(`${dateStr}T${timeStr}:00`);
           const timeRange = task.endTime ? `${timeStr} - ${task.endTime}` : timeStr;
-          notifTitle = `🕒 Lịch làm việc: ${task.title}`;
+          notifTitle = `Lịch làm việc: ${task.title}`;
           notifBody = `Khung giờ thực hiện: ${timeRange}. Bắt đầu làm ngay nào!`;
         } else if (task.startTime) {
           // Lên lịch trong ngày hôm nay
           const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
           targetDate = new Date(`${todayStr}T${task.startTime}:00`);
-          notifTitle = `🕒 Lịch làm việc: ${task.title}`;
+          notifTitle = `Lịch làm việc: ${task.title}`;
           notifBody = `Đến giờ thực hiện lúc ${task.startTime}!`;
         }
       }

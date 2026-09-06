@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Lock, Unlock, Delete, ShieldCheck, X } from "lucide-react";
+import { Lock, Delete, X, AlertCircle } from "lucide-react";
+import { useScrollLock } from "../../../hooks/useScrollLock";
 
 // ==========================================
 // COMPONENT: PinLockModal (Khóa Mã PIN Bảo Vệ Sổ Tay Vẽ Tay)
@@ -21,6 +22,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
   onSuccess,
   onCancel,
 }) => {
+  useScrollLock(isOpen);
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [step, setStep] = useState<"enter_old" | "enter_new" | "confirm_new">("enter_new");
@@ -146,11 +148,12 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
         inset: 0,
         zIndex: 1000002,
         backgroundColor: "rgba(28, 25, 23, 0.95)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
         touchAction: "none",
       }}
-      className="flex items-center justify-center p-4 select-none animate-in fade-in duration-200"
+      role="dialog"
+      aria-modal="true"
+      aria-label={getTitle()}
+      className="flex items-center justify-center p-4 select-none mobile-scrim-enter"
     >
       <div
         className={`relative w-full max-w-xs bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[10px] shadow-[6px_6px_0px_#262626] p-5 flex flex-col items-center space-y-4 ${
@@ -198,8 +201,9 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
 
         {/* Error Message */}
         {errorMsg && (
-          <p className="text-xs font-bold text-rose-600 animate-in fade-in">
-            ⚠️ {errorMsg}
+          <p className="flex items-center gap-1.5 text-xs font-bold text-rose-600">
+            <AlertCircle size={13} strokeWidth={2.4} />
+            <span>{errorMsg}</span>
           </p>
         )}
 
@@ -240,4 +244,3 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
     document.body
   );
 };
-
