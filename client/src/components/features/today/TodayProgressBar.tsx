@@ -3,12 +3,14 @@ import React from "react";
 export interface TodayProgressBarProps {
   completedCount: number;
   totalCount: number;
+  label?: string;
 }
 
 // === PHẦN 1: Thanh tiến độ dùng chung cho workspace Hôm nay ===
 export const TodayProgressBar: React.FC<TodayProgressBarProps> = ({
   completedCount,
   totalCount,
+  label = "Tiến độ hôm nay",
 }) => {
   const progressPercent =
     totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
@@ -19,14 +21,14 @@ export const TodayProgressBar: React.FC<TodayProgressBarProps> = ({
       className="space-y-1.5 rounded-[6px] border-[1.5px] border-[#262626] bg-white px-3 py-2 shadow-[2px_2px_0px_#262626]"
     >
       <div className="flex items-center justify-between gap-3 text-xs font-bold text-[#1C1917]">
-        <span>Tiến độ hôm nay</span>
+        <span>{label}</span>
         <span className="font-mono text-[11px] text-[#57534E]">
           {completedCount}/{totalCount} xong · {progressPercent}%
         </span>
       </div>
       <div
         role="progressbar"
-        aria-label="Phần trăm công việc đã hoàn thành hôm nay"
+        aria-label={`Phần trăm công việc đã hoàn thành: ${label.toLowerCase()}`}
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={progressPercent}

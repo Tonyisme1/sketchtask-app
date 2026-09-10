@@ -18,7 +18,7 @@ interface PlannerDayTimelineProps {
 
 const MINUTES_PER_DAY = 24 * 60;
 const HOUR_ROW_HEIGHT = 52;
-const MINUTE_MARKS = [0, 15, 30, 45, 60];
+const MINUTE_MARKS = [15, 30, 45];
 
 const parseTime = (value?: string) => {
   if (!value || !/^\d{2}:\d{2}$/.test(value)) return undefined;
@@ -143,13 +143,13 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
   onMoveTomorrow,
 }) => {
   const rowHeight = HOUR_ROW_HEIGHT;
-  const visibleMinuteMarks = mode === "hour" ? [0, 30, 60] : MINUTE_MARKS;
+  const visibleMinuteMarks = mode === "hour" ? [] : MINUTE_MARKS;
   const timedTasks = tasks
     .map((task) => ({ task, range: getTaskRange(task) }))
     .filter((item): item is { task: TaskDto; range: { start: number; end: number } } => Boolean(item.range))
     .sort((a, b) => a.range.start - b.range.start);
 
-  const timelineLayout = buildTimelineGridLayout(tasks, getTaskRange, rowHeight, 42);
+  const timelineLayout = buildTimelineGridLayout(tasks, getTaskRange, rowHeight, 32);
 
   if (timedTasks.length === 0) return null;
 
@@ -197,17 +197,6 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
         aria-label="Vùng cuộn biểu đồ chi tiết ngày"
       >
         <div className="min-w-[560px]">
-          <div className="grid grid-cols-[72px_minmax(0,1fr)] border-b border-[#D4CEBF] bg-[#FAF8F3]">
-            <div className="border-r border-[#D4CEBF] px-1.5 py-1 font-mono text-[9px] text-[#78716C]">GIỜ</div>
-            <div className="relative h-7 font-mono text-[9px] text-[#78716C]">
-              {visibleMinuteMarks.map((minute) => (
-                <span key={minute} className="absolute top-1 -translate-x-1/2" style={{ left: `${(minute / 60) * 100}%` }}>
-                  {String(minute).padStart(2, "0")}
-                </span>
-              ))}
-            </div>
-          </div>
-
           <div className="grid grid-cols-[72px_minmax(0,1fr)]">
             <div className="relative border-r border-[#D4CEBF] bg-[#FAF8F3]" style={{ height: timelineLayout.totalHeight }}>
               {timelineLayout.hours.map(({ hour, top, height }) => (
@@ -228,7 +217,7 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
                   className="absolute left-0 right-0 border-b border-[#D4CEBF]"
                   style={{ top, height }}
                 >
-                  {visibleMinuteMarks.slice(1, -1).map((minute) => (
+                  {visibleMinuteMarks.map((minute) => (
                     <span
                       key={minute}
                       aria-hidden="true"
@@ -245,10 +234,10 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
                   task={segment.task}
                   showLabel={segment.showLabel}
                   style={{
-                    top: segment.top + 2,
+                    top: segment.top,
                     left: `${segment.left}%`,
                     width: `${segment.width}%`,
-                    height: rowHeight - 4,
+                    height: segment.height,
                   }}
                   onSelectTask={onSelectTask}
                   onToggleTask={onToggleTask}

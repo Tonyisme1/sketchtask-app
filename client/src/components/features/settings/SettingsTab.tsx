@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { APP_STORAGE_KEY, useAppStore } from "../../../stores/appStore";
-import { ConfirmModal, DynamicIcon } from "../../ui";
+import {
+  APP_STORAGE_KEY,
+  useAppStore,
+  type FontFamilyPreference,
+  type FontSizePreference,
+} from "../../../stores/appStore";
+import { ConfirmModal, CustomSelect, DynamicIcon } from "../../ui";
 import { CURRENT_APP_VERSION } from "../../../services/updateService";
 import { notificationService } from "../../../services/notificationService";
 import { sounds } from "../../../utils/soundEffects";
@@ -45,6 +50,32 @@ interface SettingsTabProps {
 }
 
 export type SettingsPlatform = "desktop" | "tablet" | "mobile";
+
+interface SettingsSwitchProps {
+  checked: boolean;
+  label: string;
+  onChange: () => void;
+}
+
+const SettingsSwitch: React.FC<SettingsSwitchProps> = ({ checked, label, onChange }) => (
+  <button
+    type="button"
+    role="switch"
+    aria-checked={checked}
+    aria-label={label}
+    onClick={onChange}
+    className={`relative flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full border-[1.5px] border-[#262626] p-0.5 shadow-[1px_1px_0px_#262626] transition-colors active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
+      checked ? "bg-[#1C1917]" : "bg-[#F3EFE6]"
+    }`}
+  >
+    <span
+      aria-hidden="true"
+      className={`h-5 w-5 rounded-full border-[1.5px] border-[#262626] bg-white shadow-[1px_1px_0px_#262626] transition-transform ${
+        checked ? "translate-x-5" : "translate-x-0"
+      }`}
+    />
+  </button>
+);
 
 const AVATAR_COLORS = [
   { name: "Trắng Giấy", hex: "#FFFDF8" },
@@ -110,6 +141,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
     isSoundEnabled,
     setIsSoundEnabled,
     soundVolume,
+    fontSize,
+    setFontSize,
+    fontFamily,
+    setFontFamily,
     paperStyle,
     setPaperStyle,
     pinCode,
@@ -668,6 +703,42 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               </div>
             </div>
 
+            {/* Typography controls apply consistently across desktop, tablet, and mobile. */}
+            <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-5 shadow-[2px_2px_0px_#262626] space-y-4">
+              <div>
+                <p className="text-xs font-bold uppercase font-mono text-[#1C1917]">Chữ hiển thị</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-[#78716C]">
+                  Chọn kiểu chữ dễ đọc và cỡ chữ phù hợp với mắt của bạn.
+                </p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="space-y-1.5 text-xs font-bold text-[#1C1917]">
+                  <span>Kiểu chữ</span>
+                  <CustomSelect
+                    value={fontFamily}
+                    onChange={(value) => setFontFamily(value as FontFamilyPreference)}
+                    options={[
+                      { value: "inter", label: "Inter - rõ nét" },
+                      { value: "jakarta", label: "Plus Jakarta Sans - mềm" },
+                      { value: "system", label: "Mặc định thiết bị" },
+                    ]}
+                  />
+                </label>
+                <label className="space-y-1.5 text-xs font-bold text-[#1C1917]">
+                  <span>Cỡ chữ</span>
+                  <CustomSelect
+                    value={fontSize}
+                    onChange={(value) => setFontSize(value as FontSizePreference)}
+                    options={[
+                      { value: "normal", label: "Tiêu chuẩn" },
+                      { value: "large", label: "Lớn - khuyến nghị" },
+                      { value: "xlarge", label: "Rất lớn" },
+                    ]}
+                  />
+                </label>
+              </div>
+            </div>
+
             {/* Toggle Switches */}
             <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-5 shadow-[2px_2px_0px_#262626] space-y-4 divide-y divide-[#E7E5E4]">
               {platform === "desktop" && (
@@ -676,17 +747,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     <p className="font-bold text-xs text-[#1C1917]">Hiệu ứng nghiêng giấy 3D (Tilt)</p>
                     <p className="text-[11px] text-[#78716C]">Tạo chiều sâu vật lý nhẹ khi rê chuột trên máy tính</p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsTiltEnabled(!isTiltEnabled)}
-                    className={`w-13 h-6.5 border-[1.5px] border-[#262626] rounded-[4px] p-0.5 flex items-center shadow-[1px_1px_0px_#262626] cursor-pointer transition-all shrink-0 ${
-                      isTiltEnabled ? "bg-[#262626] justify-end" : "bg-[#F3EFE6] justify-start"
-                    }`}
-                  >
-                    <span className="h-4.5 px-1 rounded-[2px] border border-[#262626] bg-white text-[8.5px] font-mono font-bold">
-                      {isTiltEnabled ? "BẬT" : "TẮT"}
-                    </span>
-                  </button>
+                  <SettingsSwitch checked={isTiltEnabled} label="Hiệu ứng nghiêng giấy" onChange={() => setIsTiltEnabled(!isTiltEnabled)} />
                 </div>
               )}
 
@@ -695,17 +756,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                   <p className="font-bold text-xs text-[#1C1917]">Ẩn các việc đã hoàn thành</p>
                   <p className="text-[11px] text-[#78716C]">Chỉ tập trung vào những đầu việc còn đang mở</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setHideCompletedTasks(!hideCompletedTasks)}
-                  className={`w-13 h-6.5 border-[1.5px] border-[#262626] rounded-[4px] p-0.5 flex items-center shadow-[1px_1px_0px_#262626] cursor-pointer transition-all shrink-0 ${
-                    hideCompletedTasks ? "bg-[#262626] justify-end" : "bg-[#F3EFE6] justify-start"
-                  }`}
-                >
-                  <span className="h-4.5 px-1 rounded-[2px] border border-[#262626] bg-white text-[8.5px] font-mono font-bold">
-                    {hideCompletedTasks ? "BẬT" : "TẮT"}
-                  </span>
-                </button>
+                <SettingsSwitch checked={hideCompletedTasks} label="Ẩn việc đã hoàn thành" onChange={() => setHideCompletedTasks(!hideCompletedTasks)} />
               </div>
 
               <div className="flex items-center justify-between pt-3">
@@ -713,17 +764,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                   <p className="font-bold text-xs text-[#1C1917]">Chế độ tối (Dark Mode)</p>
                   <p className="text-[11px] text-[#78716C]">Bảo vệ mắt khi làm việc ban đêm</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsDarkMode(!isDarkMode)}
-                  className={`w-13 h-6.5 border-[1.5px] border-[#262626] rounded-[4px] p-0.5 flex items-center shadow-[1px_1px_0px_#262626] cursor-pointer transition-all shrink-0 ${
-                    isDarkMode ? "bg-[#262626] justify-end" : "bg-[#F3EFE6] justify-start"
-                  }`}
-                >
-                  <span className="h-4.5 px-1 rounded-[2px] border border-[#262626] bg-white text-[8.5px] font-mono font-bold">
-                    {isDarkMode ? "BẬT" : "TẮT"}
-                  </span>
-                </button>
+                <SettingsSwitch checked={isDarkMode} label="Chế độ tối" onChange={() => setIsDarkMode(!isDarkMode)} />
               </div>
             </div>
           </div>
@@ -745,9 +786,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                       : "Cần cấp quyền trình duyệt để nhận nhắc nhở"}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={async () => {
+                <SettingsSwitch
+                  checked={isNotificationsEnabled && permStatus === "granted"}
+                  label="Thông báo đẩy"
+                  onChange={async () => {
                     if (isNotificationsEnabled && permStatus === "granted") {
                       setIsNotificationsEnabled(false);
                       showToast("Đã tắt thông báo.");
@@ -760,24 +802,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     if (granted) showToast("Đã bật thông báo!");
                     else showToast("Chưa được cấp quyền.");
                   }}
-                  aria-pressed={isNotificationsEnabled && permStatus === "granted"}
-                  aria-label="Cài đặt thông báo đẩy"
-                  className={`w-13 h-6.5 border-[1.5px] border-[#262626] rounded-[4px] p-0.5 flex items-center shadow-[1px_1px_0px_#262626] cursor-pointer transition-all shrink-0 ${
-                    isNotificationsEnabled && permStatus === "granted"
-                      ? "bg-[#262626] justify-end"
-                      : "bg-[#F3EFE6] justify-start"
-                  }`}
-                >
-                  <span className="h-4.5 px-1 rounded-[2px] border border-[#262626] bg-white text-[9px] font-mono font-bold">
-                    {permStatus === "granted"
-                      ? isNotificationsEnabled
-                        ? "BẬT"
-                        : "TẮT"
-                      : permStatus === "denied"
-                      ? "BỊ CHẶN"
-                      : "CẤP QUYỀN"}
-                  </span>
-                </button>
+                />
               </div>
 
               {/* Sound Effects */}
@@ -796,20 +821,14 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                       Thử âm thanh
                     </button>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => {
+                  <SettingsSwitch
+                    checked={isSoundEnabled}
+                    label="Âm thanh phản hồi"
+                    onChange={() => {
                       setIsSoundEnabled(!isSoundEnabled);
                       if (!isSoundEnabled) sounds.playPencilCheck(soundVolume);
                     }}
-                    className={`w-13 h-6.5 border-[1.5px] border-[#262626] rounded-[4px] p-0.5 flex items-center shadow-[1px_1px_0px_#262626] cursor-pointer transition-all ${
-                      isSoundEnabled ? "bg-[#262626] justify-end" : "bg-[#F3EFE6] justify-start"
-                    }`}
-                  >
-                    <span className="h-4.5 px-1 rounded-[2px] border border-[#262626] bg-white text-[9px] font-mono font-bold">
-                      {isSoundEnabled ? "BẬT" : "TẮT"}
-                    </span>
-                  </button>
+                  />
                 </div>
               </div>
             </div>

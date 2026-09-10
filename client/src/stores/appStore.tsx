@@ -38,6 +38,8 @@ export interface UserProfile {
 }
 
 export type ColorTheme = "warm" | "sketch" | "sepia";
+export type FontSizePreference = "normal" | "large" | "xlarge";
+export type FontFamilyPreference = "inter" | "jakarta" | "system";
 
 export interface StickyNoteItem {
   id: string;
@@ -79,10 +81,7 @@ export interface AppContextType {
     password?: string,
   ) => Promise<{ success: boolean; message?: string }>;
   loginWithGoogle: (data: {
-    email: string;
-    name: string;
-    avatar?: string;
-    avatarBg?: string;
+    accessToken: string;
   }) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
   updateUserProfile: (data: Partial<UserProfile>) => void;
@@ -101,6 +100,10 @@ export interface AppContextType {
   // Settings
   theme: ColorTheme;
   setTheme: (theme: ColorTheme) => void;
+  fontSize: FontSizePreference;
+  setFontSize: (size: FontSizePreference) => void;
+  fontFamily: FontFamilyPreference;
+  setFontFamily: (family: FontFamilyPreference) => void;
   isTiltEnabled: boolean;
   setIsTiltEnabled: (enabled: boolean) => void;
   hideCompletedTasks: boolean;
@@ -879,6 +882,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const [theme, setTheme] = useState<ColorTheme>("warm");
 
+  // Typography preferences are local to this device and applied at the root
+  // so every responsive shell keeps the same readable scale and font.
+  const [fontSize, setFontSizeState] = useState<FontSizePreference>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_font_size`);
+      return saved === "large" || saved === "xlarge" ? saved : "large";
+    } catch {
+      return "large";
+    }
+  });
+  const [fontFamily, setFontFamilyState] = useState<FontFamilyPreference>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_font_family`);
+      return saved === "jakarta" || saved === "system" ? saved : "inter";
+    } catch {
+      return "inter";
+    }
+  });
+
+  const setFontSize = useCallback((size: FontSizePreference) => {
+    setFontSizeState(size);
+    localStorage.setItem(`${STORAGE_KEY}_font_size`, size);
+  }, []);
+
+  const setFontFamily = useCallback((family: FontFamilyPreference) => {
+    setFontFamilyState(family);
+    localStorage.setItem(`${STORAGE_KEY}_font_family`, family);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.fontSize = fontSize;
+    document.documentElement.dataset.fontFamily = fontFamily;
+  }, [fontFamily, fontSize]);
+
   // Khôi phục lịch nhắc sau khi reload. Preference của app và quyền của OS
   // là hai lớp độc lập; notificationService sẽ tự kiểm tra quyền trước khi gửi.
   useEffect(() => {
@@ -1301,10 +1338,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const loginWithGoogle = async (data: {
-    email: string;
-    name: string;
-    avatar?: string;
-    avatarBg?: string;
+    accessToken: string;
   }) => {
     setSyncStatus("syncing");
     const res = await api.auth.google(data);
@@ -2019,6 +2053,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         closeAuthModal,
         theme,
         setTheme,
+        fontSize,
+        setFontSize,
+        fontFamily,
+        setFontFamily,
         isTiltEnabled,
         setIsTiltEnabled,
         hideCompletedTasks,

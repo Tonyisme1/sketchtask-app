@@ -44,23 +44,8 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate }) => {
       setIsSubmitting(true);
       setErrorMessage("");
       try {
-        const response = await fetch(
-          "https://www.googleapis.com/oauth2/v3/userinfo",
-          {
-            headers: {
-              Authorization: `Bearer ${tokenResponse.access_token}`,
-            },
-          },
-        );
-        if (!response.ok) {
-          throw new Error("Không thể lấy thông tin tài khoản Google.");
-        }
-        const profile = await response.json();
         const result = await loginWithGoogle({
-          email: profile.email,
-          name: profile.name || profile.email.split("@")[0],
-          avatar: "lucide:Sparkles",
-          avatarBg: "#FEF08A",
+          accessToken: tokenResponse.access_token,
         });
         if (result.success) handleSuccess();
         else setErrorMessage(result.message || "Đăng nhập Google thất bại.");

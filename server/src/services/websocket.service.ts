@@ -26,17 +26,11 @@ export class WebSocketService {
 
     this.wss.on("connection", (ws: AuthenticatedSocket, req) => {
       ws.isAlive = true;
-
-      // Extract token from URL query string if provided: ws://.../ws?token=...
-      const url = new URL(req.url || "", `http://${req.headers.host}`);
-      const token = url.searchParams.get("token");
-
-      if (token) {
-        const payload = verifyToken(token);
-        if (payload) {
-          this.registerUserSocket(payload.userId, ws);
-        }
-      }
+      // Authenticate through a message instead of a URL query parameter so
+      // JWTs do not end up in reverse-proxy or access logs.
+      const authTimeout = setTimeout(() => {
+        if (!ws.userId) ws.close(1008, "Authentication required");
+      }, 10000);
 
       ws.on("pong", () => {
         ws.isAlive = true;
@@ -48,10 +42,12 @@ export class WebSocketService {
           if (data.type === "AUTH" && data.token) {
             const payload = verifyToken(data.token);
             if (payload) {
+              clearTimeout(authTimeout);
               this.registerUserSocket(payload.userId, ws);
               ws.send(JSON.stringify({ type: "AUTH_SUCCESS", userId: payload.userId }));
             } else {
               ws.send(JSON.stringify({ type: "AUTH_ERROR", message: "Token không hợp lệ" }));
+              ws.close(1008, "Invalid token");
             }
           } else if (data.type === "PING") {
             ws.send(JSON.stringify({ type: "PONG" }));
@@ -62,6 +58,7 @@ export class WebSocketService {
       });
 
       ws.on("close", () => {
+        clearTimeout(authTimeout);
         if (ws.userId) {
           const sockets = this.userSockets.get(ws.userId);
           if (sockets) {
@@ -116,4 +113,3 @@ export class WebSocketService {
 }
 
 export const wsService = WebSocketService.getInstance();
-

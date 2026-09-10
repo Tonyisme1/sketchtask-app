@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { config } from "../config/index.js";
 
 export function errorHandler(
   err: Error,
@@ -9,7 +10,8 @@ export function errorHandler(
   console.error("Unhandled error:", err);
   res.status(500).json({
     success: false,
-    message: err.message || "Đã xảy ra lỗi nội bộ hệ thống.",
+    message: config.isProduction
+      ? "Đã xảy ra lỗi nội bộ hệ thống."
+      : err.message || "Đã xảy ra lỗi nội bộ hệ thống.",
   });
 }
-

@@ -1,11 +1,11 @@
 import React from "react";
+import { TodayProgressBar } from "./TodayProgressBar";
 
 export interface TodayHeaderProps {
   dayNum: number;
   monthNum: number;
   completedCount: number;
   totalCount: number;
-  progressPercent: number;
 }
 
 export const TodayHeader: React.FC<TodayHeaderProps> = ({
@@ -13,7 +13,6 @@ export const TodayHeader: React.FC<TodayHeaderProps> = ({
   monthNum,
   completedCount,
   totalCount,
-  progressPercent,
 }) => {
   return (
     <div className="pb-2 border-b border-[#262626] space-y-1.5 animate-in fade-in duration-150 select-none">
@@ -36,15 +35,10 @@ export const TodayHeader: React.FC<TodayHeaderProps> = ({
         </div>
       </div>
 
-      {/* Thanh Progress Đồng Nhất 5-6px */}
-      {totalCount > 0 && (
-        <div className="w-full h-1.5 bg-white border border-[#262626] rounded-[2px] overflow-hidden shadow-[1px_1px_0px_#262626]">
-          <div
-            className="h-full bg-[#1C1917] border-r border-[#262626] transition-all duration-300"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-      )}
+      <TodayProgressBar
+        completedCount={completedCount}
+        totalCount={totalCount}
+      />
     </div>
   );
 };

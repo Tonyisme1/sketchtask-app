@@ -16,18 +16,16 @@ const getApiBaseUrl = () => {
   return "/api/v1";
 };
 
-export const getWsUrl = (token?: string) => {
-  const tokenQuery = token ? `?token=${encodeURIComponent(token)}` : "";
-
+export const getWsUrl = () => {
   // Dev dùng host hiện tại của Vite, tương ứng với proxy WebSocket /ws.
   if (import.meta.env.DEV && typeof window !== "undefined") {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    return `${protocol}//${window.location.host}/ws${tokenQuery}`;
+    return `${protocol}//${window.location.host}/ws`;
   }
 
   // Production dùng URL WebSocket được cấu hình trong môi trường deploy.
   if (import.meta.env.VITE_WS_URL) {
-    return `${import.meta.env.VITE_WS_URL.replace(/\/$/, "")}/ws${tokenQuery}`;
+    return `${import.meta.env.VITE_WS_URL.replace(/\/$/, "")}/ws`;
   }
 
   if (import.meta.env.VITE_API_URL) {
@@ -36,16 +34,16 @@ export const getWsUrl = (token?: string) => {
       .replace(/^http:/, "ws:")
       .replace(/^https:/, "wss:")
       .replace(/\/api\/v1\/?$/, "");
-    return `${wsBase}/ws${tokenQuery}`;
+    return `${wsBase}/ws`;
   }
 
   // Fallback theo host hiện tại nếu môi trường chưa cấu hình URL.
   if (typeof window !== "undefined") {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = window.location.host; // e.g. 192.168.2.7:5173 hoặc localhost:5173
-    return `${protocol}//${host}/ws${tokenQuery}`;
+    return `${protocol}//${host}/ws`;
   }
-  return `ws://localhost:5173/ws${tokenQuery}`;
+  return "ws://localhost:5173/ws";
 };
 
 const TOKEN_KEY = "sketchtask_jwt_token";
@@ -110,13 +108,7 @@ export const api = {
         body: JSON.stringify({ email, password }),
       }),
 
-    google: (data: {
-      email: string;
-      name: string;
-      avatar?: string;
-      avatarBg?: string;
-      googleId?: string;
-    }) =>
+    google: (data: { accessToken: string }) =>
       request<{ token: string; user: any }>("/auth/google", {
         method: "POST",
         body: JSON.stringify(data),

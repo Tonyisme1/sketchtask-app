@@ -150,28 +150,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setIsSubmitting(true);
       setErrorMessage("");
       try {
-        // Lấy thông tin người dùng từ Google UserInfo API
-        const userInfoRes = await fetch(
-          "https://www.googleapis.com/oauth2/v3/userinfo",
-          {
-            headers: {
-              Authorization: `Bearer ${tokenResponse.access_token}`,
-            },
-          },
-        );
-
-        if (!userInfoRes.ok) {
-          throw new Error("Không thể lấy thông tin từ tài khoản Google");
-        }
-
-        const googleProfile = await userInfoRes.json();
-
-        // Gửi lên backend server đồng bộ
         const result = await loginWithGoogle({
-          email: googleProfile.email,
-          name: googleProfile.name || googleProfile.email.split("@")[0],
-          avatar: "lucide:Sparkles",
-          avatarBg: "#FEF08A",
+          accessToken: tokenResponse.access_token,
         });
 
         if (result.success) {

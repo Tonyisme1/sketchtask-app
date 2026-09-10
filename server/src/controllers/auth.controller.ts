@@ -51,21 +51,15 @@ export class AuthController {
 
   static async googleAuth(req: Request, res: Response) {
     try {
-      const { email, name, avatar, avatarBg, googleId } = req.body;
-      if (!email || !name) {
+      const { accessToken } = req.body;
+      if (typeof accessToken !== "string" || accessToken.trim().length < 20) {
         return res.status(400).json({
           success: false,
-          message: "Email và tên là bắt buộc.",
+          message: "Google access token là bắt buộc.",
         });
       }
 
-      const result = await AuthService.googleAuth({
-        email,
-        name,
-        avatar,
-        avatarBg,
-        googleId,
-      });
+      const result = await AuthService.googleAuth(accessToken);
 
       return res.json({
         success: true,
@@ -103,4 +97,3 @@ export class AuthController {
     }
   }
 }
-

@@ -44,7 +44,7 @@ class SyncSocketManager {
     this.cleanupCurrentSocket();
 
     try {
-      const socket = new WebSocket(getWsUrl(token));
+      const socket = new WebSocket(getWsUrl());
       this.ws = socket;
 
       socket.onopen = () => {

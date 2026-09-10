@@ -65,32 +65,46 @@ export class AuthService {
     };
   }
 
-  static async googleAuth(data: {
-    email: string;
-    name: string;
-    avatar?: string;
-    avatarBg?: string;
-    googleId?: string;
-  }) {
-    const cleanEmail = data.email.trim().toLowerCase();
+  static async googleAuth(accessToken: string) {
+    const profileResponse = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken.trim()}` },
+    });
+
+    if (!profileResponse.ok) {
+      throw new Error("Google access token không hợp lệ hoặc đã hết hạn.");
+    }
+
+    const profile = (await profileResponse.json()) as {
+      sub?: string;
+      email?: string;
+      email_verified?: boolean;
+      name?: string;
+      picture?: string;
+    };
+
+    if (!profile.sub || !profile.email || profile.email_verified !== true) {
+      throw new Error("Tài khoản Google chưa xác minh email.");
+    }
+
+    const cleanEmail = profile.email.trim().toLowerCase();
     let user = await prisma.user.findUnique({ where: { email: cleanEmail } });
 
     if (!user) {
       user = await prisma.user.create({
         data: {
           email: cleanEmail,
-          name: data.name.trim() || cleanEmail.split("@")[0],
-          avatar: data.avatar || "lucide:Sparkles",
-          avatarBg: data.avatarBg || "#FEF08A",
-          googleId: data.googleId || `google_${Date.now()}`,
+          name: profile.name?.trim() || cleanEmail.split("@")[0],
+          avatar: profile.picture || "lucide:Sparkles",
+          avatarBg: "#FEF08A",
+          googleId: profile.sub,
         },
       });
     } else {
-      // Nếu user đã tồn tại, cập nhật googleId nếu chưa có
-      if (data.googleId && !user.googleId) {
+      // Only bind the verified Google subject to the matching email account.
+      if (!user.googleId) {
         user = await prisma.user.update({
           where: { id: user.id },
-          data: { googleId: data.googleId },
+          data: { googleId: profile.sub },
         });
       }
     }
@@ -149,4 +163,3 @@ export class AuthService {
     return user;
   }
 }
-

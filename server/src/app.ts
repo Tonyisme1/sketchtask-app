@@ -10,7 +10,21 @@ const app = express();
 const server = http.createServer(app);
 
 // Middlewares
-app.use(cors());
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Native Capacitor requests and same-origin/server-to-server requests do
+      // not send an Origin header. Browser origins must be explicitly allowed.
+      if (!origin || config.corsOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      const isLocalDevelopmentOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+      callback(null, isLocalDevelopmentOrigin);
+    },
+  }),
+);
 app.use(express.json({ limit: "10mb" }));
 
 // API Endpoints

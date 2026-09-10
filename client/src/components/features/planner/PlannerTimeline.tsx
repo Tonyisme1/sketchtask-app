@@ -30,7 +30,7 @@ interface PlannerTimelineProps {
 const START_HOUR = 0;
 const END_HOUR = 24;
 const HOUR_HEIGHT = 44;
-const MINUTE_MARKS = [0, 15, 30, 45, 60];
+const MINUTE_MARKS = [15, 30, 45];
 
 const parseTime = (value?: string) => {
   if (!value || !/^\d{2}:\d{2}$/.test(value)) return undefined;
@@ -178,7 +178,7 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
     selectedDayTasks,
     getTimelineRange,
     HOUR_HEIGHT,
-    42,
+    32,
   );
 
   return (
@@ -199,10 +199,10 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
         tabIndex={0}
         aria-label="Vùng cuộn thời khóa biểu tuần"
       >
-        <div className="min-w-[780px]">
+        <div className="min-w-[620px]">
           <div className="sticky top-0 z-20 grid grid-cols-[62px_repeat(7,minmax(0,1fr))] border-b-[1.5px] border-[#262626] bg-[#FAF8F3]">
             <div className="flex items-center justify-center border-r border-[#D4CEBF] font-mono text-[10px] text-[#78716C]">
-              GIỜ
+              NGÀY
             </div>
             {weekDays.map((day) => {
               const dayTasks = getTasksForDate(day.dateStr);
@@ -248,17 +248,6 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
             </button>
           </div>
 
-          <div className="grid grid-cols-[62px_minmax(0,1fr)] border-t border-[#D4CEBF]">
-            <div className="border-r border-[#D4CEBF] bg-[#FAF8F3] px-1.5 py-1 font-mono text-[9px] text-[#78716C]">GIỜ</div>
-            <div className="relative h-7 border-b border-[#D4CEBF] bg-[#FAF8F3] font-mono text-[9px] text-[#78716C]">
-              {MINUTE_MARKS.map((minute) => (
-                <span key={minute} className="absolute top-1 -translate-x-1/2" style={{ left: `${(minute / 60) * 100}%` }}>
-                  {String(minute).padStart(2, "0")}
-                </span>
-              ))}
-            </div>
-          </div>
-
           <div className="grid grid-cols-[62px_minmax(0,1fr)]">
             <div className="relative border-r border-[#D4CEBF] bg-[#FAF8F3]" style={{ height: timelineLayout.totalHeight }}>
               {timelineLayout.hours.map(({ hour, top, height }) => (
@@ -279,7 +268,7 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
                   className="absolute left-0 right-0 border-b border-[#D4CEBF]"
                   style={{ top, height }}
                 >
-                  {MINUTE_MARKS.slice(1, -1).map((minute) => (
+                  {MINUTE_MARKS.map((minute) => (
                     <span
                       key={minute}
                       aria-hidden="true"
@@ -296,10 +285,10 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
                   task={segment.task}
                   showLabel={segment.showLabel}
                   style={{
-                    top: segment.top + 2,
+                    top: segment.top,
                     left: `${segment.left}%`,
                     width: `${segment.width}%`,
-                    height: HOUR_HEIGHT - 4,
+                    height: segment.height,
                   }}
                   onSelectTask={onSelectTask}
                   onToggleTask={onToggleTask}

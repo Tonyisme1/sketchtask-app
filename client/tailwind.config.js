@@ -29,7 +29,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        sans: ['var(--app-font-family)'],
         hand: ['Patrick Hand', 'Caveat', 'cursive'],
         mono: ['"JetBrains Mono"', 'Fira Code', 'monospace'],
       },
@@ -42,4 +42,3 @@ export default {
   },
   plugins: [],
 }
-

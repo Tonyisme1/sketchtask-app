@@ -1,6 +1,3 @@
-﻿import { App as CapacitorApp } from "@capacitor/app";
-import { isNativePlatform } from "../services/notificationService";
-
 // ==========================================
 // UTILITY: Back Navigation Manager (Xử Lý Phím Quay Lại Toàn Cục)
 // ==========================================
@@ -9,7 +6,6 @@ type BackHandler = () => boolean; // return true nếu đã xử lý, false nế
 
 const backHandlers: BackHandler[] = [];
 let onTabNavigateBack: (() => boolean) | null = null;
-let lastBackPressTime = 0;
 
 /**
  * Đăng ký một hành động khi bấm phím Back (ví dụ đóng Modal, đóng Drawer)
@@ -52,36 +48,5 @@ export const triggerBackAction = (): boolean => {
     return true;
   }
 
-  // 3. Nếu đang ở Tab chính và không còn gì để back
-  if (isNativePlatform()) {
-    const now = Date.now();
-    if (now - lastBackPressTime < 2000) {
-      CapacitorApp.exitApp();
-    } else {
-      lastBackPressTime = now;
-    }
-  }
-
   return false;
-};
-
-// Khởi tạo lắng nghe sự kiện phím Back trên Android Capacitor & Web Browser
-export const initBackNavigationListener = () => {
-  if (typeof window === "undefined") return;
-
-  // A. Lắng nghe phím Back vật lý trên Android qua Capacitor
-  if (isNativePlatform()) {
-    try {
-      CapacitorApp.addListener("backButton", () => {
-        triggerBackAction();
-      });
-    } catch (e) {
-      console.warn("Capacitor backButton listener error:", e);
-    }
-  }
-
-  // B. Lắng nghe sự kiện popstate của trình duyệt web
-  window.addEventListener("popstate", () => {
-    triggerBackAction();
-  });
 };

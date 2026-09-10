@@ -14,6 +14,7 @@ import {
 } from "../../shared/ui";
 import { Settings, X } from "lucide-react";
 import { NotesSectionTabs } from "../../components/layout/NotesSectionTabs";
+import { useModalBackClose } from "../../hooks/useModalBackClose";
 
 export interface DesktopShellProps {
   activeTab: TabKey;
@@ -47,6 +48,8 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSettingsPopupOpen, setIsSettingsPopupOpen] = useState(false);
+
+  useModalBackClose(isSettingsPopupOpen, () => setIsSettingsPopupOpen(false));
 
   // Scroll to top on tab and subtab change
   useEffect(() => {

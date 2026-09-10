@@ -17,6 +17,8 @@ import { PlannerDayTimeline, PlannerDayTimelineMode } from "./PlannerDayTimeline
 import { TodayScheduleNotes } from "../today/TodayScheduleNotes";
 import { TaskList } from "../shared/TaskList";
 import { FilterBar } from "../shared/FilterBar";
+import { TodayProgressBar } from "../today/TodayProgressBar";
+import { registerBackHandler } from "../../../utils/backNavigation";
 import { ArrowLeft, Lock, ListTodo } from "lucide-react";
 
 const DAY_NAMES = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"];
@@ -85,6 +87,19 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
     }
     onClearTarget?.();
   }, [targetDateStr, targetTaskId, openTaskDetail, onClearTarget]);
+
+  React.useEffect(() => {
+    if (plannerScreen !== "day") return;
+
+    return registerBackHandler(() => {
+      if (fromTab === "deadlines" && onBackToDeadlines) {
+        onBackToDeadlines();
+      } else {
+        setPlannerScreen("overview");
+      }
+      return true;
+    });
+  }, [fromTab, onBackToDeadlines, plannerScreen]);
 
   // Filter state cho DayPlanView
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
@@ -395,8 +410,6 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
         const isPastDate = selectedDateStr < todayStr;
         const completedCount = selectedDayTasks.filter((t) => t.completed).length;
         const totalCount = selectedDayTasks.length;
-        const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-
         return (
           <div className={isMobile ? "space-y-4 mobile-panel-enter" : "space-y-4 animate-in fade-in duration-150"}>
             {/* 1. Header Quay Lại & Tên Ngày & Tiến Độ Đồng Bộ TodayHeader */}
@@ -451,15 +464,11 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
                 </div>
               </div>
 
-              {/* Thanh Tiến Độ Hoàn Thành Mini Nét Mực */}
-              {totalCount > 0 && (
-                <div className="w-full h-1.5 bg-white border border-[#262626] rounded-[2px] overflow-hidden shadow-[1px_1px_0px_#262626]">
-                  <div
-                    className="h-full bg-[#BBF7D0] border-r border-[#262626] transition-all duration-300"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
-              )}
+              <TodayProgressBar
+                completedCount={completedCount}
+                totalCount={totalCount}
+                label="Tiến độ ngày"
+              />
             </div>
 
             {/* 2. BỘ LỌC 2 TẦNG DÙNG CHUNG INLINE (Y HỆT TAB HÔM NAY) */}

@@ -109,11 +109,6 @@ export const TodayTab: React.FC<TodayTabProps> = ({ targetTaskId }) => {
 
   const completedTodayCount = todayList.filter((t) => t.completed).length;
   const totalTodayCount = todayList.length;
-  const progressPercent =
-    totalTodayCount > 0
-      ? Math.round((completedTodayCount / totalTodayCount) * 100)
-      : 0;
-
   return (
     <div className="w-full min-w-0 space-y-4 select-none animate-in fade-in duration-150">
       {/* 1. Header & Tiến Độ Glance */}
@@ -122,7 +117,6 @@ export const TodayTab: React.FC<TodayTabProps> = ({ targetTaskId }) => {
         monthNum={now.getMonth() + 1}
         completedCount={completedTodayCount}
         totalCount={totalTodayCount}
-        progressPercent={progressPercent}
       />
 
       {/* 2. Thanh Lọc 2 Tầng Tinh Gọn */}

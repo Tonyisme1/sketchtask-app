@@ -3,6 +3,7 @@ import { useAppStore } from "../../../stores/appStore";
 import { TaskPriority, TaskTimeType } from "../../../types";
 import { getLocalTodayStr } from "../../../utils/date";
 import { normalizeTaskTimeType } from "../../../utils/taskSemantics";
+import { useResponsiveLayout } from "../../../shared/hooks";
 import { HandDrawnCheckbox } from "../../ui/core/HandDrawnCheckbox";
 import { CustomSelect } from "../../ui/pickers/select/CustomSelect";
 import { TimePickerPopover } from "../../ui/pickers/time/TimePickerPopover";
@@ -89,6 +90,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     deleteTask,
     toggleTask,
   } = useAppStore();
+  const { isMobile, isTablet } = useResponsiveLayout();
 
   const todayStr = getLocalTodayStr(new Date());
 
@@ -253,7 +255,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   };
 
   return (
-    <div className="w-full h-full bg-[#FBF9F4] text-[#1C1917] select-none flex flex-col overflow-hidden">
+    <div className={`w-full h-full bg-[#FBF9F4] text-[#1C1917] select-none flex flex-col overflow-hidden ${isMobile || isTablet ? "pt-[max(env(safe-area-inset-top),12px)]" : ""}`}>
       {/* 1. TOPBAR CỦA PANEL: Nút Quay Lại + Trạng Thái Lưu + Nút Xóa */}
       <div className="shrink-0 z-20 bg-[#FBF9F4] border-b border-[#262626]/20 px-4 py-2.5 flex items-center justify-between">
         {/* Nút Quay Lại */}

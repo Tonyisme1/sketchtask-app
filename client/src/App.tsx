@@ -13,6 +13,7 @@ import { MobileShell, MobileWorkspace } from "./mobile";
 // Standalone Feature Pages
 import { AuthPage } from "./features";
 import { ToastViewport } from "./components/ui/feedback/ToastViewport";
+import { registerTabNavigateBack, triggerBackAction } from "./utils/backNavigation";
 
 // ==========================================
 // MAIN APP CONTENT (Dispatch theo 3 nền tảng: Desktop, Tablet, Mobile)
@@ -20,12 +21,6 @@ import { ToastViewport } from "./components/ui/feedback/ToastViewport";
 
 interface MainAppContentProps {
   onNavigateRoute: (path: string) => void;
-}
-
-const APP_BACK_EVENT = "sketchtask:app-back";
-
-interface AppBackEventDetail {
-  handled: boolean;
 }
 
 function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
@@ -47,7 +42,7 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
 
   const [previousTab, setPreviousTab] = useState<TabKey>("today");
 
-  const handleTabChange = (tab: TabKey | string, target?: NavigationTarget) => {
+  const handleTabChange = useCallback((tab: TabKey | string, target?: NavigationTarget) => {
     // Đóng panel task detail & các mục con khi chuyển tab hoặc chuyển không gian
     closeTaskDetail();
     setSelectedNotebookId(null);
@@ -62,7 +57,13 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     // Lưu tab trước đó nếu không phải là settings/notebooks
     if (activeTab !== "settings" && activeTab !== "notebooks") {
       if (activeTab === "tasks") {
-        setPreviousTab(activeTaskSubTab === "planner" ? "planner" : "today");
+        setPreviousTab(
+          activeTaskSubTab === "planner"
+            ? "planner"
+            : activeTaskSubTab === "deadlines"
+              ? "deadlines"
+              : "today",
+        );
       } else {
         setPreviousTab(activeTab);
       }
@@ -107,7 +108,7 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
       return;
     }
     setActiveTab(tab as TabKey);
-  };
+  }, [activeTab, activeTaskSubTab, closeTaskDetail, setActiveTaskSubTab, setIsMobileNoteDetailOpen, setSelectedNotebookId, setSettingsMobileSubView]);
 
   const handleClearNavigationTarget = () => {
     setNavigationTarget(undefined);
@@ -156,15 +157,7 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
 
   // Hardware/browser Back first unwinds the active in-app surface.
   useEffect(() => {
-    const handleBackRequest = (event: Event) => {
-      const detail = (event as CustomEvent<AppBackEventDetail>).detail;
-      if (handleInAppBack()) {
-        detail.handled = true;
-      }
-    };
-
-    window.addEventListener(APP_BACK_EVENT, handleBackRequest);
-    return () => window.removeEventListener(APP_BACK_EVENT, handleBackRequest);
+    return registerTabNavigateBack(handleInAppBack);
   }, [handleInAppBack]);
 
   // 1. Desktop Shell (width >= 1024px)
@@ -252,12 +245,10 @@ function AppRouter() {
     const handlePopState = (event: PopStateEvent) => {
       const isAppRoute = resolveRoute(window.location.pathname).kind === "app";
       const isAppEntry = Boolean(event.state?.__sketchTaskAppEntry);
+      const handled = triggerBackAction();
 
       if (isAppRoute && isAppEntry) {
-        const detail: AppBackEventDetail = { handled: false };
-        window.dispatchEvent(new CustomEvent<AppBackEventDetail>(APP_BACK_EVENT, { detail }));
-
-        if (detail.handled) {
+        if (handled) {
           const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
           window.history.pushState(
             { ...(event.state || {}), __sketchTaskAppGuard: true },
@@ -272,6 +263,7 @@ function AppRouter() {
         return;
       }
 
+      if (handled) return;
       setPathname(window.location.pathname);
     };
     window.addEventListener("popstate", handlePopState);
@@ -302,9 +294,7 @@ function AppRouter() {
 
     let listener: { remove: () => Promise<void> } | undefined;
     void CapacitorApp.addListener("backButton", () => {
-      const detail: AppBackEventDetail = { handled: false };
-      window.dispatchEvent(new CustomEvent<AppBackEventDetail>(APP_BACK_EVENT, { detail }));
-      if (!detail.handled) {
+      if (!triggerBackAction()) {
         void CapacitorApp.exitApp();
       }
     }).then((registeredListener) => {

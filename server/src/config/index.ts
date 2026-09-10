@@ -33,4 +33,8 @@ export const config = {
   databaseUrl,
   jwtSecret: rawJwtSecret || defaultSecret,
   isProduction,
+  corsOrigins: (process.env.CORS_ORIGINS || "https://sketchtask-app.vercel.app,capacitor://localhost,http://localhost")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean),
 };

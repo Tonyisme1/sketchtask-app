@@ -4,14 +4,10 @@ import App from "./App";
 import { ErrorBoundary } from "./components/ui";
 import { registerSW } from "virtual:pwa-register";
 import { GoogleOAuthProvider } from "@react-oauth/google";
-import { initBackNavigationListener } from "./utils/backNavigation";
 import "./index.css";
 
 // Tự động đăng ký Service Worker để ứng dụng hoạt động ngoại tuyến (Offline) 100%
 registerSW({ immediate: true });
-
-// Khởi tạo trình lắng nghe phím Back (Android Back & PopState)
-initBackNavigationListener();
 
 const googleClientId =
   import.meta.env.VITE_GOOGLE_CLIENT_ID ||
