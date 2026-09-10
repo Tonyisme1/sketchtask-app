@@ -1,58 +1,64 @@
 # SketchTask API database setup
 
-The server uses SQLite for this personal app. The local database is
-`server/prisma/dev.db`; production must point SQLite at a Render Persistent
-Disk so the file survives deploys and restarts.
+The server uses PostgreSQL for both local development and production. The
+database lives outside Render, so deploys and service restarts do not remove
+application data.
+
+## Configure the connection
+
+1. Create two PostgreSQL databases in Supabase, Neon, or another provider:
+   one for development and one for production.
+2. Copy the development connection string into `server/.env` as
+   `DATABASE_URL`.
+3. Keep the URL in PostgreSQL format:
+
+```env
+# Runtime URL: Supabase transaction pooler (usually port 6543)
+DATABASE_URL="postgresql://USER:PASSWORD@POOLER_HOST:6543/postgres?pgbouncer=true&connection_limit=1"
+# Prisma migrations URL: Supabase session pooler (usually port 5432)
+DIRECT_URL="postgresql://USER:PASSWORD@POOLER_HOST:5432/postgres"
+```
+
+Do not commit `server/.env` or paste passwords into source files.
 
 ## Local setup
 
-Copy `server/.env.example` to `server/.env` and keep:
-
-```env
-DATABASE_URL="file:./dev.db"
-```
-
-Then create/update the local schema:
+From the repository root:
 
 ```powershell
+npm install
+npm --prefix server install
 npm --prefix server run prisma:generate
-npm --prefix server run prisma:push
+npm --prefix server run prisma:migrate:deploy
+npm run dev:server
 ```
 
-Do not commit `server/.env` or paste secrets into source files.
+In a second terminal, start the frontend:
+
+```powershell
+npm run dev
+```
+
+Open `http://localhost:5173`. Local development uses the development
+database; never point it at the production database.
 
 ## Render setup
 
-SQLite is safe on Render only with a Persistent Disk. In the Render service:
-
-1. Open `Settings` > `Disks` > `Add Disk`.
-2. Set the mount path to `/var/data` and choose a size.
-3. Keep the service at one instance; a disk is available to only one instance.
-4. Add these environment variables:
+Set these environment variables on the Render web service:
 
 ```env
-DATABASE_URL=file:/var/data/sketchtask.db
+DATABASE_URL=postgresql://USER:PASSWORD@POOLER_HOST:6543/postgres?pgbouncer=true&connection_limit=1
+DIRECT_URL=postgresql://USER:PASSWORD@POOLER_HOST:5432/postgres
 NODE_ENV=production
 JWT_SECRET=<long-random-secret>
 CORS_ORIGINS=https://sketchtask-app.vercel.app,capacitor://localhost,http://localhost
 ```
 
-5. Set `Root Directory` to `server`.
-6. Set `Build Command` to `npm install && npm run build`.
-7. Set `Start Command` to `npm start`.
+Remove any manually configured `PORT` variable so Render can provide the
+runtime port. Set `Root Directory` to `server`, `Build Command` to
+`npm install && npm run build`, and `Start Command` to `npm start`.
 
-The start command runs `prisma db push` after the service disk is available,
-then starts the API. This keeps an existing personal SQLite file and also
-initializes a new empty disk. Keep automatic deploys enabled on `main`.
-
-## Important limitations
-
-Without a Persistent Disk, Render's filesystem is ephemeral and the SQLite
-file disappears after a restart or deploy. A disk also prevents scaling this
-service to multiple instances and removes zero-downtime deploys. For a
-personal, single-instance app this is an acceptable tradeoff; for a shared or
-multi-instance app, use a managed PostgreSQL database instead.
-
-If the old PostgreSQL service contains important cloud data, export it before
-switching. SQLite and PostgreSQL are separate databases and this change does
-not copy existing cloud rows automatically.
+The build runs `prisma migrate deploy` before compiling the server. Existing
+PostgreSQL data is preserved when the migrations are already recorded. The
+old local SQLite file is not imported automatically; export it before
+switching if it contains data that must be kept.

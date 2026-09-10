@@ -4,6 +4,7 @@ dotenv.config();
 
 const isProduction = process.env.NODE_ENV === "production";
 const databaseUrl = process.env.DATABASE_URL;
+const directDatabaseUrl = process.env.DIRECT_URL;
 const rawJwtSecret = process.env.JWT_SECRET;
 const defaultSecret = "sketchtask_super_secret_jwt_key_2026";
 
@@ -13,15 +14,15 @@ if (!databaseUrl) {
   );
 }
 
-if (isProduction && !/^file:/.test(databaseUrl)) {
+if (!directDatabaseUrl) {
   throw new Error(
-    "FATAL: Trong môi trường Production, DATABASE_URL phải là đường dẫn SQLite dạng file:.",
+    "FATAL: DIRECT_URL chưa được cấu hình cho Prisma migrations.",
   );
 }
 
-if (isProduction && process.env.RENDER === "true" && !/^file:\/var\/data\//.test(databaseUrl)) {
+if (isProduction && !/^postgres(ql)?:\/\//.test(databaseUrl)) {
   throw new Error(
-    "FATAL: Trên Render, DATABASE_URL phải trỏ vào Persistent Disk: file:/var/data/sketchtask.db.",
+    "FATAL: Trong môi trường Production, DATABASE_URL phải là connection string PostgreSQL (postgresql:// hoặc postgres://).",
   );
 }
 
@@ -37,6 +38,7 @@ if (isProduction) {
 export const config = {
   port: Number(process.env.PORT) || 5000,
   databaseUrl,
+  directDatabaseUrl,
   jwtSecret: rawJwtSecret || defaultSecret,
   isProduction,
   corsOrigins: (process.env.CORS_ORIGINS || "https://sketchtask-app.vercel.app,capacitor://localhost,http://localhost")
