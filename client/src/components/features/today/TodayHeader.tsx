@@ -19,7 +19,7 @@ export const TodayHeader: React.FC<TodayHeaderProps> = ({
       <div className="flex items-center justify-between gap-2">
         {/* Tiêu đề Hôm Nay + Badge Ngày */}
         <div className="flex items-center gap-2">
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#1C1917]">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1C1917]">
             Hôm nay
           </h1>
           <span className="text-[11px] font-mono font-bold bg-[#1C1917] text-white px-2 py-0.5 rounded-[4px] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626]">

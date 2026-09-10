@@ -63,6 +63,17 @@ export const WheelColumn: React.FC<WheelColumnProps> = ({
       clearTimeout(scrollTimeoutRef.current);
     }
 
+    // Cập nhật ngay khi dòng giữa đã đổi, không bắt người dùng bấm lại vào giá trị.
+    const scrollTop = containerRef.current.scrollTop;
+    const nearestIndex = Math.max(
+      0,
+      Math.min(validItems.length - 1, Math.round(scrollTop / ITEM_HEIGHT))
+    );
+    const selectedValue = validItems[nearestIndex];
+    if (selectedValue !== undefined && selectedValue !== value) {
+      onChange(selectedValue);
+    }
+
     scrollTimeoutRef.current = setTimeout(() => {
       if (!containerRef.current) return;
       const scrollTop = containerRef.current.scrollTop;
@@ -177,16 +188,6 @@ export const WheelColumn: React.FC<WheelColumnProps> = ({
             top: `${ITEM_HEIGHT}px`,
             height: `${ITEM_HEIGHT}px`,
           }}
-        />
-
-        {/* Lớp Mặt Nạ Gradient Mờ (Fade Mask Trên & Dưới) */}
-        <div
-          className="absolute top-0 left-0 right-0 pointer-events-none bg-gradient-to-b from-white via-white/80 to-transparent z-20"
-          style={{ height: `${ITEM_HEIGHT - 4}px` }}
-        />
-        <div
-          className="absolute bottom-0 left-0 right-0 pointer-events-none bg-gradient-to-t from-white via-white/80 to-transparent z-20"
-          style={{ height: `${ITEM_HEIGHT - 4}px` }}
         />
 
         {/* Danh Sách Cuộn Dọc */}

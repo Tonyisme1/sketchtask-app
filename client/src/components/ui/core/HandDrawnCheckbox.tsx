@@ -34,15 +34,16 @@ export const HandDrawnCheckbox: React.FC<CheckboxProps> = ({
           e.stopPropagation();
           onChange(!checked);
         }}
+        data-checked={checked}
         className={`${dimensionClass} border-[1.5px] rounded-full flex items-center justify-center transition-all duration-150 shrink-0 ${
           checked
-            ? "bg-[#1C1917] border-[#1C1917] text-white shadow-none scale-100"
+            ? "context-checkbox bg-[#1C1917] border-[#1C1917] text-white dark:bg-[#E4E4E7] dark:border-[#E4E4E7] dark:text-[#18181B] shadow-none scale-100"
             : "bg-white border-[#262626] shadow-[1px_1px_0px_#262626] group-hover:border-[#1C1917] group-hover:scale-105"
         }`}
       >
         {checked && (
           <svg
-            className={`${iconDimension} text-white`}
+            className={`${iconDimension} text-white dark:text-[#18181B]`}
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"

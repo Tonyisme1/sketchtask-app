@@ -209,7 +209,7 @@ export const TasksTab: React.FC<TasksTabProps> = ({
                 }`}
               >
                 <CalendarIcon size={14} strokeWidth={2.4} className={activeTaskSubTab === "planner" ? "text-white" : "text-[#78716C]"} />
-                <span>Lịch kế hoạch</span>
+                <span>Kế hoạch</span>
               </button>
 
               {/* 2. Hạn định */}

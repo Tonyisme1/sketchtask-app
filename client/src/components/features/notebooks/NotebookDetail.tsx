@@ -1,76 +1,73 @@
 import React, { useState, useMemo } from "react";
-import { NotebookDto, TaskDto, JournalEntryDto } from "../../../types";
-import { NoteItem } from "../notes/NoteTypes";
-import { DynamicIcon } from "../../ui";
+import { NotebookDto, TaskDto } from "../../../types";
+import { DynamicIcon, CustomColorPicker, CustomEmojiPicker } from "../../ui";
 import { TaskList } from "../shared/TaskList";
 import { FilterBar } from "../shared/FilterBar";
 import { TodayScheduleNotes } from "../today/TodayScheduleNotes";
-import { NoteMasterDetailView } from "../notes/NoteMasterDetailView";
-import { JournalBook } from "../journal/JournalBook";
 import { useAppStore } from "../../../stores/appStore";
 import { useResponsiveLayout } from "../../../shared/hooks";
 import { normalizeTaskTimeType } from "../../../utils/taskSemantics";
+import { getContextualColorPalette } from "../../../utils/colorContrast";
 import {
   ArrowLeft,
   Trash2,
   Edit2,
-  CheckSquare,
-  FileText,
-  BookOpen,
   ListTodo,
 } from "lucide-react";
 
 // ==========================================
-// COMPONENT: NotebookDetail (Chi Tiết Cuốn Sổ Tay Đầy Đủ)
-// Tách biệt rõ ràng 3 phân khu: Công việc | Ghi chú | Nhật ký
-// Toàn bộ 3 phân khu đồng bộ 100% với giao diện chuẩn của Today, Note Workspace & Journal
+// COMPONENT: NotebookDetail (Chi Tiết Cuốn Sổ Tay)
+// Sổ tay chỉ tập trung vào danh sách công việc thuộc cuốn sổ.
 // ==========================================
 
 export interface NotebookDetailProps {
   notebook: NotebookDto;
   tasks: TaskDto[];
-  notes: NoteItem[];
-  journalEntries: JournalEntryDto[];
   onBack: () => void;
   onEditNotebook: () => void;
   onRequestDeleteNotebook: (id: string) => void;
   // Task Actions
   onToggleTask: (taskId: string) => void;
-  onEditTask: (task: TaskDto) => void;
   onDeleteTask: (taskId: string) => void;
   onMoveTomorrow: (taskId: string) => void;
-  onClickTask: (task: TaskDto) => void;
-  // Note Actions
-  onCreateNote: (title: string, content: string) => void;
-  onDeleteNote: (id: string) => void;
-  onUpdateNote: (note: NoteItem) => void;
-  // Journal Actions
-  onAddJournalEntry: (content: string) => void;
-  onDeleteJournalEntry: (id: string) => void;
+  isEditing?: boolean;
+  editName?: string;
+  editDescription?: string;
+  editColor?: string;
+  editIcon?: string;
+  nameError?: boolean;
+  onEditNameChange?: (value: string) => void;
+  onEditDescriptionChange?: (value: string) => void;
+  onEditColorChange?: (value: string) => void;
+  onEditIconChange?: (value: string) => void;
+  onSaveEdit?: () => void;
+  onCancelEdit?: () => void;
 }
-
-export type NotebookSubSection = "tasks" | "notes" | "journal";
 
 export const NotebookDetail: React.FC<NotebookDetailProps> = ({
   notebook,
   tasks,
-  notes,
-  journalEntries,
   onBack,
   onEditNotebook,
   onRequestDeleteNotebook,
   onToggleTask,
-  onEditTask,
   onDeleteTask,
   onMoveTomorrow,
-  onClickTask,
-  onCreateNote,
-  onDeleteNote,
-  onUpdateNote,
+  isEditing = false,
+  editName = "",
+  editDescription = "",
+  editColor = "#FEF08A",
+  editIcon = "lucide:BookMarked",
+  nameError = false,
+  onEditNameChange,
+  onEditDescriptionChange,
+  onEditColorChange,
+  onEditIconChange,
+  onSaveEdit,
+  onCancelEdit,
 }) => {
-  const { hideCompletedTasks, notebooks, openTaskDetail, isMobileNoteDetailOpen } = useAppStore();
+  const { hideCompletedTasks, openTaskDetail } = useAppStore();
   const { isMobile } = useResponsiveLayout();
-  const [activeSection, setActiveSection] = useState<NotebookSubSection>("tasks");
 
   // ==========================================
   // 1. STATE DÀNH CHO CÔNG VIỆC (TASKS)
@@ -85,11 +82,6 @@ export const NotebookDetail: React.FC<NotebookDetailProps> = ({
   const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all");
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
-
-  // ==========================================
-  // 2. STATE DÀNH CHO GHI CHÚ (NOTES)
-  // ==========================================
-  const [newlyCreatedNoteId, setNewlyCreatedNoteId] = useState<string | null>(null);
 
   // Thống kê task trong sổ
   const completedCount = tasks.filter((t) => t.completed).length;
@@ -166,23 +158,14 @@ export const NotebookDetail: React.FC<NotebookDetailProps> = ({
     setIsComposerOpen(true);
   };
 
-  // Lọc Ghi chú trong sổ
-  const notebookNotes = useMemo(() => {
-    return notes.filter((n) => n.notebookId === notebook.id);
-  }, [notes, notebook.id]);
-
-  // Handler tạo trang ghi chú mới trong sổ
-  const handleCreateNewNoteInNotebook = () => {
-    const newId = "note-" + Date.now();
-    onCreateNote("", "");
-    setNewlyCreatedNoteId(newId);
-  };
+  const bannerBackground = isEditing ? editColor : notebook.color || "#FAF8F3";
+  const bannerPalette = getContextualColorPalette(bannerBackground);
 
   return (
     <div className={`w-full min-w-0 space-y-4 pb-12 select-none ${
-      isMobile ? "mobile-panel-enter" : "animate-in fade-in duration-150"
+      isMobile ? "mobile-panel-enter" : ""
     }`}>
-      <div className={activeSection === "notes" && isMobileNoteDetailOpen ? "hidden md:block space-y-4" : "space-y-4"}>
+      <div className="space-y-4">
         {/* 1. THANH ĐIỀU HƯỚNG / BREADCRUMB */}
         <div className="flex items-center justify-between gap-2.5 pb-2.5 border-b-[1.5px] border-[#262626]/30">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -198,16 +181,35 @@ export const NotebookDetail: React.FC<NotebookDetailProps> = ({
           </div>
 
           <div className="flex items-center gap-2 justify-end shrink-0">
-            <button
-              type="button"
-              aria-label={`Chỉnh sửa thông tin sổ ${notebook.name}`}
-              onClick={onEditNotebook}
-              className="h-10 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-bold text-[#1C1917] hover:bg-[#FAF8F3] bg-white border-[1.5px] border-[#262626] rounded-[6px] px-3 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all shadow-[1.5px_1.5px_0px_#262626] cursor-pointer"
-              title="Chỉnh sửa thông tin cuốn sổ"
-            >
-              <Edit2 size={14} strokeWidth={2.2} />
-              <span className="hidden sm:inline">Sửa sổ</span>
-            </button>
+            {isEditing ? (
+              <>
+                <button
+                  type="button"
+                  onClick={onCancelEdit}
+                  className="h-10 px-3 text-xs sm:text-sm font-bold text-[#1C1917] bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] active:translate-y-[0.5px] active:shadow-none cursor-pointer"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  onClick={onSaveEdit}
+                  className="h-10 px-3 text-xs sm:text-sm font-bold text-white bg-[#1C1917] border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] active:translate-y-[0.5px] active:shadow-none cursor-pointer"
+                >
+                  Lưu
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                aria-label={`Chỉnh sửa thông tin sổ ${notebook.name}`}
+                onClick={onEditNotebook}
+                className="h-10 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-bold text-[#1C1917] hover:bg-[#FAF8F3] bg-white border-[1.5px] border-[#262626] rounded-[6px] px-3 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all shadow-[1.5px_1.5px_0px_#262626] cursor-pointer"
+                title="Chỉnh sửa thông tin cuốn sổ"
+              >
+                <Edit2 size={14} strokeWidth={2.2} />
+                <span className="hidden sm:inline">Sửa sổ</span>
+              </button>
+            )}
 
             <button
               type="button"
@@ -225,46 +227,108 @@ export const NotebookDetail: React.FC<NotebookDetailProps> = ({
         {/* 2. BANNER BÌA CUỐN SỔ (MÀU SẮC GỐC ĐẶC TRƯNG CỦA SỔ) */}
         <div
           style={{
-            backgroundColor: notebook.color || "#FAF8F3",
+            backgroundColor: bannerBackground,
+            color: bannerPalette.primary,
           }}
           className="relative p-4 sm:p-5 border-[1.5px] border-[#262626] rounded-[8px] shadow-[3px_3px_0px_#262626] space-y-3"
         >
           <div className="flex items-start gap-3.5">
-            <span
-              className="w-10 h-10 rounded-[6px] border-[1.5px] border-[#262626] bg-white flex items-center justify-center shadow-[1.5px_1.5px_0px_#262626] shrink-0"
-            >
-              <DynamicIcon
-                name={notebook.icon || "lucide:BookMarked"}
-                size={22}
-                strokeWidth={2.2}
-              />
-            </span>
+            {isEditing ? (
+              <div className="shrink-0 pt-0.5">
+                <CustomEmojiPicker value={editIcon} onChange={onEditIconChange ?? (() => {})} />
+              </div>
+            ) : (
+              <span
+                style={{
+                  backgroundColor: bannerPalette.controlSurface,
+                  borderColor: bannerPalette.controlSurface,
+                  color: bannerPalette.controlText,
+                }}
+                className="w-10 h-10 rounded-[6px] border-[1.5px] flex items-center justify-center shadow-[1.5px_1.5px_0px_#262626] shrink-0"
+              >
+                <DynamicIcon
+                  name={notebook.icon || "lucide:BookMarked"}
+                  size={22}
+                  strokeWidth={2.2}
+                />
+              </span>
+            )}
 
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg sm:text-xl font-black text-[#1C1917] leading-tight break-words">
-                {notebook.name}
-              </h2>
-              <p className="text-xs sm:text-sm text-[#262626]/85 font-medium mt-1 leading-relaxed">
-                {notebook.description || "Chưa có mô tả cho cuốn sổ này..."}
-              </p>
+              {isEditing ? (
+                <div className="space-y-1.5">
+                  <input
+                    type="text"
+                    value={editName}
+                    maxLength={30}
+                    autoFocus
+                    onChange={(event) => onEditNameChange?.(event.target.value)}
+                    placeholder="Tên cuốn sổ"
+                    className={`w-full px-2.5 py-1.5 text-base sm:text-lg font-black bg-white border-[1.5px] ${nameError ? "border-rose-600" : "border-[#262626]"} rounded-[4px] outline-none`}
+                  />
+                  {nameError && (
+                    <p className="text-[11px] text-rose-700 font-bold">Vui lòng nhập tên cuốn sổ.</p>
+                  )}
+                  <input
+                    type="text"
+                    value={editDescription}
+                    maxLength={80}
+                    onChange={(event) => onEditDescriptionChange?.(event.target.value)}
+                    placeholder="Mô tả ngắn cho cuốn sổ"
+                    className="w-full px-2.5 py-1.5 text-xs sm:text-sm font-medium bg-white border-[1.5px] border-[#262626] rounded-[4px] outline-none"
+                  />
+                </div>
+              ) : (
+                <>
+                  <h2
+                    style={{ color: bannerPalette.primary }}
+                    className="text-lg sm:text-xl font-black leading-tight break-words"
+                  >
+                    {notebook.name}
+                  </h2>
+                  <p
+                    style={{ color: bannerPalette.secondary }}
+                    className="text-xs sm:text-sm font-medium mt-1 leading-relaxed"
+                  >
+                    {notebook.description || "Chưa có mô tả cho cuốn sổ này..."}
+                  </p>
+                </>
+              )}
             </div>
           </div>
 
+          {isEditing && (
+            <div className="flex items-center gap-3 pt-2 border-t border-[#262626]/20">
+              <div>
+                <p className="text-[10px] font-bold text-[#57534E] mb-1">Màu bìa</p>
+                <CustomColorPicker value={editColor} onChange={onEditColorChange ?? (() => {})} />
+              </div>
+              <p className="text-[11px] text-[#57534E] leading-relaxed">
+                Chỉnh sửa trực tiếp trên cuốn sổ, không mở popup.
+              </p>
+            </div>
+          )}
+
           {/* Hàng tóm tắt số liệu */}
-          <div className="pt-2.5 border-t border-[#262626]/20 space-y-2">
-            <div className="flex items-center justify-between text-xs font-mono font-bold text-[#1C1917] flex-wrap gap-2">
+          <div
+            style={{ borderColor: bannerPalette.border }}
+            className="pt-2.5 border-t space-y-2"
+          >
+            <div
+              style={{ color: bannerPalette.primary }}
+              className="flex items-center justify-between text-xs font-mono font-bold flex-wrap gap-2"
+            >
               <div className="flex items-center gap-2">
-                <span className="bg-white/90 px-2.5 py-1 rounded-[4px] border border-[#262626]/30 text-xs shadow-[0.5px_0.5px_0px_#262626]">
+                <span
+                  style={{
+                    backgroundColor: bannerPalette.surface,
+                    borderColor: bannerPalette.border,
+                    color: bannerPalette.primary,
+                  }}
+                  className="px-2.5 py-1 rounded-[4px] border text-xs shadow-[0.5px_0.5px_0px_#262626]"
+                >
                   {totalCount} việc
                 </span>
-                <span className="bg-white/90 px-2.5 py-1 rounded-[4px] border border-[#262626]/30 text-xs shadow-[0.5px_0.5px_0px_#262626]">
-                  {notebookNotes.length} ghi chú
-                </span>
-                {journalEntries.length > 0 && (
-                  <span className="bg-white/90 px-2.5 py-1 rounded-[4px] border border-[#262626]/30 text-xs shadow-[0.5px_0.5px_0px_#262626]">
-                    {journalEntries.length} nhật ký
-                  </span>
-                )}
               </div>
 
               <span className="font-bold text-xs">
@@ -272,72 +336,30 @@ export const NotebookDetail: React.FC<NotebookDetailProps> = ({
               </span>
             </div>
 
-            <div className="w-full h-2 bg-white/80 border border-[#262626] rounded-[3px] overflow-hidden">
+            <div
+              style={{
+                backgroundColor: bannerPalette.track,
+                borderColor: bannerPalette.border,
+              }}
+              className="w-full h-2 border rounded-[3px] overflow-hidden"
+            >
               <div
-                className="h-full bg-[#262626] transition-all duration-300"
-                style={{ width: `${progressPercent}%` }}
+                style={{
+                  width: `${progressPercent}%`,
+                  backgroundColor: bannerPalette.primary,
+                }}
+                className="h-full transition-all duration-300"
               />
             </div>
           </div>
         </div>
 
-        {/* 3. SEGMENTED SWITCH: 3 MỤC NỘI DUNG TRONG SỔ */}
-        <div className="p-1.5 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] shadow-[2px_2px_0px_#262626] flex items-center justify-between gap-1.5">
-          <div className="flex items-center gap-1.5 w-full sm:w-auto">
-            {[
-              {
-                key: "tasks" as NotebookSubSection,
-                label: "Công việc",
-                count: tasks.length,
-                icon: CheckSquare,
-              },
-              {
-                key: "notes" as NotebookSubSection,
-                label: "Ghi chú",
-                count: notebookNotes.length,
-                icon: FileText,
-              },
-              {
-                key: "journal" as NotebookSubSection,
-                label: "Nhật ký",
-                count: journalEntries.length,
-                icon: BookOpen,
-              },
-            ].map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeSection === tab.key;
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => setActiveSection(tab.key)}
-                  className={`flex-1 sm:flex-initial h-9 px-3.5 py-1.5 rounded-[5px] border text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer active:translate-y-[0.5px] ${
-                    isActive
-                      ? "bg-[#262626] text-white border-[#262626] shadow-[1px_1px_0px_#262626]"
-                      : "bg-white text-[#78716C] border-[#D4CEBF] hover:text-[#1C1917] hover:border-[#262626]"
-                  }`}
-                >
-                  <Icon size={14} strokeWidth={2.4} />
-                  <span>{tab.label}</span>
-                  <span
-                    className={`text-[11px] px-1.5 py-0.2 rounded font-mono font-bold ${
-                      isActive ? "bg-white/20 text-white" : "bg-stone-100 text-[#78716C]"
-                    }`}
-                  >
-                    {tab.count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
       </div>
 
       {/* =========================================================================
           4. PHÂN KHU 1: CÔNG VIỆC TRONG SỔ (TASKS) - ĐỒNG BỘ 100% VỚI TODAY TAB
          ========================================================================= */}
-      {activeSection === "tasks" && (
-        <div className="space-y-4 animate-in fade-in duration-150">
+      <div className="space-y-4">
           {/* 1. Bộ Lọc 2 Tầng Trên Đầu */}
           <FilterBar
             statusFilter={statusFilter}
@@ -402,33 +424,7 @@ export const NotebookDetail: React.FC<NotebookDetailProps> = ({
               />
             </div>
           </div>
-        </div>
-      )}
-
-      {/* =========================================================================
-          5. PHÂN KHU 2: GHI CHÚ TRONG SỔ (NOTES) - ĐỒNG BỘ 100% VỚI TAB GHI CHÚ
-         ========================================================================= */}
-      {activeSection === "notes" && (
-        <div className="space-y-3.5 animate-in fade-in duration-150">
-          <NoteMasterDetailView
-            notes={notebookNotes}
-            notebooks={notebooks}
-            newlyCreatedId={newlyCreatedNoteId}
-            onUpdateNote={onUpdateNote}
-            onDeleteNote={onDeleteNote}
-            onCreateClick={handleCreateNewNoteInNotebook}
-          />
-        </div>
-      )}
-
-      {/* =========================================================================
-          6. PHÂN KHU 3: NHẬT KÝ TRONG SỔ (JOURNAL) - ĐỒNG BỘ 100% VỚI TAB NHẬT KÝ
-         ========================================================================= */}
-      {activeSection === "journal" && (
-        <div className="space-y-4 animate-in fade-in duration-150">
-          <JournalBook notebookId={notebook.id} />
-        </div>
-      )}
+      </div>
     </div>
   );
 };

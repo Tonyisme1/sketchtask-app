@@ -2,10 +2,10 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import { NoteItem } from "./NoteTypes";
 import { NoteMasterDetailView } from "./NoteMasterDetailView";
 import { useAppStore } from "../../../stores/appStore";
-import { useResponsiveLayout } from "../../../shared/hooks";
 import { NavigationTarget } from "../../../types";
 import { loadNotesFromStorage, saveNotesToStorage } from "../../../utils/noteStorage";
 import {
+  AlertTriangle,
   X,
   ChevronDown,
   Filter,
@@ -17,6 +17,12 @@ const stripHtml = (html: string) => {
   const tmp = document.createElement("DIV");
   tmp.innerHTML = html;
   return (tmp.textContent || tmp.innerText || "").trim();
+};
+
+const isNoteNeedsReview = (note: NoteItem) => {
+  const title = note.title.trim().toLocaleLowerCase();
+  const content = stripHtml(note.content || "");
+  return !title || title === "ghi chú không tiêu đề" || !content;
 };
 
 export interface NotesTabProps {
@@ -31,7 +37,6 @@ export const NotesTab: React.FC<NotesTabProps> = ({
   onNavigateTab,
 }) => {
   const { notebooks, isMobileNoteDetailOpen } = useAppStore();
-  const { isMobile } = useResponsiveLayout();
 
   // ==========================================
   // STATE GHI CHÚ (NOTES)
@@ -39,11 +44,14 @@ export const NotesTab: React.FC<NotesTabProps> = ({
   const [notes, setNotes] = useState<NoteItem[]>(() => loadNotesFromStorage());
   const [newlyCreatedId, setNewlyCreatedId] = useState<string | null>(null);
   const [selectedNotebookFilter, setSelectedNotebookFilter] = useState<string>("all");
+  const [showNeedsReviewOnly, setShowNeedsReviewOnly] = useState(false);
   const [noteTargetId, setNoteTargetId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     if (!navigationTarget) return;
     if (navigationTarget.noteId) {
+      // Kết quả tìm kiếm có thể nằm ngoài sổ đang lọc, nên mở toàn bộ danh sách trước.
+      setSelectedNotebookFilter("all");
       setNoteTargetId(navigationTarget.noteId);
     }
     onClearNavigationTarget?.();
@@ -88,8 +96,19 @@ export const NotesTab: React.FC<NotesTabProps> = ({
       result = result.filter((n) => n.notebookId === selectedNotebookFilter);
     }
 
-    return result;
-  }, [notes, selectedNotebookFilter]);
+    if (showNeedsReviewOnly) {
+      result = result.filter(isNoteNeedsReview);
+    }
+
+    return [...result].sort(
+      (a, b) => Number(Boolean(b.isPinned)) - Number(Boolean(a.isPinned)),
+    );
+  }, [notes, selectedNotebookFilter, showNeedsReviewOnly]);
+
+  const needsReviewNotes = useMemo(
+    () => notes.filter(isNoteNeedsReview),
+    [notes],
+  );
 
   // Handler tạo nhanh một trang ghi chú mới
   const handleCreateNewNote = () => {
@@ -116,6 +135,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
           : undefined,
       createdAt: nowStr,
       updatedAt: nowStr,
+      isPinned: false,
     };
 
     setNotes((prev) => [newNote, ...prev]);
@@ -147,6 +167,14 @@ export const NotesTab: React.FC<NotesTabProps> = ({
     }
   };
 
+  const handleTogglePinNote = (id: string) => {
+    setNotes((prev) =>
+      prev.map((note) =>
+        note.id === id ? { ...note, isPinned: !note.isPinned } : note,
+      ),
+    );
+  };
+
   // Lọc danh sách sổ tay trong popover tìm kiếm sổ tay
   const filteredNotebooksForPopover = useMemo(() => {
     if (!notebookPopoverSearch.trim()) return notebooks;
@@ -157,9 +185,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
   const activeNotebookObj = notebooks.find((nb) => nb.id === selectedNotebookFilter);
 
   return (
-    <div className={`space-y-3.5 sm:space-y-4 pb-12 w-full min-w-0 select-none ${
-      isMobile ? "" : "animate-in fade-in duration-150"
-    }`}>
+    <div className="space-y-3.5 sm:space-y-4 pb-12 w-full min-w-0 select-none">
       {/* 1. Header: Bộ Lọc Sổ Tay */}
       <div className={`items-center justify-between gap-3 pb-3 border-b border-[#262626]/30 ${isMobileNoteDetailOpen ? "hidden" : "flex"}`}>
         <div ref={notebookPopoverRef} className="relative shrink-0">
@@ -176,7 +202,9 @@ export const NotesTab: React.FC<NotesTabProps> = ({
           >
             <Filter size={14} strokeWidth={2.4} />
             <span className="max-w-[140px] sm:max-w-[200px] truncate">
-              {selectedNotebookFilter === "all"
+              {showNeedsReviewOnly
+                ? `Cần dọn (${filteredNotes.length})`
+                : selectedNotebookFilter === "all"
                 ? `Tất cả (${notes.length})`
                 : selectedNotebookFilter === "unassigned"
                 ? `Chưa gán (${notes.filter((n) => !n.notebookId).length})`
@@ -186,7 +214,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
           </button>
 
           {isNotebookPopoverOpen && (
-            <div className="absolute left-0 top-full mt-1.5 w-64 max-w-[calc(100vw-1.5rem)] bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] p-2.5 shadow-[3px_3px_0px_#262626] z-50 space-y-2 animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute left-0 top-full mt-1.5 w-64 max-w-[calc(100vw-1.5rem)] bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] p-2.5 shadow-[3px_3px_0px_#262626] z-50 space-y-2">
               <div className="flex items-center justify-between pb-1 border-b border-[#E7E5E4]">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#78716C] font-mono">
                   Lọc ghi chú theo sổ
@@ -283,6 +311,24 @@ export const NotesTab: React.FC<NotesTabProps> = ({
         </div>
       </div>
 
+      {needsReviewNotes.length > 0 && !isMobileNoteDetailOpen && (
+        <div className="flex items-center justify-between gap-3 border-[1.5px] border-[#D4CEBF] bg-[#FAF8F3] px-3 py-2.5 text-xs">
+          <div className="flex min-w-0 items-start gap-2 text-[#57534E]">
+            <AlertTriangle size={15} className="mt-0.5 shrink-0 text-[#9F1239]" strokeWidth={2.2} />
+            <p className="leading-relaxed">
+              Có {needsReviewNotes.length} note chưa có tiêu đề rõ ràng hoặc chưa có nội dung.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowNeedsReviewOnly((current) => !current)}
+            className="shrink-0 border-[1.5px] border-[#262626] bg-white px-2.5 py-1.5 text-[11px] font-semibold text-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+          >
+            {showNeedsReviewOnly ? "Hiện tất cả" : "Xem note cần dọn"}
+          </button>
+        </div>
+      )}
+
       {/* 2. Danh sách ghi chú; editor chỉ mở sau khi người dùng chọn một note */}
       <div className="pt-0.5">
         <NoteMasterDetailView
@@ -292,6 +338,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
           initialNoteId={noteTargetId}
           onUpdateNote={handleUpdateNote}
           onDeleteNote={handleDeleteNote}
+          onTogglePinNote={handleTogglePinNote}
           onCreateClick={handleCreateNewNote}
         />
       </div>

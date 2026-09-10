@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { UpdateInfo, CURRENT_APP_VERSION } from "../../../services/updateService";
 import { Sparkles, RefreshCw, X, ArrowRight } from "lucide-react";
 import { useScrollLock } from "../../../hooks/useScrollLock";
+import { Capacitor } from "@capacitor/core";
 
 // ==========================================
 // COMPONENT: UpdateModal (Tự Động Báo Bản Cập Nhật Mới)
@@ -23,8 +24,18 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
   if (!updateInfo || !updateInfo.hasUpdate) return null;
 
   const handleApplyUpdate = () => {
+    // APK chứa bundle dist tại thời điểm build; mở nguồn tải để người dùng
+    // cài APK mới thay vì reload lại chính bundle native cũ.
+    if (Capacitor.isNativePlatform()) {
+      const nativeDownloadUrl = updateInfo.apkUrl || updateInfo.downloadUrl;
+      if (nativeDownloadUrl) window.open(nativeDownloadUrl, "_blank");
+      onClose();
+      return;
+    }
+
     localStorage.setItem("sketchtask_dismissed_version", updateInfo.latestVersion);
-    // Nếu có link APK hoặc web download
+
+    // Với web/PWA, yêu cầu service worker lấy bundle mới rồi reload.
     if (updateInfo.apkUrl && updateInfo.apkUrl.endsWith(".apk")) {
       window.open(updateInfo.apkUrl, "_blank");
     } else {
@@ -133,7 +144,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
             className="flex-1 py-2 bg-[#1C1917] hover:bg-[#262626] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-white flex items-center justify-center gap-1.5 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all select-none"
           >
             <RefreshCw size={13} strokeWidth={2.5} />
-            <span>Cập nhật ngay</span>
+            <span>{Capacitor.isNativePlatform() ? "Mở nơi tải APK" : "Cập nhật ngay"}</span>
           </button>
         </div>
       </div>

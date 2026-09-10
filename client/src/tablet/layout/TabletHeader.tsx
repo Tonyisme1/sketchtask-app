@@ -1,10 +1,9 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Bell } from "lucide-react";
 import { TabKey, NavigationTarget } from "../../shared/types";
 import { useAppStore } from "../../shared/stores";
 import { BrandLogo } from "../../shared/ui";
 import { DesktopSearchAutocomplete } from "../../components/layout/DesktopSearchAutocomplete";
-import { DesktopNotificationDropdown } from "../../components/layout/DesktopNotificationDropdown";
 import { AccountMenu } from "../../components/layout/AccountMenu";
 import { getTaskTemporalState, isTaskDueToday } from "../../shared/utils";
 
@@ -13,6 +12,7 @@ export interface TabletHeaderProps {
   onTabChange: (tab: TabKey, target?: NavigationTarget) => void;
   onNavigateRoute?: (path: string) => void;
   onOpenSettings?: () => void;
+  onOpenNotifications: () => void;
   onOpenLogin?: () => void;
   onLogout?: () => void;
   previousTab?: TabKey;
@@ -23,6 +23,7 @@ export const TabletHeader: React.FC<TabletHeaderProps> = ({
   onTabChange,
   onNavigateRoute,
   onOpenSettings,
+  onOpenNotifications,
   onOpenLogin,
   onLogout,
   previousTab,
@@ -33,17 +34,25 @@ export const TabletHeader: React.FC<TabletHeaderProps> = ({
     settingsMobileSubView,
     setSettingsMobileSubView,
   } = useAppStore();
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
   const alertCount = useMemo(() => {
     const overdue = tasks.filter((task) => {
       if (task.completed) return false;
       const temporal = getTaskTemporalState(task);
       return temporal === "overdue" || temporal === "pastScheduled";
     }).length;
-    const dueToday = tasks.filter((task) => !task.completed && isTaskDueToday(task)).length;
+    const dueToday = tasks.filter((task) => {
+      if (task.completed || !isTaskDueToday(task)) return false;
+      const temporal = getTaskTemporalState(task);
+      return temporal !== "overdue" && temporal !== "pastScheduled";
+    }).length;
     return overdue + dueToday;
-  }, [tasks]);
+  }, [tasks, now]);
 
   const settingsTitle =
     settingsMobileSubView === "account"
@@ -104,15 +113,10 @@ export const TabletHeader: React.FC<TabletHeaderProps> = ({
           <div className="relative">
             <button
               type="button"
-              onClick={() => setIsNotificationOpen((open) => !open)}
+              onClick={onOpenNotifications}
               title="Thông báo & Nhắc việc"
               aria-label="Thông báo & Nhắc việc"
-              aria-expanded={isNotificationOpen}
-              className={`flex h-10 w-10 items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] transition-all cursor-pointer ${
-                isNotificationOpen
-                  ? "translate-x-[0.5px] translate-y-[0.5px] bg-[#1C1917] text-white shadow-none"
-                  : "bg-white text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] hover:bg-[#FAF8F3] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
-              }`}
+              className="flex h-10 w-10 items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] transition-all cursor-pointer bg-white text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] hover:bg-[#FAF8F3] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
             >
               <Bell size={18} strokeWidth={2.3} />
               {alertCount > 0 && (
@@ -121,11 +125,6 @@ export const TabletHeader: React.FC<TabletHeaderProps> = ({
                 </span>
               )}
             </button>
-            <DesktopNotificationDropdown
-              isOpen={isNotificationOpen}
-              onClose={() => setIsNotificationOpen(false)}
-              onNavigateTab={onTabChange}
-            />
           </div>
 
           <AccountMenu

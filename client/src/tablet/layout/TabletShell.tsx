@@ -42,6 +42,9 @@ export const TabletShell: React.FC<TabletShellProps> = ({
     closeAuthModal,
     setSettingsMobileSubView,
     activeDetailTaskId,
+    selectedNotebookId,
+    isMobileNoteDetailOpen,
+    isJournalBookOpen,
     openQuickTaskModal,
   } = useAppStore();
 
@@ -52,9 +55,13 @@ export const TabletShell: React.FC<TabletShellProps> = ({
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
-  }, [activeTab, activeTaskSubTab, activeDetailTaskId]);
+  }, [activeTab, activeTaskSubTab, activeDetailTaskId, selectedNotebookId, isMobileNoteDetailOpen, isJournalBookOpen]);
 
-  const isDetailOpen = Boolean(activeDetailTaskId);
+  const isDetailOpen =
+    Boolean(activeDetailTaskId) ||
+    (activeTab === "notes" && Boolean(isMobileNoteDetailOpen)) ||
+    (activeTab === "journal" && Boolean(isJournalBookOpen)) ||
+    (activeTab === "notebooks" && Boolean(selectedNotebookId));
   const isSettingsView = activeTab === "settings";
 
   return (
@@ -73,6 +80,7 @@ export const TabletShell: React.FC<TabletShellProps> = ({
             setSettingsMobileSubView(null);
             onTabChange("settings");
           }}
+          onOpenNotifications={() => setIsNotificationOpen(true)}
           onOpenLogin={() => onNavigateRoute("/login")}
           onLogout={logout}
           previousTab={previousTab}
@@ -91,7 +99,7 @@ export const TabletShell: React.FC<TabletShellProps> = ({
         }`}
       >
         <div className="w-full max-w-4xl mx-auto min-w-0">
-          {activeTab === "notes" || activeTab === "journal" ? (
+          {!isDetailOpen && (activeTab === "notes" || activeTab === "journal") ? (
             <NotesSectionTabs activeTab={activeTab} onTabChange={onTabChange} />
           ) : null}
           {children}

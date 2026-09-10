@@ -1,26 +1,15 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { NavigationTarget, NotebookDto, TaskDto, TabKey } from "../../../types";
-import { NoteItem } from "../notes/NoteTypes";
 import { useAppStore } from "../../../stores/appStore";
 import { useResponsiveLayout } from "../../../shared/hooks";
 import { NotebookEditor } from "./NotebookEditor";
 import { NotebookList } from "./NotebookList";
 import { NotebookDetail } from "./NotebookDetail";
-import { loadNotesFromStorage, saveNotesToStorage } from "../../../utils/noteStorage";
-import { getLocalTodayStr } from "../../../utils/date";
-import { useScrollLock } from "../../../hooks/useScrollLock";
 
 // ==========================================
 // COMPONENT: NotebooksTab (Kệ Sách & Quản Lý Sổ Tay Tái Cấu Trúc)
-// Quản lý độc lập: Sổ tay, Công việc trong sổ, Ghi chú trong sổ, Nhật ký trong sổ
+// Quản lý độc lập: Sổ tay và Công việc trong sổ
 // ==========================================
-
-const getNowTimeStr = () => {
-  const now = new Date();
-  const hours = String(now.getHours()).padStart(2, "0");
-  const minutes = String(now.getMinutes()).padStart(2, "0");
-  return `${hours}:${minutes}`;
-};
 
 interface NotebooksTabProps {
   navigationTarget?: NavigationTarget;
@@ -36,7 +25,6 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
   const {
     notebooks,
     tasks,
-    journalEntries,
     isTiltEnabled,
     addNotebook,
     updateNotebook,
@@ -44,9 +32,6 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
     toggleTask,
     deleteTask,
     moveTaskToTomorrow,
-    addJournalEntry,
-    deleteJournalEntry,
-    openTaskDetail,
     selectedNotebookId,
     setSelectedNotebookId,
   } = useAppStore();
@@ -59,20 +44,6 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
     onClearNavigationTarget?.();
   }, [navigationTarget, notebooks, onClearNavigationTarget, setSelectedNotebookId]);
 
-  // State nạp và đồng bộ danh sách Ghi chú
-  const [notes, setNotes] = useState<NoteItem[]>(() => loadNotesFromStorage());
-
-  // Lắng nghe sự kiện đồng bộ ghi chú
-  useEffect(() => {
-    const handleNotesChanged = () => {
-      setNotes(loadNotesFromStorage());
-    };
-    window.addEventListener("sketchtask_notes_changed", handleNotesChanged);
-    return () => {
-      window.removeEventListener("sketchtask_notes_changed", handleNotesChanged);
-    };
-  }, []);
-
   // State tạo mới sổ tay inline
   const [isCreatingInline, setIsCreatingInline] = useState(false);
   const [newNbName, setNewNbName] = useState("");
@@ -83,7 +54,6 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
 
   // State chỉnh sửa sổ tay
   const [editingNotebook, setEditingNotebook] = useState<NotebookDto | null>(null);
-  useScrollLock(Boolean(editingNotebook));
 
   // Cuốn sổ hiện tại đang chọn
   const currentNotebook = useMemo(() => {
@@ -95,16 +65,6 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
     if (!selectedNotebookId) return [];
     return tasks.filter((t) => t.notebookId === selectedNotebookId);
   }, [tasks, selectedNotebookId]);
-
-  const notebookNotes = useMemo(() => {
-    if (!selectedNotebookId) return [];
-    return notes.filter((n) => n.notebookId === selectedNotebookId);
-  }, [notes, selectedNotebookId]);
-
-  const notebookJournals = useMemo(() => {
-    if (!selectedNotebookId) return [];
-    return journalEntries.filter((j) => j.notebookId === selectedNotebookId);
-  }, [journalEntries, selectedNotebookId]);
 
   // Xử lý tạo sổ mới
   const handleSaveInlineNotebook = (e: React.FormEvent) => {
@@ -165,8 +125,7 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
     setNameError(false);
   };
 
-  const handleSaveEditNotebook = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveEditNotebook = () => {
     if (!editingNotebook) return;
     if (!newNbName.trim()) {
       setNameError(true);
@@ -194,52 +153,12 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
   // Xóa sổ tay
   const handleDeleteNotebook = (id: string, e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (window.confirm("Bạn có chắc muốn xóa cuốn sổ này không? Dữ liệu công việc và ghi chú sẽ được giữ lại.")) {
+    if (window.confirm("Bạn có chắc muốn xóa cuốn sổ này không? Công việc sẽ được giữ lại.")) {
       deleteNotebook(id);
       if (selectedNotebookId === id) {
         setSelectedNotebookId(null);
       }
     }
-  };
-
-  // CRUD Ghi chú trong sổ
-  const handleCreateNoteInNotebook = (title: string, content: string) => {
-    if (!selectedNotebookId) return;
-    const nowIso = new Date().toISOString();
-    const newNote: NoteItem = {
-      id: `note-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-      title,
-      content,
-      notebookId: selectedNotebookId,
-      createdAt: nowIso,
-      updatedAt: nowIso,
-    };
-    const updatedNotes = [newNote, ...notes];
-    setNotes(updatedNotes);
-    saveNotesToStorage(updatedNotes);
-  };
-
-  const handleDeleteNoteInNotebook = (noteId: string) => {
-    const updatedNotes = notes.filter((n) => n.id !== noteId);
-    setNotes(updatedNotes);
-    saveNotesToStorage(updatedNotes);
-  };
-
-  const handleUpdateNoteInNotebook = (updatedNote: NoteItem) => {
-    const updatedNotes = notes.map((n) => (n.id === updatedNote.id ? updatedNote : n));
-    setNotes(updatedNotes);
-    saveNotesToStorage(updatedNotes);
-  };
-
-  // Thêm nhật ký trong sổ
-  const handleAddJournalInNotebook = (content: string) => {
-    if (!selectedNotebookId) return;
-    addJournalEntry({
-      date: getLocalTodayStr(),
-      time: getNowTimeStr(),
-      content,
-      notebookId: selectedNotebookId,
-    });
   };
 
   // State tìm kiếm trên Kệ Sổ
@@ -265,52 +184,31 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
         <NotebookDetail
           notebook={currentNotebook}
           tasks={notebookTasks}
-          notes={notebookNotes}
-          journalEntries={notebookJournals}
-          onBack={() => setSelectedNotebookId(null)}
+          onBack={() => {
+            handleCancelEdit();
+            setSelectedNotebookId(null);
+          }}
           onEditNotebook={() => handleStartEditNotebook(currentNotebook)}
           onRequestDeleteNotebook={(id) => handleDeleteNotebook(id)}
           onToggleTask={toggleTask}
-          onEditTask={(task) => openTaskDetail(task.id)}
           onDeleteTask={deleteTask}
           onMoveTomorrow={moveTaskToTomorrow}
-          onClickTask={(task) => openTaskDetail(task.id)}
-          onCreateNote={handleCreateNoteInNotebook}
-          onDeleteNote={handleDeleteNoteInNotebook}
-          onUpdateNote={handleUpdateNoteInNotebook}
-          onAddJournalEntry={handleAddJournalInNotebook}
-          onDeleteJournalEntry={deleteJournalEntry}
+          isEditing={Boolean(editingNotebook)}
+          editName={newNbName}
+          editDescription={newNbDesc}
+          editColor={newNbColor}
+          editIcon={newNbIcon}
+          nameError={nameError}
+          onEditNameChange={(value) => {
+            setNewNbName(value);
+            if (value.trim()) setNameError(false);
+          }}
+          onEditDescriptionChange={setNewNbDesc}
+          onEditColorChange={setNewNbColor}
+          onEditIconChange={setNewNbIcon}
+          onSaveEdit={handleSaveEditNotebook}
+          onCancelEdit={handleCancelEdit}
         />
-
-        {/* Modal Sửa Sổ Tay */}
-        {editingNotebook && (
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Chỉnh sửa sổ tay"
-            className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 select-none"
-          >
-            <div className="w-full max-w-xl">
-              <NotebookEditor
-                name={newNbName}
-                description={newNbDesc}
-                color={newNbColor}
-                icon={newNbIcon}
-                nameError={nameError}
-                isEditing={true}
-                onNameChange={(val) => {
-                  setNewNbName(val);
-                  if (val.trim()) setNameError(false);
-                }}
-                onDescriptionChange={setNewNbDesc}
-                onColorChange={setNewNbColor}
-                onIconChange={setNewNbIcon}
-                onSave={handleSaveEditNotebook}
-                onCancel={handleCancelEdit}
-              />
-            </div>
-          </div>
-        )}
       </>
     );
   }
@@ -328,7 +226,6 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
           color={newNbColor}
           icon={newNbIcon}
           nameError={nameError}
-          isEditing={false}
           onNameChange={(val) => {
             setNewNbName(val);
             if (val.trim()) setNameError(false);
@@ -341,33 +238,10 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
         />
       )}
 
-      {/* Form sửa sổ tay trên kệ */}
-      {editingNotebook && (
-        <NotebookEditor
-          name={newNbName}
-          description={newNbDesc}
-          color={newNbColor}
-          icon={newNbIcon}
-          nameError={nameError}
-          isEditing={true}
-          onNameChange={(val) => {
-            setNewNbName(val);
-            if (val.trim()) setNameError(false);
-          }}
-          onDescriptionChange={setNewNbDesc}
-          onColorChange={setNewNbColor}
-          onIconChange={setNewNbIcon}
-          onSave={handleSaveEditNotebook}
-          onCancel={handleCancelEdit}
-        />
-      )}
-
       {/* Danh sách sổ tay trên kệ */}
       <NotebookList
         notebooks={filteredNotebooks}
         tasks={tasks}
-        notes={notes}
-        journalEntries={journalEntries}
         isTiltEnabled={isTiltEnabled}
         onSelectNotebook={(id) => setSelectedNotebookId(id)}
         onRequestDeleteNotebook={handleDeleteNotebook}

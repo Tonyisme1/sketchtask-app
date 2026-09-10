@@ -13,8 +13,18 @@ let originalPaddingRight = "";
 let originalPosition = "";
 let originalTop = "";
 let originalWidth = "";
+let originalDocumentOverflow = "";
+let usesFixedPosition = true;
 
-export function useScrollLock(isLocked: boolean) {
+interface ScrollLockOptions {
+  // Mobile overlays avoid position: fixed because restoring it can visibly jump the page.
+  mobileStrategy?: "fixed" | "overflow";
+}
+
+export function useScrollLock(
+  isLocked: boolean,
+  options: ScrollLockOptions = {},
+) {
   useEffect(() => {
     if (!isLocked) return;
 
@@ -26,20 +36,28 @@ export function useScrollLock(isLocked: boolean) {
       originalPosition = document.body.style.position;
       originalTop = document.body.style.top;
       originalWidth = document.body.style.width;
+      originalDocumentOverflow = document.documentElement.style.overflow;
+
+      usesFixedPosition =
+        options.mobileStrategy !== "overflow" || window.innerWidth >= 768;
 
       // Tính bề rộng scrollbar trên desktop để bù padding chống giật layout
       const scrollbarWidth =
         window.innerWidth - document.documentElement.clientWidth;
 
-      if (scrollbarWidth > 0) {
+      if (usesFixedPosition && scrollbarWidth > 0) {
         document.body.style.paddingRight = `${scrollbarWidth}px`;
       }
 
       // Khóa scroll body
       document.body.style.overflow = "hidden";
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${savedScrollY}px`;
-      document.body.style.width = "100%";
+      document.documentElement.style.overflow = "hidden";
+
+      if (usesFixedPosition) {
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${savedScrollY}px`;
+        document.body.style.width = "100%";
+      }
     }
 
     lockCount++;
@@ -55,9 +73,12 @@ export function useScrollLock(isLocked: boolean) {
         document.body.style.position = originalPosition || "";
         document.body.style.top = originalTop || "";
         document.body.style.width = originalWidth || "";
+        document.documentElement.style.overflow = originalDocumentOverflow || "";
 
-        window.scrollTo(0, scrollYToRestore);
+        if (usesFixedPosition) {
+          window.scrollTo(0, scrollYToRestore);
+        }
       }
     };
-  }, [isLocked]);
+  }, [isLocked, options.mobileStrategy]);
 }

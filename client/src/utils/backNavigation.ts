@@ -2,10 +2,23 @@
 // UTILITY: Back Navigation Manager (Xử Lý Phím Quay Lại Toàn Cục)
 // ==========================================
 
-type BackHandler = () => boolean; // return true nếu đã xử lý, false nếu nhường cho tầng dưới
+export type BackActionSource = "popstate" | "native" | "unknown";
+type BackHandler = (source?: BackActionSource) => boolean; // return true nếu đã xử lý, false nếu nhường cho tầng dưới
 
 const backHandlers: BackHandler[] = [];
-let onTabNavigateBack: (() => boolean) | null = null;
+let onTabNavigateBack: ((source?: BackActionSource) => boolean) | null = null;
+let skipNextPopState = false;
+
+// Ignore the popstate emitted while removing a UI-opened modal history entry.
+export const skipNextPopStateHandling = () => {
+  skipNextPopState = true;
+};
+
+export const consumeSkippedPopState = (): boolean => {
+  const shouldSkip = skipNextPopState;
+  skipNextPopState = false;
+  return shouldSkip;
+};
 
 /**
  * Đăng ký một hành động khi bấm phím Back (ví dụ đóng Modal, đóng Drawer)
@@ -24,7 +37,9 @@ export const registerBackHandler = (handler: BackHandler): (() => void) => {
 /**
  * Đăng ký callback điều hướng quay lại Tab trước đó
  */
-export const registerTabNavigateBack = (callback: () => boolean): (() => void) => {
+export const registerTabNavigateBack = (
+  callback: (source?: BackActionSource) => boolean,
+): (() => void) => {
   onTabNavigateBack = callback;
   return () => {
     onTabNavigateBack = null;
@@ -34,17 +49,17 @@ export const registerTabNavigateBack = (callback: () => boolean): (() => void) =
 /**
  * Kích hoạt xử lý hành động Back
  */
-export const triggerBackAction = (): boolean => {
+export const triggerBackAction = (source: BackActionSource = "unknown"): boolean => {
   // 1. Ưu tiên cao nhất: Đóng Modal / Popup / Drawer đang mở
   if (backHandlers.length > 0) {
     const topHandler = backHandlers[backHandlers.length - 1];
-    if (topHandler()) {
+    if (topHandler(source)) {
       return true;
     }
   }
 
   // 2. Ưu tiên nhì: Quay lại Tab trước đó trong lịch sử duyệt
-  if (onTabNavigateBack && onTabNavigateBack()) {
+  if (onTabNavigateBack && onTabNavigateBack(source)) {
     return true;
   }
 

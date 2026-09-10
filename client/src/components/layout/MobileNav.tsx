@@ -11,13 +11,14 @@ export interface MobileNavProps {
 const navItems: Array<{
   key: TabKey;
   label: string;
+  shortLabel: string;
   icon: LucideIcon;
   activeClass: string;
 }> = [
-  { key: "today", label: "Hôm nay", icon: Sun, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
-  { key: "tasks", label: "Công việc", icon: CheckSquare, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
-  { key: "notes", label: "Ghi chép", icon: NotebookPen, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
-  { key: "notebooks", label: "Sổ tay", icon: BookMarked, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
+  { key: "today", label: "Hôm nay", shortLabel: "Nay", icon: Sun, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
+  { key: "tasks", label: "Công việc", shortLabel: "Việc", icon: CheckSquare, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
+  { key: "notes", label: "Ghi chép", shortLabel: "Ghi", icon: NotebookPen, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
+  { key: "notebooks", label: "Sổ tay", shortLabel: "Sổ", icon: BookMarked, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
 ];
 
 const isNavItemActive = (
@@ -114,22 +115,24 @@ export const MobileNav: React.FC<MobileNavProps> = ({
       aria-label="Điều hướng chính"
     >
       <div className="grid grid-cols-4 gap-1 max-w-md mx-auto items-center">
-        {navItems.map(({ key, label, icon: Icon, activeClass }) => {
+        {navItems.map(({ key, label, shortLabel, icon: Icon, activeClass }) => {
           const isActive = isNavItemActive(activeTab, activeTaskSubTab, key);
           return (
             <button
               key={key}
               type="button"
               onClick={() => onTabChange(key)}
+              aria-label={label}
+              title={label}
               className={`relative min-h-[48px] flex flex-col items-center justify-center gap-0.5 px-0.5 rounded-[4px] border transition-all duration-150 ${
                 isActive
-                  ? `${activeClass} border-[#262626] shadow-[1.5px_1.5px_0px_#262626] -translate-y-[1px] text-[#1C1917]`
+                  ? `${activeClass} border-[#262626] shadow-[1.5px_1.5px_0px_#262626] -translate-y-[1px]`
                   : "bg-transparent border-transparent text-[#78716C] hover:text-[#1C1917] hover:bg-white/60"
               } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
             >
               <Icon size={18} strokeWidth={isActive ? 2.4 : 1.9} />
               <span className={`text-[10px] leading-tight whitespace-nowrap ${isActive ? "font-bold" : "font-medium"}`}>
-                {label}
+                {shortLabel}
               </span>
             </button>
           );

@@ -89,7 +89,11 @@ export const AppShell: React.FC<AppShellProps> = ({
         (getTaskTemporalState(t) === "overdue" ||
           getTaskTemporalState(t) === "pastScheduled")
     ).length;
-    const dueToday = tasks.filter((t) => !t.completed && isTaskDueToday(t)).length;
+    const dueToday = tasks.filter((t) => {
+      if (t.completed || !isTaskDueToday(t)) return false;
+      const temporal = getTaskTemporalState(t);
+      return temporal !== "overdue" && temporal !== "pastScheduled";
+    }).length;
     return overdue + dueToday;
   }, [tasks]);
 

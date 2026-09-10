@@ -1,15 +1,13 @@
 import { LocalNotifications } from "@capacitor/local-notifications";
+import { Capacitor } from "@capacitor/core";
 import { TaskDto } from "../types";
 
 // ==========================================
-// SERVICE: System & Push Notification Engine (Android & Web Desktop)
+// SERVICE: Native Android & Web/PWA Notification Engine
 // ==========================================
 
 export const isNativePlatform = (): boolean => {
-  return (
-    typeof (window as any).Capacitor !== "undefined" &&
-    (window as any).Capacitor.isNativePlatform()
-  );
+  return Capacitor.isNativePlatform();
 };
 
 /**

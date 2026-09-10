@@ -207,6 +207,15 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
             {weekDays.map((day) => {
               const dayTasks = getTasksForDate(day.dateStr);
               const completed = dayTasks.filter((task) => task.completed).length;
+              const scheduled = dayTasks.filter(
+                (task) => normalizeTaskTimeType(task) === "scheduled",
+              ).length;
+              const deadlines = dayTasks.filter(
+                (task) => normalizeTaskTimeType(task) === "deadline",
+              ).length;
+              const progressPercent = dayTasks.length > 0
+                ? Math.round((completed / dayTasks.length) * 100)
+                : 0;
               const isSelected = day.dateStr === selectedDay?.dateStr;
               const isToday = day.dateStr === todayStr;
 
@@ -215,7 +224,7 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
                   key={day.dateStr}
                   type="button"
                   onClick={() => (onPreviewDate ? onPreviewDate(day.dateStr) : onSelectDate(day.dateStr))}
-                  className={`relative min-h-[58px] border-r border-[#D4CEBF] px-1.5 py-1.5 text-left transition-colors last:border-r-0 hover:bg-white ${
+                  className={`relative min-h-[78px] border-r border-[#D4CEBF] px-1.5 py-1.5 text-left transition-colors last:border-r-0 hover:bg-white ${
                     isSelected ? "bg-[#1C1917]" : isToday ? "bg-[#FAF8F3]" : ""
                   }`}
                   aria-label={`${day.dayName}, ngày ${day.dayNum}, ${dayTasks.length} việc`}
@@ -225,9 +234,17 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
                       Nay
                     </span>
                   )}
-                  <span className={`block font-mono text-[10px] font-bold ${isSelected ? "text-white" : "text-[#57534E]"}`}>{day.dayName}</span>
-                  <span className={`block text-sm font-black ${isSelected ? "text-white" : "text-[#1C1917]"}`}>{day.dayNum}</span>
-                  <span className={`font-mono text-[9px] ${isSelected ? "text-[#E7E5E4]" : "text-[#78716C]"}`}>{completed}/{dayTasks.length} xong</span>
+                  <span className={`block text-[10px] font-semibold ${isSelected ? "text-white" : "text-[#57534E]"}`}>{day.dayName}</span>
+                  <span className={`block text-sm font-bold ${isSelected ? "text-white" : "text-[#1C1917]"}`}>{day.dayNum}</span>
+                  <span className={`mt-0.5 block truncate text-[10px] font-medium ${isSelected ? "text-[#E7E5E4]" : "text-[#78716C]"}`}>
+                    {dayTasks.length} việc · {scheduled} hẹn · {deadlines} hạn
+                  </span>
+                  <div className={`mt-1 h-1 w-full overflow-hidden rounded-[2px] border ${isSelected ? "border-[#E7E5E4] bg-[#57534E]" : "border-[#D4CEBF] bg-[#F3EFE6]"}`}>
+                    <div
+                      className={`h-full ${isSelected ? "bg-[#FEF08A]" : "bg-[#1C1917]"}`}
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
                 </button>
               );
             })}

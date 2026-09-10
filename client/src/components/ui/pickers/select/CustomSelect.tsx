@@ -82,7 +82,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full min-w-0 flex items-center justify-between gap-1.5 px-2.5 py-1.5 text-xs bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] hover:-translate-y-[0.5px] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all select-none text-[#1C1917]"
+        className="w-full min-w-0 flex items-center justify-between gap-1.5 px-2.5 py-1.5 text-sm bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] hover:-translate-y-[0.5px] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all select-none text-[#1C1917]"
       >
         <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
           {selectedOption ? (
@@ -92,7 +92,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                   <DynamicIcon name={selectedOption.icon} size={13} strokeWidth={2.2} />
                 </span>
               )}
-              <span className="truncate font-bold text-left text-xs block min-w-0 flex-1">
+              <span className="truncate font-bold text-left text-sm block min-w-0 flex-1">
                 {selectedOption.label}
               </span>
               {selectedOption.badge && (
@@ -107,7 +107,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
               )}
             </>
           ) : (
-            <span className="text-[#78716C] truncate text-left text-xs block min-w-0 flex-1">
+            <span className="text-[#78716C] truncate text-left text-sm block min-w-0 flex-1">
               {placeholder}
             </span>
           )}

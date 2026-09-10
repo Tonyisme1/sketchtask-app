@@ -57,7 +57,9 @@ export const loadNotesFromStorage = (): NoteItem[] => {
         typeof item.updatedAt === "string"
     );
 
-    return validNotes.length > 0 ? validNotes : INITIAL_NOTES;
+    return validNotes.length > 0
+      ? validNotes.map((note) => ({ ...note, isPinned: Boolean(note.isPinned) }))
+      : INITIAL_NOTES;
   } catch (error) {
     console.warn("Lỗi khi đọc danh sách ghi chú từ localStorage:", error);
     return INITIAL_NOTES;

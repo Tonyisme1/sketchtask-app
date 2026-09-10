@@ -48,7 +48,7 @@ const QuickTaskAccordion: React.FC<QuickTaskSectionProps> = ({
       aria-expanded={open}
       className="w-full min-h-[42px] px-3 flex items-center justify-between gap-2 text-left cursor-pointer hover:bg-[#FAF8F3] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#1C1917]"
     >
-      <span className="text-[10px] font-black uppercase font-mono tracking-wider text-[#78716C] flex items-center gap-1.5">
+      <span className="text-xs font-black uppercase font-mono tracking-wider text-[#57534E] flex items-center gap-1.5">
         {icon}
         <span>{title}</span>
       </span>
@@ -190,10 +190,10 @@ export const QuickTaskModal: React.FC = () => {
         {/* Header */}
         <div className="px-5 pt-4 pb-2.5 flex items-start justify-between border-b border-[#262626]/15">
           <div>
-            <span className="text-[10px] font-black uppercase font-mono tracking-wider text-[#78716C] block">
+            <span className="text-xs font-black uppercase font-mono tracking-wider text-[#57534E] block">
               {contextName}
             </span>
-            <h2 className="text-base font-black text-[#1C1917] tracking-tight">
+            <h2 className="text-lg font-black text-[#1C1917] tracking-tight">
               Thêm công việc mới
             </h2>
           </div>
@@ -231,19 +231,19 @@ export const QuickTaskModal: React.FC = () => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Bạn cần làm gì?..."
-              className="flex-1 bg-transparent text-base font-bold text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none tracking-tight"
+              className="flex-1 bg-transparent text-lg font-bold text-[#1C1917] placeholder:text-[#57534E] focus:outline-none tracking-tight"
             />
             <button
               type="submit"
               disabled={!title.trim()}
-              className="px-3 py-1 bg-[#1C1917] text-white disabled:opacity-30 disabled:cursor-not-allowed text-xs font-bold rounded-[4px] border-[1.5px] border-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer transition-all shrink-0"
+              className="px-3 py-1 bg-[#1C1917] text-white disabled:opacity-30 disabled:cursor-not-allowed text-sm font-bold rounded-[4px] border-[1.5px] border-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer transition-all shrink-0"
             >
               Thêm
             </button>
           </div>
 
           {/* Sub Row: Plain task & Add details toggle */}
-          <div className="flex items-center justify-between text-xs text-[#78716C] font-mono">
+          <div className="flex items-center justify-between text-sm text-[#57534E] font-mono">
             <span>{showDetails ? "Chi tiết mở rộng" : "Công việc cơ bản"}</span>
             <button
               type="button"
@@ -257,7 +257,7 @@ export const QuickTaskModal: React.FC = () => {
 
           {/* Gợi ý khi chưa nhập */}
           {!showDetails && !title && (
-            <p className="text-[11px] text-[#A8A29E] font-mono italic">
+            <p className="text-xs text-[#57534E] font-mono italic">
               💡 Gợi ý: Nhập tên công việc rồi bấm Thêm để tạo nhanh.
             </p>
           )}
@@ -273,10 +273,10 @@ export const QuickTaskModal: React.FC = () => {
                 onToggle={() => toggleSection("timing")}
               >
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                   {/* Ngày thực hiện / Hạn chót */}
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-[#57534E] flex items-center gap-1">
+                    <label className="text-xs font-bold text-[#57534E] flex items-center gap-1">
                       <Calendar size={12} />
                       <span>Ngày:</span>
                     </label>
@@ -290,7 +290,7 @@ export const QuickTaskModal: React.FC = () => {
 
                   {/* Giờ hạn chót hoặc khung giờ */}
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-[#57534E] flex items-center gap-1">
+                    <label className="text-xs font-bold text-[#57534E] flex items-center gap-1">
                       <Clock size={12} />
                       <span>Giờ / Khung giờ:</span>
                     </label>
@@ -324,8 +324,8 @@ export const QuickTaskModal: React.FC = () => {
                 </div>
 
                 {/* Chế độ thời gian */}
-                <div className="flex items-center gap-2 pt-1 border-t border-[#262626]/10 text-xs">
-                  <span className="text-[11px] font-bold text-[#78716C]">Loại:</span>
+                <div className="flex items-center gap-2 pt-1 border-t border-[#262626]/10 text-sm">
+                  <span className="text-xs font-bold text-[#57534E]">Loại:</span>
                   <button
                     type="button"
                     onClick={() => setTimeType("deadline")}
@@ -359,10 +359,10 @@ export const QuickTaskModal: React.FC = () => {
                 onToggle={() => toggleSection("organize")}
               >
 
-                <div className="space-y-2 text-xs">
+                <div className="space-y-2 text-sm">
                   {/* Mức độ ưu tiên */}
                   <div className="flex items-center justify-between gap-2">
-                    <span className="font-bold text-[#78716C] flex items-center gap-1 shrink-0">
+                    <span className="font-bold text-[#57534E] flex items-center gap-1 shrink-0">
                       <Sparkles size={12} />
                       <span>Ưu tiên:</span>
                     </span>
@@ -451,7 +451,7 @@ export const QuickTaskModal: React.FC = () => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Thêm ghi chú chi tiết..."
-                  className="w-full p-2.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-medium text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none resize-none"
+                  className="w-full p-2.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] text-sm font-medium text-[#1C1917] placeholder:text-[#57534E] focus:outline-none resize-none"
                 />
               </QuickTaskAccordion>
             </div>
@@ -463,7 +463,7 @@ export const QuickTaskModal: React.FC = () => {
           <button
             type="button"
             onClick={closeQuickTaskModal}
-            className="px-3 py-1.5 rounded-[4px] bg-white hover:bg-slate-100 border border-[#262626] text-xs font-bold text-[#57534E] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
+            className="px-3 py-1.5 rounded-[4px] bg-white hover:bg-slate-100 border border-[#262626] text-sm font-bold text-[#57534E] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
           >
             Hủy
           </button>

@@ -7,6 +7,7 @@ export interface NoteItem {
   title: string;
   content: string;
   notebookId?: string;
+  isPinned?: boolean;
   createdAt: string;
   updatedAt: string;
 }

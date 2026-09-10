@@ -25,6 +25,7 @@ export interface JournalBookProps {
   initialDate?: string;
   initialEntryId?: string;
   notebookId?: string;
+  onClearNavigationTarget?: () => void;
   onNavigateTab?: (tab: TabKey) => void;
 }
 
@@ -71,6 +72,7 @@ export const JournalBook: React.FC<JournalBookProps> = ({
   initialDate,
   initialEntryId,
   notebookId: propNotebookId,
+  onClearNavigationTarget,
   onNavigateTab,
 }) => {
   const {
@@ -81,13 +83,14 @@ export const JournalBook: React.FC<JournalBookProps> = ({
     deleteJournalEntry,
     journalPromptTask,
     setJournalPromptTask,
+    isJournalBookOpen,
+    setIsJournalBookOpen,
   } = useAppStore();
 
   const todayStr = getLocalTodayStr();
   const [selectedDate, setSelectedDate] = useState<string>(initialDate || todayStr);
-  const [isBookOpen, setIsBookOpen] = useState<boolean>(
-    () => Boolean(initialDate || initialEntryId || propNotebookId)
-  );
+  const isBookOpen =
+    isJournalBookOpen || Boolean(initialDate || initialEntryId || propNotebookId);
   const [selectedNotebookFilter, setSelectedNotebookFilter] = useState<string>(
     propNotebookId || "all"
   );
@@ -100,9 +103,10 @@ export const JournalBook: React.FC<JournalBookProps> = ({
   useEffect(() => {
     if (propNotebookId) {
       setSelectedNotebookFilter(propNotebookId);
-      setIsBookOpen(true);
+      setIsJournalBookOpen(true);
+      onClearNavigationTarget?.();
     }
-  }, [propNotebookId]);
+  }, [onClearNavigationTarget, propNotebookId, setIsJournalBookOpen]);
 
   // Xử lý navigation target: nếu có initialEntryId thì tìm date của entry đó
   useEffect(() => {
@@ -110,20 +114,23 @@ export const JournalBook: React.FC<JournalBookProps> = ({
       const entry = journalEntries.find((e) => e.id === initialEntryId);
       if (entry) {
         setSelectedDate(entry.date);
+        setSelectedNotebookFilter(entry.notebookId || "all");
         setFocusedEntryId(entry.id);
-        setIsBookOpen(true);
+        setIsJournalBookOpen(true);
+        onClearNavigationTarget?.();
       }
     } else if (initialDate) {
       setSelectedDate(initialDate);
-      setIsBookOpen(true);
+      setIsJournalBookOpen(true);
+      onClearNavigationTarget?.();
     }
-  }, [initialDate, initialEntryId, journalEntries]);
+  }, [initialDate, initialEntryId, journalEntries, onClearNavigationTarget, setIsJournalBookOpen]);
 
   // Lắng nghe gợi ý viết nhật ký từ promptTask
   useEffect(() => {
     if (journalPromptTask) {
       setSelectedDate(todayStr);
-      setIsBookOpen(true);
+      setIsJournalBookOpen(true);
       const time = getNowTimeStr();
       const created = addJournalEntry({
         date: todayStr,
@@ -138,7 +145,7 @@ export const JournalBook: React.FC<JournalBookProps> = ({
       setFocusedEntryId(created.id);
       setJournalPromptTask(null);
     }
-  }, [journalPromptTask, todayStr, addJournalEntry, selectedNotebookFilter, setJournalPromptTask]);
+  }, [journalPromptTask, todayStr, addJournalEntry, selectedNotebookFilter, setIsJournalBookOpen, setJournalPromptTask]);
 
   // Đóng notebook popover khi click ngoài
   useEffect(() => {
@@ -233,7 +240,7 @@ export const JournalBook: React.FC<JournalBookProps> = ({
 
   // Thêm nhanh dòng nhật ký
   const handleAddNewEntry = (initialContent: string = "", linkedTaskId?: string) => {
-    setIsBookOpen(true);
+    setIsJournalBookOpen(true);
     const time = getNowTimeStr();
     const targetNbId =
       selectedNotebookFilter !== "all" && selectedNotebookFilter !== "unassigned"
@@ -309,8 +316,8 @@ export const JournalBook: React.FC<JournalBookProps> = ({
   const openJournalBook = useCallback((filterId: string, date?: string) => {
     setSelectedNotebookFilter(filterId);
     if (date) setSelectedDate(date);
-    setIsBookOpen(true);
-  }, []);
+    setIsJournalBookOpen(true);
+  }, [setIsJournalBookOpen]);
 
   // =========================================================================
   // VIEW 1: TRƯỚC KHI MỞ SỔ (BÌA SỔ NHẬT KÝ Ở NGOÀI)
@@ -574,7 +581,7 @@ export const JournalBook: React.FC<JournalBookProps> = ({
         <div className="flex items-center gap-2 flex-wrap">
           <button
             type="button"
-            onClick={() => setIsBookOpen(false)}
+            onClick={() => setIsJournalBookOpen(false)}
             className="h-8 px-2.5 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[5px] text-xs font-bold text-[#1C1917] flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
             title="Quay lại bìa sổ"
           >

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Bell, Menu } from "lucide-react";
 import { TabKey, NavigationTarget } from "../../shared/types";
 import { useAppStore } from "../../shared/stores";
@@ -27,6 +27,12 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
 }) => {
   const { user, toggleSidebar, tasks } = useAppStore();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const alertCount = useMemo(() => {
     const overdue = tasks.filter((task) => {
@@ -34,9 +40,13 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
       const temporal = getTaskTemporalState(task);
       return temporal === "overdue" || temporal === "pastScheduled";
     }).length;
-    const dueToday = tasks.filter((task) => !task.completed && isTaskDueToday(task)).length;
+    const dueToday = tasks.filter((task) => {
+      if (task.completed || !isTaskDueToday(task)) return false;
+      const temporal = getTaskTemporalState(task);
+      return temporal !== "overdue" && temporal !== "pastScheduled";
+    }).length;
     return overdue + dueToday;
-  }, [tasks]);
+  }, [tasks, now]);
 
   return (
     <header className="sticky top-0 z-30 flex h-[60px] items-center justify-between border-b border-[#262626]/20 bg-[#FBF9F4] px-0 pr-6 lg:pr-8 xl:pr-10">

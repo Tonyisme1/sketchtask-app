@@ -11,13 +11,14 @@ export interface TabletNavProps {
 const navItems: Array<{
   key: TabKey;
   label: string;
+  shortLabel: string;
   icon: LucideIcon;
   activeClass: string;
 }> = [
-  { key: "today", label: "Hôm nay", icon: Sun, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
-  { key: "tasks", label: "Công việc", icon: CheckSquare, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
-  { key: "notes", label: "Ghi chép", icon: NotebookPen, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
-  { key: "notebooks", label: "Sổ tay", icon: BookMarked, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
+  { key: "today", label: "Hôm nay", shortLabel: "Nay", icon: Sun, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
+  { key: "tasks", label: "Công việc", shortLabel: "Việc", icon: CheckSquare, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
+  { key: "notes", label: "Ghi chép", shortLabel: "Ghi", icon: NotebookPen, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
+  { key: "notebooks", label: "Sổ tay", shortLabel: "Sổ", icon: BookMarked, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
 ];
 
 const isNavItemActive = (
@@ -114,13 +115,15 @@ export const TabletNav: React.FC<TabletNavProps> = ({
       aria-label="Điều hướng chính Tablet"
     >
       <div className="grid grid-cols-4 gap-2 max-w-lg mx-auto items-center">
-        {navItems.map(({ key, label, icon: Icon, activeClass }) => {
+        {navItems.map(({ key, label, shortLabel, icon: Icon, activeClass }) => {
           const isActive = isNavItemActive(activeTab, activeTaskSubTab, key);
           return (
             <button
               key={key}
               type="button"
               onClick={() => onTabChange(key)}
+              aria-label={label}
+              title={label}
               className={`relative min-h-[52px] flex flex-col items-center justify-center gap-1 px-2 rounded-[6px] border transition-all duration-150 cursor-pointer ${
                 isActive
                   ? `${activeClass} border-[#262626] shadow-[2px_2px_0px_#262626] -translate-y-[1px]`
@@ -129,7 +132,7 @@ export const TabletNav: React.FC<TabletNavProps> = ({
             >
               <Icon size={20} strokeWidth={isActive ? 2.4 : 2} />
               <span className={`text-xs leading-tight whitespace-nowrap ${isActive ? "font-black text-white" : "font-bold"}`}>
-                {label}
+                {shortLabel}
               </span>
             </button>
           );

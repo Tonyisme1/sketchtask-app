@@ -288,7 +288,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       <div
         role="document"
         onClick={(e) => e.stopPropagation()}
-        className={`relative w-full h-[100dvh] sm:h-auto sm:max-w-md bg-[#FBF9F4] border-none sm:border-[2px] sm:border-[#262626] rounded-none sm:rounded-[8px] shadow-none sm:shadow-[6px_6px_0px_#262626] p-4 sm:p-5 pt-[max(env(safe-area-inset-top),16px)] sm:pt-5 pb-[max(env(safe-area-inset-bottom),16px)] sm:pb-5 z-[1000000] overflow-y-auto no-scrollbar flex flex-col justify-start ${isClosing ? "mobile-panel-exit" : "mobile-panel-enter"}`}
+        className={`relative w-full h-[100dvh] sm:h-auto sm:max-w-md bg-[#FBF9F4] border-none sm:border-[2px] sm:border-[#262626] rounded-none sm:rounded-[8px] shadow-none sm:shadow-[6px_6px_0px_#262626] p-4 sm:p-5 pt-[max(env(safe-area-inset-top),24px)] sm:pt-5 pb-[max(env(safe-area-inset-bottom),24px)] sm:pb-5 z-[1000000] overflow-y-auto no-scrollbar flex flex-col justify-start ${isClosing ? "mobile-panel-exit" : "mobile-panel-enter"}`}
       >
         {/* Paper Tape Effect on Desktop */}
         <div className="hidden sm:block absolute -top-3 left-1/2 -translate-x-1/2 w-28 h-5 bg-[#FEF08A]/90 border-x border-[#262626]/40 rotate-1 shadow-[1px_1px_0px_#262626] pointer-events-none" />
@@ -629,7 +629,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <ArrowLeft size={17} strokeWidth={2.4} />
                 </button>
                 <div>
-                  <h3 className="font-bold text-sm sm:text-base text-[#1C1917]">
+                  <h3 className="font-bold text-base sm:text-base text-[#1C1917]">
                     {authMode === "signin"
                       ? "Đăng nhập"
                       : "Đăng ký"}
@@ -644,10 +644,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             {/* Vertically centered form container */}
-            <div className="my-auto py-3 space-y-3.5 w-full">
+            <div className="my-auto py-4 space-y-3.5 w-full">
               {/* Subtitle / Intro */}
               <div className="bg-[#FEF08A]/40 border border-[#262626] p-2.5 rounded-[4px] shadow-[1px_1px_0px_#262626]">
-                <p className="text-xs text-[#1C1917] leading-relaxed flex items-center gap-1.5">
+                <p className="text-sm sm:text-xs text-[#1C1917] leading-relaxed flex items-center gap-1.5">
                   {authMode === "signin" ? (
                     <>
                       <Sparkles size={14} className="text-amber-600 shrink-0" />
@@ -670,7 +670,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <form onSubmit={handleSubmit} className="space-y-3">
                 {authMode === "signup" && (
                   <div>
-                    <label className="block text-xs font-bold text-[#1C1917] mb-1">
+                    <label className="block text-sm sm:text-xs font-bold text-[#1C1917] mb-1">
                       Tên:
                     </label>
                     <TextInput
@@ -685,7 +685,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 )}
 
                 <div>
-                  <label className="block text-xs font-bold text-[#1C1917] mb-1">
+                  <label className="block text-sm sm:text-xs font-bold text-[#1C1917] mb-1">
                     Email:
                   </label>
                   <TextInput
@@ -700,7 +700,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#1C1917] mb-1">
+                  <label className="block text-sm sm:text-xs font-bold text-[#1C1917] mb-1">
                     Mật khẩu:
                   </label>
                   <TextInput
@@ -715,7 +715,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
 
                 {errorMessage && (
-                  <p className="text-[11px] text-red-600 font-medium bg-red-50 p-2 border border-red-200 rounded flex items-center gap-1.5">
+                  <p className="text-sm sm:text-[11px] text-red-600 font-medium bg-red-50 p-2 border border-red-200 rounded flex items-center gap-1.5">
                     <AlertCircle size={13} className="shrink-0" />
                     <span>{errorMessage}</span>
                   </p>
@@ -727,7 +727,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     variant="primary"
                     size="md"
                     disabled={isSubmitting}
-                    className="w-full justify-center gap-1.5"
+                    className="w-full justify-center gap-1.5 text-base sm:text-sm"
                   >
                     <span>
                       {isSubmitting
@@ -755,7 +755,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         type="button"
                         onClick={handleGoogleClick}
                         disabled={isSubmitting}
-                        className="w-full py-2 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] hover:bg-[#F3EFE6] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center gap-2.5"
+                        className="w-full py-2 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-sm sm:text-xs font-bold text-[#1C1917] hover:bg-[#F3EFE6] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center gap-2.5"
                       >
                         {/* Google Official SVG Icon */}
                         <svg
@@ -790,7 +790,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             {/* Chuyển Đổi Qua Lại: Đăng Nhập <-> Đăng Ký */}
-            <div className="mt-4 pt-3 border-t border-[#D4CEBF] text-center text-xs">
+            <div className="mt-4 pt-3 border-t border-[#D4CEBF] text-center text-sm sm:text-xs">
               {authMode === "signin" ? (
                 <p className="text-[#78716C]">
                   Chưa có tài khoản?{" "}

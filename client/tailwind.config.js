@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -8,17 +9,17 @@ export default {
     extend: {
       colors: {
         canvas: {
-          DEFAULT: '#FBF9F4',
-          surface: '#FFFFFF',
-          muted: '#F3EFE6',
+          DEFAULT: 'var(--bg-canvas)',
+          surface: 'var(--bg-surface)',
+          muted: 'var(--bg-surface-muted)',
         },
         ink: {
-          DEFAULT: '#262626',
-          muted: '#D4CEBF',
+          DEFAULT: 'var(--border-ink)',
+          muted: 'var(--border-ink-muted)',
         },
         text: {
-          main: '#1C1917',
-          muted: '#78716C',
+          main: 'var(--text-main)',
+          muted: 'var(--text-muted)',
         },
         accent: {
           yellow: '#FEF08A',
@@ -29,9 +30,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['var(--app-font-family)'],
-        hand: ['Patrick Hand', 'Caveat', 'cursive'],
-        mono: ['"JetBrains Mono"', 'Fira Code', 'monospace'],
+        sans: ['var(--font-sans)'],
+        hand: ['var(--font-hand)'],
+        mono: ['var(--font-sans)'],
       },
       boxShadow: {
         'ink-sm': '1.5px 1.5px 0px #262626',

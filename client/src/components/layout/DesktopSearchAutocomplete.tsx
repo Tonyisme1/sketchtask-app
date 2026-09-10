@@ -14,6 +14,7 @@ import { useAppStore } from "../../stores/appStore";
 import { TabKey, NavigationTarget } from "../../types";
 import { loadNotesFromStorage } from "../../utils/noteStorage";
 import { getTaskEffectiveDate, getTaskEffectiveTime } from "../../utils/taskSemantics";
+import { matchesQuery, stripHtmlText } from "../../utils/search";
 
 interface DesktopSearchAutocompleteProps {
   onNavigateTab: (tab: TabKey, target?: NavigationTarget) => void;
@@ -59,11 +60,11 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
   // Load notes
   const notes = useMemo(() => {
     return loadNotesFromStorage();
-  }, [isOpen]);
+  }, [isOpen, query]);
 
   // Live filter results
   const searchResults = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = query.trim();
     if (!q) {
       // Khi ô tìm kiếm rỗng: hiển thị các mục gần đây / gợi ý nhanh
       const recentTasks = tasks.filter((t) => !t.completed).slice(0, 4);
@@ -80,32 +81,29 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
 
     const matchingTasks = tasks
       .filter(
-        (t) =>
-          t.title.toLowerCase().includes(q) ||
-          (t.description && t.description.toLowerCase().includes(q)) ||
-          (t.tag && t.tag.toLowerCase().includes(q))
+        (t) => matchesQuery(
+          [t.title, t.description, t.tag, notebooks.find((nb) => nb.id === t.notebookId)?.name]
+            .filter(Boolean)
+            .join(" "),
+          q,
+        )
       )
       .slice(0, 6);
 
     const matchingNotes = notes
       .filter(
-        (n) =>
-          n.title.toLowerCase().includes(q) ||
-          n.content.toLowerCase().includes(q)
+        (n) => matchesQuery(`${n.title} ${stripHtmlText(n.content)}`, q)
       )
       .slice(0, 4);
 
     const matchingJournal = journalEntries
       .filter(
-        (j) =>
-          j.content.toLowerCase().includes(q) ||
-          j.date.toLowerCase().includes(q) ||
-          j.time.toLowerCase().includes(q)
+        (j) => matchesQuery(`${j.content} ${j.date} ${j.time}`, q)
       )
       .slice(0, 3);
 
     const matchingNotebooks = notebooks
-      .filter((nb) => nb.name.toLowerCase().includes(q))
+      .filter((nb) => matchesQuery(`${nb.name} ${nb.description || ""}`, q))
       .slice(0, 3);
 
     return {
@@ -128,18 +126,18 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
     setIsOpen(false);
   };
 
-  const handleSelectNote = () => {
-    onNavigateTab("notes");
+  const handleSelectNote = (noteId: string) => {
+    onNavigateTab("notes", { noteId });
     setIsOpen(false);
   };
 
-  const handleSelectJournal = () => {
-    onNavigateTab("journal");
+  const handleSelectJournal = (journalEntryId: string) => {
+    onNavigateTab("journal", { journalEntryId });
     setIsOpen(false);
   };
 
-  const handleSelectNotebook = () => {
-    onNavigateTab("notebooks");
+  const handleSelectNotebook = (notebookId: string) => {
+    onNavigateTab("notebooks", { notebookId });
     setIsOpen(false);
   };
 
@@ -259,7 +257,7 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
                     <button
                       key={note.id}
                       type="button"
-                      onClick={handleSelectNote}
+                      onClick={() => handleSelectNote(note.id)}
                       className="w-full px-3 py-2 text-left flex items-center justify-between gap-2 hover:bg-[#FAF8F3] transition-colors cursor-pointer group"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
@@ -269,7 +267,7 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
                             {note.title || "Ghi chú không tên"}
                           </p>
                           <p className="text-[10px] text-[#78716C] truncate mt-0.5">
-                            {note.content}
+                            {stripHtmlText(note.content)}
                           </p>
                         </div>
                       </div>
@@ -291,7 +289,7 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
                     <button
                       key={journal.id}
                       type="button"
-                      onClick={handleSelectJournal}
+                      onClick={() => handleSelectJournal(journal.id)}
                       className="w-full px-3 py-2 text-left flex items-center justify-between gap-2 hover:bg-[#FAF8F3] transition-colors cursor-pointer group"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
@@ -301,7 +299,7 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
                             Nhật ký ngày {journal.date}
                           </p>
                           <p className="text-[10px] text-[#78716C] truncate mt-0.5">
-                            {journal.content}
+                            {stripHtmlText(journal.content)}
                           </p>
                         </div>
                       </div>
@@ -323,7 +321,7 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
                     <button
                       key={nb.id}
                       type="button"
-                      onClick={handleSelectNotebook}
+                      onClick={() => handleSelectNotebook(nb.id)}
                       className="w-full px-3 py-2 text-left flex items-center justify-between gap-2 hover:bg-[#FAF8F3] transition-colors cursor-pointer group"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">

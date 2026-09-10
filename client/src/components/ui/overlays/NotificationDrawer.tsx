@@ -1,10 +1,11 @@
 import React, { useMemo } from "react";
-import { ArrowLeft, AlertTriangle, Clock, Flame, CheckCircle2, X } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
 import { useAppStore } from "../../../stores/appStore";
 import { NavigationTarget, TabKey, TaskDto } from "../../../types";
-import { formatFullDate, getLocalTodayStr } from "../../../utils/date";
+import { formatFullDate } from "../../../utils/date";
 import { getTaskEffectiveDate, getTaskEffectiveTime, getTaskTemporalState, isTaskDueToday } from "../../../utils/taskSemantics";
 import { useScrollLock } from "../../../hooks/useScrollLock";
+import { registerBackHandler } from "../../../utils/backNavigation";
 
 interface NotificationDrawerProps {
   isOpen: boolean;
@@ -19,12 +20,28 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
   onNavigateTab,
   onSelectTask,
 }) => {
-  const { tasks, habits, toggleTask, toggleHabitDay } = useAppStore();
-  const todayStr = getLocalTodayStr(new Date());
+  const { tasks, toggleTask } = useAppStore();
+  const [now, setNow] = React.useState(() => Date.now());
   const [isVisible, setIsVisible] = React.useState(isOpen);
   const [isClosing, setIsClosing] = React.useState(false);
+  const onCloseRef = React.useRef(onClose);
+  onCloseRef.current = onClose;
 
-  useScrollLock(isVisible);
+  useScrollLock(isVisible, { mobileStrategy: "overflow" });
+
+  // The drawer must close before Back navigates through the app.
+  React.useEffect(() => {
+    if (!isVisible) return;
+    return registerBackHandler(() => {
+      onCloseRef.current();
+      return true;
+    });
+  }, [isVisible]);
+
+  React.useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   // Keep the drawer mounted long enough to play the reverse transition.
   React.useEffect(() => {
@@ -52,7 +69,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
       const state = getTaskTemporalState(t);
       return state === "overdue" || state === "pastScheduled";
     });
-  }, [tasks]);
+  }, [tasks, now]);
 
   // 2. Việc đến hạn hôm nay
   const todayDueTasks = useMemo(() => {
@@ -62,7 +79,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
       const state = getTaskTemporalState(t);
       return state !== "overdue" && state !== "pastScheduled";
     });
-  }, [tasks]);
+  }, [tasks, now]);
 
   const overdueGroups = useMemo(() => {
     const groups = new Map<string, TaskDto[]>();
@@ -86,12 +103,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
       }));
   }, [overdueTasks]);
 
-  // 3. Thói quen chưa hoàn thành hôm nay
-  const pendingHabits = useMemo(() => {
-    return habits.filter((h) => !h.completedDates.includes(todayStr));
-  }, [habits, todayStr]);
-
-  const totalAlerts = overdueTasks.length + todayDueTasks.length + pendingHabits.length;
+  const totalAlerts = overdueTasks.length + todayDueTasks.length;
 
   if (!isVisible) return null;
 
@@ -104,8 +116,8 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
         className={`relative w-full h-[100dvh] sm:h-auto sm:max-w-md bg-[#FBF9F4] border-none sm:border-[2px] sm:border-[#262626] rounded-none sm:rounded-[8px] shadow-none sm:shadow-[4px_4px_0px_#262626] p-4 sm:p-5 pt-[max(env(safe-area-inset-top),16px)] sm:pt-5 pb-[max(env(safe-area-inset-bottom),16px)] sm:pb-5 space-y-4 max-h-[100dvh] sm:max-h-[90vh] flex flex-col ${isClosing ? "mobile-panel-exit" : "mobile-panel-enter"}`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header with Back Arrow & Close Button */}
-        <div className="flex items-center justify-between pb-2.5 border-b border-[#262626]/20">
+        {/* Header chỉ dùng một mũi tên quay lại */}
+        <div className="flex items-center pb-2.5 border-b border-[#262626]/20">
           <div className="flex items-center gap-2.5">
             <button
               type="button"
@@ -120,16 +132,6 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
               <p className="text-[10px] text-[#78716C] font-mono">Nhắc nhở công việc</p>
             </div>
           </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-7 h-7 rounded-[4px] bg-white hover:bg-[#FAF8F3] border border-[#262626] shadow-[1px_1px_0px_#262626] flex items-center justify-center text-[#1C1917] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer shrink-0"
-            title="Đóng"
-            aria-label="Đóng"
-          >
-            <X size={15} strokeWidth={2.4} />
-          </button>
         </div>
 
         {/* Content list */}
@@ -138,7 +140,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
             <div className="text-center py-10 text-[#78716C] space-y-2">
               <CheckCircle2 size={32} className="mx-auto text-[#1C1917]" />
               <p className="text-sm font-bold text-[#1C1917]">Không có thông báo</p>
-              <p className="text-xs font-mono">Bạn đã xử lý hết việc và thói quen hôm nay.</p>
+              <p className="text-xs font-mono">Bạn đã xử lý hết việc hôm nay.</p>
             </div>
           ) : (
             <>
@@ -238,32 +240,6 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                 </div>
               )}
 
-              {/* Today Pending Habits */}
-              {pendingHabits.length > 0 && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-[#1C1917] font-mono uppercase tracking-wider">
-                    <span className="flex items-center gap-1.5">
-                      <Flame size={13} className="text-[#1C1917]" />
-                      <span>Thói quen chưa tích ({pendingHabits.length})</span>
-                    </span>
-                  </div>
-                  {pendingHabits.map((habit) => (
-                    <div
-                      key={habit.id}
-                      className="bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[6px] p-2.5 shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2"
-                    >
-                      <p className="text-xs font-bold text-[#1C1917] truncate leading-tight">{habit.name}</p>
-                      <button
-                        type="button"
-                        onClick={() => toggleHabitDay(habit.id, todayStr)}
-                        className="px-2 py-0.5 bg-[#1C1917] hover:bg-[#262626] text-white border border-[#262626] rounded text-[10px] font-bold shadow-[0.5px_0.5px_0px_#262626] cursor-pointer shrink-0"
-                      >
-                        Tích ngay
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
             </>
           )}
         </div>

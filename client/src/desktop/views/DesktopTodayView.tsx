@@ -191,10 +191,10 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
       )}
 
       {/* 4. Phần Danh Sách Công Việc Hôm Nay (Today Task List) */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]/20">
-          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider font-mono text-[#78716C]">
-            <ListTodo size={14} className="text-[#1C1917]" />
+        <div className="space-y-3">
+        <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20">
+          <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917]">
+            <ListTodo size={16} className="text-[#1C1917]" />
             <span>Công việc cần làm ({taskListItems.filter(t => !t.completed).length})</span>
           </div>
         </div>

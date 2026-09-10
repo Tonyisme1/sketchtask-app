@@ -170,7 +170,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   };
 
   return (
-    <div className="space-y-2 select-none">
+    <div className="space-y-2.5 select-none">
       {/* 1. Hàng Thêm Nhanh Inline Tại Đầu Hoặc Cuối Danh Sách */}
       {showQuickAdd && (
         <InlineQuickAddRow

@@ -14,10 +14,12 @@ export interface UpdateInfo {
 }
 
 const SOURCES = [
-  "/version.json",
+  // Remote sources must be checked before the bundled file. The bundled
+  // version is intentionally only a fallback for offline/local builds.
   "https://sketchtask-app.vercel.app/version.json",
   "https://raw.githubusercontent.com/Tonyisme1/sketchtask-app/main/client/public/version.json",
   "https://sketchtask-app.onrender.com/api/version",
+  "/version.json",
 ];
 
 /**

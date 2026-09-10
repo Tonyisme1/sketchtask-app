@@ -24,7 +24,7 @@ export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
   const { isMobile, isTablet } = useResponsiveLayout();
 
   return (
-    <div className="flex items-center justify-between gap-2.5 flex-wrap pb-2 border-b border-[#262626] select-none">
+    <div className="flex items-center justify-between gap-2 flex-wrap pb-1.5 border-b border-[#262626] select-none">
       {/* 1. Bộ điều hướng thời gian */}
       <div className="flex items-center gap-2 flex-wrap">
         {/* Nút Chuyển Mốc Thời Gian (< Label >) */}
@@ -58,7 +58,7 @@ export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
         <button
           type="button"
           onClick={onToday}
-          className="px-2.5 py-1 text-xs font-bold bg-[#FAF8F3] hover:bg-[#F3EFE6] border-[1.5px] border-[#262626] rounded-[5px] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all"
+          className="px-2.5 py-1 text-xs font-semibold bg-[#FAF8F3] hover:bg-[#F3EFE6] border-[1.5px] border-[#262626] rounded-[5px] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all"
           title="Nhảy về mốc hiện tại"
         >
           {viewMode === "agenda" ? "Tuần này" : "Tháng này"}
@@ -72,7 +72,7 @@ export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
           <button
             type="button"
             onClick={() => onViewModeChange("agenda")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-xs font-bold transition-all ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-xs font-semibold transition-all ${
               viewMode === "agenda"
                 ? "bg-[#BBF7D0] text-[#166534] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626]"
                 : "bg-transparent text-[#78716C] hover:text-[#1C1917] border border-transparent"
@@ -85,7 +85,7 @@ export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
           <button
             type="button"
             onClick={() => onViewModeChange("month")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-xs font-bold transition-all ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-xs font-semibold transition-all ${
               viewMode === "month"
                 ? "bg-[#BAE6FD] text-[#1C1917] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626]"
                 : "bg-transparent text-[#78716C] hover:text-[#1C1917] border border-transparent"

@@ -38,6 +38,7 @@ export interface UserProfile {
 }
 
 export type ColorTheme = "warm" | "sketch" | "sepia";
+export type InterfaceStyle = "sketch" | "ios";
 export type FontSizePreference = "normal" | "large" | "xlarge";
 export type FontFamilyPreference = "inter" | "jakarta" | "system";
 
@@ -100,6 +101,8 @@ export interface AppContextType {
   // Settings
   theme: ColorTheme;
   setTheme: (theme: ColorTheme) => void;
+  interfaceStyle: InterfaceStyle;
+  setInterfaceStyle: (style: InterfaceStyle) => void;
   fontSize: FontSizePreference;
   setFontSize: (size: FontSizePreference) => void;
   fontFamily: FontFamilyPreference;
@@ -243,9 +246,13 @@ export interface AppContextType {
   selectedNotebookId: string | null;
   setSelectedNotebookId: (id: string | null) => void;
 
-  // Mobile Note Detail State (Trình soạn thảo ghi chú toàn màn hình trên mobile)
+  // Note Detail State (Trình soạn thảo ghi chú chiếm toàn không gian)
   isMobileNoteDetailOpen: boolean;
   setIsMobileNoteDetailOpen: (open: boolean) => void;
+
+  // Journal Book Detail State (Trang nhật ký bên trong một cuốn sổ)
+  isJournalBookOpen: boolean;
+  setIsJournalBookOpen: (open: boolean) => void;
 }
 
 export const APP_STORAGE_KEY = "sketchtask_local_storage_v2";
@@ -568,6 +575,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       document.body.scrollTop = 0;
     }
   }, []);
+
+  // --- Journal Book Detail State ---
+  const [isJournalBookOpen, setIsJournalBookOpenState] = useState<boolean>(false);
+  const setIsJournalBookOpen = useCallback((open: boolean) => {
+    setIsJournalBookOpenState(open);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, []);
   const [isTiltEnabled, setIsTiltEnabled] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_tilt`);
@@ -652,7 +670,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       if (metaThemeColor) {
         metaThemeColor.setAttribute(
           "content",
-          isDarkMode ? "#1C1917" : "#FBF9F4",
+          isDarkMode ? "#18181B" : "#FBF9F4",
         );
       }
     }
@@ -882,6 +900,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const [theme, setTheme] = useState<ColorTheme>("warm");
 
+  const [interfaceStyle, setInterfaceStyleState] = useState<InterfaceStyle>(() => {
+    try {
+      return localStorage.getItem(`${STORAGE_KEY}_interface_style`) === "ios"
+        ? "ios"
+        : "sketch";
+    } catch {
+      return "sketch";
+    }
+  });
+
+  const setInterfaceStyle = useCallback((style: InterfaceStyle) => {
+    setInterfaceStyleState(style);
+    localStorage.setItem(`${STORAGE_KEY}_interface_style`, style);
+  }, []);
+
   // Typography preferences are local to this device and applied at the root
   // so every responsive shell keeps the same readable scale and font.
   const [fontSize, setFontSizeState] = useState<FontSizePreference>(() => {
@@ -912,9 +945,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   useEffect(() => {
+    document.documentElement.dataset.interfaceStyle = interfaceStyle;
     document.documentElement.dataset.fontSize = fontSize;
     document.documentElement.dataset.fontFamily = fontFamily;
-  }, [fontFamily, fontSize]);
+  }, [fontFamily, fontSize, interfaceStyle]);
 
   // Khôi phục lịch nhắc sau khi reload. Preference của app và quyền của OS
   // là hai lớp độc lập; notificationService sẽ tự kiểm tra quyền trước khi gửi.
@@ -2053,6 +2087,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         closeAuthModal,
         theme,
         setTheme,
+        interfaceStyle,
+        setInterfaceStyle,
         fontSize,
         setFontSize,
         fontFamily,
@@ -2145,6 +2181,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setSelectedNotebookId,
         isMobileNoteDetailOpen,
         setIsMobileNoteDetailOpen,
+        isJournalBookOpen,
+        setIsJournalBookOpen,
       }}
     >
       {children}

@@ -44,6 +44,9 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
     setSettingsMobileSubView,
     openQuickTaskModal,
     logout,
+    selectedNotebookId,
+    isMobileNoteDetailOpen,
+    isJournalBookOpen,
   } = useAppStore();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -57,6 +60,11 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
   }, [activeTab, activeTaskSubTab, activeDetailTaskId]);
+
+  const isDetailOpen =
+    (activeTab === "notes" && Boolean(isMobileNoteDetailOpen)) ||
+    (activeTab === "journal" && Boolean(isJournalBookOpen)) ||
+    (activeTab === "notebooks" && Boolean(selectedNotebookId));
 
   // Desktop Global keyboard shortcuts: Ctrl+B (Sidebar), Ctrl+K (Search), N (New Task Modal)
   useEffect(() => {
@@ -120,32 +128,36 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
         !isTiltEnabled ? "no-tilt" : ""
       } ${paperStyle && paperStyle !== "blank" ? `paper-${paperStyle}` : ""}`}
     >
-      {/* 1. Desktop Topbar Header */}
-      <DesktopHeader
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        onNavigateRoute={onNavigateRoute}
-        onOpenSettings={handleOpenDesktopSettings}
-        onOpenLogin={() => onNavigateRoute("/login")}
-        onLogout={logout}
-      />
+      {/* 1. Desktop Topbar Header (Ẩn khi mở nội dung chi tiết) */}
+      {!isDetailOpen && (
+        <DesktopHeader
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          onNavigateRoute={onNavigateRoute}
+          onOpenSettings={handleOpenDesktopSettings}
+          onOpenLogin={() => onNavigateRoute("/login")}
+          onLogout={logout}
+        />
+      )}
 
       {/* 2. Main Workspace Layout */}
       <div className="flex-1 flex min-h-0 w-full">
-        {/* Desktop Left Sidebar */}
-        <DesktopSidebar
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          onCreateTask={openQuickTaskModal}
-          onOpenSettings={handleOpenDesktopSettings}
-        />
+        {/* Desktop Left Sidebar (Ẩn khi mở nội dung chi tiết) */}
+        {!isDetailOpen && (
+          <DesktopSidebar
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            onCreateTask={openQuickTaskModal}
+            onOpenSettings={handleOpenDesktopSettings}
+          />
+        )}
 
         {/* Main Content Area (Thoáng đãng & Hỗ trợ Docked Side Panel) */}
         <main
           key={`desktop-${activeTab}-${activeTaskSubTab}`}
           className="flex-1 min-w-0 flex flex-col w-full overflow-x-hidden"
         >
-          {activeTab === "notes" || activeTab === "journal" ? (
+          {!isDetailOpen && (activeTab === "notes" || activeTab === "journal") ? (
             <div className="px-6 pt-6 lg:px-8 xl:px-10">
               <div className="mx-auto w-full max-w-6xl 2xl:max-w-[1480px]">
                 <NotesSectionTabs activeTab={activeTab} onTabChange={handleTabChange} />

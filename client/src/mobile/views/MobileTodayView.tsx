@@ -148,10 +148,10 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
           />
         )}
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between pb-1 border-b border-[#262626]/20">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-[#1C1917]">
-              <ListTodo size={14} className="text-[#1C1917]" strokeWidth={2.4} />
+        <div className="space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917]">
+              <ListTodo size={16} className="text-[#1C1917]" strokeWidth={2.2} />
               <span>Công việc hôm nay ({taskListItems.length})</span>
             </div>
           </div>

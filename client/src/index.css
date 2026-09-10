@@ -15,28 +15,35 @@
   --accent-mint: #bbf7d0;
   --accent-sky: #bae6fd;
   --accent-lavender: #ddd6fe;
-  --app-font-scale: 1.06;
-  --app-font-family: "Inter", "Plus Jakarta Sans", system-ui, sans-serif;
+  --app-font-scale: 1.10;
+  /* One readable sans token for every shell; platform fonts keep the app usable offline. */
+  --font-sans: "Inter", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  /* Data keeps aligned numerals without introducing a second visual font. */
+  --font-mono: var(--font-sans);
+  --font-hand: "Caveat", "Patrick Hand", cursive;
+  --app-font-family: var(--font-sans);
 }
 
 html[data-font-size="normal"] {
-  --app-font-scale: 1;
+  --app-font-scale: 1.04;
 }
 
 html[data-font-size="large"] {
-  --app-font-scale: 1.06;
+  --app-font-scale: 1.10;
 }
 
 html[data-font-size="xlarge"] {
-  --app-font-scale: 1.12;
+  --app-font-scale: 1.16;
 }
 
 html[data-font-family="jakarta"] {
-  --app-font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: var(--font-sans);
 }
 
 html[data-font-family="system"] {
-  --app-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: var(--font-sans);
 }
 
 html {
@@ -103,57 +110,374 @@ body.paper-grid {
 }
 
 /* ========================================== */
-/* DARK SLATE PAPER MODE (GIẤY THAN ĐEN)      */
+/* DARK INK MODE (NỀN MỰC ĐEN)                */
 /* ========================================== */
 .dark {
-  --bg-canvas: #1c1917;
-  --bg-surface: #262626;
-  --bg-surface-muted: #2e2a27;
-  --border-ink: #57534e;
-  --border-ink-muted: #44403c;
-  --text-main: #fbf9f4;
-  --text-muted: #a8a29e;
+  --bg-canvas: #18181b;
+  --bg-surface: #27272a;
+  --bg-surface-muted: #3f3f46;
+  --border-ink: #e4e4e7;
+  --border-ink-muted: #52525b;
+  --text-main: #e4e4e7;
+  --text-strong: #fafafa;
+  --text-muted: #a1a1aa;
+  --text-subtle: #71717a;
   color-scheme: dark;
 }
 
 .dark body {
-  background-color: #1c1917 !important;
-  color: #fbf9f4 !important;
+  background-color: var(--bg-canvas) !important;
+  color: var(--text-main) !important;
 }
 
+/* Common paper colors are still used in legacy Tailwind classes. Keep them
+   readable in dark mode without changing the light theme or accent colors. */
 .dark header,
 .dark nav {
-  background-color: #1c1917 !important;
-  border-color: #57534e !important;
+  background-color: var(--bg-canvas) !important;
+  border-color: var(--border-ink-muted) !important;
 }
 
 .dark .bg-white,
+.dark .bg-\[\#FFFFFF\],
+.dark .bg-\[\#FFFDF8\],
+.dark .bg-\[\#FCFBF9\] {
+  background-color: var(--bg-surface) !important;
+}
+
 .dark .bg-\[\#FBF9F4\] {
-  background-color: #262626 !important;
+  background-color: var(--bg-canvas) !important;
 }
 
-.dark .bg-\[\#F3EFE6\] {
-  background-color: #2e2a27 !important;
+.dark .bg-\[\#FAF8F3\],
+.dark .bg-\[\#F5F5F4\],
+.dark .bg-\[\#F5F3EF\],
+.dark .bg-\[\#F5F2EA\],
+.dark .bg-\[\#F3EFE6\],
+.dark .bg-\[\#F0ECE1\],
+.dark .bg-\[\#E7E5E4\] {
+  background-color: var(--bg-surface-muted) !important;
 }
 
-.dark .text-\[\#1C1917\] {
-  color: #fbf9f4 !important;
+.dark .text-\[\#1C1917\],
+.dark .text-\[\#262626\] {
+  color: var(--text-main) !important;
 }
 
-.dark .text-\[\#78716C\] {
-  color: #a8a29e !important;
+.dark .text-\[\#57534E\],
+.dark .text-\[\#78716C\],
+.dark .text-\[\#A8A29E\],
+.dark .text-\[\#44403C\],
+.dark .text-\[\#D4CEBF\] {
+  color: var(--text-muted) !important;
+}
+
+/* Context hierarchy: regular content is softer than headings and controls,
+   while helper metadata stays deliberately quiet. */
+.dark h1,
+.dark h2,
+.dark h3 {
+  color: var(--text-strong);
+}
+
+.dark small,
+.dark kbd {
+  color: var(--text-subtle);
 }
 
 .dark .border-\[\#262626\],
-.dark .border-\[\#D4CEBF\] {
-  border-color: #57534e !important;
+.dark .border-\[\#1C1917\] {
+  border-color: var(--border-ink) !important;
+}
+
+.dark .border-\[\#D4CEBF\],
+.dark .border-\[\#E7E5E4\],
+.dark .border-\[\#D6D3D1\],
+.dark .border-\[\#A8A29E\],
+.dark .border-\[\#44403C\] {
+  border-color: var(--border-ink-muted) !important;
+}
+
+/* Opacity variants are common on dividers and should not disappear on the
+   dark canvas. */
+.dark [class*="border-[#262626]/"] {
+  border-color: color-mix(in srgb, var(--border-ink) 28%, transparent) !important;
+}
+
+.dark [class*="border-[#D4CEBF]/"],
+.dark [class*="border-[#E7E5E4]/"] {
+  border-color: color-mix(in srgb, var(--border-ink-muted) 70%, transparent) !important;
+}
+
+.dark [class*="bg-[#FAF8F3]/"],
+.dark [class*="bg-[#F5F2EA]/"] {
+  background-color: color-mix(in srgb, var(--bg-surface-muted) 72%, transparent) !important;
+}
+
+.dark [class*="text-[#262626]/"] {
+  color: color-mix(in srgb, var(--text-main) 88%, transparent) !important;
+}
+
+.dark [class*="text-[#78716C]/"] {
+  color: color-mix(in srgb, var(--text-muted) 88%, transparent) !important;
+}
+
+.dark [class*="hover:bg-white"]:hover,
+.dark [class*="hover:bg-[#FFFDF8]"]:hover,
+.dark [class*="hover:bg-[#FAF8F3]"]:hover,
+.dark [class*="focus:bg-[#FFFDF8]"]:focus {
+  background-color: var(--bg-surface-muted) !important;
+}
+
+.dark input,
+.dark textarea,
+.dark select,
+.dark [contenteditable="true"] {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-ink) !important;
+  caret-color: var(--text-main);
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder,
+.dark [contenteditable="true"]::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 1;
+}
+
+.dark option {
+  background-color: var(--bg-surface);
+  color: var(--text-main);
+}
+
+.dark ::selection {
+  background-color: var(--accent-yellow);
+  color: #18181b;
+}
+
+/* Dark surfaces need their own quiet hierarchy instead of paper colors. */
+.dark .bg-\[\#F3EFE6\] {
+  background-color: var(--bg-surface-muted) !important;
+}
+
+.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: var(--bg-canvas);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--border-ink-muted);
+  border: 2px solid var(--bg-canvas);
+  border-radius: 8px;
+}
+
+.dark :focus-visible {
+  outline: 2px solid var(--accent-yellow);
+  outline-offset: 2px;
 }
 
 .dark .shadow-\[2px_2px_0px_\#262626\],
 .dark .shadow-\[1\.5px_1\.5px_0px_\#262626\],
 .dark .shadow-\[1px_1px_0px_\#262626\],
 .dark .shadow-\[6px_6px_0px_\#262626\] {
-  box-shadow: 2px 2px 0px #0c0a09 !important;
+  box-shadow: 2px 2px 0px #09090b !important;
+}
+
+/* ========================================== */
+/* IOS MINIMAL STYLE (OPTIONAL APP SKIN)      */
+/* ========================================== */
+html[data-interface-style="ios"] {
+  --bg-canvas: #f2f2f7;
+  --bg-surface: #ffffff;
+  --bg-surface-muted: #e5e5ea;
+  --border-ink: #d1d1d6;
+  --border-ink-muted: #c7c7cc;
+  --text-main: #1c1c1e;
+  --text-strong: #000000;
+  --text-muted: #8e8e93;
+  --text-subtle: #aeaeb2;
+  --accent-yellow: #ffcc00;
+  --accent-blue: #007aff;
+}
+
+html.dark[data-interface-style="ios"] {
+  --bg-canvas: #000000;
+  --bg-surface: #1c1c1e;
+  --bg-surface-muted: #2c2c2e;
+  --border-ink: #48484a;
+  --border-ink-muted: #3a3a3c;
+  --text-main: #e5e5ea;
+  --text-strong: #f2f2f7;
+  --text-muted: #aeaeb2;
+  --text-subtle: #8e8e93;
+  --accent-yellow: #ffcc00;
+  --accent-blue: #0a84ff;
+}
+
+html[data-interface-style="ios"] body {
+  letter-spacing: -0.01em;
+}
+
+html[data-interface-style="ios"] button,
+html[data-interface-style="ios"] input,
+html[data-interface-style="ios"] textarea,
+html[data-interface-style="ios"] select {
+  letter-spacing: -0.01em;
+}
+
+html[data-interface-style="ios"] header,
+html[data-interface-style="ios"] nav {
+  background-color: var(--bg-canvas) !important;
+  border-color: var(--border-ink-muted) !important;
+}
+
+html[data-interface-style="ios"] .bg-white,
+html[data-interface-style="ios"] .bg-\[\#FFFFFF\],
+html[data-interface-style="ios"] .bg-\[\#FFFDF8\],
+html[data-interface-style="ios"] .bg-\[\#FCFBF9\] {
+  background-color: var(--bg-surface) !important;
+}
+
+html[data-interface-style="ios"] .bg-\[\#FBF9F4\] {
+  background-color: var(--bg-canvas) !important;
+}
+
+html[data-interface-style="ios"] .bg-\[\#FAF8F3\],
+html[data-interface-style="ios"] .bg-\[\#F5F5F4\],
+html[data-interface-style="ios"] .bg-\[\#F5F3EF\],
+html[data-interface-style="ios"] .bg-\[\#F5F2EA\],
+html[data-interface-style="ios"] .bg-\[\#F3EFE6\],
+html[data-interface-style="ios"] .bg-\[\#F0ECE1\],
+html[data-interface-style="ios"] .bg-\[\#E7E5E4\] {
+  background-color: var(--bg-surface-muted) !important;
+}
+
+html[data-interface-style="ios"] .bg-\[\#1C1917\],
+html[data-interface-style="ios"] .bg-\[\#262626\] {
+  background-color: #1c1c1e !important;
+}
+
+html[data-interface-style="ios"] .bg-\[\#FEF08A\] {
+  background-color: var(--accent-yellow) !important;
+}
+
+html[data-interface-style="ios"] .text-\[\#1C1917\],
+html[data-interface-style="ios"] .text-\[\#262626\] {
+  color: var(--text-main) !important;
+}
+
+html[data-interface-style="ios"] .text-\[\#57534E\],
+html[data-interface-style="ios"] .text-\[\#78716C\],
+html[data-interface-style="ios"] .text-\[\#A8A29E\],
+html[data-interface-style="ios"] .text-\[\#44403C\] {
+  color: var(--text-muted) !important;
+}
+
+html[data-interface-style="ios"] .border-\[\#262626\],
+html[data-interface-style="ios"] .border-\[\#1C1917\],
+html[data-interface-style="ios"] .border-\[\#D4CEBF\],
+html[data-interface-style="ios"] .border-\[\#E7E5E4\],
+html[data-interface-style="ios"] .border-\[\#D6D3D1\],
+html[data-interface-style="ios"] .border-\[\#A8A29E\],
+html[data-interface-style="ios"] .border-\[\#44403C\] {
+  border-color: var(--border-ink) !important;
+}
+
+html[data-interface-style="ios"] [class*="border-[#262626]/"],
+html[data-interface-style="ios"] [class*="border-[#D4CEBF]/"] {
+  border-color: var(--border-ink-muted) !important;
+}
+
+html[data-interface-style="ios"] [class*="hover:bg-white"]:hover,
+html[data-interface-style="ios"] [class*="hover:bg-[#FFFDF8]"]:hover,
+html[data-interface-style="ios"] [class*="hover:bg-[#FAF8F3]"]:hover {
+  background-color: var(--bg-surface-muted) !important;
+}
+
+/* The iOS skin is intentionally quiet: thin borders and no tactile offsets. */
+html[data-interface-style="ios"] [class*="shadow-["] {
+  box-shadow: none !important;
+}
+
+html[data-interface-style="ios"] [class*="border-[1.5px]"],
+html[data-interface-style="ios"] [class*="border-[2px]"] {
+  border-width: 1px !important;
+}
+
+html[data-interface-style="ios"] [class*="rotate-"],
+html[data-interface-style="ios"] [class*="-rotate-"] {
+  transform: none !important;
+  rotate: 0deg !important;
+}
+
+html[data-interface-style="ios"] [class*="rounded-[4px]"],
+html[data-interface-style="ios"] [class*="rounded-[5px]"],
+html[data-interface-style="ios"] [class*="rounded-[6px]"] {
+  border-radius: 14px !important;
+}
+
+html[data-interface-style="ios"] [class*="rounded-[8px]"],
+html[data-interface-style="ios"] [class*="rounded-[18px]"],
+html[data-interface-style="ios"] [class*="rounded-[22px]"] {
+  border-radius: 18px !important;
+}
+
+html[data-interface-style="ios"] [class~="rounded"] {
+  border-radius: 12px !important;
+}
+
+html[data-interface-style="ios"] button:not([class*="rounded-full"]):not([class*="rounded-none"]),
+html[data-interface-style="ios"] input:not([class*="rounded-"]),
+html[data-interface-style="ios"] textarea:not([class*="rounded-"]),
+html[data-interface-style="ios"] select:not([class*="rounded-"]) {
+  border-radius: 12px !important;
+}
+
+html[data-interface-style="ios"] [class*="active:translate-"]:active,
+html[data-interface-style="ios"] [class*="active:scale-"]:active {
+  transform: none !important;
+}
+
+/* Task rows become distinct cards in the minimal skin instead of one long
+   square list, while the original SketchTask skin keeps its compact rows. */
+html[data-interface-style="ios"] .task-card-shell {
+  border: 1px solid var(--border-ink-muted) !important;
+  border-radius: 16px !important;
+  margin-bottom: 10px;
+  background-color: var(--bg-surface) !important;
+}
+
+html.dark[data-interface-style="ios"] .context-checkbox[data-checked="true"] {
+  background-color: var(--text-main) !important;
+  border-color: var(--text-main) !important;
+  color: #18181b !important;
+}
+
+html[data-interface-style="ios"]:not(.dark)
+  .context-checkbox[data-checked="true"] {
+  background-color: var(--text-main) !important;
+  border-color: var(--text-main) !important;
+  color: var(--bg-surface) !important;
+}
+
+html[data-interface-style="ios"]:not(.dark)
+  .context-checkbox[data-checked="true"] > svg {
+  color: var(--bg-surface) !important;
+  stroke: var(--bg-surface) !important;
+}
+
+html[data-interface-style="ios"] .paper-lined,
+html[data-interface-style="ios"] .paper-dots,
+html[data-interface-style="ios"] .paper-grid,
+html[data-interface-style="ios"] body.paper-lined,
+html[data-interface-style="ios"] body.paper-dots,
+html[data-interface-style="ios"] body.paper-grid {
+  background-image: none !important;
 }
 
 * {
@@ -167,6 +491,12 @@ button,
 textarea,
 select {
   font-family: var(--app-font-family);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+.font-mono {
+  font-variant-numeric: tabular-nums;
 }
 
 body {
@@ -199,6 +529,15 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #78716c;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: var(--bg-surface-muted);
+  border-color: var(--border-ink-muted);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--border-ink);
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -270,115 +609,7 @@ body {
   animation: shakeError 0.4s ease-in-out;
 }
 
-/* 7. Hiệu ứng Intro Chill: Chữ mở màn xuất hiện êm ái rồi tách bay về 2 phía */
-@keyframes chillSplitLeft {
-  0% {
-    opacity: 0;
-    transform: translateY(6px);
-    filter: blur(4px);
-  }
-  35% {
-    opacity: 1;
-    transform: translateY(0) translateX(0);
-    filter: blur(0);
-  }
-  75% {
-    opacity: 1;
-    transform: translateY(0) translateX(0);
-    filter: blur(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-60px);
-    filter: blur(4px);
-  }
-}
-
-@keyframes chillSplitRight {
-  0% {
-    opacity: 0;
-    transform: translateY(6px);
-    filter: blur(4px);
-  }
-  35% {
-    opacity: 1;
-    transform: translateY(0) translateX(0);
-    filter: blur(0);
-  }
-  75% {
-    opacity: 1;
-    transform: translateY(0) translateX(0);
-    filter: blur(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(60px);
-    filter: blur(4px);
-  }
-}
-
-.animate-chill-left {
-  animation: chillSplitLeft 1.9s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
-
-.animate-chill-right {
-  animation: chillSplitRight 1.9s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
-
-/* 4. Hiệu ứng lật trang êm ái khi đổi tab */
-@keyframes pageFlip {
-  0% {
-    opacity: 0.3;
-    transform: translateY(5px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.animate-page-flip {
-  animation: pageFlip 0.18s ease-out forwards;
-}
-
-/* 5. Hiệu ứng thả thẻ ghi chú dán băng keo (Sticky Note Drop) */
-@keyframes noteDrop {
-  0% {
-    opacity: 0;
-    transform: translateY(-12px) scale(0.95);
-  }
-  60% {
-    opacity: 1;
-    transform: translateY(2px) scale(1.01);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-.animate-note-drop {
-  animation: noteDrop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-
-/* 6. Hiệu ứng nảy đàn hồi lò xo khi thêm việc mới (Spring Task Pop) */
-@keyframes taskPop {
-  0% {
-    opacity: 0;
-    transform: translateY(8px) scale(0.97);
-  }
-  60% {
-    opacity: 1;
-    transform: translateY(-1.5px) scale(1.008);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-.animate-task-pop {
-  animation: taskPop 0.24s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-/* 7. Chuyển cảnh mobile theo hướng, không dùng animation fade/zoom chung */
+/* Chuyển cảnh mobile theo hướng, không dùng animation fade/zoom chung */
 @keyframes mobileTabEnter {
   from {
     opacity: 0;
@@ -514,53 +745,11 @@ body {
   will-change: transform, opacity;
 }
 
-/* 9. Placeholder cho Rich Note WYSIWYG Editor */
-.rich-note-editor:empty:before {
+.note-editor-content:empty::before {
   content: attr(data-placeholder);
   color: #a8a29e;
   pointer-events: none;
   display: block;
-}
-
-/* Keep rich-text tools out of the mobile editing surface until text is focused. */
-.note-editor-toolbar--hidden,
-.note-editor-toolbar--active {
-  display: block;
-}
-
-.note-toolbar-scroll {
-  scrollbar-width: none;
-}
-
-.note-toolbar-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-@keyframes mobileEditorToolbarEnter {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 8px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@media (max-width: 1023px) {
-  .note-editor-toolbar--hidden {
-    display: none;
-  }
-
-  .note-editor-toolbar--active {
-    position: fixed;
-    left: max(8px, env(safe-area-inset-left));
-    right: max(8px, env(safe-area-inset-right));
-    bottom: max(var(--note-keyboard-offset, 0px), env(safe-area-inset-bottom));
-    z-index: 60;
-    animation: mobileEditorToolbarEnter 160ms ease-out;
-    will-change: transform, opacity;
-  }
 }
 
 /* 9. Tuân thủ Cài đặt Giảm Chuyển Động (prefers-reduced-motion) */

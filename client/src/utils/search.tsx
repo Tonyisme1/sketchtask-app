@@ -24,6 +24,20 @@ export function removeVietnameseTones(str: string): string {
   return result.trim();
 }
 
+/** Chuyển rich text về văn bản thuần trước khi tìm kiếm. */
+export function stripHtmlText(value: string): string {
+  if (!value) return "";
+  if (typeof document === "undefined") {
+    return value.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  }
+
+  const container = document.createElement("div");
+  container.innerHTML = value;
+  return (container.textContent || container.innerText || "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /**
  * Kiểm tra xem văn bản nguồn có chứa tất cả các từ trong chuỗi tìm kiếm hay không
  * (Hỗ trợ tìm kiếm đa từ khóa không cần liền kề & không dấu)
@@ -86,4 +100,3 @@ export const HighlightText: React.FC<HighlightTextProps> = ({
     </span>
   );
 };
-

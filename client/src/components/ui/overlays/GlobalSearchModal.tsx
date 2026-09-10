@@ -4,7 +4,9 @@ import { useAppStore } from "../../../stores/appStore";
 import { NavigationTarget, TaskDto, TabKey } from "../../../types";
 import { loadNotesFromStorage } from "../../../utils/noteStorage";
 import { getTaskEffectiveDate, getTaskEffectiveTime } from "../../../utils/taskSemantics";
+import { matchesQuery, stripHtmlText } from "../../../utils/search";
 import { useScrollLock } from "../../../hooks/useScrollLock";
+import { registerBackHandler } from "../../../utils/backNavigation";
 
 interface GlobalSearchModalProps {
   isOpen: boolean;
@@ -13,7 +15,7 @@ interface GlobalSearchModalProps {
   onSelectTask?: (task: TaskDto) => void;
 }
 
-type SearchFilterType = "all" | "tasks" | "notes" | "journal";
+type SearchFilterType = "all" | "tasks" | "notes" | "journal" | "notebooks";
 
 export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
   isOpen,
@@ -27,8 +29,19 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const [isVisible, setIsVisible] = useState(isOpen);
   const [isClosing, setIsClosing] = useState(false);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
-  useScrollLock(isVisible);
+  useScrollLock(isVisible, { mobileStrategy: "overflow" });
+
+  // Search is an overlay, so Back closes it before changing the current tab.
+  useEffect(() => {
+    if (!isVisible) return;
+    return registerBackHandler(() => {
+      onCloseRef.current();
+      return true;
+    });
+  }, [isVisible]);
 
   // Keep the panel mounted long enough to play the reverse transition.
   useEffect(() => {
@@ -55,44 +68,50 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
   const notes = useMemo(() => {
     if (!isOpen) return [];
     return loadNotesFromStorage();
-  }, [isOpen]);
+  }, [isOpen, query]);
 
   // Search Results
   const searchResults = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return { tasks: [], notes: [], journal: [] };
+    const q = query.trim();
+    if (!q) return { tasks: [], notes: [], journal: [], notebooks: [] };
 
     const matchingTasks = tasks.filter(
       (t) =>
-        t.title.toLowerCase().includes(q) ||
-        (t.description && t.description.toLowerCase().includes(q)) ||
-        (t.tag && t.tag.toLowerCase().includes(q))
+        matchesQuery(
+          [t.title, t.description, t.tag, notebooks.find((nb) => nb.id === t.notebookId)?.name]
+            .filter(Boolean)
+            .join(" "),
+          q,
+        )
     );
 
     const matchingNotes = notes.filter(
       (n) =>
-        n.title.toLowerCase().includes(q) ||
-        n.content.toLowerCase().includes(q)
+        matchesQuery(`${n.title} ${stripHtmlText(n.content)}`, q)
     );
 
     const matchingJournal = journalEntries.filter(
       (j) =>
-        j.content.toLowerCase().includes(q) ||
-        j.date.toLowerCase().includes(q) ||
-        j.time.toLowerCase().includes(q)
+        matchesQuery(`${j.content} ${j.date} ${j.time}`, q)
+    );
+
+    const matchingNotebooks = notebooks.filter((notebook) =>
+      matchesQuery(`${notebook.name} ${notebook.description || ""}`, q),
     );
 
     return {
       tasks: matchingTasks,
       notes: matchingNotes,
       journal: matchingJournal,
+      notebooks: matchingNotebooks,
     };
-  }, [query, tasks, notes, journalEntries]);
+  }, [query, tasks, notes, journalEntries, notebooks]);
 
   const totalMatches =
     (filterType === "all" || filterType === "tasks" ? searchResults.tasks.length : 0) +
     (filterType === "all" || filterType === "notes" ? searchResults.notes.length : 0) +
-    (filterType === "all" || filterType === "journal" ? searchResults.journal.length : 0);
+    (filterType === "all" || filterType === "journal" ? searchResults.journal.length : 0) +
+    (filterType === "all" || filterType === "notebooks" ? searchResults.notebooks.length : 0);
 
   if (!isVisible) return null;
 
@@ -150,6 +169,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               { key: "tasks", label: `Việc (${searchResults.tasks.length})` },
               { key: "notes", label: `Ghi chú (${searchResults.notes.length})` },
               { key: "journal", label: `Nhật ký (${searchResults.journal.length})` },
+              { key: "notebooks", label: `Sổ tay (${searchResults.notebooks.length})` },
             ] as const
           ).map((item) => (
             <button
@@ -259,14 +279,14 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                     <div
                       key={note.id}
                       onClick={() => {
-                        if (onNavigateTab) onNavigateTab("notes");
+                        if (onNavigateTab) onNavigateTab("notes", { noteId: note.id });
                         onClose();
                       }}
                       className="bg-white border-[1.5px] border-[#262626] rounded-[6px] p-2.5 shadow-[1.5px_1.5px_0px_#262626] hover:bg-[#FFFDF8] cursor-pointer flex items-center justify-between gap-2 group transition-all"
                     >
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-[#1C1917] truncate">{note.title || "Ghi chú không tên"}</p>
-                        <p className="text-[11px] text-[#78716C] truncate mt-0.5 line-clamp-1">{note.content}</p>
+                      <p className="text-[11px] text-[#78716C] truncate mt-0.5 line-clamp-1">{stripHtmlText(note.content)}</p>
                       </div>
                       <ArrowRight size={13} className="text-[#A8A29E] group-hover:text-[#1C1917] shrink-0" />
                     </div>
@@ -285,7 +305,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                     <div
                       key={journal.id}
                       onClick={() => {
-                        if (onNavigateTab) onNavigateTab("journal");
+                        if (onNavigateTab) onNavigateTab("journal", { journalEntryId: journal.id });
                         onClose();
                       }}
                       className="bg-white border-[1.5px] border-[#262626] rounded-[6px] p-2.5 shadow-[1.5px_1.5px_0px_#262626] hover:bg-[#FFFDF8] cursor-pointer flex items-center justify-between gap-2 group transition-all"
@@ -295,6 +315,34 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                           {`Nhật ký ${journal.date}`}
                         </p>
                         <p className="text-[11px] text-[#78716C] truncate mt-0.5 line-clamp-1">{journal.content}</p>
+                      </div>
+                      <ArrowRight size={13} className="text-[#A8A29E] group-hover:text-[#1C1917] shrink-0" />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* 4. Notebook Results */}
+              {(filterType === "all" || filterType === "notebooks") && searchResults.notebooks.length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  <div className="text-[11px] font-bold text-[#1C1917] font-mono uppercase tracking-wider flex items-center gap-1.5">
+                    <BookMarked size={13} className="text-[#1C1917]" />
+                    <span>Sổ tay ({searchResults.notebooks.length})</span>
+                  </div>
+                  {searchResults.notebooks.map((notebook) => (
+                    <div
+                      key={notebook.id}
+                      onClick={() => {
+                        if (onNavigateTab) onNavigateTab("notebooks", { notebookId: notebook.id });
+                        onClose();
+                      }}
+                      className="bg-white border-[1.5px] border-[#262626] rounded-[6px] p-2.5 shadow-[1.5px_1.5px_0px_#262626] hover:bg-[#FFFDF8] cursor-pointer flex items-center justify-between gap-2 group transition-all"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-[#1C1917] truncate">{notebook.name}</p>
+                        <p className="text-[11px] text-[#78716C] truncate mt-0.5 line-clamp-1">
+                          {notebook.description || "Sổ tay"}
+                        </p>
                       </div>
                       <ArrowRight size={13} className="text-[#A8A29E] group-hover:text-[#1C1917] shrink-0" />
                     </div>

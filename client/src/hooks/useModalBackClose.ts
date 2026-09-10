@@ -1,5 +1,8 @@
 import { useEffect, useRef } from "react";
-import { registerBackHandler } from "../utils/backNavigation";
+import {
+  registerBackHandler,
+  skipNextPopStateHandling,
+} from "../utils/backNavigation";
 
 /**
  * Hook tự động liên kết phím Back (Android Back Button & Gesture / Web PopState) với việc đóng Modal.
@@ -17,9 +20,9 @@ export function useModalBackClose(isOpen: boolean, onClose: () => void) {
     window.history.pushState({ modalId: stateId }, "");
 
     // 2. Register back handler cho Capacitor Android & Web PopState
-    let isClosedByBack = false;
-    const unregister = registerBackHandler(() => {
-      isClosedByBack = true;
+    let isClosedByPopState = false;
+    const unregister = registerBackHandler((source) => {
+      isClosedByPopState = source === "popstate";
       onCloseRef.current();
       return true;
     });
@@ -27,7 +30,9 @@ export function useModalBackClose(isOpen: boolean, onClose: () => void) {
     return () => {
       unregister();
       // Nếu modal được đóng bằng UI (click overlay, drag down, nút submit), dọn dẹp history entry
-      if (!isClosedByBack && window.history.state?.modalId === stateId) {
+      // Native Back cũng cần dọn entry vì Capacitor không tự phát popstate.
+      if (!isClosedByPopState && window.history.state?.modalId === stateId) {
+        skipNextPopStateHandling();
         window.history.back();
       }
     };

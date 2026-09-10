@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { App as CapacitorApp } from "@capacitor/app";
 import { NavigationTarget, TabKey } from "./shared/types";
@@ -13,7 +13,13 @@ import { MobileShell, MobileWorkspace } from "./mobile";
 // Standalone Feature Pages
 import { AuthPage } from "./features";
 import { ToastViewport } from "./components/ui/feedback/ToastViewport";
-import { registerTabNavigateBack, triggerBackAction } from "./utils/backNavigation";
+import { UpdateModal } from "./components/ui/overlays/UpdateModal";
+import { checkForAppUpdates, type UpdateInfo } from "./services/updateService";
+import {
+  consumeSkippedPopState,
+  registerTabNavigateBack,
+  triggerBackAction,
+} from "./utils/backNavigation";
 
 // ==========================================
 // MAIN APP CONTENT (Dispatch theo 3 nền tảng: Desktop, Tablet, Mobile)
@@ -22,6 +28,19 @@ import { registerTabNavigateBack, triggerBackAction } from "./utils/backNavigati
 interface MainAppContentProps {
   onNavigateRoute: (path: string) => void;
 }
+
+type TaskSubTab = "today" | "planner" | "deadlines";
+
+interface AppLocation {
+  tab: TabKey;
+  taskSubTab: TaskSubTab;
+}
+
+const getLocationKey = (location: AppLocation) =>
+  `${location.tab}:${location.taskSubTab}`;
+
+const getLocationTab = (location: AppLocation): TabKey =>
+  location.tab === "tasks" ? location.taskSubTab : location.tab;
 
 function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("tasks");
@@ -35,18 +54,50 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     selectedNotebookId,
     setIsMobileNoteDetailOpen,
     isMobileNoteDetailOpen,
+    setIsJournalBookOpen,
+    isJournalBookOpen,
     setSettingsMobileSubView,
     settingsMobileSubView,
   } = useAppStore();
   const { isDesktop, isTablet } = useResponsiveLayout();
 
   const [previousTab, setPreviousTab] = useState<TabKey>("today");
+  const appNavigationStackRef = useRef<AppLocation[]>([]);
 
   const handleTabChange = useCallback((tab: TabKey | string, target?: NavigationTarget) => {
+    const currentLocation: AppLocation = {
+      tab: activeTab,
+      taskSubTab: activeTaskSubTab,
+    };
+    let nextLocation: AppLocation;
+
+    if (tab === "today" || tab === "planner" || tab === "deadlines") {
+      nextLocation = { tab: "tasks", taskSubTab: tab };
+    } else if (tab === "tasks") {
+      nextLocation = {
+        tab: "tasks",
+        taskSubTab: activeTaskSubTab === "today" ? "planner" : activeTaskSubTab,
+      };
+    } else {
+      nextLocation = { tab: tab as TabKey, taskSubTab: activeTaskSubTab };
+    }
+
+    // Mỗi workspace/sub-tab là một entry trong stack để Back luôn quay về
+    // đúng nơi người dùng vừa đứng, không chỉ quay về một tab cố định.
+    if (getLocationKey(currentLocation) !== getLocationKey(nextLocation)) {
+      const stack = appNavigationStackRef.current;
+      const lastLocation = stack[stack.length - 1];
+      if (!lastLocation || getLocationKey(lastLocation) !== getLocationKey(currentLocation)) {
+        stack.push(currentLocation);
+      }
+      setPreviousTab(getLocationTab(currentLocation));
+    }
+
     // Đóng panel task detail & các mục con khi chuyển tab hoặc chuyển không gian
     closeTaskDetail();
     setSelectedNotebookId(null);
     setIsMobileNoteDetailOpen(false);
+    setIsJournalBookOpen(false);
     setSettingsMobileSubView(null);
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -54,61 +105,10 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
       document.body.scrollTop = 0;
     }
 
-    // Lưu tab trước đó nếu không phải là settings/notebooks
-    if (activeTab !== "settings" && activeTab !== "notebooks") {
-      if (activeTab === "tasks") {
-        setPreviousTab(
-          activeTaskSubTab === "planner"
-            ? "planner"
-            : activeTaskSubTab === "deadlines"
-              ? "deadlines"
-              : "today",
-        );
-      } else {
-        setPreviousTab(activeTab);
-      }
-    }
-
     setNavigationTarget(target);
-    // Chuẩn hóa mapping sub-tab vào đúng parent workspace và cập nhật sub-tab state
-    if (tab === "today") {
-      setActiveTaskSubTab("today");
-      setActiveTab("tasks");
-      return;
-    }
-    if (tab === "planner") {
-      setActiveTaskSubTab("planner");
-      setActiveTab("tasks");
-      return;
-    }
-    if (tab === "deadlines") {
-      setActiveTaskSubTab("deadlines");
-      setActiveTab("tasks");
-      return;
-    }
-    if (tab === "journal") {
-      setActiveTab("journal");
-      return;
-    }
-    if (tab === "tasks") {
-      // Hôm nay là workspace riêng; khi vào Công việc, mở chế độ lịch gần nhất.
-      if (activeTaskSubTab === "today") {
-        setActiveTaskSubTab("planner");
-      }
-      setActiveTab("tasks");
-      return;
-    }
-    if (
-      tab === "notes" ||
-      tab === "review" ||
-      tab === "notebooks" ||
-      tab === "settings"
-    ) {
-      setActiveTab(tab as TabKey);
-      return;
-    }
-    setActiveTab(tab as TabKey);
-  }, [activeTab, activeTaskSubTab, closeTaskDetail, setActiveTaskSubTab, setIsMobileNoteDetailOpen, setSelectedNotebookId, setSettingsMobileSubView]);
+    setActiveTaskSubTab(nextLocation.taskSubTab);
+    setActiveTab(nextLocation.tab);
+  }, [activeTab, activeTaskSubTab, closeTaskDetail, setActiveTaskSubTab, setIsJournalBookOpen, setIsMobileNoteDetailOpen, setSelectedNotebookId, setSettingsMobileSubView]);
 
   const handleClearNavigationTarget = () => {
     setNavigationTarget(undefined);
@@ -127,28 +127,50 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
       setIsMobileNoteDetailOpen(false);
       return true;
     }
+    if (isJournalBookOpen) {
+      setIsJournalBookOpen(false);
+      return true;
+    }
     if (selectedNotebookId) {
       setSelectedNotebookId(null);
       return true;
     }
-    if (activeTab === "settings") {
-      handleTabChange(previousTab);
+    const previousLocation = appNavigationStackRef.current.pop();
+    if (previousLocation) {
+      closeTaskDetail();
+      setNavigationTarget(undefined);
+      setActiveTaskSubTab(previousLocation.taskSubTab);
+      setActiveTab(previousLocation.tab);
+      setPreviousTab(getLocationTab(previousLocation));
       return true;
     }
+
+    // The app always returns to Today before allowing the browser/app to exit.
     if (activeTab === "tasks" && activeTaskSubTab !== "today") {
-      handleTabChange("today");
+      setNavigationTarget(undefined);
+      setActiveTaskSubTab("today");
       return true;
     }
+
+    if (activeTab !== "tasks") {
+      setNavigationTarget(undefined);
+      setActiveTaskSubTab("today");
+      setActiveTab("tasks");
+      return true;
+    }
+
     return false;
   }, [
-    activeDetailTaskId,
     activeTab,
     activeTaskSubTab,
+    activeDetailTaskId,
     closeTaskDetail,
-    handleTabChange,
+    isJournalBookOpen,
     isMobileNoteDetailOpen,
-    previousTab,
     selectedNotebookId,
+    setActiveTab,
+    setActiveTaskSubTab,
+    setIsJournalBookOpen,
     setIsMobileNoteDetailOpen,
     setSelectedNotebookId,
     setSettingsMobileSubView,
@@ -229,7 +251,12 @@ type AppRoute =
 const resolveRoute = (pathname: string): AppRoute => {
   // The native shell must open the bundled workspace directly. The public web
   // entry point is intentionally limited to the login screen.
-  if (Capacitor.isNativePlatform() && pathname === "/") {
+  const isStandaloneWebApp =
+    typeof window !== "undefined" &&
+    (window.matchMedia?.("(display-mode: standalone)").matches ||
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true);
+
+  if ((Capacitor.isNativePlatform() || isStandaloneWebApp) && pathname === "/") {
     return { kind: "app" };
   }
   if (pathname === "/app" || pathname.startsWith("/app/")) {
@@ -240,12 +267,38 @@ const resolveRoute = (pathname: string): AppRoute => {
 
 function AppRouter() {
   const [pathname, setPathname] = useState(() => window.location.pathname);
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const checkUpdate = () => {
+      if (typeof navigator !== "undefined" && !navigator.onLine) return;
+      void checkForAppUpdates().then((info) => {
+        if (!cancelled && info?.hasUpdate) setUpdateInfo(info);
+      });
+    };
+
+    checkUpdate();
+    window.addEventListener("online", checkUpdate);
+    const intervalId = window.setInterval(checkUpdate, 30 * 60 * 1000);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("online", checkUpdate);
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {
+      if (consumeSkippedPopState()) {
+        return;
+      }
+
       const isAppRoute = resolveRoute(window.location.pathname).kind === "app";
       const isAppEntry = Boolean(event.state?.__sketchTaskAppEntry);
-      const handled = triggerBackAction();
+      const handled = triggerBackAction("popstate");
 
       if (isAppRoute && isAppEntry) {
         if (handled) {
@@ -294,7 +347,7 @@ function AppRouter() {
 
     let listener: { remove: () => Promise<void> } | undefined;
     void CapacitorApp.addListener("backButton", () => {
-      if (!triggerBackAction()) {
+      if (!triggerBackAction("native")) {
         void CapacitorApp.exitApp();
       }
     }).then((registeredListener) => {
@@ -322,9 +375,19 @@ function AppRouter() {
 
   const route = resolveRoute(pathname);
   if (route.kind === "app") {
-    return <MainAppContent onNavigateRoute={navigate} />;
+    return (
+      <>
+        <MainAppContent onNavigateRoute={navigate} />
+        <UpdateModal updateInfo={updateInfo} onClose={() => setUpdateInfo(null)} />
+      </>
+    );
   }
-  return <AuthPage onNavigate={navigate} />;
+  return (
+    <>
+      <AuthPage onNavigate={navigate} />
+      <UpdateModal updateInfo={updateInfo} onClose={() => setUpdateInfo(null)} />
+    </>
+  );
 }
 
 // ==========================================

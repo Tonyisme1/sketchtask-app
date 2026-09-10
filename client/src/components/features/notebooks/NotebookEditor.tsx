@@ -14,7 +14,6 @@ export interface NotebookEditorProps {
   nameError: boolean;
   onSave: (e: React.FormEvent) => void;
   onCancel: () => void;
-  isEditing?: boolean;
 }
 
 export const NotebookEditor: React.FC<NotebookEditorProps> = ({
@@ -29,10 +28,9 @@ export const NotebookEditor: React.FC<NotebookEditorProps> = ({
   nameError,
   onSave,
   onCancel,
-  isEditing = false,
 }) => {
   return (
-    <div className="sm:col-span-2 lg:col-span-3 xl:col-span-4 p-4 bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] space-y-3 animate-in fade-in select-none">
+    <div className="sm:col-span-2 lg:col-span-3 xl:col-span-4 p-4 bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] space-y-3 select-none">
       <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]">
         <div className="flex items-center gap-2">
           <span
@@ -42,7 +40,7 @@ export const NotebookEditor: React.FC<NotebookEditorProps> = ({
             <DynamicIcon name={icon} size={15} strokeWidth={2.2} />
           </span>
           <span className="font-bold text-xs sm:text-sm text-[#1C1917]">
-            {isEditing ? "Chỉnh sửa thông tin sổ tay" : "Phác thảo sổ tay mới"}
+            Phác thảo sổ tay mới
           </span>
         </div>
         <button
@@ -125,7 +123,7 @@ export const NotebookEditor: React.FC<NotebookEditorProps> = ({
             variant="primary"
             size="sm"
           >
-            {isEditing ? "Lưu thay đổi" : "Tạo cuốn sổ"}
+            Tạo cuốn sổ
           </Button>
         </div>
       </form>

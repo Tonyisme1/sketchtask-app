@@ -152,7 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
             } active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
           >
             <Sun size={18} strokeWidth={2.4} />
-            <span className="text-[10px] leading-none truncate font-bold">Hôm nay</span>
+            <span className="text-[10px] leading-none truncate font-bold">Nay</span>
           </button>
           <button
             type="button"
@@ -165,7 +165,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
             } active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
           >
             <CheckSquare size={18} strokeWidth={2.4} />
-            <span className="text-[10px] leading-none truncate font-bold">Công việc</span>
+            <span className="text-[10px] leading-none truncate font-bold">Việc</span>
           </button>
           <button
             type="button"
@@ -178,7 +178,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
             } active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
           >
             <NotebookPen size={18} strokeWidth={2.4} />
-            <span className="text-[10px] leading-none truncate font-bold">Ghi chép</span>
+            <span className="text-[10px] leading-none truncate font-bold">Ghi</span>
           </button>
           <button
             type="button"
@@ -191,7 +191,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
             } active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
           >
             <BookMarked size={18} strokeWidth={2.4} />
-            <span className="text-[10px] leading-none truncate font-bold">Sổ tay</span>
+            <span className="text-[10px] leading-none truncate font-bold">Sổ</span>
           </button>
         </nav>
       </aside>
@@ -219,7 +219,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
         </p>
 
         {renderWorkspaceButton(
-          "Hôm nay",
+          "Nay",
           <Sun size={17} strokeWidth={2.4} className="shrink-0" />,
           isTodayActive,
           goToday,
@@ -233,7 +233,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
         )}
 
         {renderWorkspaceButton(
-          "Công việc",
+          "Việc",
           <CheckSquare size={17} strokeWidth={2.4} className="shrink-0" />,
           isTasksActive,
           goTasks,
@@ -272,7 +272,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
         )}
 
         {renderWorkspaceButton(
-          "Ghi chép",
+          "Ghi",
           <NotebookPen size={17} strokeWidth={2.4} className="shrink-0" />,
           isNotesActive,
           () => onTabChange("notes"),
@@ -309,7 +309,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
         )}
 
         {renderWorkspaceButton(
-          "Sổ tay",
+          "Sổ",
           <BookMarked size={17} strokeWidth={2.4} className="shrink-0" />,
           isNotebooksActive,
           () => onTabChange("notebooks"),

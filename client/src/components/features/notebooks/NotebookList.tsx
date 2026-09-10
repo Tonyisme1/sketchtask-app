@@ -1,21 +1,17 @@
 import React from "react";
-import { NotebookDto, TaskDto, JournalEntryDto } from "../../../types";
-import { NoteItem } from "../notes/NoteTypes";
+import { NotebookDto, TaskDto } from "../../../types";
 import { DynamicIcon, EmptyStateDoodle } from "../../ui";
 import { getCardTilt } from "../../../utils/tilt";
+import { getContextualColorPalette } from "../../../utils/colorContrast";
 import {
   Trash2,
   ArrowRight,
   CheckSquare,
-  FileText,
-  BookOpen,
 } from "lucide-react";
 
 export interface NotebookListProps {
   notebooks: NotebookDto[];
   tasks: TaskDto[];
-  notes?: NoteItem[];
-  journalEntries?: JournalEntryDto[];
   onSelectNotebook: (id: string) => void;
   onRequestDeleteNotebook: (id: string, e: React.MouseEvent) => void;
   isTiltEnabled: boolean;
@@ -24,8 +20,6 @@ export interface NotebookListProps {
 export const NotebookList: React.FC<NotebookListProps> = ({
   notebooks,
   tasks,
-  notes = [],
-  journalEntries = [],
   onSelectNotebook,
   onRequestDeleteNotebook,
   isTiltEnabled,
@@ -35,7 +29,7 @@ export const NotebookList: React.FC<NotebookListProps> = ({
       <div className="col-span-full py-8">
         <EmptyStateDoodle
           title="Chưa có cuốn sổ nào"
-          message="Hãy tạo cuốn sổ đầu tiên để phân loại công việc, ghi chú và nhật ký theo từng chủ đề riêng biệt!"
+          message="Hãy tạo cuốn sổ đầu tiên để phân loại công việc theo từng chủ đề riêng biệt!"
         />
       </div>
     );
@@ -52,10 +46,9 @@ export const NotebookList: React.FC<NotebookListProps> = ({
             ? Math.round((completedNbTasks / totalNbTasks) * 100)
             : 0;
 
-        const nbNotes = notes.filter((n) => n.notebookId === nb.id);
-        const nbJournals = journalEntries.filter((j) => j.notebookId === nb.id);
-
         const tiltDeg = isTiltEnabled ? getCardTilt(index) : 0;
+        const backgroundColor = nb.color || "#FAF8F3";
+        const textPalette = getContextualColorPalette(backgroundColor);
 
         return (
           <div
@@ -71,7 +64,8 @@ export const NotebookList: React.FC<NotebookListProps> = ({
               }
             }}
             style={{
-              backgroundColor: nb.color || "#FAF8F3",
+              backgroundColor,
+              color: textPalette.primary,
               transform: tiltDeg !== 0 ? `rotate(${tiltDeg}deg)` : undefined,
             }}
             className="group relative p-4 border-[1.5px] border-[#262626] rounded-[8px] shadow-[2.5px_2.5px_0px_#262626] transition-all hover:shadow-[4px_4px_0px_#262626] hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[#262626] focus:ring-offset-2 cursor-pointer flex flex-col justify-between min-h-[180px] active:translate-y-0"
@@ -80,7 +74,12 @@ export const NotebookList: React.FC<NotebookListProps> = ({
               {/* Header Card Sổ: Icon & Nút thao tác */}
               <div className="flex items-start justify-between gap-1">
                 <span
-                  className="w-9 h-9 rounded-[4px] border-[1.5px] border-[#262626] bg-white flex items-center justify-center shadow-[1px_1px_0px_#262626] shrink-0"
+                  style={{
+                    backgroundColor: textPalette.controlSurface,
+                    borderColor: textPalette.controlSurface,
+                    color: textPalette.controlText,
+                  }}
+                  className="w-9 h-9 rounded-[4px] border-[1.5px] flex items-center justify-center shadow-[1px_1px_0px_#262626] shrink-0"
                 >
                   <DynamicIcon
                     name={nb.icon || "lucide:BookMarked"}
@@ -95,7 +94,12 @@ export const NotebookList: React.FC<NotebookListProps> = ({
                     aria-label={`Xóa sổ ${nb.name}`}
                     onClick={(e) => onRequestDeleteNotebook(nb.id, e)}
                     title="Xóa cuốn sổ"
-                    className="w-8 h-8 p-1 bg-white hover:bg-rose-50 border border-[#262626] rounded-[4px] text-[#1C1917] hover:text-rose-700 active:translate-y-[0.5px] flex items-center justify-center cursor-pointer shadow-[0.5px_0.5px_0px_#262626]"
+                    style={{
+                      backgroundColor: textPalette.surface,
+                      borderColor: textPalette.border,
+                      color: textPalette.primary,
+                    }}
+                    className="w-8 h-8 p-1 hover:bg-rose-50 border rounded-[4px] hover:text-rose-700 active:translate-y-[0.5px] flex items-center justify-center cursor-pointer shadow-[0.5px_0.5px_0px_#262626]"
                   >
                     <Trash2 size={13} strokeWidth={2.2} />
                   </button>
@@ -104,36 +108,48 @@ export const NotebookList: React.FC<NotebookListProps> = ({
 
               {/* Tên & Mô tả Sổ */}
               <div>
-                <h3 className="font-black text-base sm:text-lg text-[#1C1917] leading-snug line-clamp-1 tracking-tight">
+                <h3
+                  style={{ color: textPalette.primary }}
+                  className="font-black text-base sm:text-lg leading-snug line-clamp-1 tracking-tight"
+                >
                   {nb.name}
                 </h3>
-                <p className="text-xs text-[#262626]/80 line-clamp-2 mt-0.5 min-h-[32px] font-medium leading-relaxed">
+                <p
+                  style={{ color: textPalette.secondary }}
+                  className="text-xs line-clamp-2 mt-0.5 min-h-[32px] font-medium leading-relaxed"
+                >
                   {nb.description || "Chưa có mô tả cho cuốn sổ này..."}
                 </p>
               </div>
 
-              {/* Hàng đếm Note & Journal & Task */}
-              <div className="flex items-center gap-1.5 text-xs font-mono font-bold text-[#1C1917] flex-wrap">
-                <span className="inline-flex items-center gap-1 bg-white/90 px-2 py-0.5 rounded-[4px] border border-[#262626]/40 shadow-[0.5px_0.5px_0px_#262626]">
-                  <CheckSquare size={12} className="text-[#1C1917]" />
+              {/* Hàng đếm công việc */}
+              <div
+                style={{ color: textPalette.primary }}
+                className="flex items-center gap-1.5 text-xs font-mono font-bold flex-wrap"
+              >
+                <span
+                  style={{
+                    backgroundColor: textPalette.surface,
+                    borderColor: textPalette.border,
+                    color: textPalette.primary,
+                  }}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] border shadow-[0.5px_0.5px_0px_#262626]"
+                >
+                  <CheckSquare size={12} />
                   {totalNbTasks} việc
                 </span>
-                <span className="inline-flex items-center gap-1 bg-white/90 px-2 py-0.5 rounded-[4px] border border-[#262626]/40 shadow-[0.5px_0.5px_0px_#262626]">
-                  <FileText size={12} className="text-[#1C1917]" />
-                  {nbNotes.length} note
-                </span>
-                {nbJournals.length > 0 && (
-                  <span className="inline-flex items-center gap-1 bg-white/90 px-2 py-0.5 rounded-[4px] border border-[#262626]/40 shadow-[0.5px_0.5px_0px_#262626]">
-                    <BookOpen size={12} className="text-[#1C1917]" />
-                    {nbJournals.length} nhật ký
-                  </span>
-                )}
               </div>
             </div>
 
             {/* Footer Card Sổ: Tiến độ & Nút Mở */}
-            <div className="pt-2.5 border-t border-[#262626]/20 space-y-1.5">
-              <div className="flex items-center justify-between text-xs font-mono font-bold text-[#1C1917]">
+            <div
+              style={{ borderColor: textPalette.border }}
+              className="pt-2.5 border-t space-y-1.5"
+            >
+              <div
+                style={{ color: textPalette.primary }}
+                className="flex items-center justify-between text-xs font-mono font-bold"
+              >
                 <span>Tiến độ:</span>
                 <span>
                   {completedNbTasks}/{totalNbTasks} ({progressPercent}%)
@@ -141,15 +157,34 @@ export const NotebookList: React.FC<NotebookListProps> = ({
               </div>
 
               {/* Progress Bar Nét Mực */}
-              <div className="w-full h-1.5 bg-white/80 border border-[#262626] rounded-[2px] overflow-hidden">
+              <div
+                style={{
+                  backgroundColor: textPalette.track,
+                  borderColor: textPalette.border,
+                }}
+                className="w-full h-1.5 border rounded-[2px] overflow-hidden"
+              >
                 <div
-                  className="h-full bg-[#262626] transition-all duration-300"
-                  style={{ width: `${progressPercent}%` }}
+                  style={{
+                    width: `${progressPercent}%`,
+                    backgroundColor: textPalette.primary,
+                  }}
+                  className="h-full transition-all duration-300"
                 />
               </div>
 
-              <div className="flex items-center justify-end text-xs font-bold text-[#1C1917] pt-0.5 group-hover:translate-x-0.5 transition-transform min-h-[24px]">
-                <span className="inline-flex items-center gap-1 text-xs font-bold text-[#1C1917] bg-white/80 px-2.5 py-0.5 rounded border border-[#262626]/30">
+              <div
+                style={{ color: textPalette.primary }}
+                className="flex items-center justify-end text-xs font-bold pt-0.5 group-hover:translate-x-0.5 transition-transform min-h-[24px]"
+              >
+                <span
+                  style={{
+                    backgroundColor: textPalette.surface,
+                    borderColor: textPalette.border,
+                    color: textPalette.primary,
+                  }}
+                  className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded border"
+                >
                   Mở sổ <ArrowRight size={12} strokeWidth={2.5} />
                 </span>
               </div>

@@ -45,11 +45,11 @@ export const TodayScheduleNotes: React.FC<TodayScheduleNotesProps> = ({
   });
 
   return (
-    <section className={`space-y-2 select-none ${isMobile ? "" : "animate-in fade-in duration-150"}`}>
+    <section className={`space-y-3 select-none ${isMobile ? "" : "animate-in fade-in duration-150"}`}>
       {!hideHeader && (
-        <div className="flex items-center justify-between pb-1 border-b border-[#262626]/20">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-[#1C1917]">
-            <Clock size={14} className="text-[#1C1917]" strokeWidth={2.4} />
+        <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20">
+          <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917]">
+            <Clock size={16} className="text-[#1C1917]" strokeWidth={2.2} />
             <span>{title} ({sortedTasks.length})</span>
           </div>
         </div>

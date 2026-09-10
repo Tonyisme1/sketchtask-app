@@ -58,12 +58,18 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
   } = useAppStore();
 
   const [isScrollingDown, setIsScrollingDown] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
   const [isTaskDropdownOpen, setIsTaskDropdownOpen] = useState(false);
   const [isNoteDropdownOpen, setIsNoteDropdownOpen] = useState(false);
   const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
   const taskDropdownRef = useRef<HTMLDivElement>(null);
   const noteDropdownRef = useRef<HTMLDivElement>(null);
   const accountDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
@@ -118,9 +124,13 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
         (getTaskTemporalState(t) === "overdue" ||
           getTaskTemporalState(t) === "pastScheduled")
     ).length;
-    const dueToday = tasks.filter((t) => !t.completed && isTaskDueToday(t)).length;
+    const dueToday = tasks.filter((t) => {
+      if (t.completed || !isTaskDueToday(t)) return false;
+      const temporal = getTaskTemporalState(t);
+      return temporal !== "overdue" && temporal !== "pastScheduled";
+    }).length;
     return overdue + dueToday;
-  }, [tasks]);
+  }, [tasks, now]);
 
   const deadlineCount = useMemo(() => {
     const overdue = tasks.filter((t) => {
@@ -185,7 +195,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             </button>
 
             {isTaskDropdownOpen && (
-              <div className="absolute left-0 top-full mt-2 w-52 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-1.5 shadow-[3.5px_3.5px_0px_#262626] z-50 space-y-1 animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute left-0 top-full mt-2 w-52 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-1.5 shadow-[3.5px_3.5px_0px_#262626] z-50 space-y-1">
                 <button
                   type="button"
                   onClick={() => {
@@ -195,7 +205,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[5px] text-sm font-bold transition-all cursor-pointer ${
                     activeTaskSubTab !== "deadlines"
                       ? "bg-[#1C1917] text-white"
-                      : "hover:bg-[#FAF8F3] text-[#1C1917]"
+                      : "hover:bg-[#FAF8F3] text-[#57534E]"
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -214,7 +224,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[5px] text-sm font-bold transition-all cursor-pointer ${
                     activeTaskSubTab === "deadlines"
                       ? "bg-[#1C1917] text-white"
-                      : "hover:bg-[#FAF8F3] text-[#1C1917]"
+                      : "hover:bg-[#FAF8F3] text-[#57534E]"
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -262,7 +272,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             </button>
 
             {isNoteDropdownOpen && (
-              <div className="absolute left-0 top-full mt-2 w-48 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-1.5 shadow-[3.5px_3.5px_0px_#262626] z-50 space-y-1 animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute left-0 top-full mt-2 w-48 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-1.5 shadow-[3.5px_3.5px_0px_#262626] z-50 space-y-1">
                 <button
                   type="button"
                   onClick={() => {
@@ -272,7 +282,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[5px] text-sm font-bold transition-all cursor-pointer ${
                     activeTab === "notes"
                       ? "bg-[#1C1917] text-white"
-                      : "hover:bg-[#FAF8F3] text-[#1C1917]"
+                      : "hover:bg-[#FAF8F3] text-[#57534E]"
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -291,7 +301,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[5px] text-sm font-bold transition-all cursor-pointer ${
                     activeTab === "journal"
                       ? "bg-[#1C1917] text-white"
-                      : "hover:bg-[#FAF8F3] text-[#1C1917]"
+                      : "hover:bg-[#FAF8F3] text-[#57534E]"
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -402,7 +412,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             </button>
 
             {isAccountDropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] p-1.5 shadow-[3.5px_3.5px_0px_#262626] z-50 space-y-1 animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute right-0 top-full mt-2 w-52 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] p-1.5 shadow-[3.5px_3.5px_0px_#262626] z-50 space-y-1">
                 {/* 1. Cài đặt */}
                 <button
                   type="button"

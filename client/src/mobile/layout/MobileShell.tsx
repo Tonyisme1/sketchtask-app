@@ -43,6 +43,7 @@ export const MobileShell: React.FC<MobileShellProps> = ({
     openTaskDetail,
     selectedNotebookId,
     isMobileNoteDetailOpen,
+    isJournalBookOpen,
     settingsMobileSubView,
     setSettingsMobileSubView,
   } = useAppStore();
@@ -61,13 +62,16 @@ export const MobileShell: React.FC<MobileShellProps> = ({
     activeDetailTaskId,
     selectedNotebookId,
     isMobileNoteDetailOpen,
+    isJournalBookOpen,
     settingsMobileSubView,
   ]);
 
   // Kiểm tra xem người dùng có đang mở task detail canvas hoặc mobile full note editor
   const isDetailOpen =
     Boolean(activeDetailTaskId) ||
-    (activeTab === "notes" && Boolean(isMobileNoteDetailOpen));
+    (activeTab === "notes" && Boolean(isMobileNoteDetailOpen)) ||
+    (activeTab === "journal" && Boolean(isJournalBookOpen)) ||
+    (activeTab === "notebooks" && Boolean(selectedNotebookId));
   const isSettingsView = activeTab === "settings";
   const previousDetailOpenRef = useRef(isDetailOpen);
   const [detailTransitionDirection, setDetailTransitionDirection] = useState<"forward" | "back">("forward");

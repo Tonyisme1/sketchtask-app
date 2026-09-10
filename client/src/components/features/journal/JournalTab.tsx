@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { JournalBook } from "./JournalBook";
 import { NavigationTarget, TabKey } from "../../../types";
 import { useResponsiveLayout } from "../../../shared/hooks";
+import { useAppStore } from "../../../stores/appStore";
 
 // ==========================================
 // COMPONENT: JournalTab
@@ -20,6 +21,11 @@ export const JournalTab: React.FC<JournalTabProps> = ({
   onNavigateTab,
 }) => {
   const { isMobile } = useResponsiveLayout();
+  const { setIsJournalBookOpen } = useAppStore();
+
+  useEffect(() => {
+    return () => setIsJournalBookOpen(false);
+  }, [setIsJournalBookOpen]);
 
   return (
     <div className={`w-full min-w-0 space-y-4 pb-12 ${
@@ -29,6 +35,7 @@ export const JournalTab: React.FC<JournalTabProps> = ({
         initialDate={navigationTarget?.date}
         initialEntryId={navigationTarget?.journalEntryId}
         notebookId={navigationTarget?.notebookId}
+        onClearNavigationTarget={onClearNavigationTarget}
         onNavigateTab={onNavigateTab}
       />
     </div>

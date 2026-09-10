@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { NoteItem } from "./NoteTypes";
 import { NotebookDto } from "../../../types";
-import { NoteToolbar } from "./NoteToolbar";
-import { useMobileKeyboardOffset } from "./useMobileKeyboardOffset";
 import { useAppStore } from "../../../stores/appStore";
 import { useResponsiveLayout } from "../../../shared/hooks";
 import {
@@ -15,6 +13,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Pin,
 } from "lucide-react";
 
 export interface NoteMasterDetailViewProps {
@@ -24,6 +23,7 @@ export interface NoteMasterDetailViewProps {
   initialNoteId?: string;
   onUpdateNote: (updatedNote: NoteItem) => void;
   onDeleteNote: (id: string) => void;
+  onTogglePinNote: (id: string) => void;
   onCreateClick: () => void;
 }
 
@@ -41,10 +41,11 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   initialNoteId,
   onUpdateNote,
   onDeleteNote,
+  onTogglePinNote,
   onCreateClick,
 }) => {
-  const { setIsMobileNoteDetailOpen } = useAppStore();
-  const { isMobile, isTablet } = useResponsiveLayout();
+  const { isMobileNoteDetailOpen, setIsMobileNoteDetailOpen } = useAppStore();
+  const { isMobile } = useResponsiveLayout();
 
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(() => {
     if (initialNoteId && notes.some((n) => n.id === initialNoteId)) {
@@ -57,12 +58,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
     return null;
   });
 
-  const [isEditorFocused, setIsEditorFocused] = useState(false);
   const [mobileNoteTransition, setMobileNoteTransition] = useState<"forward" | "back">("forward");
-  const {
-    offset: mobileKeyboardOffset,
-    isVisible: isMobileKeyboardVisible,
-  } = useMobileKeyboardOffset();
 
   // Đảm bảo selectedNoteId luôn trỏ tới note hợp lệ mà không tự mở note đầu.
   useEffect(() => {
@@ -81,7 +77,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
     if (initialNoteId && notes.some((note) => note.id === initialNoteId)) {
       setMobileNoteTransition("forward");
       setSelectedNoteId(initialNoteId);
-      setIsMobileNoteDetailOpen(isMobile);
+      setIsMobileNoteDetailOpen(true);
     }
   }, [initialNoteId, isMobile, notes, setIsMobileNoteDetailOpen]);
 
@@ -90,7 +86,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
       prevNewlyCreatedIdRef.current = newlyCreatedId;
       setMobileNoteTransition("forward");
       setSelectedNoteId(newlyCreatedId);
-      setIsMobileNoteDetailOpen(isMobile);
+      setIsMobileNoteDetailOpen(true);
       setTimeout(() => {
         titleInputRef.current?.focus();
       }, 80);
@@ -104,6 +100,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   const [notebookId, setNotebookId] = useState<string | undefined>(selectedNote?.notebookId);
   const [isSaved, setIsSaved] = useState(true);
   const [showNotebookMenu, setShowNotebookMenu] = useState(false);
+  const [expandedNoteIds, setExpandedNoteIds] = useState<Set<string>>(new Set());
 
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -196,7 +193,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   const handleOpenNote = (targetId: string) => {
     setMobileNoteTransition("forward");
     setSelectedNoteId(targetId);
-    setIsMobileNoteDetailOpen(isMobile);
+    setIsMobileNoteDetailOpen(true);
   };
 
   const handleCloseNoteEditor = () => {
@@ -242,14 +239,11 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
     ? notebooks.find((n) => n.id === notebookId)
     : null;
   const contentCharacterCount = stripHtml(selectedNote?.content || "").length;
-  const isTouchLayout = isMobile || isTablet;
-  const shouldShowToolbar =
-    isEditorFocused && (!isTouchLayout || isMobileKeyboardVisible);
 
   // =========================================================================
   // DANH SÁCH GHI CHÚ: CHỈ MỞ EDITOR SAU KHI NGƯỜI DÙNG CHỌN NOTE
   // =========================================================================
-  if (!selectedNote && notes.length > 0) {
+  if ((!selectedNote || !isMobileNoteDetailOpen) && notes.length > 0) {
     return (
       <div className={`w-full min-w-0 space-y-3 select-none ${
         mobileNoteTransition === "back" ? "mobile-panel-back-enter" : "mobile-tab-enter"
@@ -260,35 +254,78 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
             const notebook = note.notebookId
               ? notebooks.find((item) => item.id === note.notebookId)
               : null;
+            const isPreviewExpanded = expandedNoteIds.has(note.id);
+            const hasLongPreview = plainContent.length > 150;
 
             return (
-              <button
+              <article
                 key={note.id}
-                type="button"
-                onClick={() => handleOpenNote(note.id)}
-                className="w-full text-left bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] p-3 shadow-[2px_2px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                className={`w-full border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] transition-colors ${
+                  note.isPinned ? "bg-[#FEF08A]/45" : "bg-[#FFFDF8]"
+                }`}
               >
-                <div className="flex items-start gap-2.5">
-                  <span className="font-mono text-[10px] text-[#78716C] pt-0.5 shrink-0">
+                <div className="flex items-start gap-3 p-3">
+                  <span className="pt-0.5 text-[11px] text-[#78716C] shrink-0">
                     #{index + 1}
                   </span>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-sm font-black text-[#1C1917] truncate">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenNote(note.id)}
+                    className="min-w-0 flex-1 text-left active:translate-x-[0.5px] active:translate-y-[0.5px]"
+                  >
+                    <h3 className="truncate text-[15px] font-semibold text-[#1C1917]">
                       {note.title || "Ghi chú không tiêu đề"}
                     </h3>
-                    <p className="mt-1 text-xs leading-relaxed text-[#78716C] line-clamp-2">
+                    <p className={`mt-1 text-[13px] leading-relaxed text-[#78716C] ${isPreviewExpanded ? "" : "line-clamp-3"}`}>
                       {plainContent || "Chưa có nội dung"}
                     </p>
-                    <div className="mt-2 flex items-center justify-between gap-2 text-[10px] font-mono text-[#78716C]">
+                    <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-[#78716C]">
                       <span className="truncate">
                         {notebook ? `Sổ: ${notebook.name}` : "Chưa gắn sổ"}
                       </span>
                       <span className="shrink-0">{note.updatedAt || note.createdAt}</span>
                     </div>
+                  </button>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => onTogglePinNote(note.id)}
+                      aria-pressed={Boolean(note.isPinned)}
+                      aria-label={note.isPinned ? "Bỏ ghim ghi chú" : "Ghim ghi chú"}
+                      title={note.isPinned ? "Bỏ ghim ghi chú" : "Ghim ghi chú"}
+                      className={`flex h-9 w-9 items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
+                        note.isPinned ? "bg-[#FEF08A] text-[#1C1917]" : "bg-white text-[#78716C]"
+                      }`}
+                    >
+                      <Pin size={15} strokeWidth={2.2} fill={note.isPinned ? "currentColor" : "none"} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenNote(note.id)}
+                      aria-label="Mở ghi chú"
+                      className="flex h-9 w-7 items-center justify-center text-[#78716C]"
+                    >
+                      <ChevronRight size={17} strokeWidth={2.2} />
+                    </button>
                   </div>
-                  <ChevronRight size={16} className="text-[#78716C] shrink-0 mt-0.5" />
                 </div>
-              </button>
+                {hasLongPreview && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setExpandedNoteIds((previous) => {
+                        const next = new Set(previous);
+                        if (next.has(note.id)) next.delete(note.id);
+                        else next.add(note.id);
+                        return next;
+                      });
+                    }}
+                    className="w-full border-t border-[#D4CEBF] px-3 py-2 text-left text-[11px] font-semibold text-[#57534E] hover:bg-[#FAF8F3] hover:text-[#1C1917]"
+                  >
+                    {isPreviewExpanded ? "Thu gọn nội dung" : "Xem thêm nội dung"}
+                  </button>
+                )}
+              </article>
             );
           })}
         </div>
@@ -301,7 +338,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   // =========================================================================
   if (!selectedNote || notes.length === 0) {
     return (
-      <div className="w-full min-w-0 select-none animate-in fade-in duration-150">
+      <div className="w-full min-w-0 select-none">
         <div className="bg-[#FFFDF8] border-[1.5px] border-dashed border-[#262626] rounded-[8px] p-8 sm:p-14 text-center shadow-[3px_3px_0px_#262626] space-y-3.5">
           <div className="w-14 h-14 rounded-[8px] bg-[#FEF08A] border-[1.5px] border-[#262626] flex items-center justify-center mx-auto shadow-[2px_2px_0px_#262626]">
             <FileText size={26} className="text-[#1C1917]" />
@@ -333,8 +370,8 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   return (
     <div className={`w-full min-w-0 select-none ${
       isMobile
-        ? "space-y-3 bg-[#FBF9F4] mobile-panel-enter"
-        : "space-y-4 animate-in fade-in duration-150"
+        ? "space-y-3 bg-[#FBF9F4] mobile-panel-enter pt-[max(env(safe-area-inset-top),16px)]"
+        : "space-y-4"
     }`}>
       {/* 1. Thanh thao tác ghi chú: quay lại, chọn sổ và xóa */}
       <div className={`flex items-center gap-2 ${
@@ -382,7 +419,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
             </button>
 
             {showNotebookMenu && (
-              <div className="absolute right-0 top-full mt-1.5 w-56 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] p-1.5 shadow-[3.5px_3.5px_0px_#262626] z-50 space-y-1 animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute left-0 top-full z-50 mt-1.5 w-56 max-w-[calc(100vw-2rem)] space-y-1 rounded-[6px] border-[1.5px] border-[#262626] bg-[#FFFDF8] p-1.5 shadow-[3.5px_3.5px_0px_#262626] sm:left-auto sm:right-0">
                 <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#78716C] font-mono border-b border-[#E7E5E4]">
                   Chọn Sổ Tay
                 </div>
@@ -458,7 +495,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
       <div
         className={`flex flex-col overflow-hidden ${
           isMobile
-            ? "h-[calc(100dvh-7.5rem)] min-h-[420px] bg-transparent px-1 pb-4"
+            ? "h-[calc(100dvh-9rem)] min-h-[360px] bg-transparent px-1 pb-4"
             : "h-[calc(100dvh-8.5rem)] min-h-[420px] max-h-[760px] rounded-[8px] border-[1.5px] border-[#262626] bg-[#FFFDF8] p-4 shadow-[3px_3px_0px_#262626] sm:p-6 md:h-[calc(100dvh-12rem)] md:min-h-[520px] md:max-h-[820px] md:p-8"
         }`}
       >
@@ -501,32 +538,8 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
           </div>
         </div>
 
-        {/* Thanh Công Cụ Soạn Thảo WYSIWYG */}
-        <div
-          className={`pt-1 shrink-0 ${
-            shouldShowToolbar
-              ? "note-editor-toolbar--active"
-              : "note-editor-toolbar--hidden"
-          }`}
-          style={
-            {
-              "--note-keyboard-offset": `${mobileKeyboardOffset}px`,
-            } as React.CSSProperties
-          }
-        >
-          <NoteToolbar
-            editorRef={editorRef}
-            onContentChange={handleEditorInput}
-            keyboardVisible={isTouchLayout && isMobileKeyboardVisible}
-          />
-        </div>
-
-        {/* Khung Soạn Thảo Rich-Text */}
-        <div
-          className={`flex min-h-0 flex-1 flex-col py-2 ${
-            shouldShowToolbar ? "pb-14 md:pb-2" : ""
-          }`}
-        >
+        {/* Khung nhập nội dung ghi chú, không có thanh công cụ kiểu Word */}
+        <div className="flex min-h-0 flex-1 flex-col py-2">
           <div
             ref={editorRef}
             contentEditable
@@ -542,14 +555,10 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
             data-form-type="other"
             data-lpignore="true"
             data-1p-ignore="true"
-            onFocus={() => setIsEditorFocused(true)}
             onInput={handleEditorInput}
-            onBlur={(event) => {
-              setIsEditorFocused(false);
-              handleBlur();
-            }}
+            onBlur={handleBlur}
             data-placeholder="Bắt đầu viết nội dung ghi chú tại đây..."
-            className={`w-full min-h-0 flex-1 overflow-y-auto overscroll-contain bg-transparent text-[#1C1917] focus:outline-none resize-none font-sans selection:bg-[#FEF08A] [&_h1]:text-xl [&_h1]:sm:text-2xl [&_h1]:font-black [&_h1]:my-3 [&_h1]:text-[#1C1917] [&_h2]:text-lg [&_h2]:sm:text-xl [&_h2]:font-bold [&_h2]:my-2 [&_h2]:text-[#1C1917] [&_p]:my-1.5 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-2 [&_blockquote]:border-l-4 [&_blockquote]:border-[#262626] [&_blockquote]:pl-4 [&_blockquote]:my-3 [&_blockquote]:italic [&_blockquote]:bg-[#FAF8F3] [&_blockquote]:py-1.5 [&_blockquote]:rounded-r ${
+            className={`note-editor-content w-full min-h-0 flex-1 overflow-y-auto overscroll-contain bg-transparent text-[#1C1917] focus:outline-none resize-none font-sans selection:bg-[#FEF08A] [&_h1]:text-xl [&_h1]:sm:text-2xl [&_h1]:font-black [&_h1]:my-3 [&_h1]:text-[#1C1917] [&_h2]:text-lg [&_h2]:sm:text-xl [&_h2]:font-bold [&_h2]:my-2 [&_h2]:text-[#1C1917] [&_p]:my-1.5 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-2 [&_blockquote]:border-l-4 [&_blockquote]:border-[#262626] [&_blockquote]:pl-4 [&_blockquote]:my-3 [&_blockquote]:italic [&_blockquote]:bg-[#FAF8F3] [&_blockquote]:py-1.5 [&_blockquote]:rounded-r ${
               isMobile
                 ? "px-1 pt-6 text-[17px] leading-[1.65]"
                 : "p-3 text-sm leading-relaxed sm:text-base"

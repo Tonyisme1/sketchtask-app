@@ -18,11 +18,11 @@ export const TodayProgressBar: React.FC<TodayProgressBarProps> = ({
   return (
     <section
       aria-label="Tiến độ hôm nay"
-      className="space-y-1.5 rounded-[6px] border-[1.5px] border-[#262626] bg-white px-3 py-2 shadow-[2px_2px_0px_#262626]"
+      className="space-y-2 rounded-[6px] border-[1.5px] border-[#262626] bg-white px-3.5 py-2.5 shadow-[2px_2px_0px_#262626]"
     >
-      <div className="flex items-center justify-between gap-3 text-xs font-bold text-[#1C1917]">
+      <div className="flex items-center justify-between gap-3 text-sm font-semibold text-[#1C1917]">
         <span>{label}</span>
-        <span className="font-mono text-[11px] text-[#57534E]">
+        <span className="font-mono text-xs font-medium text-[#57534E]">
           {completedCount}/{totalCount} xong · {progressPercent}%
         </span>
       </div>
@@ -32,7 +32,7 @@ export const TodayProgressBar: React.FC<TodayProgressBarProps> = ({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={progressPercent}
-        className="h-1.5 w-full overflow-hidden rounded-[2px] border border-[#262626] bg-[#F3EFE6]"
+        className="h-3 w-full overflow-hidden rounded-[2px] border border-[#262626] bg-[#F3EFE6]"
       >
         <div
           className="h-full bg-[#1C1917] transition-[width] duration-300"

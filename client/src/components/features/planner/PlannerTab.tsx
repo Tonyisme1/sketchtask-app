@@ -241,10 +241,6 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
     );
   };
 
-  const getTaskCountForDate = (dateStr: string) => {
-    return getTaskSummaryForDate(dateStr).total;
-  };
-
   // Điều hướng Prev / Next / Today
   const handlePrev = () => {
     if (viewMode === "agenda") setWeekOffset((prev) => prev - 1);
@@ -398,7 +394,7 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
               onSelectDate={handleSelectDate}
               todayStr={todayStr}
               monthMatrix={monthMatrix}
-              getTaskCountForDate={getTaskCountForDate}
+              getTasksForDate={getTasksForDate}
               getTaskSummaryForDate={getTaskSummaryForDate}
             />
           )}

@@ -25,7 +25,8 @@ export default defineConfig({
         display: 'standalone',
         display_override: ['window-controls-overlay', 'standalone'],
         orientation: 'portrait',
-        start_url: '/',
+        // Installed PWA must open the offline-capable workspace, not the public login route.
+        start_url: '/app',
         scope: '/',
         lang: 'vi',
         dir: 'ltr',

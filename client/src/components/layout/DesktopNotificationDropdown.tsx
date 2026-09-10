@@ -1,8 +1,8 @@
-import React, { useRef, useEffect, useMemo } from "react";
-import { Bell, Settings, AlertTriangle, Clock, Flame, Check } from "lucide-react";
+import React, { useRef, useEffect, useMemo, useState } from "react";
+import { Bell, Settings, AlertTriangle, Clock, Check } from "lucide-react";
 import { useAppStore } from "../../stores/appStore";
 import { NavigationTarget, TabKey, TaskDto } from "../../types";
-import { formatFullDate, getLocalTodayStr } from "../../utils/date";
+import { formatFullDate } from "../../utils/date";
 import {
   getTaskEffectiveDate,
   getTaskEffectiveTime,
@@ -28,8 +28,14 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
   onSelectTask,
 }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { tasks, habits, toggleTask, toggleHabitDay } = useAppStore();
-  const todayStr = getLocalTodayStr(new Date());
+  const { tasks, toggleTask } = useAppStore();
+  const [now, setNow] = useState(() => Date.now());
+
+  // Huy hiệu và nhóm thông báo phải tự cập nhật khi đồng hồ vượt qua hạn task.
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   // 1. Quá hạn
   const overdueTasks = useMemo(() => {
@@ -38,7 +44,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
       const state = getTaskTemporalState(t);
       return state === "overdue" || state === "pastScheduled";
     });
-  }, [tasks]);
+  }, [tasks, now]);
 
   // 2. Việc đến hạn hôm nay
   const todayDueTasks = useMemo(() => {
@@ -48,7 +54,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
       const state = getTaskTemporalState(t);
       return state !== "overdue" && state !== "pastScheduled";
     });
-  }, [tasks]);
+  }, [tasks, now]);
 
   const overdueGroups = useMemo(() => {
     const groups = new Map<string, TaskDto[]>();
@@ -72,12 +78,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
       }));
   }, [overdueTasks]);
 
-  // 3. Thói quen chưa hoàn thành hôm nay
-  const pendingHabits = useMemo(() => {
-    return habits.filter((h) => !h.completedDates.includes(todayStr));
-  }, [habits, todayStr]);
-
-  const totalAlerts = overdueTasks.length + todayDueTasks.length + pendingHabits.length;
+  const totalAlerts = overdueTasks.length + todayDueTasks.length;
 
   // Xử lý đóng khi click ra ngoài hoặc bấm Escape
   useEffect(() => {
@@ -156,7 +157,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
               Thông báo của bạn hiển thị ở đây
             </h4>
             <p className="text-xs text-[#78716C] leading-relaxed max-w-[250px]">
-              Nhắc nhở công việc, hạn định và thói quen hàng ngày sẽ xuất hiện tại đây.
+              Nhắc nhở công việc và hạn định sẽ xuất hiện tại đây.
             </p>
           </div>
         ) : (
@@ -179,7 +180,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
                     key={task.id}
                     onClick={() => {
                       if (onSelectTask) onSelectTask(task);
-                      onNavigateTab("tasks", { taskId: task.id, date: getTaskEffectiveDate(task) });
+                      onNavigateTab("today", { taskId: task.id, date: getTaskEffectiveDate(task) });
                       onClose();
                     }}
                     className="p-2.5 rounded-[6px] bg-[#FAF8F3] hover:bg-[#F5F5F4] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2 cursor-pointer transition-all"
@@ -224,7 +225,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
                     key={task.id}
                     onClick={() => {
                       if (onSelectTask) onSelectTask(task);
-                      onNavigateTab("tasks", { taskId: task.id, date: getTaskEffectiveDate(task) });
+                      onNavigateTab("today", { taskId: task.id, date: getTaskEffectiveDate(task) });
                       onClose();
                     }}
                     className="p-2.5 rounded-[6px] bg-white hover:bg-[#FAF8F3] border border-[#262626] shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2 cursor-pointer transition-all"
@@ -251,39 +252,6 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
               </div>
             )}
 
-            {/* Thói quen */}
-            {pendingHabits.length > 0 && (
-              <div className="space-y-1">
-                <div className="flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono font-black uppercase text-[#1C1917]">
-                  <Flame size={12} className="text-[#1C1917]" />
-                  <span>Thói quen chưa tích ({pendingHabits.length})</span>
-                </div>
-                {pendingHabits.slice(0, 3).map((habit) => (
-                  <div
-                    key={habit.id}
-                    onClick={() => {
-                      onNavigateTab("today");
-                      onClose();
-                    }}
-                    className="p-2 rounded-[6px] bg-[#FAF8F3] hover:bg-[#F5F5F4] border border-[#262626] shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2 cursor-pointer transition-all"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-[#1C1917] truncate">{habit.name}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleHabitDay(habit.id, todayStr);
-                      }}
-                      className="px-2 py-0.5 rounded-[3px] bg-[#1C1917] hover:bg-[#262626] text-white text-[10px] font-bold border border-[#262626] shrink-0"
-                    >
-                      Tích
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         )}
       </div>
