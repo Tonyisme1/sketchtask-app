@@ -12,51 +12,32 @@ import {
 } from "lucide-react";
 import { useAppStore } from "../../../stores/appStore";
 import { BrandLogo, Button, TextInput } from "../../ui";
-import { SeoHead } from "../marketing/SeoHead";
-
-export type AuthPageMode = "signin" | "signup";
 
 interface AuthPageProps {
-  mode: AuthPageMode;
   onNavigate: (path: string, replace?: boolean) => void;
 }
 
-export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
-  const {
-    user,
-    loginWithCredentials,
-    registerWithCredentials,
-    loginWithGoogle,
-  } = useAppStore();
-  const [authMode, setAuthMode] = useState<AuthPageMode>(mode);
-  const [name, setName] = useState("");
+// The public surface intentionally contains one responsive sign-in page.
+export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate }) => {
+  const { user, loginWithCredentials, loginWithGoogle } = useAppStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const getPostAuthPath = () => {
-    const returnTo = new URLSearchParams(window.location.search).get("returnTo");
-    if (returnTo === "/admin" || window.history.state?.from === "/admin") {
-      return "/admin";
-    }
-    return "/app";
-  };
-
   const isForcedAuth = () =>
     new URLSearchParams(window.location.search).get("force") === "1";
 
   useEffect(() => {
-    setAuthMode(mode);
-    setErrorMessage("");
-  }, [mode]);
-
-  useEffect(() => {
-    if (user.isSignedIn && !isForcedAuth()) onNavigate(getPostAuthPath(), true);
+    if (user.isSignedIn && !isForcedAuth()) onNavigate("/app", true);
   }, [onNavigate, user.isSignedIn]);
 
-  const handleSuccess = () => onNavigate(getPostAuthPath(), true);
+  useEffect(() => {
+    document.title = "Đăng nhập | SketchTask";
+  }, []);
+
+  const handleSuccess = () => onNavigate("/app", true);
 
   const triggerGoogleOAuth = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -104,22 +85,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
       setErrorMessage("Vui lòng nhập địa chỉ email.");
       return;
     }
-    if (authMode === "signup" && !name.trim()) {
-      setErrorMessage("Vui lòng nhập tên hiển thị.");
-      return;
-    }
 
     setIsSubmitting(true);
     setErrorMessage("");
     try {
-      const result =
-        authMode === "signup"
-          ? await registerWithCredentials(
-              name.trim(),
-              cleanEmail,
-              password || undefined,
-            )
-          : await loginWithCredentials(cleanEmail, password || undefined);
+      const result = await loginWithCredentials(cleanEmail, password || undefined);
       if (result.success) handleSuccess();
       else setErrorMessage(result.message || "Thông tin đăng nhập chưa đúng.");
     } catch (error: any) {
@@ -129,51 +99,33 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
     }
   };
 
-  const switchMode = (nextMode: AuthPageMode) => {
-    setAuthMode(nextMode);
-    setErrorMessage("");
-    onNavigate(nextMode === "signin" ? "/login" : "/register");
-  };
-
-  const isSignIn = authMode === "signin";
-  const title = isSignIn ? "Chào mừng bạn quay lại" : "Tạo workspace của bạn";
-  const description = isSignIn
-    ? "Đăng nhập để tiếp tục với những task, note và nhật ký đang chờ bạn."
-    : "Tạo tài khoản để giữ mọi thứ đồng bộ giữa các thiết bị.";
-
   return (
     <div className="min-h-screen bg-[#FBF9F4] font-sans text-[#1C1917] selection:bg-[#FEF08A] selection:text-[#1C1917]">
-      <SeoHead
-        title={`${isSignIn ? "Đăng nhập" : "Đăng ký"} | SketchTask`}
-        description={description}
-        path={isSignIn ? "/login" : "/register"}
-      />
       <header className="border-b-[1.5px] border-[#262626] bg-[#FBF9F4]">
-        <div className="mx-auto flex min-h-[72px] max-w-[1280px] items-center justify-between px-5 sm:px-8 lg:px-10">
+        <div className="mx-auto flex min-h-[60px] max-w-[1280px] items-center justify-between px-4 sm:min-h-[68px] sm:px-6 lg:min-h-[72px] lg:px-10">
           <a
-            href="/"
+            href="/app"
             onClick={(event) => {
               event.preventDefault();
-              onNavigate("/");
+              onNavigate("/app");
             }}
-            aria-label="Về trang chủ SketchTask"
+            aria-label="Mở ứng dụng SketchTask"
           >
             <BrandLogo size="lg" />
           </a>
-          <a
-            href="/"
-            onClick={(event) => {
-              event.preventDefault();
-              onNavigate("/");
-            }}
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#57534E] hover:text-[#1C1917]"
+          <button
+            type="button"
+            onClick={() => onNavigate("/app")}
+            className="inline-flex items-center gap-1.5 rounded-[4px] border-[1.5px] border-[#262626] bg-white px-2.5 py-1.5 text-xs font-bold text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] transition-all hover:bg-[#FEF08A] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none sm:px-3"
           >
-            <ArrowLeft size={15} /> Về trang chủ
-          </a>
+            <ArrowLeft size={14} strokeWidth={2.4} />
+            <span className="hidden sm:inline">Mở ứng dụng</span>
+            <span className="sm:hidden">Ứng dụng</span>
+          </button>
         </div>
       </header>
 
-      <main className="mx-auto grid min-h-[calc(100vh-72px)] max-w-[1280px] items-center gap-12 px-5 py-12 sm:px-8 sm:py-16 lg:grid-cols-[1fr_0.78fr] lg:gap-20 lg:px-10">
+      <main className="mx-auto grid min-h-[calc(100vh-60px)] max-w-[1280px] items-center gap-8 px-4 py-8 sm:min-h-[calc(100vh-68px)] sm:px-6 sm:py-10 md:max-lg:max-w-[640px] md:max-lg:py-12 lg:min-h-[calc(100vh-72px)] lg:grid-cols-[1fr_0.78fr] lg:gap-20 lg:px-10 lg:py-16">
         <section className="hidden lg:block">
           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#78716C]">
             SketchTask / private workspace
@@ -182,22 +134,25 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
             Một nơi để làm, ghi và nhìn lại.
           </h1>
           <p className="mt-6 max-w-lg text-base leading-7 text-[#57534E]">
-            Bạn có thể bắt đầu thật nhanh, rồi sắp xếp dần theo cách phù hợp với mình. Không cần biến việc quản lý công việc thành một công việc khác.
+            Bắt đầu thật nhanh, rồi sắp xếp task, ghi chú và nhật ký theo cách
+            phù hợp với mình.
           </p>
           <div className="mt-8 grid max-w-lg gap-3 sm:grid-cols-2">
-            {["Task và lịch hẹn rõ ràng", "Note và nhật ký liền mạch", "Dữ liệu đồng bộ an toàn", "Dùng được trên mọi màn hình"].map((item) => (
-              <div key={item} className="flex items-center gap-2 text-sm font-semibold">
-                <span className="flex h-5 w-5 items-center justify-center border-[1.5px] border-[#262626] bg-[#BBF7D0]">
-                  <Check size={13} strokeWidth={3} />
-                </span>
-                {item}
-              </div>
-            ))}
+            {["Task và lịch hẹn rõ ràng", "Note và nhật ký liền mạch", "Dữ liệu đồng bộ an toàn", "Dùng được trên mọi màn hình"].map(
+              (item) => (
+                <div key={item} className="flex items-center gap-2 text-sm font-semibold">
+                  <span className="flex h-5 w-5 items-center justify-center border-[1.5px] border-[#262626] bg-[#BBF7D0]">
+                    <Check size={13} strokeWidth={3} />
+                  </span>
+                  {item}
+                </div>
+              ),
+            )}
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-[500px] border-[1.5px] border-[#262626] bg-white p-5 shadow-[4px_4px_0px_#262626] sm:p-8">
-          <div className="mb-7 border-b-[1.5px] border-[#262626] pb-5">
+        <section className="mx-auto w-full max-w-[500px] border-[1.5px] border-[#262626] bg-white p-4 shadow-[3px_3px_0px_#262626] sm:p-7 md:max-lg:max-w-[560px] md:max-lg:p-8 lg:p-8 lg:shadow-[4px_4px_0px_#262626]">
+          <div className="mb-6 border-b-[1.5px] border-[#262626] pb-5 sm:mb-7">
             <div className="flex items-center gap-2">
               <div className="flex h-9 w-9 items-center justify-center border-[1.5px] border-[#262626] bg-[#FEF08A]">
                 <LockKeyhole size={17} />
@@ -206,25 +161,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
                 private access
               </span>
             </div>
-            <h2 className="mt-5 text-3xl font-black tracking-[-0.035em]">{title}</h2>
-            <p className="mt-2 text-sm leading-6 text-[#57534E]">{description}</p>
+            <h2 className="mt-5 text-2xl font-black tracking-[-0.035em] sm:text-3xl">
+              Chào mừng bạn quay lại
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[#57534E]">
+              Đăng nhập để tiếp tục với những task, note và nhật ký đang chờ bạn.
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {!isSignIn && (
-              <div>
-                <label htmlFor="auth-name" className="mb-1.5 block text-xs font-bold">
-                  Tên hiển thị
-                </label>
-                <TextInput
-                  id="auth-name"
-                  autoComplete="name"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder="Ví dụ: Minh Khang"
-                />
-              </div>
-            )}
             <div>
               <label htmlFor="auth-email" className="mb-1.5 block text-xs font-bold">
                 Địa chỉ email
@@ -246,7 +191,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
                 <TextInput
                   id="auth-password"
                   type={showPassword ? "text" : "password"}
-                  autoComplete={isSignIn ? "current-password" : "new-password"}
+                  autoComplete="current-password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder="Nhập mật khẩu"
@@ -271,7 +216,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
             )}
 
             <Button type="submit" disabled={isSubmitting} className="w-full justify-center gap-2">
-              {isSubmitting ? "Đang xử lý..." : isSignIn ? "Đăng nhập vào SketchTask" : "Tạo tài khoản"}
+              {isSubmitting ? "Đang xử lý..." : "Đăng nhập vào SketchTask"}
               {!isSubmitting && <ArrowRight size={15} />}
             </Button>
 
@@ -298,23 +243,9 @@ export const AuthPage: React.FC<AuthPageProps> = ({ mode, onNavigate }) => {
             )}
           </form>
 
-          <div className="mt-6 border-t border-[#D4CEBF] pt-5 text-center text-sm text-[#57534E]">
-            {isSignIn ? (
-              <>
-                Chưa có tài khoản?{" "}
-                <button type="button" onClick={() => switchMode("signup")} className="font-bold text-[#1C1917] underline decoration-[#FEF08A] decoration-2 underline-offset-4">
-                  Đăng ký ngay
-                </button>
-              </>
-            ) : (
-              <>
-                Đã có tài khoản?{" "}
-                <button type="button" onClick={() => switchMode("signin")} className="font-bold text-[#1C1917] underline decoration-[#FEF08A] decoration-2 underline-offset-4">
-                  Đăng nhập
-                </button>
-              </>
-            )}
-          </div>
+          <p className="mt-6 border-t border-[#D4CEBF] pt-5 text-center text-xs leading-5 text-[#78716C]">
+            Dữ liệu cục bộ vẫn dùng được khi offline. Đăng nhập để đồng bộ giữa các thiết bị.
+          </p>
         </section>
       </main>
     </div>

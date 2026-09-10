@@ -72,13 +72,13 @@ export const PlannerDateTimeView: React.FC<PlannerDateTimeViewProps> = ({
     <div className="space-y-2.5 py-1">
       {/* 1. Thanh Chế Độ (Chỉ cho phép chuyển đổi nếu KHÔNG BỊ FORCED MODE) */}
       {!forcedMode ? (
-        <div className="grid grid-cols-2 gap-1.5 p-1 bg-[#ECE8DF] border border-[#262626] rounded-[6px]">
+        <div className="grid grid-cols-2 gap-1.5 p-1 bg-[#FAF8F3] border border-[#262626] rounded-[6px]">
           <button
             type="button"
             onClick={() => onModeSwitch("scheduled")}
             className={`py-1.5 px-2 rounded-[4px] text-xs font-bold flex flex-col items-center justify-center transition-all ${
               mode === "scheduled"
-                ? "bg-[#FEF08A] text-[#1C1917] border border-[#262626] shadow-[1.5px_1.5px_0px_#262626]"
+                ? "bg-[#1C1917] text-white border border-[#262626] shadow-[1.5px_1.5px_0px_#262626]"
                 : "text-[#78716C] hover:text-[#1C1917]"
             }`}
           >
@@ -96,7 +96,7 @@ export const PlannerDateTimeView: React.FC<PlannerDateTimeViewProps> = ({
             onClick={() => onModeSwitch("deadline")}
             className={`py-1.5 px-2 rounded-[4px] text-xs font-bold flex flex-col items-center justify-center transition-all ${
               mode === "deadline"
-                ? "bg-[#FECDD3] text-[#1C1917] border border-[#262626] shadow-[1.5px_1.5px_0px_#262626]"
+                ? "bg-[#1C1917] text-white border border-[#262626] shadow-[1.5px_1.5px_0px_#262626]"
                 : "text-[#78716C] hover:text-[#1C1917]"
             }`}
           >
@@ -112,26 +112,22 @@ export const PlannerDateTimeView: React.FC<PlannerDateTimeViewProps> = ({
       ) : (
         // Khi bị forcedMode: Hiển thị badge tiêu điểm duy nhất rõ ràng, không có 2 khối cạnh tranh
         <div
-          className={`px-2.5 py-1.5 rounded-[5px] border border-[#262626] flex items-center justify-between shadow-[1px_1px_0px_#262626] ${
-            mode === "scheduled"
-              ? "bg-[#FEF08A] text-[#1C1917]"
-              : "bg-[#FECDD3] text-[#1C1917]"
-          }`}
+          className="px-2.5 py-1.5 rounded-[5px] border border-[#262626] flex items-center justify-between shadow-[1px_1px_0px_#262626] bg-[#FAF8F3] text-[#1C1917]"
         >
           <div className="flex items-center gap-1.5 text-xs font-bold">
             {mode === "scheduled" ? (
               <>
-                <Clock size={14} strokeWidth={2.4} className="text-amber-800" />
+                <Clock size={14} strokeWidth={2.4} className="text-[#1C1917]" />
                 <span>Lịch hẹn công việc</span>
               </>
             ) : (
               <>
-                <Hourglass size={14} strokeWidth={2.4} className="text-rose-700" />
+                <Hourglass size={14} strokeWidth={2.4} className="text-[#1C1917]" />
                 <span>Hạn hoàn thành công việc</span>
               </>
             )}
           </div>
-          <span className="text-[10px] font-mono font-bold bg-white/70 px-1.5 py-0.2 rounded border border-[#262626]/40">
+          <span className="text-[10px] font-mono font-bold bg-white px-1.5 py-0.2 rounded border border-[#262626]">
             {getFormattedSelectedDate(selectedDate)}
           </span>
         </div>
@@ -143,17 +139,17 @@ export const PlannerDateTimeView: React.FC<PlannerDateTimeViewProps> = ({
           <span className="text-[10px] font-bold text-[#1C1917] flex items-center gap-1">
             {mode === "scheduled" ? (
               <>
-                <Clock size={11} className="text-amber-800" strokeWidth={2.2} />
+                <Clock size={11} className="text-[#1C1917]" strokeWidth={2.2} />
                 <span>Ngày diễn ra:</span>
               </>
             ) : (
               <>
-                <Hourglass size={11} className="text-rose-700" strokeWidth={2.2} />
+                <Hourglass size={11} className="text-[#1C1917]" strokeWidth={2.2} />
                 <span>Ngày phải hoàn thành:</span>
               </>
             )}
           </span>
-          <span className="text-[11px] font-mono font-bold text-[#1C1917] bg-[#FBF9F4] px-1.5 py-0.2 rounded border border-[#D4CEBF]">
+          <span className="text-[11px] font-mono font-bold text-[#1C1917] bg-[#FAF8F3] px-1.5 py-0.2 rounded border border-[#262626]">
             {getFormattedSelectedDate(selectedDate)}
           </span>
         </div>
@@ -175,10 +171,10 @@ export const PlannerDateTimeView: React.FC<PlannerDateTimeViewProps> = ({
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-[10px] font-bold text-[#1C1917] flex items-center gap-1">
-                <Clock size={11} className="text-amber-800" strokeWidth={2.2} />
+                <Clock size={11} className="text-[#1C1917]" strokeWidth={2.2} />
                 <span>Giờ bắt đầu hẹn:</span>
               </span>
-              <span className="text-xs font-mono font-bold text-amber-900 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-300">
+              <span className="text-xs font-mono font-bold text-[#1C1917] bg-[#FAF8F3] px-1.5 py-0.2 rounded border border-[#262626]">
                 {String(eventStartHour).padStart(2, "0")}:
                 {String(eventStartMinute).padStart(2, "0")}
               </span>
@@ -188,7 +184,7 @@ export const PlannerDateTimeView: React.FC<PlannerDateTimeViewProps> = ({
               minute={eventStartMinute}
               onHourChange={onEventStartHourChange}
               onMinuteChange={onEventStartMinuteChange}
-              accentBg="bg-[#FEF08A]/70"
+              accentBg="bg-[#FAF8F3]"
             />
           </div>
 
@@ -210,7 +206,7 @@ export const PlannerDateTimeView: React.FC<PlannerDateTimeViewProps> = ({
                   <span className="text-[10px] font-bold text-[#78716C]">
                     Đến lúc:
                   </span>
-                  <span className="text-xs font-mono font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-300">
+                  <span className="text-xs font-mono font-bold text-[#1C1917] bg-[#FAF8F3] px-2 py-0.5 rounded border border-[#262626]">
                     {String(eventEndHour).padStart(2, "0")}:
                     {String(eventEndMinute).padStart(2, "0")}
                   </span>
@@ -220,7 +216,7 @@ export const PlannerDateTimeView: React.FC<PlannerDateTimeViewProps> = ({
                   minute={eventEndMinute}
                   onHourChange={onEventEndHourChange}
                   onMinuteChange={onEventEndMinuteChange}
-                  accentBg="bg-[#FEF08A]/70"
+                  accentBg="bg-[#FAF8F3]"
                 />
               </div>
             )}
@@ -231,10 +227,10 @@ export const PlannerDateTimeView: React.FC<PlannerDateTimeViewProps> = ({
         <div className="bg-white border border-[#262626] rounded-[5px] p-2 shadow-[1px_1px_0px_#262626] space-y-1.5">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[10px] font-bold text-[#1C1917] flex items-center gap-1">
-              <Hourglass size={11} className="text-rose-700" strokeWidth={2.2} />
+              <Hourglass size={11} className="text-[#1C1917]" strokeWidth={2.2} />
               <span>Phải hoàn thành trước:</span>
             </span>
-            <span className="text-xs font-mono font-bold text-rose-700 bg-rose-50 px-1.5 py-0.2 rounded border border-rose-300">
+            <span className="text-xs font-mono font-bold text-[#1C1917] bg-[#FAF8F3] px-1.5 py-0.2 rounded border border-[#262626]">
               {String(deadlineHour).padStart(2, "0")}:
               {String(deadlineMinute).padStart(2, "0")}
             </span>
@@ -244,7 +240,7 @@ export const PlannerDateTimeView: React.FC<PlannerDateTimeViewProps> = ({
             minute={deadlineMinute}
             onHourChange={onDeadlineHourChange}
             onMinuteChange={onDeadlineMinuteChange}
-            accentBg="bg-[#FECDD3]/70"
+            accentBg="bg-[#FAF8F3]"
           />
         </div>
       )}

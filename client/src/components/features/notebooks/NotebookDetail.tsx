@@ -5,10 +5,10 @@ import { DynamicIcon } from "../../ui";
 import { TaskList } from "../shared/TaskList";
 import { FilterBar } from "../shared/FilterBar";
 import { TodayScheduleNotes } from "../today/TodayScheduleNotes";
-import { TodayComposerSidebar } from "../today/TodayComposerSidebar";
 import { NoteMasterDetailView } from "../notes/NoteMasterDetailView";
 import { JournalBook } from "../journal/JournalBook";
 import { useAppStore } from "../../../stores/appStore";
+import { useResponsiveLayout } from "../../../shared/hooks";
 import { normalizeTaskTimeType } from "../../../utils/taskSemantics";
 import {
   ArrowLeft,
@@ -68,7 +68,8 @@ export const NotebookDetail: React.FC<NotebookDetailProps> = ({
   onDeleteNote,
   onUpdateNote,
 }) => {
-  const { hideCompletedTasks, notebooks } = useAppStore();
+  const { hideCompletedTasks, notebooks, openTaskDetail, isMobileNoteDetailOpen } = useAppStore();
+  const { isMobile } = useResponsiveLayout();
   const [activeSection, setActiveSection] = useState<NotebookSubSection>("tasks");
 
   // ==========================================
@@ -127,7 +128,6 @@ export const NotebookDetail: React.FC<NotebookDetailProps> = ({
   // (A) Lịch hẹn trong sổ
   const scheduledTasks = useMemo(() => {
     return filteredTasks.filter((task) => {
-      if (task.parentTaskId) return false;
       const normTime = normalizeTaskTimeType(task);
       return normTime === "scheduled" || (Boolean(task.startTime) && normTime !== "deadline");
     });
@@ -179,154 +179,157 @@ export const NotebookDetail: React.FC<NotebookDetailProps> = ({
   };
 
   return (
-    <div className="w-full min-w-0 space-y-3 pb-12 select-none animate-in fade-in duration-150">
-      {/* 1. THANH ĐIỀU HƯỚNG / BREADCRUMB */}
-      <div className="flex items-center justify-between gap-2 pb-2 border-b-[1.5px] border-[#262626]">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <button
-            type="button"
-            aria-label="Quay lại danh sách Kệ Sổ Tay"
-            onClick={onBack}
-            className="min-h-[38px] flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#1C1917] hover:text-[#78716C] bg-white border border-[#262626] rounded-[4px] px-3 py-1.5 active:translate-y-[0.5px] transition-all shadow-[1.5px_1.5px_0px_#262626] cursor-pointer shrink-0"
-          >
-            <ArrowLeft size={15} strokeWidth={2.5} />
-            <span>Quay lại Kệ Sổ</span>
-          </button>
+    <div className={`w-full min-w-0 space-y-4 pb-12 select-none ${
+      isMobile ? "mobile-panel-enter" : "animate-in fade-in duration-150"
+    }`}>
+      <div className={activeSection === "notes" && isMobileNoteDetailOpen ? "hidden md:block space-y-4" : "space-y-4"}>
+        {/* 1. THANH ĐIỀU HƯỚNG / BREADCRUMB */}
+        <div className="flex items-center justify-between gap-2.5 pb-2.5 border-b-[1.5px] border-[#262626]/30">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <button
+              type="button"
+              aria-label="Quay lại danh sách Kệ Sổ Tay"
+              onClick={onBack}
+              className="h-10 flex items-center gap-2 text-sm font-bold text-[#1C1917] hover:bg-[#FAF8F3] bg-white border-[1.5px] border-[#262626] rounded-[6px] px-3.5 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all shadow-[1.5px_1.5px_0px_#262626] cursor-pointer shrink-0"
+            >
+              <ArrowLeft size={16} strokeWidth={2.5} />
+              <span>Quay lại Kệ Sổ</span>
+            </button>
+          </div>
 
-        </div>
+          <div className="flex items-center gap-2 justify-end shrink-0">
+            <button
+              type="button"
+              aria-label={`Chỉnh sửa thông tin sổ ${notebook.name}`}
+              onClick={onEditNotebook}
+              className="h-10 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-bold text-[#1C1917] hover:bg-[#FAF8F3] bg-white border-[1.5px] border-[#262626] rounded-[6px] px-3 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all shadow-[1.5px_1.5px_0px_#262626] cursor-pointer"
+              title="Chỉnh sửa thông tin cuốn sổ"
+            >
+              <Edit2 size={14} strokeWidth={2.2} />
+              <span className="hidden sm:inline">Sửa sổ</span>
+            </button>
 
-        <div className="flex items-center gap-1.5 justify-end shrink-0">
-          <button
-            type="button"
-            aria-label={`Chỉnh sửa thông tin sổ ${notebook.name}`}
-            onClick={onEditNotebook}
-            className="min-h-[36px] w-9 sm:w-auto flex items-center justify-center gap-1 text-xs font-bold text-[#1C1917] hover:bg-[#FAF8F3] bg-white border border-[#262626] rounded-[4px] px-0 sm:px-2.5 py-1.5 active:translate-y-[0.5px] transition-all shadow-[1px_1px_0px_#262626] cursor-pointer [&>span]:hidden sm:[&>span]:inline"
-            title="Chỉnh sửa thông tin cuốn sổ"
-          >
-            <Edit2 size={12} strokeWidth={2.2} />
-            <span>Sửa sổ</span>
-          </button>
-
-          <button
-            type="button"
-            aria-label={`Xóa cuốn sổ ${notebook.name}`}
-            onClick={() => onRequestDeleteNotebook(notebook.id)}
-            className="min-h-[36px] w-9 sm:w-auto flex items-center justify-center gap-1 text-xs font-bold text-rose-700 hover:text-rose-800 bg-rose-50 border border-rose-300 rounded-[4px] px-0 sm:px-2.5 py-1.5 active:translate-y-[0.5px] transition-all cursor-pointer [&>span]:hidden sm:[&>span]:inline"
-            title="Xóa cuốn sổ này"
-          >
-            <Trash2 size={12} strokeWidth={2.2} />
-            <span>Xóa sổ</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 2. BANNER BÌA CUỐN SỔ (MÀU SẮC GỐC ĐẶC TRƯNG CỦA SỔ) */}
-      <div
-        style={{
-          backgroundColor: notebook.color || "#FEF08A",
-        }}
-        className="relative p-3 sm:p-4 border-[1.5px] border-[#262626] rounded-[6px] shadow-[2.5px_2.5px_0px_#262626] space-y-2"
-      >
-        <div className="flex items-start gap-3">
-          <span
-            className="w-9 h-9 rounded border border-[#262626] bg-white flex items-center justify-center shadow-[1px_1px_0px_#262626] shrink-0"
-          >
-            <DynamicIcon
-              name={notebook.icon || "lucide:BookMarked"}
-              size={20}
-              strokeWidth={2.2}
-            />
-          </span>
-
-          <div className="flex-1 min-w-0">
-            <h2 className="text-base sm:text-lg font-black text-[#1C1917] leading-tight break-words">
-              {notebook.name}
-            </h2>
-            <p className="text-xs text-[#262626]/80 font-medium mt-0.5 leading-relaxed">
-              {notebook.description || "Chưa có mô tả cho cuốn sổ này..."}
-            </p>
+            <button
+              type="button"
+              aria-label={`Xóa cuốn sổ ${notebook.name}`}
+              onClick={() => onRequestDeleteNotebook(notebook.id)}
+              className="h-10 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-bold text-[#1C1917] hover:bg-rose-50 bg-white border-[1.5px] border-[#262626] rounded-[6px] px-3 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all shadow-[1.5px_1.5px_0px_#262626] cursor-pointer hover:text-rose-700"
+              title="Xóa cuốn sổ này"
+            >
+              <Trash2 size={14} strokeWidth={2.2} />
+              <span className="hidden sm:inline">Xóa sổ</span>
+            </button>
           </div>
         </div>
 
-        {/* Hàng tóm tắt số liệu */}
-        <div className="pt-2 border-t border-[#262626]/20 space-y-1.5">
-          <div className="flex items-center justify-between text-xs font-mono font-bold text-[#1C1917] flex-wrap gap-2">
-            <div className="flex items-center gap-1.5">
-              <span className="bg-white/90 px-2 py-0.5 rounded border border-[#262626]/30 text-[11px] shadow-[0.5px_0.5px_0px_#262626]">
-                {totalCount} việc
-              </span>
-              <span className="bg-white/90 px-2 py-0.5 rounded border border-[#262626]/30 text-[11px] shadow-[0.5px_0.5px_0px_#262626]">
-                {notebookNotes.length} ghi chú
-              </span>
-              {journalEntries.length > 0 && (
-                <span className="bg-white/90 px-2 py-0.5 rounded border border-[#262626]/30 text-[11px] shadow-[0.5px_0.5px_0px_#262626]">
-                  {journalEntries.length} nhật ký
+        {/* 2. BANNER BÌA CUỐN SỔ (MÀU SẮC GỐC ĐẶC TRƯNG CỦA SỔ) */}
+        <div
+          style={{
+            backgroundColor: notebook.color || "#FAF8F3",
+          }}
+          className="relative p-4 sm:p-5 border-[1.5px] border-[#262626] rounded-[8px] shadow-[3px_3px_0px_#262626] space-y-3"
+        >
+          <div className="flex items-start gap-3.5">
+            <span
+              className="w-10 h-10 rounded-[6px] border-[1.5px] border-[#262626] bg-white flex items-center justify-center shadow-[1.5px_1.5px_0px_#262626] shrink-0"
+            >
+              <DynamicIcon
+                name={notebook.icon || "lucide:BookMarked"}
+                size={22}
+                strokeWidth={2.2}
+              />
+            </span>
+
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg sm:text-xl font-black text-[#1C1917] leading-tight break-words">
+                {notebook.name}
+              </h2>
+              <p className="text-xs sm:text-sm text-[#262626]/85 font-medium mt-1 leading-relaxed">
+                {notebook.description || "Chưa có mô tả cho cuốn sổ này..."}
+              </p>
+            </div>
+          </div>
+
+          {/* Hàng tóm tắt số liệu */}
+          <div className="pt-2.5 border-t border-[#262626]/20 space-y-2">
+            <div className="flex items-center justify-between text-xs font-mono font-bold text-[#1C1917] flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <span className="bg-white/90 px-2.5 py-1 rounded-[4px] border border-[#262626]/30 text-xs shadow-[0.5px_0.5px_0px_#262626]">
+                  {totalCount} việc
                 </span>
-              )}
+                <span className="bg-white/90 px-2.5 py-1 rounded-[4px] border border-[#262626]/30 text-xs shadow-[0.5px_0.5px_0px_#262626]">
+                  {notebookNotes.length} ghi chú
+                </span>
+                {journalEntries.length > 0 && (
+                  <span className="bg-white/90 px-2.5 py-1 rounded-[4px] border border-[#262626]/30 text-xs shadow-[0.5px_0.5px_0px_#262626]">
+                    {journalEntries.length} nhật ký
+                  </span>
+                )}
+              </div>
+
+              <span className="font-bold text-xs">
+                Tiến độ: {completedCount}/{totalCount} ({progressPercent}%)
+              </span>
             </div>
 
-            <span className="font-bold text-[11px]">
-              Tiến độ: {completedCount}/{totalCount} ({progressPercent}%)
-            </span>
-          </div>
-
-          <div className="w-full h-1.5 bg-white/80 border border-[#262626] rounded-[2px] overflow-hidden">
-            <div
-              className="h-full bg-[#262626] transition-all duration-300"
-              style={{ width: `${progressPercent}%` }}
-            />
+            <div className="w-full h-2 bg-white/80 border border-[#262626] rounded-[3px] overflow-hidden">
+              <div
+                className="h-full bg-[#262626] transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* 3. SEGMENTED SWITCH: 3 MỤC NỘI DUNG TRONG SỔ */}
-      <div className="p-1 bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] flex items-center justify-between gap-1">
-        <div className="flex items-center gap-1 w-full sm:w-auto">
-          {[
-            {
-              key: "tasks" as NotebookSubSection,
-              label: "Công việc",
-              count: tasks.length,
-              icon: CheckSquare,
-            },
-            {
-              key: "notes" as NotebookSubSection,
-              label: "Ghi chú",
-              count: notebookNotes.length,
-              icon: FileText,
-            },
-            {
-              key: "journal" as NotebookSubSection,
-              label: "Nhật ký",
-              count: journalEntries.length,
-              icon: BookOpen,
-            },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeSection === tab.key;
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveSection(tab.key)}
-                className={`flex-1 sm:flex-initial h-8 px-3 py-1 rounded-[4px] border text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer active:translate-y-[0.5px] ${
-                  isActive
-                    ? "bg-[#262626] text-white border-[#262626] shadow-[1px_1px_0px_#262626]"
-                    : "bg-white text-[#78716C] border-[#D4CEBF] hover:text-[#1C1917] hover:border-[#262626]"
-                }`}
-              >
-                <Icon size={12} strokeWidth={2.4} />
-                <span>{tab.label}</span>
-                <span
-                  className={`text-[10px] px-1 py-0.2 rounded font-mono ${
-                    isActive ? "bg-white/20 text-white" : "bg-stone-100 text-[#78716C]"
+        {/* 3. SEGMENTED SWITCH: 3 MỤC NỘI DUNG TRONG SỔ */}
+        <div className="p-1.5 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] shadow-[2px_2px_0px_#262626] flex items-center justify-between gap-1.5">
+          <div className="flex items-center gap-1.5 w-full sm:w-auto">
+            {[
+              {
+                key: "tasks" as NotebookSubSection,
+                label: "Công việc",
+                count: tasks.length,
+                icon: CheckSquare,
+              },
+              {
+                key: "notes" as NotebookSubSection,
+                label: "Ghi chú",
+                count: notebookNotes.length,
+                icon: FileText,
+              },
+              {
+                key: "journal" as NotebookSubSection,
+                label: "Nhật ký",
+                count: journalEntries.length,
+                icon: BookOpen,
+              },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeSection === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveSection(tab.key)}
+                  className={`flex-1 sm:flex-initial h-9 px-3.5 py-1.5 rounded-[5px] border text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer active:translate-y-[0.5px] ${
+                    isActive
+                      ? "bg-[#262626] text-white border-[#262626] shadow-[1px_1px_0px_#262626]"
+                      : "bg-white text-[#78716C] border-[#D4CEBF] hover:text-[#1C1917] hover:border-[#262626]"
                   }`}
                 >
-                  {tab.count}
-                </span>
-              </button>
-            );
-          })}
+                  <Icon size={14} strokeWidth={2.4} />
+                  <span>{tab.label}</span>
+                  <span
+                    className={`text-[11px] px-1.5 py-0.2 rounded font-mono font-bold ${
+                      isActive ? "bg-white/20 text-white" : "bg-stone-100 text-[#78716C]"
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -359,78 +362,43 @@ export const NotebookDetail: React.FC<NotebookDetailProps> = ({
             hideNotebookFilter={true}
           />
 
-          {/* 2. Bố Cục 2 Khu Vực: Trái (Danh Sách / Lịch Hẹn) & Phải (Composer / View / Edit Panel) */}
-          <div className="flex flex-col lg:flex-row gap-4 items-start w-full">
-            {/* KHU VỰC TRÁI: (A) Lịch Hẹn Trên -> (B) Danh Sách Task Dưới */}
-            <div className="flex-1 min-w-0 space-y-4 w-full">
-              {/* (A) PHẦN TRÊN: LỊCH HẸN TRONG SỔ (CÁC TASK CÓ GIỜ HẸN) */}
-              {scheduledTasks.length > 0 && (
-                <TodayScheduleNotes
-                  title="Lịch hẹn"
-                  scheduledTasks={scheduledTasks}
-                  onToggle={onToggleTask}
-                  onEdit={handleStartEdit}
-                  onDelete={onDeleteTask}
-                  onAddSubtask={handleAddSubtask}
-                  onClick={handleStartEdit}
-                  activeTaskId={editingTask?.id}
-                  hideNotebookBadge
-                />
-              )}
+          {/* 2. Bố Cục Danh Sách / Lịch Hẹn */}
+          <div className="space-y-4 w-full">
+            {/* (A) PHẦN TRÊN: LỊCH HẸN TRONG SỔ (CÁC TASK CÓ GIỜ HẸN) */}
+            {scheduledTasks.length > 0 && (
+              <TodayScheduleNotes
+                title="Lịch hẹn"
+                scheduledTasks={scheduledTasks}
+                onToggle={onToggleTask}
+                onEdit={(task) => openTaskDetail(task.id)}
+                onDelete={onDeleteTask}
+                onClick={(task) => openTaskDetail(task.id)}
+                hideNotebookBadge
+              />
+            )}
 
-              {/* (B) PHẦN DƯỚI: DANH SÁCH CÔNG VIỆC TRONG SỔ */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between pb-1 border-b border-[#262626]/20">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-[#1C1917]">
-                    <ListTodo size={14} className="text-[#57534E]" />
-                    <span>Việc cần làm ({taskListItems.length})</span>
-                  </div>
+            {/* (B) PHẦN DƯỚI: DANH SÁCH CÔNG VIỆC TRONG SỔ */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between pb-1 border-b border-[#262626]/20">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-[#1C1917]">
+                  <ListTodo size={14} className="text-[#57534E]" />
+                  <span>Việc cần làm ({taskListItems.length})</span>
                 </div>
-
-                <TaskList
-                  tasks={taskListItems}
-                  emptyMessage="Chưa có công việc nào trong cuốn sổ này"
-                  emptySubMessage="Bấm nút thêm việc ở panel cạnh phải để bắt đầu thêm đầu việc vào sổ!"
-                  onToggle={onToggleTask}
-                  onEdit={handleStartEdit}
-                  onDelete={onDeleteTask}
-                  onMoveTomorrow={onMoveTomorrow}
-                  onAddSubtask={handleAddSubtask}
-                  onClick={handleStartEdit}
-                  variant="notebook"
-                  hideNotebookBadge
-                  activeTaskId={editingTask?.id}
-                />
               </div>
-            </div>
 
-            {/* CỘT CẠNH PHẢI: Panel Thao Tác Thêm & Sửa Việc (Đồng Bộ 100%) */}
-            <div className="shrink-0 sticky top-16 self-start w-full sm:w-auto">
-              <TodayComposerSidebar
-                isOpen={isComposerOpen}
-                onToggle={() => {
-                  setIsComposerOpen(!isComposerOpen);
-                  if (isComposerOpen) {
-                    setSubtaskParent(null);
-                    setEditingTask(null);
-                  }
-                }}
-                context="notebook"
+              <TaskList
+                tasks={taskListItems}
+                emptyMessage="Chưa có công việc nào trong cuốn sổ này"
+                emptySubMessage="Dùng nút Tạo mới để thêm công việc vào sổ này."
+                onToggle={onToggleTask}
+                onEdit={(task) => openTaskDetail(task.id)}
+                onDelete={onDeleteTask}
+                onMoveTomorrow={onMoveTomorrow}
+                onClick={(task) => openTaskDetail(task.id)}
+                variant="notebook"
+                hideNotebookBadge
                 notebookId={notebook.id}
-                parentTask={subtaskParent}
-                editingTask={editingTask}
-                onSelectTask={handleStartEdit}
-                onClearParentTask={() => setSubtaskParent(null)}
-                onCancelEdit={() => setEditingTask(null)}
-                onDeleteTask={(id) => {
-                  onDeleteTask(id);
-                  if (editingTask?.id === id) setEditingTask(null);
-                }}
-                onMoveTomorrow={(id) => {
-                  onMoveTomorrow(id);
-                  setEditingTask(null);
-                }}
-                onAddSubtaskToTask={handleAddSubtask}
+                showQuickAdd={false}
               />
             </div>
           </div>

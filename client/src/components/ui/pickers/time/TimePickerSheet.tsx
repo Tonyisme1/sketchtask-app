@@ -137,7 +137,7 @@ export const TimePickerSheet: React.FC<TimePickerSheetProps> = ({
         <div className="flex items-center justify-between pb-1.5 border-b border-[#262626] shrink-0">
           <div className="flex items-center gap-1.5 min-w-0">
             {icon && (
-              <span className="p-1 bg-[#FEF08A] border border-[#262626] rounded-[3px] shadow-[1px_1px_0px_#262626] shrink-0">
+              <span className="p-1 bg-[#1C1917] text-white border border-[#262626] rounded-[3px] shadow-[1px_1px_0px_#262626] shrink-0">
                 {icon}
               </span>
             )}
@@ -157,7 +157,7 @@ export const TimePickerSheet: React.FC<TimePickerSheetProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="hidden sm:flex w-6 h-6 rounded bg-white hover:bg-rose-50 border border-[#262626] items-center justify-center text-[#78716C] hover:text-rose-600 active:translate-y-[0.5px] transition-all shrink-0"
+            className="hidden sm:flex w-6 h-6 rounded bg-white hover:bg-[#FAF8F3] border border-[#262626] items-center justify-center text-[#78716C] hover:text-[#1C1917] active:translate-y-[0.5px] transition-all shrink-0"
             aria-label="Đóng bảng chọn thời gian"
           >
             <X size={13} strokeWidth={2.4} />
@@ -174,7 +174,7 @@ export const TimePickerSheet: React.FC<TimePickerSheetProps> = ({
           <button
             type="button"
             onClick={onClear}
-            className="px-2.5 py-1.5 bg-white hover:bg-rose-50 border border-[#262626] rounded-[4px] text-xs font-bold text-[#78716C] hover:text-rose-700 active:translate-y-[0.5px] transition-all"
+            className="px-2.5 py-1.5 bg-white hover:bg-[#FAF8F3] border border-[#262626] rounded-[4px] text-xs font-bold text-[#78716C] hover:text-[#1C1917] active:translate-y-[0.5px] transition-all"
           >
             Xóa thời gian
           </button>
@@ -183,14 +183,14 @@ export const TimePickerSheet: React.FC<TimePickerSheetProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 bg-white hover:bg-gray-100 border border-[#262626] rounded-[4px] text-xs font-bold text-[#1C1917] active:translate-y-[0.5px] transition-all"
+              className="px-3 py-1.5 bg-white hover:bg-[#FAF8F3] border border-[#262626] rounded-[4px] text-xs font-bold text-[#1C1917] active:translate-y-[0.5px] transition-all"
             >
               Đóng
             </button>
             <button
               type="button"
               onClick={onApply}
-              className="px-3 py-1.5 bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] rounded-[4px] text-xs font-bold text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1"
+              className="px-3 py-1.5 bg-[#1C1917] hover:bg-[#262626] text-white border-[1.5px] border-[#262626] rounded-[4px] text-xs font-bold shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-1"
             >
               <Check size={13} strokeWidth={2.4} />
               <span>Áp dụng</span>

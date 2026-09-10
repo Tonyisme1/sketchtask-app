@@ -2,14 +2,12 @@ import React, { useState, useEffect, useMemo, useRef } from "react";
 import { NoteItem } from "./NoteTypes";
 import { NoteMasterDetailView } from "./NoteMasterDetailView";
 import { useAppStore } from "../../../stores/appStore";
+import { useResponsiveLayout } from "../../../shared/hooks";
 import { NavigationTarget } from "../../../types";
 import { loadNotesFromStorage, saveNotesToStorage } from "../../../utils/noteStorage";
 import {
   X,
   ChevronDown,
-  BookMarked,
-  BookOpen,
-  NotebookPen,
   Filter,
 } from "lucide-react";
 import { TabKey } from "../../../types";
@@ -32,7 +30,8 @@ export const NotesTab: React.FC<NotesTabProps> = ({
   onClearNavigationTarget,
   onNavigateTab,
 }) => {
-  const { notebooks } = useAppStore();
+  const { notebooks, isMobileNoteDetailOpen } = useAppStore();
+  const { isMobile } = useResponsiveLayout();
 
   // ==========================================
   // STATE GHI CHÚ (NOTES)
@@ -158,66 +157,33 @@ export const NotesTab: React.FC<NotesTabProps> = ({
   const activeNotebookObj = notebooks.find((nb) => nb.id === selectedNotebookFilter);
 
   return (
-    <div className="space-y-3.5 sm:space-y-4 pb-12 w-full min-w-0 animate-in fade-in duration-150 select-none">
-      {/* 1. Header phân hệ: Segmented Sub-tab Bar + Lọc Sổ */}
-      <div className="flex items-center justify-between gap-2.5 pb-2.5 border-b border-[#262626]">
-        {/* Cụm Phải: Segmented Tabs [ Ghi chú | Nhật ký | Sổ tay ] & Nút Lọc Sổ */}
-        <div className="flex flex-wrap items-center gap-1.5 py-0.5 w-full sm:w-auto sm:shrink-0">
-          {/* 1. Ghi chú (Active) */}
+    <div className={`space-y-3.5 sm:space-y-4 pb-12 w-full min-w-0 select-none ${
+      isMobile ? "" : "animate-in fade-in duration-150"
+    }`}>
+      {/* 1. Header: Bộ Lọc Sổ Tay */}
+      <div className={`items-center justify-between gap-3 pb-3 border-b border-[#262626]/30 ${isMobileNoteDetailOpen ? "hidden" : "flex"}`}>
+        <div ref={notebookPopoverRef} className="relative shrink-0">
           <button
             type="button"
-            className="px-3 py-1.5 rounded-[5px] border-[1.5px] border-[#262626] text-xs font-bold transition-all flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#262626] bg-[#BBF7D0] text-emerald-950 shrink-0"
+            onClick={() => setIsNotebookPopoverOpen(!isNotebookPopoverOpen)}
+            aria-label="Lọc ghi chú theo sổ tay"
+            title="Lọc ghi chú theo sổ tay"
+            className={`h-9 px-3 rounded-[5px] border-[1.5px] border-[#262626] flex items-center gap-2 text-xs sm:text-sm font-bold transition-all shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer ${
+              selectedNotebookFilter !== "all"
+                ? "bg-[#FEF08A] text-[#1C1917]"
+                : "bg-white text-[#57534E] hover:bg-[#FAF8F3]"
+            }`}
           >
-            <NotebookPen size={14} strokeWidth={2.4} className="text-emerald-800" />
-            <span>Ghi chú</span>
-            <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-[3px] border border-[#262626] bg-white text-[#1C1917] leading-none font-bold">
-              {filteredNotes.length}
+            <Filter size={14} strokeWidth={2.4} />
+            <span className="max-w-[140px] sm:max-w-[200px] truncate">
+              {selectedNotebookFilter === "all"
+                ? `Tất cả (${notes.length})`
+                : selectedNotebookFilter === "unassigned"
+                ? `Chưa gán (${notes.filter((n) => !n.notebookId).length})`
+                : `${activeNotebookObj?.name || "Sổ"} (${filteredNotes.length})`}
             </span>
+            <ChevronDown size={13} strokeWidth={2.4} className="text-[#78716C]" />
           </button>
-
-          {/* 2. Nhật ký */}
-          <button
-            type="button"
-            onClick={() => onNavigateTab?.("journal")}
-            className="px-3 py-1.5 rounded-[5px] border-[1.5px] border-[#262626] text-xs font-bold transition-all flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#262626] bg-white text-[#78716C] hover:bg-[#FAF8F3] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer shrink-0"
-          >
-            <BookOpen size={14} strokeWidth={2.4} className="text-purple-700" />
-            <span>Nhật ký</span>
-          </button>
-
-          {/* 3. Sổ tay */}
-          <button
-            type="button"
-            onClick={() => onNavigateTab?.("notebooks")}
-            className="px-3 py-1.5 rounded-[5px] border-[1.5px] border-[#262626] text-xs font-bold transition-all flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#262626] bg-white text-[#78716C] hover:bg-[#FAF8F3] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer shrink-0"
-          >
-            <BookMarked size={14} strokeWidth={2.4} className="text-amber-700" />
-            <span>Sổ tay</span>
-          </button>
-
-          {/* Bộ Lọc Sổ Tay Mở Rộng */}
-          <div ref={notebookPopoverRef} className="relative shrink-0">
-            <button
-              type="button"
-              onClick={() => setIsNotebookPopoverOpen(!isNotebookPopoverOpen)}
-              aria-label="Lọc ghi chú theo sổ tay"
-              title="Lọc ghi chú theo sổ tay"
-              className={`h-[30px] px-2.5 ml-auto rounded-[5px] border-[1.5px] border-[#262626] flex items-center gap-1.5 text-xs font-bold transition-all shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer ${
-                selectedNotebookFilter !== "all"
-                  ? "bg-[#FEF08A] text-[#1C1917]"
-                  : "bg-white text-[#57534E] hover:bg-[#FAF8F3]"
-              }`}
-            >
-              <Filter size={12} strokeWidth={2.4} />
-              <span className="max-w-[90px] sm:max-w-[130px] truncate">
-                {selectedNotebookFilter === "all"
-                  ? "Lọc sổ"
-                  : selectedNotebookFilter === "unassigned"
-                  ? "Chưa gán"
-                  : activeNotebookObj?.name || "Sổ"}
-              </span>
-              <ChevronDown size={11} strokeWidth={2.4} className="text-[#78716C]" />
-            </button>
 
           {isNotebookPopoverOpen && (
             <div className="absolute left-0 top-full mt-1.5 w-64 max-w-[calc(100vw-1.5rem)] bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] p-2.5 shadow-[3px_3px_0px_#262626] z-50 space-y-2 animate-in fade-in zoom-in-95 duration-100">
@@ -316,9 +282,8 @@ export const NotesTab: React.FC<NotesTabProps> = ({
           )}
         </div>
       </div>
-    </div>
 
-      {/* 2. Workspace 2 Cột Chuyên Nghiệp (Danh Sách Lưới Thẻ & Trình Soạn Thảo) */}
+      {/* 2. Danh sách ghi chú; editor chỉ mở sau khi người dùng chọn một note */}
       <div className="pt-0.5">
         <NoteMasterDetailView
           notes={filteredNotes}

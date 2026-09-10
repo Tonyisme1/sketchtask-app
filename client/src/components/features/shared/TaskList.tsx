@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { TaskDto } from "../../../types";
 import { useAppStore } from "../../../stores/appStore";
 import { TaskCard } from "./TaskCard";
+import { InlineQuickAddRow } from "./InlineQuickAddRow";
 import { EmptyStateDoodle } from "../../ui/feedback/EmptyStateDoodle";
 import { buildMultiLevelTaskTree, TaskHierarchyNode } from "../../../utils/taskHierarchy";
 
 // ==========================================
-// COMPONENT: TaskList (Danh Sách Công Việc Phân Cấp Cây Đa Tầng: Ông ➔ Cha ➔ Con)
+// COMPONENT: TaskList (Danh Sách Công Việc 1 Dòng Chuẩn Xu Hướng Hiện Đại)
 // ==========================================
 
 export interface TaskListProps {
@@ -27,6 +28,8 @@ export interface TaskListProps {
   baseDateStr?: string;
   moveButtonTitle?: string;
   activeTaskId?: string | null;
+  notebookId?: string;
+  showQuickAdd?: boolean;
 }
 
 // Component Đệ Quy Render Từng Nhánh Trong Cây Phân Cấp Đa Tầng
@@ -65,16 +68,16 @@ const TaskTreeNodeItem: React.FC<{
   moveButtonTitle,
   activeTaskId,
 }) => {
-  const isCollapsed = Boolean(collapsedParents[node.task.id]);
+  // Mặc định thu gọn nhánh có việc con để danh sách không bị kéo quá dài.
+  const isCollapsed = collapsedParents[node.task.id] ?? true;
   const hasChildren = node.children.length > 0;
 
-  // Đếm tất cả con trực thuộc
   const childCount = node.children.length;
   const completedChildCount = node.children.filter((c) => c.task.completed).length;
 
   return (
-    <div className="space-y-2">
-      {/* 1. Thẻ Task Hiện Tại */}
+    <div className="w-full">
+      {/* 1. Thẻ Task 1 Dòng */}
       <TaskCard
         task={node.task}
         index={index}
@@ -90,6 +93,7 @@ const TaskTreeNodeItem: React.FC<{
         baseDateStr={baseDateStr}
         moveButtonTitle={moveButtonTitle}
         isSubtask={node.depth > 0}
+        hierarchyDepth={node.depth}
         childCount={childCount}
         completedChildCount={completedChildCount}
         isExpanded={!isCollapsed}
@@ -99,17 +103,14 @@ const TaskTreeNodeItem: React.FC<{
         isSelected={Boolean(activeTaskId && node.task.id === activeTaskId)}
       />
 
-      {/* 2. Danh Sách Con / Cháu Đệ Quy (Nếu có và đang mở) */}
+      {/* 2. Danh Sách Con Trực Thuộc (nếu không bị gập) */}
       {hasChildren && !isCollapsed && (
-        <div className="relative pl-4 sm:pl-6 space-y-2 ml-2.5 sm:ml-3.5 border-l-2 border-[#262626] animate-in fade-in duration-150">
+        <div className="w-full">
           {node.children.map((childNode, childIdx) => (
-            <div key={childNode.task.id} className="relative">
-              {/* Nhánh rẽ Connector Nét Mực */}
-              <div className="absolute -left-4 sm:-left-6 top-4 w-3.5 sm:w-5 h-0.5 bg-[#262626]" />
-
+            <div key={childNode.task.id} className="animate-in fade-in duration-100">
               <TaskTreeNodeItem
                 node={childNode}
-                index={index + childIdx + 1}
+                index={childIdx}
                 collapsedParents={collapsedParents}
                 onToggleParentCollapse={onToggleParentCollapse}
                 onToggle={onToggle}
@@ -136,9 +137,7 @@ const TaskTreeNodeItem: React.FC<{
 export const TaskList: React.FC<TaskListProps> = ({
   tasks,
   emptyMessage = "Không có công việc nào",
-  emptySubMessage = "Thêm việc mới để bắt đầu ngày làm việc hiệu quả!",
-  emptyActionText,
-  onEmptyAction,
+  emptySubMessage = "Gõ tên việc bên dưới để bắt đầu ngày mới!",
   onToggle,
   onEdit,
   onDelete,
@@ -151,24 +150,13 @@ export const TaskList: React.FC<TaskListProps> = ({
   baseDateStr,
   moveButtonTitle,
   activeTaskId,
+  notebookId,
+  showQuickAdd = true,
 }) => {
   const { tasks: allTasks } = useAppStore();
-
-  // Trạng thái mở/thu gọn các task cha (mặc định mở tất cả)
   const [collapsedParents, setCollapsedParents] = useState<Record<string, boolean>>({});
 
-  if (tasks.length === 0) {
-    return (
-      <EmptyStateDoodle
-        title={emptyMessage}
-        message={emptySubMessage}
-        actionText={emptyActionText}
-        onAction={onEmptyAction}
-      />
-    );
-  }
-
-  // Xây dựng cây phân cấp đa tầng (Ông -> Cha -> Con -> Cháu)
+  // Xây dựng cây phân cấp đa tầng
   const rootNodes = buildMultiLevelTaskTree(tasks, allTasks);
   const orderedRootNodes = [...rootNodes].sort(
     (a, b) => Number(a.task.completed) - Number(b.task.completed),
@@ -177,40 +165,59 @@ export const TaskList: React.FC<TaskListProps> = ({
   const toggleParentCollapse = (parentId: string) => {
     setCollapsedParents((prev) => ({
       ...prev,
-      [parentId]: !prev[parentId],
+      [parentId]: !(prev[parentId] ?? true),
     }));
   };
 
   return (
     <div className="space-y-2 select-none">
-      {orderedRootNodes.map((node, index) => (
-        <React.Fragment key={node.task.id}>
-          {node.task.completed &&
-            (index === 0 || !orderedRootNodes[index - 1].task.completed) && (
-              <div className="border-t-[1.5px] border-[#D4CEBF] pt-2 text-[11px] font-bold uppercase tracking-wide text-[#78716C]">
-                Đã xong
-              </div>
-            )}
-          <TaskTreeNodeItem
-            node={node}
-            index={index}
-            collapsedParents={collapsedParents}
-            onToggleParentCollapse={toggleParentCollapse}
-            onToggle={onToggle}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onMoveTomorrow={onMoveTomorrow}
-            onAddSubtask={onAddSubtask}
-            onClick={onClick}
-            variant={variant}
-            hideDate={hideDate}
-            hideNotebookBadge={hideNotebookBadge}
-            baseDateStr={baseDateStr}
-            moveButtonTitle={moveButtonTitle}
-            activeTaskId={activeTaskId}
-          />
-        </React.Fragment>
-      ))}
+      {/* 1. Hàng Thêm Nhanh Inline Tại Đầu Hoặc Cuối Danh Sách */}
+      {showQuickAdd && (
+        <InlineQuickAddRow
+          notebookId={notebookId}
+          defaultDueDate={baseDateStr}
+          placeholder="Thêm công việc mới... (Nhấn Enter để lưu)"
+        />
+      )}
+
+      {/* 2. Danh Sách Task */}
+      {orderedRootNodes.length === 0 ? (
+        <div className="py-6 text-center text-xs font-medium text-[#78716C]">
+          <p>{emptyMessage}</p>
+          <p className="text-[11px] text-[#A8A29E] mt-0.5">{emptySubMessage}</p>
+        </div>
+      ) : (
+        <div className="border-t border-[#D4CEBF]">
+          {orderedRootNodes.map((node, index) => (
+            <React.Fragment key={node.task.id}>
+              {node.task.completed &&
+                (index === 0 || !orderedRootNodes[index - 1].task.completed) && (
+                  <div className="border-t-2 border-[#262626]/20 pt-2 pb-0.5 px-2 text-[10px] font-mono font-bold uppercase tracking-wider text-[#78716C] bg-[#FAF8F3]/40">
+                    Đã hoàn thành
+                  </div>
+                )}
+              <TaskTreeNodeItem
+                node={node}
+                index={index}
+                collapsedParents={collapsedParents}
+                onToggleParentCollapse={toggleParentCollapse}
+                onToggle={onToggle}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onMoveTomorrow={onMoveTomorrow}
+                onAddSubtask={onAddSubtask}
+                onClick={onClick}
+                variant={variant}
+                hideDate={hideDate}
+                hideNotebookBadge={hideNotebookBadge}
+                baseDateStr={baseDateStr}
+                moveButtonTitle={moveButtonTitle}
+                activeTaskId={activeTaskId}
+              />
+            </React.Fragment>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

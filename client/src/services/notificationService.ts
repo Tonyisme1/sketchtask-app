@@ -25,6 +25,20 @@ const hashStringToIntegerId = (str: string): number => {
   return Math.abs(hash);
 };
 
+// Web notifications are backed by timers while the PWA is open. Keep one
+// timer per task so editing, completing, or deleting a task can cancel the
+// previous reminder instead of leaving a stale notification behind.
+let notificationsEnabled = true;
+const webNotificationTimers = new Map<string, number>();
+
+const clearWebNotificationTimer = (taskId: string) => {
+  const timerId = webNotificationTimers.get(taskId);
+  if (timerId === undefined) return;
+
+  window.clearTimeout(timerId);
+  webNotificationTimers.delete(taskId);
+};
+
 /**
  * Hiển thị thông báo trên Web / PWA qua Service Worker (Chuẩn 100% Android Chrome & iOS Safari)
  */
@@ -53,6 +67,11 @@ const showWebNotification = async (
     console.warn("ServiceWorker showNotification failed:", err);
   }
 
+  // Android Chrome does not support the window Notification constructor in
+  // every context. Do not retry with it there; the service worker is the
+  // supported path and the caller can still use the in-app notification panel.
+  if (/Android/i.test(navigator.userAgent)) return;
+
   // 2. Fallback cho máy tính Desktop
   try {
     new Notification(title, {
@@ -66,6 +85,11 @@ const showWebNotification = async (
 };
 
 export const notificationService = {
+  /** App-level preference. Browser/OS permission is checked separately. */
+  setEnabled(enabled: boolean): void {
+    notificationsEnabled = enabled;
+  },
+
   /**
    * Lấy chi tiết trạng thái quyền gửi thông báo hiện tại (granted / denied / default)
    */
@@ -148,8 +172,15 @@ export const notificationService = {
    * Lên lịch thông báo ngoài màn hình cho một công việc khi đến hạn hoặc đến lịch làm
    */
   async scheduleTask(task: TaskDto): Promise<void> {
-    if (task.completed || (!task.dueDate && !task.deadlineDate && !task.startTime)) {
-      await this.cancelTask(task.id);
+    // Always clear the previous schedule first. This is important when a
+    // task's date, time, type, or completion state changes.
+    await this.cancelTask(task.id);
+
+    if (
+      !notificationsEnabled ||
+      task.completed ||
+      (!task.dueDate && !task.deadlineDate && !task.startTime)
+    ) {
       return;
     }
 
@@ -217,12 +248,14 @@ export const notificationService = {
         // Trên Web PWA: Đặt timer gọi ServiceWorker showNotification
         const msUntil = targetDate.getTime() - now.getTime();
         if (msUntil > 0 && msUntil < 86400000) {
-          setTimeout(async () => {
+          const timerId = window.setTimeout(async () => {
+            webNotificationTimers.delete(task.id);
             await showWebNotification(notifTitle, {
               body: notifBody,
               tag: `task-${task.id}`,
             });
           }, msUntil);
+          webNotificationTimers.set(task.id, timerId);
         }
       }
     } catch (e) {
@@ -234,6 +267,10 @@ export const notificationService = {
    * Hủy lịch thông báo của một công việc
    */
   async cancelTask(taskId: string): Promise<void> {
+    if (typeof window !== "undefined") {
+      clearWebNotificationTimer(taskId);
+    }
+
     if (!isNativePlatform()) return;
     try {
       const notifId = hashStringToIntegerId(taskId);
@@ -249,6 +286,12 @@ export const notificationService = {
    * Hủy toàn bộ thông báo
    */
   async cancelAll(): Promise<void> {
+    if (typeof window !== "undefined") {
+      for (const taskId of webNotificationTimers.keys()) {
+        clearWebNotificationTimer(taskId);
+      }
+    }
+
     if (isNativePlatform()) {
       try {
         const pending = await LocalNotifications.getPending();
@@ -267,11 +310,15 @@ export const notificationService = {
    * Đồng bộ toàn bộ lịch thông báo của các công việc chưa hoàn thành
    */
   async syncAllTasks(tasks: TaskDto[]): Promise<void> {
+    if (!notificationsEnabled) return;
+
     const hasPerm = await this.checkPermission();
     if (!hasPerm) return;
 
+    await this.cancelAll();
+
     for (const task of tasks) {
-      if (!task.completed && task.dueDate) {
+      if (!task.completed) {
         await this.scheduleTask(task);
       }
     }

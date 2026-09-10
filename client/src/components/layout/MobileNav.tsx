@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { CalendarDays, NotebookPen, Sun, UserCheck, LucideIcon } from "lucide-react";
+import { BookMarked, CheckSquare, NotebookPen, Sun, LucideIcon } from "lucide-react";
 import { TabKey } from "../../types";
 
-interface MobileNavProps {
+export interface MobileNavProps {
   activeTab: TabKey;
   activeTaskSubTab: "today" | "planner" | "deadlines";
   onTabChange: (tab: TabKey) => void;
@@ -14,10 +14,10 @@ const navItems: Array<{
   icon: LucideIcon;
   activeClass: string;
 }> = [
-  { key: "today", label: "Hôm nay", icon: Sun, activeClass: "bg-[#FEF08A]" },
-  { key: "planner", label: "Kế hoạch", icon: CalendarDays, activeClass: "bg-[#BAE6FD]" },
-  { key: "notes", label: "Ghi chép", icon: NotebookPen, activeClass: "bg-[#BBF7D0]" },
-  { key: "review", label: "Cá nhân", icon: UserCheck, activeClass: "bg-[#DDD6FE]" },
+  { key: "today", label: "Hôm nay", icon: Sun, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
+  { key: "tasks", label: "Công việc", icon: CheckSquare, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
+  { key: "notes", label: "Ghi chép", icon: NotebookPen, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
+  { key: "notebooks", label: "Sổ tay", icon: BookMarked, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
 ];
 
 const isNavItemActive = (
@@ -28,11 +28,11 @@ const isNavItemActive = (
   if (key === "today") {
     return activeTab === "today" || (activeTab === "tasks" && activeTaskSubTab === "today");
   }
-  if (key === "planner") {
-    return activeTab === "planner" || (activeTab === "tasks" && activeTaskSubTab === "planner");
+  if (key === "tasks") {
+    return activeTab === "tasks" && activeTaskSubTab !== "today";
   }
-  if (key === "notes") return activeTab === "notes" || activeTab === "journal" || activeTab === "notebooks";
-  if (key === "review") return activeTab === "review" || activeTab === "settings";
+  if (key === "notes") return activeTab === "notes" || activeTab === "journal";
+  if (key === "notebooks") return activeTab === "notebooks";
   return activeTab === key;
 };
 

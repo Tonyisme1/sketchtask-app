@@ -66,8 +66,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2.5 mb-2.5">
-          <div className="w-8 h-8 bg-[#FECDD3] border-[1.5px] border-[#262626] rounded-[4px] flex items-center justify-center shadow-[1px_1px_0px_#262626]">
-            <Trash2 size={16} strokeWidth={2.4} className="text-rose-900" />
+          <div className="w-8 h-8 bg-[#1C1917] border-[1.5px] border-[#262626] rounded-[4px] flex items-center justify-center shadow-[1px_1px_0px_#262626]">
+            <Trash2 size={16} strokeWidth={2.4} className="text-white" />
           </div>
           <h3 className="font-bold text-sm sm:text-base text-[#1C1917]">
             {title}

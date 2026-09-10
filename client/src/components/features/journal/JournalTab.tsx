@@ -1,6 +1,7 @@
 import React from "react";
 import { JournalBook } from "./JournalBook";
 import { NavigationTarget, TabKey } from "../../../types";
+import { useResponsiveLayout } from "../../../shared/hooks";
 
 // ==========================================
 // COMPONENT: JournalTab
@@ -18,8 +19,12 @@ export const JournalTab: React.FC<JournalTabProps> = ({
   onClearNavigationTarget,
   onNavigateTab,
 }) => {
+  const { isMobile } = useResponsiveLayout();
+
   return (
-    <div className="w-full min-w-0 space-y-4 pb-12 animate-in fade-in duration-150">
+    <div className={`w-full min-w-0 space-y-4 pb-12 ${
+      isMobile ? "" : "animate-in fade-in duration-150"
+    }`}>
       <JournalBook
         initialDate={navigationTarget?.date}
         initialEntryId={navigationTarget?.journalEntryId}

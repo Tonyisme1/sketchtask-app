@@ -20,7 +20,7 @@ export const WheelColumn: React.FC<WheelColumnProps> = ({
   value,
   onChange,
   label,
-  accentBg = "bg-[#FEF08A]/60",
+  accentBg = "bg-[#FAF8F3]",
   formatItem = (v) => String(v).padStart(2, "0"),
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);

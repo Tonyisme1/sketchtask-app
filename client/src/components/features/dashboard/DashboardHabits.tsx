@@ -77,17 +77,17 @@ export const DashboardHabits: React.FC<DashboardHabitsProps> = ({
         <div>
           <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-[#262626] mb-3">
             <div className="flex items-center gap-1.5 min-w-0">
-              <Flame size={16} className="text-orange-600 shrink-0" strokeWidth={2.4} />
+              <Flame size={16} className="text-[#DC2626] shrink-0" strokeWidth={2.4} />
               <h2 className="text-xs sm:text-sm font-bold text-[#1C1917] uppercase tracking-wider font-mono truncate">
                 Thói quen hôm nay
               </h2>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
               <span
-                className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded border border-[#262626] shadow-[0.5px_0.5px_0px_#262626] ${
+                className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded border shadow-[0.5px_0.5px_0px_#262626] ${
                   isAllDone
-                    ? "bg-[#BBF7D0] text-emerald-950"
-                    : "bg-[#FEF08A] text-[#1C1917]"
+                    ? "bg-[#DCFCE7] text-[#166534] border-[#16A34A]"
+                    : "bg-white text-[#1C1917] border-[#262626]"
                 }`}
               >
                 {completedTodayCount}/{totalHabits} XONG
@@ -95,7 +95,7 @@ export const DashboardHabits: React.FC<DashboardHabitsProps> = ({
               <button
                 type="button"
                 onClick={openManager}
-                className="h-7 px-2 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-[10px] font-bold text-[#1C1917] flex items-center gap-1 hover:bg-[#BBF7D0] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                className="h-7 px-2 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-[10px] font-bold text-[#1C1917] flex items-center gap-1 hover:bg-[#FAF8F3] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
               >
                 <Plus size={12} strokeWidth={2.6} />
                 <span>Quản lý</span>
@@ -110,7 +110,7 @@ export const DashboardHabits: React.FC<DashboardHabitsProps> = ({
               <button
                 type="button"
                 onClick={openManager}
-                className="px-2.5 py-1.5 bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-[10px] font-bold text-[#1C1917] flex items-center gap-1 hover:bg-[#FDE047] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                className="px-2.5 py-1.5 bg-[#1C1917] text-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-[10px] font-bold flex items-center gap-1 hover:bg-[#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
               >
                 <Plus size={12} strokeWidth={2.6} />
                 Tạo thói quen
@@ -127,7 +127,7 @@ export const DashboardHabits: React.FC<DashboardHabitsProps> = ({
                     key={habit.id}
                     className={`flex items-center justify-between gap-2.5 p-2 sm:p-2.5 border border-[#262626] rounded-[6px] transition-all shadow-[1px_1px_0px_#262626] ${
                       isCompletedToday
-                        ? "bg-[#F0FDF4] opacity-90"
+                        ? "bg-[#F5F5F4] opacity-90"
                         : "bg-[#FAF8F3] hover:bg-[#F5F2EA]"
                     }`}
                   >
@@ -138,18 +138,16 @@ export const DashboardHabits: React.FC<DashboardHabitsProps> = ({
                       />
                       <span
                         className={`text-xs sm:text-sm font-bold truncate ${
-                          isCompletedToday ? "text-[#57534E]" : "text-[#1C1917]"
+                          isCompletedToday ? "text-[#78716C] line-through" : "text-[#1C1917]"
                         }`}
                       >
                         {habit.name}
                       </span>
                     </div>
                     <span
-                      className={`px-1.5 py-0.5 rounded-[3px] border border-[#262626] text-[10px] font-bold font-mono flex items-center gap-1 shadow-[0.5px_0.5px_0px_#262626] ${
-                        streak >= 3 ? "bg-[#FED7AA] text-[#7C2D12]" : "bg-white text-[#78716C]"
-                      }`}
+                      className="px-1.5 py-0.5 rounded-[3px] border border-[#262626] text-[10px] font-bold font-mono flex items-center gap-1 shadow-[0.5px_0.5px_0px_#262626] bg-white text-[#1C1917]"
                     >
-                      <Flame size={10} strokeWidth={2.4} />
+                      <Flame size={10} strokeWidth={2.4} className="text-[#DC2626]" />
                       <span>{streak} ngày</span>
                     </span>
                   </div>
@@ -162,7 +160,7 @@ export const DashboardHabits: React.FC<DashboardHabitsProps> = ({
         <div className="pt-2.5 mt-2.5 border-t border-[#E7E5E4] flex items-center justify-between text-[11px] text-[#78716C] font-mono">
           <span>{isAllDone ? "Tuyệt vời! Đã hoàn thành hôm nay." : "Chạm để điểm danh tiếp"}</span>
           {isAllDone && (
-            <span className="flex items-center gap-1 text-emerald-800 font-bold">
+            <span className="flex items-center gap-1 text-[#16A34A] font-bold">
               <CheckCircle2 size={12} strokeWidth={2.4} />
               <span>Hoàn tất</span>
             </span>
@@ -194,7 +192,7 @@ export const DashboardHabits: React.FC<DashboardHabitsProps> = ({
               <button
                 type="button"
                 onClick={closeManager}
-                className="w-8 h-8 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center justify-center hover:bg-[#FECDD3] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                className="w-8 h-8 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center justify-center hover:bg-[#FAF8F3] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
                 aria-label="Đóng quản lý thói quen"
               >
                 <X size={16} strokeWidth={2.4} />
@@ -223,7 +221,7 @@ export const DashboardHabits: React.FC<DashboardHabitsProps> = ({
                       onClick={() => setDraftFrequency(option.value)}
                       className={`h-9 border-[1.5px] border-[#262626] rounded-[4px] text-xs font-bold active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all ${
                         draftFrequency === option.value
-                          ? "bg-[#FEF08A] shadow-[1px_1px_0px_#262626] text-[#1C1917]"
+                          ? "bg-[#1C1917] text-white shadow-[1px_1px_0px_#262626]"
                           : "bg-white text-[#78716C] hover:bg-[#FAF8F3]"
                       }`}
                     >
@@ -238,7 +236,7 @@ export const DashboardHabits: React.FC<DashboardHabitsProps> = ({
                   <button
                     type="button"
                     onClick={resetEditor}
-                    className="h-9 px-3 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-xs font-bold active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                    className="h-9 px-3 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-xs font-bold active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all hover:bg-[#FAF8F3]"
                   >
                     Hủy sửa
                   </button>
@@ -246,7 +244,7 @@ export const DashboardHabits: React.FC<DashboardHabitsProps> = ({
                 <button
                   type="submit"
                   disabled={!draftName.trim()}
-                  className="h-9 px-3 bg-[#BBF7D0] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-xs font-bold text-emerald-950 disabled:opacity-50 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+                  className="h-9 px-3 bg-[#1C1917] text-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-xs font-bold disabled:opacity-50 hover:bg-[#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
                 >
                   {editingHabitId ? "Lưu thay đổi" : "Tạo thói quen"}
                 </button>
@@ -267,7 +265,7 @@ export const DashboardHabits: React.FC<DashboardHabitsProps> = ({
                     <button
                       type="button"
                       onClick={() => startEditing(habit)}
-                      className="w-7 h-7 bg-[#BAE6FD] border border-[#262626] rounded-[4px] flex items-center justify-center active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                      className="w-7 h-7 bg-white hover:bg-[#FAF8F3] border border-[#262626] rounded-[4px] flex items-center justify-center active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
                       aria-label={`Sửa ${habit.name}`}
                     >
                       <Edit3 size={13} strokeWidth={2.3} />
@@ -275,7 +273,7 @@ export const DashboardHabits: React.FC<DashboardHabitsProps> = ({
                     <button
                       type="button"
                       onClick={() => deleteHabit(habit.id)}
-                      className="w-7 h-7 bg-[#FECDD3] border border-[#262626] rounded-[4px] flex items-center justify-center active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                      className="w-7 h-7 bg-white hover:bg-[#FAF8F3] border border-[#262626] rounded-[4px] flex items-center justify-center active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
                       aria-label={`Xóa ${habit.name}`}
                     >
                       <Trash2 size={13} strokeWidth={2.3} />

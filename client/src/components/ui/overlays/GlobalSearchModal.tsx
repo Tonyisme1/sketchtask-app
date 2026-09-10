@@ -98,7 +98,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-stretch sm:items-start justify-center p-0 sm:p-6 bg-black/50 backdrop-blur-[2px] mobile-scrim-enter select-none"
+      className="fixed inset-0 z-50 flex items-stretch sm:items-start justify-center p-0 sm:p-6 bg-black/50 mobile-scrim-enter select-none"
       onClick={onClose}
     >
       <div
@@ -110,7 +110,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 bg-white hover:bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer shrink-0"
+            className="p-2 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer shrink-0"
             title="Quay lại"
           >
             <ArrowLeft size={17} strokeWidth={2.4} />
@@ -158,7 +158,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               onClick={() => setFilterType(item.key)}
               className={`px-2.5 py-1 rounded-[4px] border text-xs font-bold transition-all cursor-pointer shrink-0 ${
                 filterType === item.key
-                  ? "bg-[#FEF08A] text-[#1C1917] border-[#262626] shadow-[1px_1px_0px_#262626]"
+                  ? "bg-[#1C1917] text-white border-[#1C1917] shadow-[1px_1px_0px_#262626]"
                   : "bg-white text-[#78716C] border-[#D4CEBF] hover:bg-[#FAF8F3]"
               }`}
             >
@@ -184,8 +184,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               {/* 1. Tasks Results */}
               {(filterType === "all" || filterType === "tasks") && searchResults.tasks.length > 0 && (
                 <div className="space-y-1.5">
-                  <div className="text-[11px] font-bold text-[#78716C] font-mono uppercase tracking-wider flex items-center gap-1.5">
-                    <CheckSquare size={13} className="text-sky-700" />
+                  <div className="text-[11px] font-bold text-[#1C1917] font-mono uppercase tracking-wider flex items-center gap-1.5">
+                    <CheckSquare size={13} className="text-[#1C1917]" />
                     <span>Công việc ({searchResults.tasks.length})</span>
                   </div>
                   {searchResults.tasks.map((task) => {
@@ -212,7 +212,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                               e.stopPropagation();
                               toggleTask(task.id);
                             }}
-                            className="w-4 h-4 rounded border-[#262626] text-amber-500 cursor-pointer shrink-0"
+                            className="w-4 h-4 rounded border-[#262626] accent-[#1C1917] cursor-pointer shrink-0"
                           />
                           <div className="min-w-0">
                             <p
@@ -224,7 +224,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                             </p>
                             <div className="flex items-center gap-2 mt-0.5 text-[10px] text-[#78716C] font-mono truncate">
                               {notebook && (
-                                <span className="flex items-center gap-0.5 text-amber-800 font-bold">
+                                <span className="flex items-center gap-0.5 text-[#1C1917] font-bold">
                                   <BookMarked size={10} /> {notebook.name}
                                 </span>
                               )}
@@ -251,8 +251,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               {/* 2. Notes Results */}
               {(filterType === "all" || filterType === "notes") && searchResults.notes.length > 0 && (
                 <div className="space-y-1.5 pt-1">
-                  <div className="text-[11px] font-bold text-[#78716C] font-mono uppercase tracking-wider flex items-center gap-1.5">
-                    <FileText size={13} className="text-emerald-700" />
+                  <div className="text-[11px] font-bold text-[#1C1917] font-mono uppercase tracking-wider flex items-center gap-1.5">
+                    <FileText size={13} className="text-[#1C1917]" />
                     <span>Ghi chú ({searchResults.notes.length})</span>
                   </div>
                   {searchResults.notes.map((note) => (
@@ -277,8 +277,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               {/* 3. Journal Results */}
               {(filterType === "all" || filterType === "journal") && searchResults.journal.length > 0 && (
                 <div className="space-y-1.5 pt-1">
-                  <div className="text-[11px] font-bold text-[#78716C] font-mono uppercase tracking-wider flex items-center gap-1.5">
-                    <BookOpen size={13} className="text-purple-700" />
+                  <div className="text-[11px] font-bold text-[#1C1917] font-mono uppercase tracking-wider flex items-center gap-1.5">
+                    <BookOpen size={13} className="text-[#1C1917]" />
                     <span>Nhật ký ({searchResults.journal.length})</span>
                   </div>
                   {searchResults.journal.map((journal) => (

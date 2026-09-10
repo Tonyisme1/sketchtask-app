@@ -131,16 +131,16 @@ export const DashboardUpcoming: React.FC<DashboardUpcomingProps> = ({
                   {/* Cột Phải: Duy nhất 1 chip mốc thời gian tinh gọn */}
                   <div className="flex items-center gap-1.5 shrink-0">
                     {isScheduled ? (
-                      <span className="px-1.5 py-0.5 rounded-[3px] bg-[#FEF08A] border border-[#262626] text-[10px] font-bold text-amber-950 shadow-[0.5px_0.5px_0px_#262626] font-mono flex items-center gap-1">
-                        <Clock size={10} strokeWidth={2.4} className="text-amber-900" />
+                      <span className="px-1.5 py-0.5 rounded-[3px] bg-white border border-[#262626] text-[10px] font-bold text-[#1C1917] shadow-[0.5px_0.5px_0px_#262626] font-mono flex items-center gap-1">
+                        <Clock size={10} strokeWidth={2.4} className="text-[#1C1917]" />
                         <span>
                           {effectiveTime ? `${effectiveTime}` : ""}{" "}
                           {dateLabel ? `(${dateLabel})` : ""}
                         </span>
                       </span>
                     ) : isDeadline ? (
-                      <span className="px-1.5 py-0.5 rounded-[3px] bg-[#FECDD3] border border-[#262626] text-[10px] font-bold text-rose-950 shadow-[0.5px_0.5px_0px_#262626] font-mono flex items-center gap-1">
-                        <Hourglass size={10} strokeWidth={2.4} className="text-rose-900" />
+                      <span className="px-1.5 py-0.5 rounded-[3px] bg-[#1C1917] text-white border border-[#262626] text-[10px] font-bold shadow-[0.5px_0.5px_0px_#262626] font-mono flex items-center gap-1">
+                        <Hourglass size={10} strokeWidth={2.4} className="text-white" />
                         <span>
                           Hạn {effectiveTime || dateLabel}
                         </span>

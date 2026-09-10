@@ -1,11 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { TaskDto } from "../../../types";
-import { useAppStore } from "../../../stores/appStore";
 import { HandDrawnCheckbox } from "../../ui/core/HandDrawnCheckbox";
-import { DynamicIcon } from "../../ui/core/DynamicIcon";
-import { getCardTilt } from "../../../utils/tilt";
-import { getTagStyle } from "../../../utils/tagColors";
-import { getLocalTodayStr, getNextDayStr, formatShortDayMonth } from "../../../utils/date";
+import {
+  formatShortDayMonth,
+  getLocalTodayStr,
+} from "../../../utils/date";
 import {
   getTaskEffectiveDate,
   getTaskEffectiveTime,
@@ -13,33 +12,14 @@ import {
   normalizeTaskTimeType,
 } from "../../../utils/taskSemantics";
 import {
-  Clock,
-  Hourglass,
-  AlertCircle,
-  ArrowRight,
-  Edit3,
-  Trash2,
-  CalendarDays,
-  MoreVertical,
-  Package,
-  Layers,
-  Eye,
+  CornerDownRight,
   ChevronDown,
   ChevronUp,
-  CornerDownRight,
+  ArrowRight,
+  Trash2,
+  Layers,
   Plus,
-  Check,
 } from "lucide-react";
-
-// ==========================================
-// COMPONENT: TaskCard (Thẻ Công Việc Tinh Gọn - Chuẩn Task 35 Phân Cấp Cha/Con)
-// Visual Hierarchy:
-// 1. Checkbox (Trái)
-// 2. Tiêu đề task (Ưu tiên chiều rộng, KHÔNG gạch ngang khi xong)
-// 3. Một chip thời gian chính duy nhất
-// 4. Metadata: Sổ tay, Tag, Ưu tiên, Phân cấp Cha/Con (Số lượng con / Con của ...)
-// 5. Hành động (Desktop & Mobile)
-// ==========================================
 
 export interface TaskCardProps {
   task: TaskDto;
@@ -55,401 +35,415 @@ export interface TaskCardProps {
   hideNotebookBadge?: boolean;
   baseDateStr?: string;
   moveButtonTitle?: string;
-  // Hierarchy Props (Task 34 & Task 35)
+  // Hierarchy
   isSubtask?: boolean;
+  hierarchyDepth?: number;
   childCount?: number;
   completedChildCount?: number;
   isExpanded?: boolean;
   onToggleExpand?: () => void;
   showParentBadge?: boolean;
-  isOutOfFilterContext?: boolean; // Task cha nằm ngoài bộ lọc hiển thị để làm context cho task con
+  isOutOfFilterContext?: boolean;
   isSelected?: boolean;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
   task,
-  index = 0,
   onToggle,
-  onEdit,
   onDelete,
   onMoveTomorrow,
   onAddSubtask,
   onClick,
   variant = "today",
   hideDate = false,
-  hideNotebookBadge = false,
-  baseDateStr,
-  moveButtonTitle,
   isSubtask = false,
+  hierarchyDepth,
   childCount = 0,
   completedChildCount = 0,
   isExpanded = true,
   onToggleExpand,
-  showParentBadge = false,
-  isOutOfFilterContext = false,
   isSelected = false,
 }) => {
-  const { notebooks, tasks: allTasks, isTiltEnabled } = useAppStore();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isMobileActionsOpen, setIsMobileActionsOpen] = useState(false);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isSwipeDragging, setIsSwipeDragging] = useState(false);
+  const longPressTimerRef = useRef<number | null>(null);
+  const longPressStartPointRef = useRef<{ x: number; y: number } | null>(null);
+  const swipeActiveRef = useRef(false);
+  const swipeOffsetRef = useRef(0);
+  const swipeStartOffsetRef = useRef(0);
+  const longPressTriggeredRef = useRef(false);
 
   const now = new Date();
   const todayStr = getLocalTodayStr(now);
 
-  const normalizedTimeType = normalizeTaskTimeType(task);
-  const isScheduled = normalizedTimeType === "scheduled";
-  const isDeadline = normalizedTimeType === "deadline";
-
-  // Ngày thực tế của task
+  const temporal = getTaskTemporalState(task, now);
+  const normTime = normalizeTaskTimeType(task);
+  const effectiveTime = getTaskEffectiveTime(task);
   const effectiveDate = getTaskEffectiveDate(task);
-  const temporalState = getTaskTemporalState(task, now);
-  const isOverdue = temporalState === "overdue";
-  const isPastScheduled = temporalState === "pastScheduled";
-  const isPastNoTime = Boolean(
-    temporalState === "dateOnly" && effectiveDate && effectiveDate < todayStr,
-  );
 
-  const assignedNotebook = notebooks.find((n) => n.id === task.notebookId);
-  const cardTilt = isTiltEnabled ? getCardTilt(index) : "rotate-0";
-
-  // Tìm task cha nếu cần hiển thị parent badge
-  const parentTask = task.parentTaskId
-    ? allTasks.find((t) => t.id === task.parentTaskId)
-    : null;
-
-  // Đóng menu trên mobile khi click ra ngoài
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setIsMenuOpen(false);
-      }
-    };
-    if (isMenuOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("touchstart", handleClickOutside);
+  // Nhãn thời gian nằm dưới tiêu đề để phân biệt rõ lịch hẹn và hạn.
+  const timeLabel = React.useMemo(() => {
+    if (normTime === "scheduled" && effectiveTime) {
+      const range = task.endTime ? `${effectiveTime} – ${task.endTime}` : effectiveTime;
+      return `Lịch hẹn · ${range}`;
     }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, [isMenuOpen]);
+    if (normTime === "deadline" && effectiveTime) {
+      return `Hạn · ${effectiveTime}`;
+    }
+    if (effectiveTime) {
+      return `Giờ · ${effectiveTime}`;
+    }
+    if (!hideDate && effectiveDate) {
+      return `Ngày · ${effectiveDate === todayStr ? "Hôm nay" : formatShortDayMonth(effectiveDate)}`;
+    }
+    return null;
+  }, [normTime, effectiveTime, task.endTime, hideDate, effectiveDate, todayStr]);
 
-  // Giờ hiển thị chính
-  const primaryTime = getTaskEffectiveTime(task);
-  const timeStr = isScheduled
-    ? task.endTime && primaryTime
-      ? `${primaryTime} - ${task.endTime}`
-      : primaryTime || ""
-    : primaryTime || "";
+  const timeTone =
+    normTime === "scheduled"
+      ? "bg-[#BAE6FD] text-[#1C1917] border-[#262626]"
+      : normTime === "deadline"
+      ? "bg-[#FECDD3] text-[#9F1239] border-[#FDA4AF]"
+      : "bg-[#FAF8F3] text-[#78716C] border-[#D4CEBF]";
 
-  // Tính toán nhãn/tooltip dời ngày
-  const targetBaseDate = baseDateStr || effectiveDate || todayStr;
-  const isPastTask = targetBaseDate < todayStr;
-  const diffDaysFromToday = Math.floor((new Date(todayStr).getTime() - new Date(targetBaseDate).getTime()) / (1000 * 60 * 60 * 24));
+  const dateLabel =
+    !hideDate && effectiveDate && (normTime === "scheduled" || normTime === "deadline")
+      ? formatShortDayMonth(effectiveDate)
+      : null;
 
-  const moveTitle =
-    moveButtonTitle ||
-    (isPastTask
-      ? diffDaysFromToday === 1
-        ? "Dời sang ngày mai"
-        : "Chọn ngày dời"
-      : "Dời sang ngày mai");
+  const hasChildren = childCount > 0;
+  const indentLevel = Math.max(0, hierarchyDepth ?? (isSubtask ? 1 : 0));
+  const indentPx = indentLevel * 20;
+  const supportsMobileSwipe =
+    variant === "today" ||
+    variant === "planner" ||
+    variant === "overdue" ||
+    variant === "notebook";
+  const mobileActionWidth = onMoveTomorrow && !task.completed ? 104 : 56;
+
+  const setSwipePosition = (offset: number) => {
+    swipeOffsetRef.current = offset;
+    setSwipeOffset(offset);
+  };
+
+  const clearLongPressTimer = () => {
+    if (longPressTimerRef.current !== null) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  useEffect(() => clearLongPressTimer, []);
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== "touch") return;
+
+    const target = event.target as HTMLElement;
+    if (target.closest("button, input, a, [role='button']")) return;
+
+    clearLongPressTimer();
+    longPressTriggeredRef.current = false;
+    swipeActiveRef.current = false;
+    swipeStartOffsetRef.current = swipeOffsetRef.current;
+    longPressStartPointRef.current = { x: event.clientX, y: event.clientY };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressTriggeredRef.current = true;
+      setIsMobileActionsOpen(true);
+      setSwipePosition(-mobileActionWidth);
+      longPressTimerRef.current = null;
+    }, 550);
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType !== "touch" || !longPressStartPointRef.current) return;
+
+    const dx = event.clientX - longPressStartPointRef.current.x;
+    const dy = event.clientY - longPressStartPointRef.current.y;
+    const isHorizontalSwipe = supportsMobileSwipe && Math.abs(dx) > Math.abs(dy);
+
+    if (isHorizontalSwipe && Math.abs(dx) > 8) {
+      clearLongPressTimer();
+      swipeActiveRef.current = true;
+      setIsSwipeDragging(true);
+      // Keep the row attached to the finger while actions stay behind it.
+      setSwipePosition(
+        Math.max(-mobileActionWidth, Math.min(0, swipeStartOffsetRef.current + dx)),
+      );
+      if (event.cancelable) event.preventDefault();
+      return;
+    }
+
+    if (Math.hypot(dx, dy) > 8) {
+      clearLongPressTimer();
+      longPressStartPointRef.current = null;
+      swipeActiveRef.current = false;
+      setIsSwipeDragging(false);
+      setSwipePosition(0);
+      if (isMobileActionsOpen) setIsMobileActionsOpen(false);
+    }
+  };
+
+  const handlePointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "touch") {
+      clearLongPressTimer();
+      longPressStartPointRef.current = null;
+      if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      if (swipeActiveRef.current) {
+        const shouldRevealActions = swipeOffsetRef.current <= -(mobileActionWidth / 2);
+        setSwipePosition(shouldRevealActions ? -mobileActionWidth : 0);
+        swipeActiveRef.current = false;
+        setIsSwipeDragging(false);
+        longPressTriggeredRef.current = shouldRevealActions;
+        setIsMobileActionsOpen(shouldRevealActions);
+      }
+    }
+  };
+
+  const closeMobileActions = () => {
+    clearLongPressTimer();
+    longPressTriggeredRef.current = false;
+    setIsMobileActionsOpen(false);
+    setIsSwipeDragging(false);
+    setSwipePosition(0);
+  };
+
+  const handleClickRow = () => {
+    // A long press opens actions and must not also open the task detail.
+    if (longPressTriggeredRef.current) {
+      closeMobileActions();
+      return;
+    }
+    onClick?.(task);
+  };
+
+  const areActionsVisible = isHovered;
 
   return (
     <div
-      data-task-card="true"
-      data-task-id={task.id}
-      onClick={() => onClick?.(task)}
-      className={`group relative p-2.5 sm:p-3 border-[1.5px] rounded-[6px] transition-all cursor-pointer select-none ${cardTilt} ${
-        isMenuOpen ? "z-50" : isSelected ? "z-20" : "z-0"
+      style={{
+        marginLeft: indentPx > 0 ? `${indentPx}px` : undefined,
+        width: indentPx > 0 ? `calc(100% - ${indentPx}px)` : undefined,
+      }}
+      className={`relative overflow-hidden transition-all duration-150 rounded-none border-b border-[#D4CEBF] ${
+        indentLevel > 0 ? "bg-[#FAF8F3]/70" : "bg-white"
       } ${
         isSelected
-          ? "bg-[#FFFDEB] border-[#262626] ring-2 ring-[#262626] shadow-[3.5px_3.5px_0px_#262626] -translate-y-[1px]"
+          ? "bg-[#FAF8F3] border-b-[#1C1917]"
           : task.completed
-          ? "bg-[#FBF9F4]/80 opacity-80 border-[#262626] shadow-[2px_2px_0px_#262626] hover:shadow-[3px_3px_0px_#262626] hover:-translate-y-[0.5px]"
-          : isOutOfFilterContext
-          ? "bg-[#FAF7EE] border-[#262626] border-dashed shadow-[2px_2px_0px_#262626] hover:shadow-[3px_3px_0px_#262626] hover:-translate-y-[0.5px]"
-          : isOverdue
-          ? "bg-rose-50/50 border-rose-400 shadow-[2px_2px_0px_#262626] hover:shadow-[3px_3px_0px_#262626] hover:-translate-y-[0.5px]"
-          : isPastScheduled
-          ? "bg-[#F5F2EA]/70 border-[#D4CEBF] shadow-[2px_2px_0px_#262626] hover:shadow-[3px_3px_0px_#262626] hover:-translate-y-[0.5px]"
-          : isSubtask
-          ? "bg-[#FCFBF9] border-[#262626] shadow-[2px_2px_0px_#262626] hover:shadow-[3px_3px_0px_#262626] hover:-translate-y-[0.5px]"
-          : "bg-white border-[#262626] shadow-[2px_2px_0px_#262626] hover:shadow-[3px_3px_0px_#262626] hover:-translate-y-[0.5px]"
+          ? "border-[#D4CEBF] opacity-60 bg-[#FAF8F3]/50 shadow-none"
+          : "border-[#D4CEBF] hover:bg-[#FAF8F3]"
       }`}
     >
-      <div className="flex items-start gap-2 sm:gap-2.5">
-        {/* 1. Checkbox Hoàn Thành */}
+      {supportsMobileSwipe && (
         <div
-          className="pt-0.5 shrink-0"
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
+          className={`absolute inset-y-0 right-0 z-0 flex items-center justify-end gap-1 bg-[#F3EFE6] px-2 lg:hidden ${
+            swipeOffset === 0 ? "pointer-events-none" : "pointer-events-auto"
+          }`}
+          style={{ width: mobileActionWidth }}
+          aria-hidden={swipeOffset === 0}
         >
-          <HandDrawnCheckbox
-            checked={task.completed}
-            onChange={() => onToggle(task.id)}
-          />
-        </div>
-
-        {/* 2. Phần Thân Task (Tiêu đề + Badges Tinh Gọn) */}
-        <div className="flex-1 min-w-0">
-          {/* Tiêu đề Task rõ ràng, không bị cồng kềnh */}
-          <h4
-            className={`text-xs sm:text-sm font-semibold text-[#1C1917] leading-snug break-words transition-colors ${
-              task.completed ? "text-[#78716C]" : ""
-            }`}
+          {onMoveTomorrow && !task.completed && (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                closeMobileActions();
+                onMoveTomorrow(task.id);
+              }}
+              className="flex h-9 w-9 items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] bg-white text-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+              title="Dời sang ngày mai"
+              aria-label="Dời sang ngày mai"
+            >
+              <ArrowRight size={15} strokeWidth={2.2} />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              closeMobileActions();
+              onDelete(task.id);
+            }}
+            className="flex h-9 w-9 items-center justify-center rounded-[4px] border-[1.5px] border-[#BE123C] bg-[#FFE4E6] text-[#BE123C] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+            title="Xóa công việc"
+            aria-label="Xóa công việc"
           >
-            <span>{task.title}</span>
-          </h4>
+            <Trash2 size={15} strokeWidth={2.2} />
+          </button>
+        </div>
+      )}
+      {/* 1. HÀNG CHÍNH (COMPACT SCAN-FRIENDLY TASK ROW) */}
+      <div
+        onPointerEnter={(event) => {
+          if (event.pointerType === "mouse") setIsHovered(true);
+        }}
+        onPointerLeave={(event) => {
+          if (event.pointerType === "mouse") setIsHovered(false);
+        }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
+        onContextMenu={(event) => {
+          if (isMobileActionsOpen) event.preventDefault();
+        }}
+        onClick={handleClickRow}
+        style={{
+          touchAction: "pan-y",
+          transform: swipeOffset ? `translateX(${swipeOffset}px)` : undefined,
+          transition: isSwipeDragging ? "none" : "transform 180ms ease-out",
+        }}
+        className={`relative z-10 flex items-center justify-between gap-2 px-3 py-2.5 min-h-[44px] cursor-pointer select-none ${
+          isSelected ? "bg-[#FAF8F3]" : "bg-white"
+        }`}
+      >
+        {/* KHỐI TRÁI: Checkbox sát tiêu đề, thời gian nằm ngay bên dưới */}
+        <div className="flex items-start gap-2.5 min-w-0 flex-1">
+          {isSubtask && (
+            <CornerDownRight size={13} className="text-[#78716C] shrink-0" strokeWidth={2.4} />
+          )}
 
-          {/* Dải Badges Metadata (Tối đa 1 Chip Thời Gian Canonical + Tối đa 2 Metadata Phụ) */}
-          <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap mt-1.5">
-            {/* A. BADGE TASK CHA NGOÀI BỘ LỌC (Parent Context) */}
-            {isOutOfFilterContext && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-[#78716C] bg-[#F5F2EA] text-[#57534E] text-[10px] font-bold h-[20px] whitespace-nowrap">
-                <Layers size={10} className="text-[#78716C]" />
-                <span>Việc cha</span>
-              </span>
-            )}
+          {/* Checkbox Tròn (Min touch target) */}
+          <div className="shrink-0 flex items-center justify-center min-w-[24px] min-h-[24px]" onClick={(e) => e.stopPropagation()}>
+            <HandDrawnCheckbox
+              checked={task.completed}
+              onChange={() => onToggle(task.id)}
+            />
+          </div>
 
-            {/* B. NHÃN PHÂN CẤP SUBTASK (Nếu là Task Con được lồng) */}
-            {isSubtask && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-[#262626] bg-[#F5F2EA] text-[#1C1917] text-[10px] font-bold h-[20px] whitespace-nowrap">
-                <CornerDownRight size={10} strokeWidth={2.4} />
-                <span>Việc con</span>
-              </span>
-            )}
-
-            {/* C. NHÃN PARENT KHI TASK CON XUẤT HIỆN RIÊNG LẺ */}
-            {(showParentBadge || (!isSubtask && task.parentTaskId && !parentTask)) && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-[#D4CEBF] bg-[#FBF9F4] text-[#78716C] text-[10px] font-semibold h-[20px] max-w-[130px] truncate whitespace-nowrap">
-                <Layers size={10} className="shrink-0" />
-                <span className="truncate">
-                  {parentTask ? `Thuộc: ${parentTask.title}` : "Việc con"}
-                </span>
-              </span>
-            )}
-
-            {/* D. DUY NHẤT 1 CHIP THỜI GIAN CANONICAL */}
-            {task.completed ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-[#262626] bg-[#BBF7D0] text-emerald-950 text-[10px] font-bold h-[20px] whitespace-nowrap shadow-[0.5px_0.5px_0px_#262626]">
-                <span className="inline-flex items-center gap-1">
-                  <Check size={10} strokeWidth={3} />
-                  Đã xong
-                </span>
-              </span>
-            ) : isOverdue ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-[#262626] bg-[#FECDD3] text-rose-950 text-[10px] font-bold h-[20px] whitespace-nowrap shadow-[0.5px_0.5px_0px_#262626]">
-                <AlertCircle size={10} strokeWidth={2.5} />
-                <span>
-                  {effectiveDate === todayStr
-                    ? `Quá giờ${timeStr ? ` (${timeStr})` : ""}`
-                    : `Quá hạn${effectiveDate ? ` (${effectiveDate.split("-")[2]}/${effectiveDate.split("-")[1]})` : ""}`}
-                </span>
-              </span>
-            ) : isPastScheduled ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-[#262626] bg-[#FED7AA] text-[#7C2D12] text-[10px] font-bold h-[20px] whitespace-nowrap shadow-[0.5px_0.5px_0px_#262626]">
-                <Clock size={10} strokeWidth={2.4} className="text-[#9A3412]" />
-                <span>{timeStr ? `${timeStr} (Đã qua)` : "Đã qua"}</span>
-              </span>
-            ) : isScheduled && timeStr ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-[#262626] bg-[#FEF08A] text-amber-950 font-mono text-[10px] font-bold h-[20px] whitespace-nowrap shadow-[0.5px_0.5px_0px_#262626]">
-                <Clock size={10} strokeWidth={2.4} className="text-amber-900" />
-                <span>{timeStr}</span>
-              </span>
-            ) : isDeadline ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-[#262626] bg-[#FECDD3] text-rose-950 font-mono text-[10px] font-bold h-[20px] whitespace-nowrap shadow-[0.5px_0.5px_0px_#262626]">
-                <Hourglass size={10} strokeWidth={2.4} className="text-rose-900" />
-                <span>
-                  {timeStr
-                    ? `Hạn ${timeStr}`
-                    : effectiveDate
-                    ? `Hạn ${effectiveDate.split("-")[2]}/${effectiveDate.split("-")[1]}`
-                    : "Hạn chót"}
-                </span>
-              </span>
-            ) : isPastNoTime ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-[#D4CEBF] bg-[#F3EFE6] text-[#78716C] text-[10px] font-bold h-[20px] whitespace-nowrap">
-                <CalendarDays size={10} strokeWidth={2.4} />
-                <span>Ngày đã qua</span>
-              </span>
-            ) : !effectiveDate ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-dashed border-[#D4CEBF] bg-[#F5F2EA] text-[#78716C] text-[10px] font-bold h-[20px] whitespace-nowrap">
-                <Package size={10} />
-                <span>Chưa đặt ngày</span>
-              </span>
-            ) : !hideDate && variant !== "today" ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-[#D4CEBF] bg-[#FBF9F4] text-[#78716C] text-[10px] font-mono font-medium h-[20px] whitespace-nowrap">
-                <CalendarDays size={10} strokeWidth={2.2} />
-                <span>
-                  {effectiveDate === todayStr
-                    ? "Hôm nay"
-                    : `${effectiveDate.split("-")[2]}/${effectiveDate.split("-")[1]}`}
-                </span>
-              </span>
-            ) : null}
-
-            {/* F. BADGE SỐ LƯỢNG TASK CON (Cho Task Cha) */}
-            {childCount > 0 && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleExpand?.();
-                }}
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-[3px] border border-[#262626] text-[10px] font-bold h-[20px] transition-all shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] ${
-                  isOutOfFilterContext
-                    ? "bg-[#EFEAE0] hover:bg-[#E5DFD3] text-[#1C1917]"
-                    : "bg-[#FEF08A] hover:bg-[#FDE047] text-[#1C1917]"
+          {/* Nội dung Task: Tiêu đề + Metadata dòng 2 */}
+          <div className="min-w-0 flex-1 flex flex-col justify-center py-0.5">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span
+                className={`text-sm sm:text-base font-bold truncate leading-snug ${
+                  task.completed ? "text-[#78716C] opacity-80" : "text-[#1C1917]"
                 }`}
-                title={isExpanded ? "Thu gọn việc con" : "Mở rộng việc con"}
               >
-                <Layers size={10} strokeWidth={2.4} />
-                <span>
-                  {childCount} việc con ({completedChildCount}/{childCount})
-                </span>
-                {isExpanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
-              </button>
+                {task.title}
+              </span>
+
+              {/* Điểm ưu tiên gấp (chỉ hiện khi gấp ●) */}
+              {task.priority === "high" && !task.completed && (
+                <span
+                  className="w-1.5 h-1.5 rounded-full bg-[#1C1917] shrink-0"
+                  title="Ưu tiên gấp"
+                />
+              )}
+
+              {/* Nút bấm mở/gập việc con */}
+              {hasChildren && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleExpand?.();
+                  }}
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded border border-[#262626]/30 bg-[#FAF8F3] hover:bg-white text-[10px] font-mono text-[#78716C] shrink-0"
+                  title={isExpanded ? "Thu gọn việc con" : "Mở rộng việc con"}
+                >
+                  <Layers size={11} />
+                  <span>
+                    {completedChildCount}/{childCount}
+                  </span>
+                  {isExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                </button>
+              )}
+            </div>
+
+            {(timeLabel || dateLabel || (!task.completed && (temporal === "overdue" || temporal === "pastScheduled"))) && (
+              <div className="flex flex-wrap items-center gap-1.5 mt-1 min-w-0">
+                {timeLabel && (
+                  <span className={`inline-flex items-center rounded-[3px] border px-1.5 py-0.5 font-mono text-[10px] font-bold leading-tight ${timeTone}`}>
+                    {timeLabel}
+                  </span>
+                )}
+                {dateLabel && (
+                  <span className="font-mono text-[10px] text-[#78716C]">
+                    {dateLabel}
+                  </span>
+                )}
+                {!task.completed && (temporal === "overdue" || temporal === "pastScheduled") && (
+                  <span className="shrink-0 rounded-[3px] border border-[#FDA4AF] bg-[#FECDD3] px-1.5 py-0.5 font-mono text-[10px] font-bold text-[#9F1239]">
+                    {temporal === "pastScheduled" ? "Đã qua" : "Quá hạn"}
+                  </span>
+                )}
+              </div>
             )}
 
-            {/* G. BADGE ƯU TIÊN (Chỉ hiển thị khi Gấp hoặc Thấp) */}
-            {task.priority === "high" && !task.completed && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-rose-300 bg-rose-50 text-rose-800 text-[10px] font-bold h-[20px] whitespace-nowrap">
-                <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
-                <span>Gấp</span>
-              </span>
-            )}
-            {task.priority === "low" && !task.completed && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-emerald-300 bg-emerald-50 text-emerald-800 text-[10px] font-bold h-[20px] whitespace-nowrap">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-                <span>Thấp</span>
-              </span>
-            )}
-
-            {/* H. BADGE NHÃN / TAG */}
-            {task.tag && (
-              <span
-                className={`${getTagStyle(task.tag).bg} ${getTagStyle(task.tag).text} px-1.5 py-0.5 rounded-[3px] border ${getTagStyle(task.tag).border} text-[10px] font-bold h-[20px] inline-flex items-center max-w-[100px] truncate whitespace-nowrap`}
-              >
-                <span className="truncate">#{task.tag}</span>
-              </span>
-            )}
-
-            {/* I. BADGE SỔ TAY */}
-            {assignedNotebook && !hideNotebookBadge && (
-              <span
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-[#262626] text-[10px] font-bold h-[20px] max-w-[110px] truncate whitespace-nowrap"
-                style={{ backgroundColor: assignedNotebook.color || "#FEF08A" }}
-              >
-                <DynamicIcon name={assignedNotebook.icon} size={10} strokeWidth={2.2} />
-                <span className="truncate">{assignedNotebook.name}</span>
-              </span>
+            {/* Dòng metadata phụ (Tag & Notebook nếu có) */}
+            {(task.tag || task.notebookId) && (
+              <div className="flex items-center gap-1.5 text-[11px] font-medium text-[#78716C] truncate mt-0.5">
+                {task.tag && (
+                  <span className="font-mono text-[#57534E]">#{task.tag}</span>
+                )}
+                {task.tag && task.notebookId && <span>·</span>}
+                {task.notebookId && (
+                  <span className="truncate">Sổ tay</span>
+                )}
+              </div>
             )}
           </div>
         </div>
 
-        {/* 3. Cụm Action: Nút + Thêm Việc Con & Nút 3 Chấm */}
-        <div
-          ref={menuRef}
-          className="relative shrink-0 ml-1 flex items-center gap-1"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Nút + 1 chạm để thêm việc con (Gắn với task hiện tại) */}
-          {onAddSubtask && !task.completed && (
+        {/* KHỐI PHẢI: Chỉ giữ quick actions, không chiếm chỗ của thời gian */}
+        <div className="relative flex items-start gap-2 shrink-0 min-w-0 pt-0.5">
+
+          {/* Desktop: hover. Touch: long press. Hidden actions do not reserve width. */}
+          <div
+            className={`hidden md:items-center md:gap-1 transition-opacity ${
+              areActionsVisible
+                ? "md:flex md:opacity-100 md:pointer-events-auto"
+                : "md:absolute md:right-0 md:flex md:opacity-0 md:pointer-events-none"
+            }`}
+          >
+            {onAddSubtask && !isSubtask && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  closeMobileActions();
+                  onAddSubtask(task);
+                }}
+                className="w-7 h-7 rounded flex items-center justify-center text-[#78716C] hover:text-[#1C1917] hover:bg-[#FAF8F3]"
+                title="Thêm việc con"
+              >
+                <Plus size={14} strokeWidth={2.4} />
+              </button>
+            )}
+
+            {onMoveTomorrow && !task.completed && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  closeMobileActions();
+                  onMoveTomorrow(task.id);
+                }}
+                className="w-7 h-7 rounded flex items-center justify-center text-[#78716C] hover:text-[#1C1917] hover:bg-[#FAF8F3]"
+                title="Dời sang ngày mai"
+              >
+                <ArrowRight size={14} strokeWidth={2.2} />
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={() => onAddSubtask(task)}
-              title="Thêm việc con"
-              aria-label="Thêm việc con"
-              className="w-7 h-7 rounded-[4px] bg-[#FCFBF9] hover:bg-[#BBF7D0] border border-[#262626] flex items-center justify-center text-[#1C1917] active:translate-y-[0.5px] transition-all shadow-[1px_1px_0px_#262626]"
+              onClick={(e) => {
+                e.stopPropagation();
+                closeMobileActions();
+                onDelete(task.id);
+              }}
+              className="w-7 h-7 rounded flex items-center justify-center text-[#78716C] hover:text-[#1C1917] hover:bg-[#FAF8F3]"
+              title="Xóa công việc"
             >
-              <Plus size={13} strokeWidth={2.6} />
+              <Trash2 size={14} strokeWidth={2.2} />
             </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            title="Tùy chọn"
-            className="w-7 h-7 rounded-[4px] bg-[#FCFBF9] hover:bg-[#F3EFE6] border border-[#262626] flex items-center justify-center text-[#78716C] hover:text-[#1C1917] active:translate-y-[0.5px] transition-all shadow-[1px_1px_0px_#262626]"
-            aria-label="Tùy chọn"
-          >
-            <MoreVertical size={14} strokeWidth={2.4} />
-          </button>
-
-          {isMenuOpen && (
-            <div className="absolute right-0 top-full mt-1.5 w-40 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[3.5px_3.5px_0px_#262626] z-50 p-1 space-y-0.5 animate-in fade-in zoom-in-95 text-xs">
-              {/* 1. Thêm việc con */}
-              {onAddSubtask && !task.completed && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    onAddSubtask(task);
-                  }}
-                  className="w-full px-2.5 py-1.5 text-left font-bold text-[#1C1917] hover:bg-[#BBF7D0] rounded-[4px] flex items-center gap-2 transition-colors"
-                >
-                  <Plus size={13} strokeWidth={2.4} />
-                  <span>Thêm việc con</span>
-                </button>
-              )}
-
-              {/* 2. Xem chi tiết */}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  onClick?.(task);
-                }}
-                className="w-full px-2.5 py-1.5 text-left font-bold text-[#1C1917] hover:bg-[#BAE6FD] rounded-[4px] flex items-center gap-2 transition-colors"
-              >
-                <Eye size={13} strokeWidth={2.2} />
-                <span>Chi tiết</span>
-              </button>
-
-              {/* 3. Chỉnh sửa */}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  onEdit(task);
-                }}
-                className="w-full px-2.5 py-1.5 text-left font-bold text-[#1C1917] hover:bg-[#FEF08A] rounded-[4px] flex items-center gap-2 transition-colors"
-              >
-                <Edit3 size={13} strokeWidth={2.2} />
-                <span>Sửa</span>
-              </button>
-
-              {onMoveTomorrow && !task.completed && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMenuOpen(false);
-                    onMoveTomorrow(task.id);
-                  }}
-                  className="w-full px-2.5 py-1.5 text-left font-bold text-[#1C1917] hover:bg-[#BAE6FD] rounded-[4px] flex items-center gap-2 transition-colors"
-                >
-                  <ArrowRight size={13} strokeWidth={2.4} />
-                  <span>{moveTitle}</span>
-                </button>
-              )}
-
-              <div className="border-t border-[#262626]/20 my-0.5" />
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  onDelete(task.id);
-                }}
-                className="w-full px-2.5 py-1.5 text-left font-bold text-rose-700 hover:bg-rose-50 rounded-[4px] flex items-center gap-2 transition-colors"
-              >
-                <Trash2 size={13} strokeWidth={2.2} />
-                <span>Xóa</span>
-              </button>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

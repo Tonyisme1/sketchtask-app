@@ -1,7 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
+import { AlertTriangle, BellRing, Hourglass } from "lucide-react";
 import { useAppStore } from "../../../stores/appStore";
+import { useResponsiveLayout } from "../../../shared/hooks";
 import { TaskDto } from "../../../types";
-import { getLocalTodayStr, getLocalTomorrowStr, formatFullDate } from "../../../utils/date";
+import { formatFullDate, getLocalTodayStr, getLocalTomorrowStr } from "../../../utils/date";
+import { SketchTabs } from "../../layout/SketchTabs";
 import {
   getTaskEffectiveDate,
   getTaskEffectiveTime,
@@ -9,438 +12,251 @@ import {
   normalizeTaskTimeType,
 } from "../../../utils/taskSemantics";
 import { TaskList } from "../shared/TaskList";
-import {
-  Hourglass,
-  AlertTriangle,
-  ShieldCheck,
-  Sparkles,
-  CalendarX,
-  BellRing,
-} from "lucide-react";
 
 export interface DeadlinesTabProps {
   onNavigateToTaskDate?: (dateStr: string, taskId: string) => void;
 }
 
+type DeadlineView = "overdue" | "upcoming";
+
+const sortByDateAndTime = (tasks: TaskDto[]) =>
+  [...tasks].sort((taskA, taskB) => {
+    const dateA = getTaskEffectiveDate(taskA) || "9999-99-99";
+    const dateB = getTaskEffectiveDate(taskB) || "9999-99-99";
+    const dateOrder = dateA.localeCompare(dateB);
+    if (dateOrder !== 0) return dateOrder;
+    return (getTaskEffectiveTime(taskA) || "99:99").localeCompare(
+      getTaskEffectiveTime(taskB) || "99:99",
+    );
+  });
+
+const groupByDate = (tasks: TaskDto[]) => {
+  const groups = new Map<string, TaskDto[]>();
+
+  for (const task of tasks) {
+    const date = getTaskEffectiveDate(task) || "no-date";
+    const group = groups.get(date) || [];
+    group.push(task);
+    groups.set(date, group);
+  }
+
+  return [...groups.entries()].map(([dateStr, groupTasks]) => ({
+    dateStr,
+    tasks: sortByDateAndTime(groupTasks),
+  }));
+};
+
 export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
   onNavigateToTaskDate,
 }) => {
-  const {
-    tasks,
-    toggleTask,
-    deleteTask,
-    moveTaskToTomorrow,
-  } = useAppStore();
-
+  const { isMobile } = useResponsiveLayout();
+  const { tasks, toggleTask, deleteTask, moveTaskToTomorrow } = useAppStore();
   const todayStr = getLocalTodayStr(new Date());
   const tomorrowStr = getLocalTomorrowStr();
+  const [view, setView] = useState<DeadlineView>("overdue");
 
-  // 3 Sub-tabs: "overdue_deadline" (Quá hạn chót) | "overdue_date" (Quá ngày hẹn) | "within_24h" (Đến hạn trong 24h)
-  const [subTab, setSubTab] = useState<"overdue_deadline" | "overdue_date" | "within_24h">("overdue_deadline");
+  const overdueTasks = useMemo(
+    () =>
+      sortByDateAndTime(
+        tasks.filter((task) => {
+          if (task.completed) return false;
+          const state = getTaskTemporalState(task);
+          return state === "overdue" || state === "pastScheduled";
+        }),
+      ),
+    [tasks],
+  );
 
-  // 1. Phân loại: QUÁ HẠN CHÓT (Overdue Deadline)
-  const overdueDeadlineTasks = useMemo(() => {
-    return tasks.filter((t) => {
-      if (t.completed) return false;
-      const temporal = getTaskTemporalState(t);
-      const normTime = normalizeTaskTimeType(t);
+  const upcomingTasks = useMemo(
+    () =>
+      sortByDateAndTime(
+        tasks.filter((task) => {
+          if (task.completed) return false;
+          const state = getTaskTemporalState(task);
+          if (state === "overdue" || state === "pastScheduled") return false;
+          if (normalizeTaskTimeType(task) !== "deadline") return false;
+          const date = getTaskEffectiveDate(task);
+          return date === todayStr || date === tomorrowStr;
+        }),
+      ),
+    [tasks, todayStr, tomorrowStr],
+  );
 
-      return normTime === "deadline" && temporal === "overdue";
-    });
-  }, [tasks]);
+  const overdueGroups = useMemo(() => groupByDate(overdueTasks), [overdueTasks]);
+  const upcomingGroups = useMemo(() => groupByDate(upcomingTasks), [upcomingTasks]);
 
-  // 2. Phân loại: QUÁ NGÀY HẸN (Overdue Date)
-  const overdueDateTasks = useMemo(() => {
-    return tasks.filter((t) => {
-      if (t.completed) return false;
-      const temporal = getTaskTemporalState(t);
-      const normTime = normalizeTaskTimeType(t);
-
-      return normTime !== "deadline" && (temporal === "overdue" || temporal === "pastScheduled");
-    });
-  }, [tasks]);
-
-  // 3. Phân loại: ĐẾN HẠN TRONG 24H (Due within 24 hours)
-  const dueWithin24hTasks = useMemo(() => {
-    return tasks.filter((t) => {
-      if (t.completed) return false;
-      const temporal = getTaskTemporalState(t);
-      if (temporal === "overdue" || temporal === "pastScheduled") return false;
-
-      const normTime = normalizeTaskTimeType(t);
-      const effectiveDate = getTaskEffectiveDate(t);
-
-      if (normTime === "deadline") {
-        return effectiveDate === todayStr || effectiveDate === tomorrowStr;
-      }
-      return false;
-    });
-  }, [tasks, todayStr, tomorrowStr]);
-
-  // Gom nhóm Quá hạn chót theo ngày hiệu lực (từ ngày cũ nhất đến ngày gần nhất)
-  const groupedOverdueDeadlines = useMemo(() => {
-    const map: Record<string, TaskDto[]> = {};
-    for (const t of overdueDeadlineTasks) {
-      const d = getTaskEffectiveDate(t) || "no-date";
-      if (!map[d]) map[d] = [];
-      map[d].push(t);
-    }
-    const sortedDates = Object.keys(map).sort((a, b) => a.localeCompare(b));
-    return sortedDates.map((dateStr) => {
-      const sortedGroupTasks = [...map[dateStr]].sort((a, b) => {
-        const timeA = getTaskEffectiveTime(a) || "99:99";
-        const timeB = getTaskEffectiveTime(b) || "99:99";
-        return timeA.localeCompare(timeB);
-      });
-      return {
-        dateStr,
-        tasks: sortedGroupTasks,
-      };
-    });
-  }, [overdueDeadlineTasks]);
-
-  // Gom nhóm Quá ngày hẹn theo ngày hiệu lực (từ ngày cũ nhất đến ngày gần nhất)
-  const groupedOverdueDates = useMemo(() => {
-    const map: Record<string, TaskDto[]> = {};
-    for (const t of overdueDateTasks) {
-      const d = getTaskEffectiveDate(t) || "no-date";
-      if (!map[d]) map[d] = [];
-      map[d].push(t);
-    }
-    const sortedDates = Object.keys(map).sort((a, b) => a.localeCompare(b));
-    return sortedDates.map((dateStr) => {
-      const sortedGroupTasks = [...map[dateStr]].sort((a, b) => {
-        const timeA = getTaskEffectiveTime(a) || "99:99";
-        const timeB = getTaskEffectiveTime(b) || "99:99";
-        return timeA.localeCompare(timeB);
-      });
-      return {
-        dateStr,
-        tasks: sortedGroupTasks,
-      };
-    });
-  }, [overdueDateTasks]);
-
-  const sorted24hTasks = useMemo(() => {
-    return [...dueWithin24hTasks].sort((a, b) => {
-      const timeA = getTaskEffectiveTime(a) || "99:99";
-      const timeB = getTaskEffectiveTime(b) || "99:99";
-      return timeA.localeCompare(timeB);
-    });
-  }, [dueWithin24hTasks]);
-
-  // Xử lý dời ngày thông minh (Quá 1 ngày dời sang mai; Quá >= 2 ngày chuyển thẳng vào Day View có sidebar chọn ngày, KHÔNG POPUP)
   const handleSmartReschedule = (taskId: string) => {
-    const task = tasks.find((t) => t.id === taskId);
+    const task = tasks.find((item) => item.id === taskId);
     if (!task) return;
 
-    const taskDateStr = getTaskEffectiveDate(task) || todayStr;
-    const taskDateObj = new Date(taskDateStr);
-    const todayDateObj = new Date(todayStr);
-    const diffTime = todayDateObj.getTime() - taskDateObj.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const date = getTaskEffectiveDate(task);
+    if (!date) return;
 
-    if (diffDays <= 1) {
-      // Trễ 1 ngày (hôm qua) hoặc hôm nay -> Dời sang ngày mai
+    const [year, month, day] = date.split("-").map(Number);
+    const taskDate = new Date(year, month - 1, day);
+    const [todayYear, todayMonth, todayDay] = todayStr.split("-").map(Number);
+    const today = new Date(todayYear, todayMonth - 1, todayDay);
+    const diffDays = Math.round((today.getTime() - taskDate.getTime()) / 86400000);
+
+    if (diffDays <= 1 || !onNavigateToTaskDate) {
       moveTaskToTomorrow(taskId);
-    } else {
-      // Trễ từ 2 ngày trở lên -> Chuyển thẳng sang Day View của ngày đó để chọn ngày dời trên Sidebar
-      if (onNavigateToTaskDate) {
-        onNavigateToTaskDate(taskDateStr, task.id);
-      }
+      return;
+    }
+
+    onNavigateToTaskDate(date, task.id);
+  };
+
+  const handleTaskClick = (task: TaskDto) => {
+    const date = getTaskEffectiveDate(task);
+    if (date && onNavigateToTaskDate) {
+      onNavigateToTaskDate(date, task.id);
     }
   };
 
-  // Click vào task -> Chuyển thẳng sang ngày của task đó
-  const handleTaskClick = (task: TaskDto) => {
-    const effectiveDate = getTaskEffectiveDate(task) || todayStr;
-    if (onNavigateToTaskDate) {
-      onNavigateToTaskDate(effectiveDate, task.id);
+  const renderGroups = (
+    groups: Array<{ dateStr: string; tasks: TaskDto[] }>,
+    emptyMessage: string,
+    emptySubMessage: string,
+    variant: "overdue" | "planner"
+  ) => {
+    if (groups.length === 0) {
+      return (
+        <TaskList
+          tasks={[]}
+          emptyMessage={emptyMessage}
+          emptySubMessage={emptySubMessage}
+          onToggle={toggleTask}
+          onEdit={handleTaskClick}
+          onDelete={deleteTask}
+          onMoveTomorrow={handleSmartReschedule}
+          onAddSubtask={handleTaskClick}
+          onClick={handleTaskClick}
+          variant={variant}
+          hideDate={false}
+          showQuickAdd={false}
+        />
+      );
     }
+
+    return (
+      <div className="space-y-4 pt-1">
+        {groups.map((group) => (
+          <section key={group.dateStr} className="space-y-2">
+            <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]/20">
+              <div className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#1C1917]" />
+                <span className="font-bold text-xs sm:text-sm text-[#1C1917]">
+                  {formatFullDate(group.dateStr)}
+                </span>
+              </div>
+              <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-[#FAF8F3] border border-[#262626]/30 text-[#78716C]">
+                {group.tasks.length} việc
+              </span>
+            </div>
+            <TaskList
+              tasks={group.tasks}
+              emptyMessage=""
+              emptySubMessage=""
+              onToggle={toggleTask}
+              onEdit={handleTaskClick}
+              onDelete={deleteTask}
+              onMoveTomorrow={handleSmartReschedule}
+              onAddSubtask={handleTaskClick}
+              onClick={handleTaskClick}
+              variant={variant}
+              hideDate={true}
+              baseDateStr={group.dateStr}
+              showQuickAdd={false}
+            />
+          </section>
+        ))}
+      </div>
+    );
   };
+
+  const isOverdueView = view === "overdue";
+  const activeCount = isOverdueView ? overdueTasks.length : upcomingTasks.length;
 
   return (
-    <div className="space-y-4 w-full pb-16 select-none animate-in fade-in duration-150">
-      {/* 1. Header & Segmented 3 Sub-tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 sm:p-3 bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[8px] shadow-[2px_2px_0px_#262626]">
-        <div className="hidden">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[#FECDD3] border border-[#262626] flex items-center justify-center shadow-[1px_1px_0px_#262626]">
-              <Hourglass size={13} className="text-rose-950" strokeWidth={2.4} />
-            </div>
-            <h2 className="font-bold text-sm sm:text-base text-[#1C1917]">
-              Mốc hạn & Tiến độ công việc
-            </h2>
-          </div>
-          <p className="text-[11px] text-[#78716C] mt-0.5">
-            Phân loại rõ ràng quá hạn chót, quá ngày hẹn và các mốc hạn gấp trong 24h
-          </p>
-        </div>
+    <div className={`space-y-3.5 w-full min-w-0 pb-16 select-none ${
+      isMobile ? "" : "animate-in fade-in duration-150"
+    }`}>
+      {/* 1. Header Thanh Điều Hướng Phân Nhóm Hạn Định (Chuẩn Nét Mực & Nền Giấy) */}
+      <div className="flex items-center justify-between gap-2.5 flex-wrap select-none">
+        <SketchTabs
+          ariaLabel="Chuyển loại hạn định"
+          value={view}
+          onChange={setView}
+          items={[
+            {
+              key: "overdue",
+              label: "Quá hạn",
+              icon: <AlertTriangle size={13} strokeWidth={2.4} />,
+              badge:
+                overdueTasks.length > 0 ? (
+                  <span className="min-w-[18px] border-[1px] border-[#FDA4AF] bg-[#FFE4E6] px-1 py-0.5 text-center font-mono text-[10px] leading-none text-[#BE123C]">
+                    {overdueTasks.length}
+                  </span>
+                ) : undefined,
+            },
+            {
+              key: "upcoming",
+              label: "Sắp đến",
+              icon: <BellRing size={13} strokeWidth={2.4} />,
+              badge:
+                upcomingTasks.length > 0 ? (
+                  <span className="min-w-[18px] border-[1px] border-[#7DD3FC] bg-[#E0F2FE] px-1 py-0.5 text-center font-mono text-[10px] leading-none text-[#0369A1]">
+                    {upcomingTasks.length}
+                  </span>
+                ) : undefined,
+            },
+          ]}
+        />
 
-        {/* 3 Sub-tabs Switch */}
-        <div className="inline-flex p-1 bg-white border border-[#262626] rounded-[6px] shadow-[1px_1px_0px_#262626] self-start sm:self-auto flex-wrap gap-1">
-          {/* Sub-tab 1: Quá hạn chót */}
-          <button
-            type="button"
-            onClick={() => setSubTab("overdue_deadline")}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[4px] text-xs font-bold transition-all ${
-              subTab === "overdue_deadline"
-                ? "bg-[#FECDD3] text-rose-950 border border-[#262626] shadow-[1px_1px_0px_#262626]"
-                : "text-[#78716C] hover:text-[#1C1917]"
-            } active:translate-y-[0.5px]`}
-          >
-            <AlertTriangle size={13} strokeWidth={subTab === "overdue_deadline" ? 2.6 : 2} className="text-rose-700" />
-            <span>Quá hạn</span>
-            {overdueDeadlineTasks.length > 0 && (
-              <span className="font-mono text-[10px] bg-rose-600 text-white px-1.5 py-0.2 rounded-full leading-none font-bold">
-                {overdueDeadlineTasks.length}
-              </span>
-            )}
-          </button>
-
-          {/* Sub-tab 2: Quá ngày hẹn */}
-          <button
-            type="button"
-            onClick={() => setSubTab("overdue_date")}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[4px] text-xs font-bold transition-all ${
-              subTab === "overdue_date"
-                ? "bg-[#FEF08A] text-amber-950 border border-[#262626] shadow-[1px_1px_0px_#262626]"
-                : "text-[#78716C] hover:text-[#1C1917]"
-            } active:translate-y-[0.5px]`}
-          >
-            <CalendarX size={13} strokeWidth={subTab === "overdue_date" ? 2.6 : 2} className="text-amber-800" />
-            <span>Quá hẹn</span>
-            {overdueDateTasks.length > 0 && (
-              <span className="font-mono text-[10px] bg-amber-600 text-white px-1.5 py-0.2 rounded-full leading-none font-bold">
-                {overdueDateTasks.length}
-              </span>
-            )}
-          </button>
-
-          {/* Sub-tab 3: Đến hạn (24h) */}
-          <button
-            type="button"
-            onClick={() => setSubTab("within_24h")}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-[4px] text-xs font-bold transition-all ${
-              subTab === "within_24h"
-                ? "bg-[#BBF7D0] text-emerald-950 border border-[#262626] shadow-[1px_1px_0px_#262626]"
-                : "text-[#78716C] hover:text-[#1C1917]"
-            } active:translate-y-[0.5px]`}
-          >
-            <BellRing size={13} strokeWidth={subTab === "within_24h" ? 2.6 : 2} className="text-emerald-800" />
-            <span>Đến hạn</span>
-            {dueWithin24hTasks.length > 0 && (
-              <span className="font-mono text-[10px] bg-emerald-700 text-white px-1.5 py-0.2 rounded-full leading-none font-bold">
-                {dueWithin24hTasks.length}
-              </span>
-            )}
-          </button>
+        <div className="flex items-center gap-1 text-[11px] text-[#78716C] font-mono">
+          <span>Tổng cộng:</span>
+          <span className="font-bold text-[#1C1917]">{activeCount} việc</span>
         </div>
       </div>
 
-      {/* 2. Banner Trạng Thái (Loại bỏ nút dời hàng loạt phi logic) */}
-      {subTab === "overdue_deadline" && (
-        overdueDeadlineTasks.length > 0 ? (
-          <div className="flex items-center gap-2 p-3 bg-rose-50 border-[1.5px] border-rose-300 rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] animate-in fade-in duration-150">
-            <AlertTriangle size={18} className="text-rose-600 shrink-0" strokeWidth={2.4} />
-            <div>
-              <p className="text-xs font-bold text-rose-950">
-                Cảnh báo: Có {overdueDeadlineTasks.length} công việc đã quá giờ chót (deadline)!
-              </p>
-              <p className="text-[11px] text-rose-800">
-                Hãy bấm vào từng công việc để chọn ngày thực hiện mới hoặc hoàn thành dứt điểm.
-              </p>
-            </div>
+      {/* 2. Tiêu Đề Khu Vực (Đồng Bộ PlannerWeekView) */}
+      <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20 flex-wrap gap-2 pt-1">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-[4px] bg-[#1C1917] border-[1.5px] border-[#262626] flex items-center justify-center text-white shadow-[1px_1px_0px_#262626]">
+            {isOverdueView ? (
+              <AlertTriangle size={14} strokeWidth={2.4} className="text-red-400" />
+            ) : (
+              <Hourglass size={14} strokeWidth={2.4} className="text-sky-300" />
+            )}
           </div>
-        ) : (
-          <div className="flex items-center gap-3 p-4 bg-emerald-50/70 border-[1.5px] border-emerald-300 rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] animate-in fade-in duration-150">
-            <div className="w-9 h-9 rounded-full bg-emerald-100 border border-emerald-400 flex items-center justify-center shrink-0">
-              <ShieldCheck size={20} className="text-emerald-700" strokeWidth={2.4} />
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-sm sm:text-base text-[#1C1917]">
+                {isOverdueView ? "Danh sách quá hạn" : "Hạn định sắp tới"}
+              </h3>
+              <span
+                className={`text-[10px] font-bold px-2 py-0.2 rounded-full border ${
+                  isOverdueView
+                    ? "bg-red-50 text-red-700 border-red-300"
+                    : "bg-sky-50 text-sky-700 border-sky-300"
+                }`}
+              >
+                {isOverdueView ? "Cần xử lý" : "Hôm nay & Ngày mai"}
+              </span>
             </div>
-            <div>
-              <h4 className="font-bold text-xs sm:text-sm text-emerald-950 flex items-center gap-1">
-                <span>Tuyệt vời! Không có công việc nào bị quá hạn chót</span>
-                <Sparkles size={14} className="text-amber-500" />
-              </h4>
-              <p className="text-[11px] text-emerald-800">
-                Tất cả các deadline đều đang được xử lý rất tốt.
-              </p>
-            </div>
+            <p className="text-[11px] text-[#78716C] font-mono">
+              {isOverdueView
+                ? `Có ${activeCount} công việc đã quá hạn hoàn thành hoặc lịch hẹn cũ`
+                : `Có ${activeCount} công việc có hạn hoàn thành`}
+            </p>
           </div>
-        )
-      )}
-
-      {subTab === "overdue_date" && (
-        overdueDateTasks.length > 0 ? (
-          <div className="flex items-center gap-2 p-3 bg-amber-50 border-[1.5px] border-amber-300 rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] animate-in fade-in duration-150">
-            <CalendarX size={18} className="text-amber-700 shrink-0" strokeWidth={2.4} />
-            <div>
-              <p className="text-xs font-bold text-amber-950">
-                Có {overdueDateTasks.length} công việc từ những ngày trước chưa hoàn thành
-              </p>
-              <p className="text-[11px] text-amber-800">
-                Hãy bấm vào công việc để xem lại bối cảnh và sắp xếp sang ngày mới phù hợp.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3 p-4 bg-emerald-50/70 border-[1.5px] border-emerald-300 rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] animate-in fade-in duration-150">
-            <div className="w-9 h-9 rounded-full bg-emerald-100 border border-emerald-400 flex items-center justify-center shrink-0">
-              <ShieldCheck size={20} className="text-emerald-700" strokeWidth={2.4} />
-            </div>
-            <div>
-              <h4 className="font-bold text-xs sm:text-sm text-emerald-950 flex items-center gap-1">
-                <span>Không có công việc nào bị tồn đọng ngày cũ</span>
-                <Sparkles size={14} className="text-amber-500" />
-              </h4>
-              <p className="text-[11px] text-emerald-800">
-                Sổ tay của bạn rất sạch sẽ và ngăn nắp!
-              </p>
-            </div>
-          </div>
-        )
-      )}
-
-      {subTab === "within_24h" && (
-        dueWithin24hTasks.length > 0 ? (
-          <div className="flex items-center justify-between p-2.5 bg-emerald-50/80 border border-emerald-300 rounded-[6px] text-xs font-semibold text-emerald-950">
-            <div className="flex items-center gap-1.5">
-              <BellRing size={14} className="text-emerald-700" />
-                <span>
-                  Có {dueWithin24hTasks.length} công việc có mốc hạn trong vòng 24 giờ tới cần lưu ý
-                </span>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3 p-4 bg-emerald-50/70 border-[1.5px] border-emerald-300 rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] animate-in fade-in duration-150">
-            <div className="w-9 h-9 rounded-full bg-emerald-100 border border-emerald-400 flex items-center justify-center shrink-0">
-              <ShieldCheck size={20} className="text-emerald-700" strokeWidth={2.4} />
-            </div>
-            <div>
-              <h4 className="font-bold text-xs sm:text-sm text-emerald-950 flex items-center gap-1">
-                <span>Yên tâm! Không có mốc hạn gấp nào trong vòng 24h tới</span>
-                <Sparkles size={14} className="text-amber-500" />
-              </h4>
-              <p className="text-[11px] text-emerald-800">
-                Bạn có thể thong thả hoàn thành các công việc theo kế hoạch thường nhật.
-              </p>
-            </div>
-          </div>
-        )
-      )}
-
-      {/* 3. Danh Sách Công Việc Tương Ứng (Gom theo ngày cho Quá hạn chót & Quá ngày hẹn) */}
-      <div className="pt-1">
-        {subTab === "overdue_deadline" && (
-          groupedOverdueDeadlines.length === 0 ? (
-            <TaskList
-              tasks={[]}
-              emptyMessage="Không có công việc nào bị quá hạn chót"
-              emptySubMessage="Mọi kế hoạch đều đang hoàn thành rất đúng giờ!"
-              onToggle={toggleTask}
-              onEdit={handleTaskClick}
-              onDelete={deleteTask}
-              onMoveTomorrow={handleSmartReschedule}
-              onAddSubtask={handleTaskClick}
-              onClick={handleTaskClick}
-              variant="overdue"
-              hideDate={false}
-            />
-          ) : (
-            <div className="space-y-4">
-              {groupedOverdueDeadlines.map((group) => (
-                <div key={group.dateStr} className="space-y-2">
-                  <div className="flex items-center justify-between px-3 py-1.5 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626]">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle size={14} className="text-rose-600 shrink-0" strokeWidth={2.4} />
-                      <span className="font-bold text-xs sm:text-sm text-[#1C1917]">
-                        {formatFullDate(group.dateStr)} - {group.tasks.length} việc
-                      </span>
-                    </div>
-                  </div>
-                  <TaskList
-                    tasks={group.tasks}
-                    emptyMessage=""
-                    emptySubMessage=""
-                    onToggle={toggleTask}
-                    onEdit={handleTaskClick}
-                    onDelete={deleteTask}
-                    onMoveTomorrow={handleSmartReschedule}
-                    onAddSubtask={handleTaskClick}
-                    onClick={handleTaskClick}
-                    variant="overdue"
-                    hideDate={true}
-                    baseDateStr={group.dateStr}
-                  />
-                </div>
-              ))}
-            </div>
-          )
-        )}
-
-        {subTab === "overdue_date" && (
-          groupedOverdueDates.length === 0 ? (
-            <TaskList
-              tasks={[]}
-              emptyMessage="Không có công việc nào bị quá ngày hẹn"
-              emptySubMessage="Không có việc nào bị tồn đọng từ các ngày trước!"
-              onToggle={toggleTask}
-              onEdit={handleTaskClick}
-              onDelete={deleteTask}
-              onMoveTomorrow={handleSmartReschedule}
-              onAddSubtask={handleTaskClick}
-              onClick={handleTaskClick}
-              variant="overdue"
-              hideDate={false}
-            />
-          ) : (
-            <div className="space-y-4">
-              {groupedOverdueDates.map((group) => (
-                <div key={group.dateStr} className="space-y-2">
-                  <div className="flex items-center justify-between px-3 py-1.5 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626]">
-                    <div className="flex items-center gap-2">
-                      <CalendarX size={14} className="text-amber-700 shrink-0" strokeWidth={2.4} />
-                      <span className="font-bold text-xs sm:text-sm text-[#1C1917]">
-                        {formatFullDate(group.dateStr)} - {group.tasks.length} việc
-                      </span>
-                    </div>
-                  </div>
-                  <TaskList
-                    tasks={group.tasks}
-                    emptyMessage=""
-                    emptySubMessage=""
-                    onToggle={toggleTask}
-                    onEdit={handleTaskClick}
-                    onDelete={deleteTask}
-                    onMoveTomorrow={handleSmartReschedule}
-                    onAddSubtask={handleTaskClick}
-                    onClick={handleTaskClick}
-                    variant="overdue"
-                    hideDate={true}
-                    baseDateStr={group.dateStr}
-                  />
-                </div>
-              ))}
-            </div>
-          )
-        )}
-
-        {subTab === "within_24h" && (
-          <TaskList
-            tasks={sorted24hTasks}
-            emptyMessage="Không có hạn chót nào trong 24 giờ tới"
-            emptySubMessage="Thêm giờ chót khi tạo việc nếu bạn cần theo dõi sát sao mốc thời gian!"
-            onToggle={toggleTask}
-            onEdit={handleTaskClick}
-            onDelete={deleteTask}
-            onMoveTomorrow={handleSmartReschedule}
-            onAddSubtask={handleTaskClick}
-            onClick={handleTaskClick}
-            variant="planner"
-            hideDate={false}
-          />
-        )}
+        </div>
       </div>
+
+      {/* 3. Danh Sách Nhóm Việc Theo Ngày */}
+      {isOverdueView
+        ? renderGroups(overdueGroups, "Không có việc quá hạn", "Mọi task đang trong kế hoạch.", "overdue")
+        : renderGroups(upcomingGroups, "Không có việc sắp đến hạn", "Bạn có thể thêm hạn khi tạo hoặc sửa task.", "planner")}
     </div>
   );
 };

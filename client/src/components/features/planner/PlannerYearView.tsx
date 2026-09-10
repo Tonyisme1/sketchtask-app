@@ -91,7 +91,7 @@ export const PlannerYearView: React.FC<PlannerYearViewProps> = ({
               key={m.monthIndex}
               className={`flex flex-col rounded-[8px] border-[1.5px] border-[#262626] p-3 transition-all ${
                 isCurrentMonth
-                  ? "bg-[#FFFDEB] shadow-[2.5px_2.5px_0px_#262626] ring-2 ring-amber-400"
+                  ? "bg-[#FAF8F3] shadow-[2.5px_2.5px_0px_#262626] ring-2 ring-[#262626]"
                   : "bg-white hover:bg-[#FAF8F3] shadow-[1.5px_1.5px_0px_#262626]"
               }`}
             >
@@ -100,12 +100,12 @@ export const PlannerYearView: React.FC<PlannerYearViewProps> = ({
                 <button
                   type="button"
                   onClick={() => onSelectMonth(m.monthIndex)}
-                  className="flex items-center gap-1.5 font-bold text-sm text-[#1C1917] hover:text-amber-900 group transition-colors text-left"
+                  className="flex items-center gap-1.5 font-bold text-sm text-[#1C1917] hover:text-[#262626] group transition-colors text-left"
                   title="Nhảy vào xem lịch tháng này"
                 >
                   <span>{m.name}</span>
                   {isCurrentMonth && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.2 bg-amber-200 border border-[#262626] rounded text-[#1C1917] leading-none">
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 bg-[#1C1917] border border-[#262626] rounded text-white leading-none">
                       Hiện tại
                     </span>
                   )}
@@ -121,7 +121,7 @@ export const PlannerYearView: React.FC<PlannerYearViewProps> = ({
               {m.totalTasks > 0 && (
                 <div className="mt-2 w-full bg-white border border-[#262626] rounded-[2px] h-1.5 overflow-hidden shadow-[1px_1px_0px_#262626]">
                   <div
-                    className="bg-[#BBF7D0] border-r border-[#262626] h-full transition-all duration-300"
+                    className="bg-[#1C1917] border-r border-[#262626] h-full transition-all duration-300"
                     style={{ width: `${completionRate}%` }}
                   />
                 </div>
@@ -159,10 +159,10 @@ export const PlannerYearView: React.FC<PlannerYearViewProps> = ({
                         onClick={() => onSelectDate(dateStr)}
                         className={`h-4 sm:h-5 rounded-[2px] flex items-center justify-center text-[9px] font-mono transition-all ${
                           isToday
-                            ? "bg-[#FEF08A] font-bold text-[#1C1917] border border-[#262626]"
+                            ? "bg-[#1C1917] font-bold text-white border border-[#262626]"
                             : hasTask
-                            ? "bg-[#BAE6FD] font-bold text-[#1C1917] hover:bg-[#7DD3FC]"
-                            : "text-[#78716C] hover:bg-[#F3EFE6]"
+                            ? "bg-[#FAF8F3] font-bold text-[#1C1917] border border-[#262626]"
+                            : "text-[#78716C] hover:bg-[#FAF8F3]"
                         }`}
                         title={`${dayNum}/${m.monthIndex + 1}/${year}${hasTask ? ` (${m.tasksPerDayMap[dayNum]} việc)` : ""}`}
                       >

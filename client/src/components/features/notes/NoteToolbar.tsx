@@ -18,11 +18,13 @@ import {
 export interface NoteToolbarProps {
   editorRef: React.RefObject<HTMLDivElement>;
   onContentChange: () => void;
+  keyboardVisible?: boolean;
 }
 
 export const NoteToolbar: React.FC<NoteToolbarProps> = ({
   editorRef,
   onContentChange,
+  keyboardVisible = false,
 }) => {
   const [showHighlightMenu, setShowHighlightMenu] = useState(false);
   const highlightMenuRef = useRef<HTMLDivElement>(null);
@@ -125,16 +127,20 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
     onContentChange();
   };
 
+  const buttonSizeClass = keyboardVisible ? "w-8 h-8 shrink-0" : "w-6 h-6";
+  const toolbarIconSize = keyboardVisible ? 16 : 12;
+
   // Helper class nút khi Active (đang bật như Word) vs Bình thường
   const getBtnClass = (isActive: boolean) =>
-    `w-6 h-6 rounded flex items-center justify-center transition-all cursor-pointer border ${
+    `${buttonSizeClass} rounded flex items-center justify-center transition-all cursor-pointer border ${
       isActive
-        ? "bg-[#FEF08A] text-[#1C1917] border-[#262626] font-black shadow-[inset_1px_1px_0px_#262626] -translate-y-0.2"
+        ? "bg-[#1C1917] text-white border-[#262626] font-black shadow-[inset_1px_1px_0px_#262626] -translate-y-0.2"
         : "bg-white hover:bg-[#FAF8F3] text-[#57534E] hover:text-[#1C1917] border-[#262626] shadow-[0.5px_0.5px_0px_#262626] active:translate-y-[0.5px]"
     }`;
 
   return (
-    <div className="flex items-center gap-1 p-1 bg-[#F5F2EA] border border-[#262626] rounded-[6px] shadow-[1px_1px_0px_#262626] flex-wrap select-none w-full max-w-full overflow-hidden">
+    <div className={`bg-[#FAF8F3] border border-[#262626] rounded-[6px] shadow-[1px_1px_0px_#262626] select-none w-full max-w-full p-1.5 ${keyboardVisible ? "overflow-visible" : "overflow-hidden"}`}>
+      <div className={`note-toolbar-scroll flex items-center w-full min-w-0 ${keyboardVisible ? "flex-nowrap gap-1.5 overflow-x-auto touch-pan-x overscroll-x-contain" : "flex-wrap gap-1 overflow-hidden"}`}>
       {/* 1. In Đậm B */}
       <button
         type="button"
@@ -143,7 +149,7 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
         title="In đậm (Bold)"
         className={getBtnClass(activeStates.bold)}
       >
-        <Bold size={12} strokeWidth={activeStates.bold ? 3.2 : 2.4} />
+        <Bold size={toolbarIconSize} strokeWidth={activeStates.bold ? 3.2 : 2.4} />
       </button>
 
       {/* 2. In Nghiêng I */}
@@ -154,7 +160,7 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
         title="In nghiêng (Italic)"
         className={getBtnClass(activeStates.italic)}
       >
-        <Italic size={12} strokeWidth={activeStates.italic ? 3.2 : 2.4} />
+        <Italic size={toolbarIconSize} strokeWidth={activeStates.italic ? 3.2 : 2.4} />
       </button>
 
       {/* 3. Gạch Chân U */}
@@ -165,7 +171,7 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
         title="Gạch chân (Underline)"
         className={getBtnClass(activeStates.underline)}
       >
-        <Underline size={12} strokeWidth={activeStates.underline ? 3.2 : 2.4} />
+        <Underline size={toolbarIconSize} strokeWidth={activeStates.underline ? 3.2 : 2.4} />
       </button>
 
       {/* 4. Gạch Ngang S */}
@@ -176,11 +182,11 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
         title="Gạch ngang (Strikethrough)"
         className={getBtnClass(activeStates.strike)}
       >
-        <Strikethrough size={12} strokeWidth={activeStates.strike ? 3.2 : 2.4} />
+        <Strikethrough size={toolbarIconSize} strokeWidth={activeStates.strike ? 3.2 : 2.4} />
       </button>
 
       {/* Vạch Phân Cách */}
-      <div className="w-[1px] h-3.5 bg-[#D4CEBF] mx-0.2" />
+      <div className="w-[1px] h-3.5 shrink-0 bg-[#D4CEBF] mx-0.2" />
 
       {/* 5. Tiêu Đề Lớn H1 */}
       <button
@@ -190,7 +196,7 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
         title="Tiêu đề lớn H1"
         className={getBtnClass(activeStates.h1)}
       >
-        <Heading1 size={13} strokeWidth={activeStates.h1 ? 3 : 2.4} />
+        <Heading1 size={toolbarIconSize} strokeWidth={activeStates.h1 ? 3 : 2.4} />
       </button>
 
       {/* 6. Tiêu Đề Phụ H2 */}
@@ -201,7 +207,7 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
         title="Tiêu đề phụ H2"
         className={getBtnClass(activeStates.h2)}
       >
-        <Heading2 size={13} strokeWidth={activeStates.h2 ? 3 : 2.4} />
+        <Heading2 size={toolbarIconSize} strokeWidth={activeStates.h2 ? 3 : 2.4} />
       </button>
 
       {/* 7. Đoạn Văn Thường P */}
@@ -212,11 +218,11 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
         title="Văn bản bình thường"
         className={getBtnClass(!activeStates.h1 && !activeStates.h2 && !activeStates.quote)}
       >
-        <Pilcrow size={11} strokeWidth={2.4} />
+        <Pilcrow size={toolbarIconSize} strokeWidth={2.4} />
       </button>
 
       {/* Vạch Phân Cách */}
-      <div className="w-[1px] h-3.5 bg-[#D4CEBF] mx-0.2" />
+      <div className="w-[1px] h-3.5 shrink-0 bg-[#D4CEBF] mx-0.2" />
 
       {/* 8. Danh Sách Dấu Chấm Bullet */}
       <button
@@ -226,7 +232,7 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
         title="Danh sách dấu chấm (Bullet List)"
         className={getBtnClass(activeStates.bullet)}
       >
-        <List size={13} strokeWidth={activeStates.bullet ? 3 : 2.4} />
+        <List size={toolbarIconSize} strokeWidth={activeStates.bullet ? 3 : 2.4} />
       </button>
 
       {/* 9. Danh Sách Đánh Số 1. 2. 3. */}
@@ -237,71 +243,71 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
         title="Danh sách đánh số (Numbered List)"
         className={getBtnClass(activeStates.numbered)}
       >
-        <ListOrdered size={13} strokeWidth={activeStates.numbered ? 3 : 2.4} />
+        <ListOrdered size={toolbarIconSize} strokeWidth={activeStates.numbered ? 3 : 2.4} />
       </button>
 
       {/* Vạch Phân Cách */}
-      <div className="w-[1px] h-3.5 bg-[#D4CEBF] mx-0.2" />
+      <div className="w-[1px] h-3.5 shrink-0 bg-[#D4CEBF] mx-0.2" />
 
       {/* 10. Bút Dạ Quang Highlight Gọn Gàng Không Bị Tràn */}
-      <div ref={highlightMenuRef} className="relative">
+      <div ref={highlightMenuRef} className="relative shrink-0">
         <button
           type="button"
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => setShowHighlightMenu(!showHighlightMenu)}
           title="Bút dạ quang Highlight màu"
-          className="px-1.5 h-6 rounded bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] flex items-center gap-0.5 text-[#1C1917] shadow-[0.5px_0.5px_0px_#262626] active:translate-y-[0.5px] transition-all cursor-pointer font-bold"
+          className={`shrink-0 px-1.5 ${keyboardVisible ? "h-8" : "h-6"} rounded bg-white hover:bg-[#FAF8F3] border border-[#262626] flex items-center gap-0.5 text-[#1C1917] shadow-[0.5px_0.5px_0px_#262626] active:translate-y-[0.5px] transition-all cursor-pointer font-bold`}
         >
-          <Highlighter size={11} strokeWidth={2.6} />
-          <ChevronDown size={9} strokeWidth={2.6} />
+          <Highlighter size={keyboardVisible ? 15 : 11} strokeWidth={2.6} />
+          <ChevronDown size={keyboardVisible ? 12 : 9} strokeWidth={2.6} />
         </button>
 
         {/* Menu Màu Dạng Ngang Nhỏ Gọn (Micro Palette) - Căn Lề Phải Để Không Tràn */}
         {showHighlightMenu && (
           <div className="absolute right-0 top-full mt-1 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] p-1.5 shadow-[2.5px_2.5px_0px_#262626] z-50 flex items-center gap-1.5 animate-in fade-in zoom-in-95 duration-100">
-            {/* Vàng dạ quang */}
+            {/* Giấy nhạt */}
             <button
               type="button"
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => applyHighlight("#FEF08A")}
-              title="Vàng dạ quang"
-              className="w-5 h-5 rounded-full bg-[#FEF08A] hover:scale-110 border border-[#262626] transition-transform cursor-pointer shadow-[0.5px_0.5px_0px_#262626]"
+              onClick={() => applyHighlight("#FAF8F3")}
+              title="Giấy sáng"
+            className={`${keyboardVisible ? "w-7 h-7" : "w-5 h-5"} rounded-full bg-[#FAF8F3] hover:scale-110 border border-[#262626] transition-transform cursor-pointer shadow-[0.5px_0.5px_0px_#262626]`}
             />
-            {/* Xanh ngọc */}
+            {/* Giấy trung */}
             <button
               type="button"
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => applyHighlight("#BBF7D0")}
-              title="Xanh ngọc"
-              className="w-5 h-5 rounded-full bg-[#BBF7D0] hover:scale-110 border border-[#262626] transition-transform cursor-pointer shadow-[0.5px_0.5px_0px_#262626]"
+              onClick={() => applyHighlight("#E7E5E4")}
+              title="Xám nhạt"
+            className={`${keyboardVisible ? "w-7 h-7" : "w-5 h-5"} rounded-full bg-[#E7E5E4] hover:scale-110 border border-[#262626] transition-transform cursor-pointer shadow-[0.5px_0.5px_0px_#262626]`}
             />
-            {/* Tím nhạt */}
+            {/* Giấy đậm */}
             <button
               type="button"
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => applyHighlight("#DDD6FE")}
-              title="Tím nhạt"
-              className="w-5 h-5 rounded-full bg-[#DDD6FE] hover:scale-110 border border-[#262626] transition-transform cursor-pointer shadow-[0.5px_0.5px_0px_#262626]"
+              onClick={() => applyHighlight("#D6D3D1")}
+              title="Xám vừa"
+            className={`${keyboardVisible ? "w-7 h-7" : "w-5 h-5"} rounded-full bg-[#D6D3D1] hover:scale-110 border border-[#262626] transition-transform cursor-pointer shadow-[0.5px_0.5px_0px_#262626]`}
             />
-            {/* Hồng phấn */}
+            {/* Mực đen */}
             <button
               type="button"
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => applyHighlight("#FECDD3")}
-              title="Hồng phấn"
-              className="w-5 h-5 rounded-full bg-[#FECDD3] hover:scale-110 border border-[#262626] transition-transform cursor-pointer shadow-[0.5px_0.5px_0px_#262626]"
+              onClick={() => applyHighlight("#A8A29E")}
+              title="Xám đậm"
+            className={`${keyboardVisible ? "w-7 h-7" : "w-5 h-5"} rounded-full bg-[#A8A29E] hover:scale-110 border border-[#262626] transition-transform cursor-pointer shadow-[0.5px_0.5px_0px_#262626]`}
             />
             {/* Vạch chia */}
-            <div className="w-[1px] h-4 bg-[#D4CEBF]" />
+            <div className="w-[1px] h-4 shrink-0 bg-[#D4CEBF]" />
             {/* Xóa highlight */}
             <button
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => applyHighlight("transparent")}
               title="Tẩy màu dạ quang"
-              className="w-5 h-5 rounded bg-white hover:bg-stone-100 border border-[#262626] flex items-center justify-center text-[#78716C] hover:text-[#1C1917] transition-colors cursor-pointer"
-            >
-              <RemoveFormatting size={11} />
+            className={`${keyboardVisible ? "w-7 h-7" : "w-5 h-5"} rounded bg-white hover:bg-stone-100 border border-[#262626] flex items-center justify-center text-[#78716C] hover:text-[#1C1917] transition-colors cursor-pointer`}
+          >
+              <RemoveFormatting size={keyboardVisible ? 14 : 11} />
             </button>
           </div>
         )}
@@ -315,7 +321,7 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
         title="Khối trích dẫn (Quote)"
         className={getBtnClass(activeStates.quote)}
       >
-        <Quote size={12} strokeWidth={activeStates.quote ? 3 : 2.4} />
+        <Quote size={toolbarIconSize} strokeWidth={activeStates.quote ? 3 : 2.4} />
       </button>
 
       {/* 12. Xóa Toàn Bộ Định Dạng */}
@@ -324,10 +330,11 @@ export const NoteToolbar: React.FC<NoteToolbarProps> = ({
         onMouseDown={(e) => e.preventDefault()}
         onClick={() => exec("removeFormat")}
         title="Xóa định dạng (Trở về chữ thường)"
-        className="w-6 h-6 rounded bg-white hover:bg-[#FAF8F3] border border-[#262626] flex items-center justify-center text-[#78716C] hover:text-[#1C1917] shadow-[0.5px_0.5px_0px_#262626] active:translate-y-[0.5px] transition-all cursor-pointer ml-auto"
+        className={`${buttonSizeClass} rounded bg-white hover:bg-[#FAF8F3] border border-[#262626] flex items-center justify-center text-[#78716C] hover:text-[#1C1917] shadow-[0.5px_0.5px_0px_#262626] active:translate-y-[0.5px] transition-all cursor-pointer ${keyboardVisible ? "" : "ml-auto"}`}
       >
-        <RemoveFormatting size={11} strokeWidth={2.4} />
+        <RemoveFormatting size={keyboardVisible ? 14 : 11} strokeWidth={2.4} />
       </button>
+      </div>
     </div>
   );
 };

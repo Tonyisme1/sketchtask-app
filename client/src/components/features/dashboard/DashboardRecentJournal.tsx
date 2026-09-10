@@ -46,7 +46,7 @@ export const DashboardRecentJournal: React.FC<DashboardRecentJournalProps> = ({
       {/* Header Nhật ký gần đây */}
       <div className="flex items-center justify-between pb-2.5 border-b border-[#262626]">
         <div className="flex items-center gap-1.5">
-          <BookOpen size={15} className="text-purple-900" strokeWidth={2.4} />
+          <BookOpen size={15} className="text-[#1C1917]" strokeWidth={2.4} />
           <h2 className="text-xs sm:text-sm font-bold text-[#1C1917] uppercase tracking-wider font-mono">
             Nhật Ký Gần Đây
           </h2>
@@ -98,7 +98,7 @@ export const DashboardRecentJournal: React.FC<DashboardRecentJournalProps> = ({
                   </div>
 
                   {linkedTask && (
-                    <span className="px-1.5 py-0.2 rounded-[3px] bg-[#BBF7D0] border border-[#262626] text-[9px] font-bold text-emerald-950 flex items-center gap-0.5 truncate max-w-[120px]">
+                    <span className="px-1.5 py-0.2 rounded-[3px] bg-[#1C1917] text-white border border-[#262626] text-[9px] font-bold flex items-center gap-0.5 truncate max-w-[120px]">
                       <CheckCircle2 size={9} strokeWidth={2.4} />
                       <span className="truncate">{linkedTask.title}</span>
                     </span>

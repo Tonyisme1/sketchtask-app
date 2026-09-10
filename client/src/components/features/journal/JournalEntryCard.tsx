@@ -3,8 +3,6 @@ import { JournalEntryDto, TaskDto } from "../../../types";
 import { useAppStore } from "../../../stores/appStore";
 import { JournalTaskLinkPopover } from "./JournalTaskLinkPopover";
 import { JournalNotebookPopover } from "./JournalNotebookPopover";
-import { TaskDetailModal } from "../../ui/overlays/TaskDetailModal";
-import { EditTaskModal } from "../../ui/overlays/EditTaskModal";
 import {
   Trash2,
   Link as LinkIcon,
@@ -36,14 +34,12 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
   onFocusPrev,
   onFocusNext,
 }) => {
-  const { tasks, notebooks, updateJournalEntry } = useAppStore();
+  const { tasks, notebooks, updateJournalEntry, openTaskDetail } = useAppStore();
   const [content, setContent] = useState(entry.content);
   const [time, setTime] = useState(entry.time);
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [isTaskPickerOpen, setIsTaskPickerOpen] = useState(false);
   const [isNotebookPickerOpen, setIsNotebookPickerOpen] = useState(false);
-  const [selectedTaskForDetail, setSelectedTaskForDetail] = useState<TaskDto | null>(null);
-  const [editingTask, setEditingTask] = useState<TaskDto | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -232,13 +228,13 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
               onBlur={handleTimeBlur}
               onKeyDown={(e) => e.key === "Enter" && handleTimeBlur()}
               autoFocus
-              className="w-11 font-mono text-xs font-bold text-center bg-white border border-[#262626] rounded px-0.5 py-0 focus:outline-none focus:bg-[#FEF08A]"
+              className="w-11 font-mono text-xs font-bold text-center bg-white border border-[#262626] rounded px-0.5 py-0 focus:outline-none focus:bg-[#FAF8F3]"
             />
           ) : showTime ? (
             <button
               type="button"
               onClick={() => setIsEditingTime(true)}
-              className="font-mono text-xs font-bold text-[#1C1917] hover:text-purple-900 cursor-pointer"
+              className="font-mono text-xs font-bold text-[#1C1917] hover:text-[#262626] cursor-pointer"
               title="Nhấp để sửa mốc giờ"
             >
               {time}
@@ -247,7 +243,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
             <button
               type="button"
               onClick={() => setIsEditingTime(true)}
-              className="font-mono text-[10px] text-[#A8A29E] opacity-0 group-hover:opacity-100 hover:text-purple-900 cursor-pointer transition-opacity"
+              className="font-mono text-[10px] text-[#A8A29E] opacity-0 group-hover:opacity-100 hover:text-[#1C1917] cursor-pointer transition-opacity"
               title={`Cùng mốc ${time} (nhấp để sửa)`}
             >
               {time}
@@ -276,7 +272,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
             <button
               type="button"
               onClick={() => onDelete(entry.id)}
-              className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded hover:bg-rose-100 border border-transparent hover:border-[#262626] flex items-center justify-center text-[#78716C] hover:text-rose-700 transition-all shrink-0 cursor-pointer pt-0.5"
+              className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded hover:bg-[#FAF8F3] border border-transparent hover:border-[#262626] flex items-center justify-center text-[#78716C] hover:text-[#1C1917] transition-all shrink-0 cursor-pointer pt-0.5"
               title="Xóa dòng nhật ký"
             >
               <Trash2 size={11} strokeWidth={2.2} />
@@ -291,8 +287,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
                 assignedNotebook ? (
                   <div
                     onClick={() => setIsNotebookPickerOpen(!isNotebookPickerOpen)}
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-[#262626] font-bold text-[10px] shadow-[0.5px_0.5px_0px_#262626] cursor-pointer transition-all active:translate-y-[0.5px]"
-                    style={{ backgroundColor: assignedNotebook.color || "#FAF8F3" }}
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-[#262626] font-bold text-[10px] shadow-[0.5px_0.5px_0px_#262626] cursor-pointer transition-all active:translate-y-[0.5px] bg-[#FAF8F3]"
                     title="Bấm để đổi sổ tay"
                   >
                     <BookMarked size={9} strokeWidth={2.4} className="text-[#1C1917]" />
@@ -302,7 +297,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
                     <button
                       type="button"
                       onClick={handleRemoveNotebook}
-                      className="hover:text-rose-700 text-[#1C1917] ml-0.5 font-bold cursor-pointer"
+                      className="hover:text-[#1C1917] text-[#78716C] ml-0.5 font-bold cursor-pointer"
                       title="Gỡ khỏi sổ tay"
                     >
                       <X size={10} strokeWidth={2.6} />
@@ -311,14 +306,14 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
                 ) : (
                   <div
                     onClick={() => setIsNotebookPickerOpen(!isNotebookPickerOpen)}
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-stone-100 border border-dashed border-[#A8A29E] rounded text-stone-500 text-[10px] italic cursor-pointer"
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#FAF8F3] border border-dashed border-[#A8A29E] rounded text-stone-500 text-[10px] italic cursor-pointer"
                   >
                     <BookMarked size={9} />
                     <span>Sổ đã bị xóa</span>
                     <button
                       type="button"
                       onClick={handleRemoveNotebook}
-                      className="hover:text-rose-700 text-[#78716C] ml-0.5 cursor-pointer"
+                      className="hover:text-[#1C1917] text-[#78716C] ml-0.5 cursor-pointer"
                     >
                       <X size={10} strokeWidth={2.6} />
                     </button>
@@ -352,14 +347,14 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
               {entry.linkedTaskId ? (
                 linkedTask ? (
                   <div
-                    onClick={() => setSelectedTaskForDetail(linkedTask)}
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#FAF8F3] hover:bg-[#FEF08A] border border-[#262626] rounded-[3px] shadow-[0.5px_0.5px_0px_#262626] cursor-pointer transition-all active:translate-y-[0.5px] max-w-full text-[10px]"
+                    onClick={() => openTaskDetail(linkedTask.id)}
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#FAF8F3] hover:bg-[#F5F5F4] border border-[#262626] rounded-[3px] shadow-[0.5px_0.5px_0px_#262626] cursor-pointer transition-all active:translate-y-[0.5px] max-w-full text-[10px]"
                     title="Bấm để xem công việc liên kết"
                   >
                     <LinkIcon size={9} strokeWidth={2.4} className="text-[#78716C] shrink-0" />
                     <span className="shrink-0">
                       {linkedTask.completed ? (
-                        <CheckSquare size={10} className="text-emerald-800" />
+                        <CheckSquare size={10} className="text-[#1C1917]" />
                       ) : (
                         <Square size={10} className="text-[#78716C]" />
                       )}
@@ -370,7 +365,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
                     <button
                       type="button"
                       onClick={handleRemoveTaskLink}
-                      className="hover:text-rose-700 text-[#78716C] ml-0.5 font-bold cursor-pointer"
+                      className="hover:text-[#1C1917] text-[#78716C] ml-0.5 font-bold cursor-pointer"
                       title="Bỏ liên kết task"
                     >
                       <X size={10} strokeWidth={2.6} />
@@ -415,27 +410,6 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
         </div>
       </div>
 
-      {/* Modal Chi Tiết Task */}
-      {selectedTaskForDetail && (
-        <TaskDetailModal
-          task={selectedTaskForDetail}
-          isOpen={Boolean(selectedTaskForDetail)}
-          onClose={() => setSelectedTaskForDetail(null)}
-          onEdit={(task) => {
-            setEditingTask(task);
-            setSelectedTaskForDetail(null);
-          }}
-        />
-      )}
-
-      {/* Modal Sửa Task */}
-      {editingTask && (
-        <EditTaskModal
-          task={editingTask}
-          isOpen={Boolean(editingTask)}
-          onClose={() => setEditingTask(null)}
-        />
-      )}
     </>
   );
 };

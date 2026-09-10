@@ -28,3 +28,15 @@
 - `SKIPPED`: chủ động bỏ qua, không xem là việc còn phải làm trong plan hiện tại.
 
 Kế hoạch chi tiết nằm tại [`CODEX-ANTI-PHASE-PLAN.md`](./CODEX-ANTI-PHASE-PLAN.md).
+
+## Kiến trúc 3 Shell - 2026-09-06
+
+| Hạng mục | Trạng thái | Ghi chú |
+|---|---|---|
+| Dispatcher Desktop/Tablet/Mobile | PARTIAL | App.tsx đã dùng useResponsiveLayout và ba shell riêng. |
+| Shared boundary | NEEDS_FIX | Còn re-export từ components/ui và core cũ. |
+| Feature boundary | NEEDS_FIX | Nhiều feature vẫn nằm dưới components/features và chưa có view theo shell. |
+| Task view separation | NEEDS_FIX | Ba TasksView còn lặp pipeline counts/navigation. |
+| Visual responsive audit | UNVERIFIED | Chưa kiểm tra trực tiếp bằng browser/device. |
+
+Không đánh dấu kiến trúc 3 shell COMPLETE cho đến khi prompt PROMPT-ARCHITECTURE-01-SHELL-BOUNDARY-FIX được kiểm tra độc lập.

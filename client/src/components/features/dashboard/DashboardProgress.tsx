@@ -1,7 +1,7 @@
 import React from "react";
 import { TrendingUp } from "lucide-react";
 import { TaskDto } from "../../../types";
-import { isTaskDueToday, isTaskUnscheduled } from "../../../utils/taskSemantics";
+import { isTaskDueToday } from "../../../utils/taskSemantics";
 
 interface DashboardProgressProps {
   tasks: TaskDto[];
@@ -15,11 +15,6 @@ export const DashboardProgress: React.FC<DashboardProgressProps> = ({ tasks }) =
   const todayTotal = todayTasks.length;
   const todayCompleted = todayTasks.filter((t) => t.completed).length;
   const todayPending = todayTotal - todayCompleted;
-
-  // 2. Việc chưa sắp lịch (Hộp chờ)
-  const unscheduledCount = tasks.filter(
-    (t) => !t.completed && isTaskUnscheduled(t)
-  ).length;
 
   // Tính phần trăm hoàn thành trong ngày
   const completionPercentage =
@@ -40,7 +35,7 @@ export const DashboardProgress: React.FC<DashboardProgressProps> = ({ tasks }) =
           </h2>
         </div>
 
-        <span className="text-xs font-mono font-black text-[#1C1917] px-2 py-0.5 bg-[#BBF7D0] border border-[#262626] rounded-[4px] shadow-[0.5px_0.5px_0px_#262626]">
+        <span className="text-xs font-mono font-black text-white px-2 py-0.5 bg-[#1C1917] border border-[#262626] rounded-[4px] shadow-[0.5px_0.5px_0px_#262626]">
           {todayTotal === 0 ? "0 VIỆC" : `${completionPercentage}% XONG`}
         </span>
       </div>
@@ -49,14 +44,14 @@ export const DashboardProgress: React.FC<DashboardProgressProps> = ({ tasks }) =
       <div className="space-y-1">
         <div className="w-full h-3 bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[4px] overflow-hidden p-0.5 shadow-[1px_1px_0px_#262626]">
           <div
-            className="h-full bg-[#BBF7D0] border-r border-[#262626] rounded-[2px] transition-all duration-300"
+            className="h-full bg-[#1C1917] border-r border-[#262626] rounded-[2px] transition-all duration-300"
             style={{ width: `${todayTotal === 0 ? 0 : completionPercentage}%` }}
           />
         </div>
       </div>
 
       {/* 3 Chỉ số chi tiết */}
-      <div className="grid grid-cols-3 gap-2 pt-1">
+      <div className="grid grid-cols-2 gap-2 pt-1">
         {/* Cần làm */}
         <div className="p-2 bg-[#FAF8F3] border border-[#262626] rounded-[4px] shadow-[0.5px_0.5px_0px_#262626] text-center">
           <span className="block text-[10px] font-bold text-[#78716C] mb-0.5 uppercase tracking-wider">
@@ -72,22 +67,12 @@ export const DashboardProgress: React.FC<DashboardProgressProps> = ({ tasks }) =
           <span className="block text-[10px] font-bold text-[#78716C] mb-0.5 uppercase tracking-wider">
             Đã xong
           </span>
-          <p className="font-mono text-base font-black text-emerald-800">
+          <p className="font-mono text-base font-black text-[#1C1917]">
             {todayCompleted}
           </p>
         </div>
 
-        {/* Hộp chờ (Chưa lịch) */}
-        <div className="p-2 bg-[#FAF8F3] border border-[#262626] rounded-[4px] shadow-[0.5px_0.5px_0px_#262626] text-center">
-          <span className="block text-[10px] font-bold text-[#78716C] mb-0.5 uppercase tracking-wider">
-            Hộp chờ
-          </span>
-          <p className="font-mono text-base font-black text-[#78716C]">
-            {unscheduledCount}
-          </p>
-        </div>
       </div>
     </div>
   );
 };
-

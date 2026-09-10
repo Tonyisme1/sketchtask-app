@@ -124,3 +124,27 @@
 - Production build bằng Vite local: PASS, 1925 modules transformed; còn cảnh báo chunk chính khoảng `1.6 MB`.
 - `git diff --check`: PASS sau khi dọn whitespace thuần túy tại `client/.env.production`, `client/src/components/features/planner/PlannerTab.tsx`, `client/src/index.css` và `client/src/utils/date.ts`; các cảnh báo còn lại chỉ là line-ending LF/CRLF.
 - Coverage gap: report Anti hiện chỉ có mục `2A-FIX`; chưa có bằng chứng thực hiện các prompt `2B` đến `7E` trong lượt chạy toàn bộ.
+
+## Architecture 3 Shells Recheck - 2026-09-06
+
+- Trạng thái: NEEDS_FIX
+- App.tsx đã dispatcher theo useResponsiveLayout sang DesktopShell, TabletShell và MobileShell.
+- Đã có các thư mục desktop, tablet, mobile, features và shared.
+- Chưa đạt tách lớp hoàn chỉnh: features/index.ts và shared/ui/index.ts vẫn là re-export từ components cũ.
+- DesktopWorkspace, TabletWorkspace và MobileWorkspace vẫn render trực tiếp nhiều feature cũ thay vì view riêng theo từng shell.
+- DesktopHeader/TabletHeader/MobileShell còn import component từ components/layout.
+- DesktopTasksView, TabletTasksView và MobileTasksView lặp pipeline counts/navigation/task sub-tab.
+- Codex chạy client tsc độc lập: PASS.
+- Codex chạy client npm run build: PASS sau khi cho phép Vite ghi file tạm; 1962 modules transformed, chunk chính 1.65 MB.
+- Chưa có kiểm tra browser/device trực tiếp trong lượt này.
+- Đã tạo prompt fix hẹp: .agents/prompts/PROMPT-ARCHITECTURE-01-SHELL-BOUNDARY-FIX.md.
+- Không đánh dấu architecture phase COMPLETE cho đến khi bỏ duplication, xác định canonical source và kiểm tra responsive thực tế.
+
+## Mobile Focus Pass - 2026-09-10
+
+- Status: VERIFIED for local mobile browser flow.
+- Viewport checked: `390x844`.
+- Checked: Today, task planner date selection, scheduled/deadline split, deadline view, task detail, task detail back, notes list-first behavior, note editor toolbar focus behavior, settings list/drill-down/back, account menu, login route, search overlay, and mobile console.
+- Results: planner date selection remains stable; task detail hides header and bottom dock; note list no longer auto-opens the first note; toolbar is hidden until editor focus; settings hides keyboard shortcuts and bottom dock; mobile console has no warning/error.
+- Source checks: `npx tsc --noEmit --pretty false` PASS; `npm run build:client` PASS; `git diff --check` PASS.
+- Residual: production bundle warning remains above Vite's `500 kB` threshold; no functional failure observed.

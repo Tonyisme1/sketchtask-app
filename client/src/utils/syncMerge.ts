@@ -1,4 +1,4 @@
-import { TaskDto, NotebookDto, HabitDto, TaskStatus } from "../types";
+import { TaskDto, NotebookDto, HabitDto, TaskStatus, JournalEntryDto } from "../types";
 import { StickyNoteItem } from "../stores/appStore";
 
 // ==========================================
@@ -10,6 +10,7 @@ export interface RawSyncData {
   notebooks: NotebookDto[];
   stickyNotes: StickyNoteItem[];
   habits: HabitDto[];
+  journalEntries?: JournalEntryDto[];
   dailyMoods: Record<string, string>;
   weeklyReflection: string;
   tags: string[];
@@ -139,6 +140,38 @@ export function mergeHabits(localHabits: HabitDto[], remoteHabits: HabitDto[]): 
 }
 
 /**
+ * Hợp nhất Nhật ký (Journal Entries) theo ID và Timestamp
+ */
+export function mergeJournalEntries(
+  localEntries: JournalEntryDto[],
+  remoteEntries: JournalEntryDto[],
+): JournalEntryDto[] {
+  const map = new Map<string, JournalEntryDto>();
+
+  for (const r of remoteEntries) {
+    map.set(r.id, r);
+  }
+
+  for (const l of localEntries) {
+    const existing = map.get(l.id);
+    if (!existing) {
+      map.set(l.id, l);
+    } else {
+      const lTime = new Date(l.updatedAt || l.createdAt || 0).getTime();
+      const rTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
+      if (lTime > rTime) {
+        map.set(l.id, l);
+      }
+    }
+  }
+
+  return Array.from(map.values()).sort((a, b) => {
+    if (a.date !== b.date) return b.date.localeCompare(a.date);
+    return (b.time || "").localeCompare(a.time || "");
+  });
+}
+
+/**
  * Hợp nhất toàn bộ dữ liệu ứng dụng một cách thông minh và an toàn 100%
  */
 export function smartMergeAppData(localData: RawSyncData, remoteData: RawSyncData): RawSyncData {
@@ -146,6 +179,10 @@ export function smartMergeAppData(localData: RawSyncData, remoteData: RawSyncDat
   const mergedNotebooks = mergeNotebooks(localData.notebooks || [], remoteData.notebooks || []);
   const mergedStickyNotes = mergeStickyNotes(localData.stickyNotes || [], remoteData.stickyNotes || []);
   const mergedHabits = mergeHabits(localData.habits || [], remoteData.habits || []);
+  const mergedJournalEntries = mergeJournalEntries(
+    localData.journalEntries || [],
+    remoteData.journalEntries || [],
+  );
 
   // Gộp Moods
   const mergedMoods: Record<string, string> = {
@@ -167,6 +204,7 @@ export function smartMergeAppData(localData: RawSyncData, remoteData: RawSyncDat
     notebooks: mergedNotebooks,
     stickyNotes: mergedStickyNotes,
     habits: mergedHabits,
+    journalEntries: mergedJournalEntries,
     dailyMoods: mergedMoods,
     weeklyReflection: mergedReflection,
     tags: mergedTags,

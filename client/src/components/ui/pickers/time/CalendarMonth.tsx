@@ -123,14 +123,12 @@ export const CalendarMonth: React.FC<CalendarMonthProps> = ({
                 isDisabled
                   ? "text-[#D4CEBF] bg-[#F5F2EA]/30 opacity-40 cursor-not-allowed line-through"
                   : isSelected
-                  ? accentMode === "scheduled"
-                    ? "bg-[#FEF08A] text-[#1C1917] border border-[#262626] shadow-[1px_1px_0px_#262626]"
-                    : "bg-[#FECDD3] text-[#1C1917] border border-[#262626] shadow-[1px_1px_0px_#262626]"
+                  ? "bg-[#1C1917] text-white border border-[#262626] shadow-[1px_1px_0px_#262626]"
                   : isToday
-                  ? "border border-[#262626] font-black bg-amber-50 text-amber-950"
+                  ? "border border-[#262626] font-black bg-[#FAF8F3] text-[#1C1917]"
                   : isCurrentMonth
-                  ? "text-[#1C1917] hover:bg-[#FEF08A]/60"
-                  : "text-[#D4CEBF] hover:bg-[#F5F3EF]"
+                  ? "text-[#1C1917] hover:bg-[#FAF8F3]"
+                  : "text-[#D4CEBF] hover:bg-[#FAF8F3]"
               }`}
             >
               {dayNum}

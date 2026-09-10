@@ -52,6 +52,16 @@ export interface SyncPayload {
     createdAt?: string;
     updatedAt?: string;
   }>;
+  journalEntries?: Array<{
+    id: string;
+    date: string;
+    time?: string;
+    content: string;
+    notebookId?: string | null;
+    linkedTaskId?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
+  }>;
   dailyMoods: Record<string, string | { moodEmoji: string; updatedAt?: string }>; // dateStr -> moodEmoji or object
   weeklyReflection: string | { text: string; updatedAt?: string };
   tags: string[];
@@ -66,7 +76,7 @@ export class SyncService {
    * Lấy toàn bộ dữ liệu hiện có trên máy chủ của User
    */
   static async getUserData(userId: string) {
-    const [tasks, notebooks, stickyNotes, habits, dailyMoods, weeklyReflection, tags] =
+    const [tasks, notebooks, stickyNotes, habits, dailyMoods, weeklyReflection, tags, journalEntries] =
       await Promise.all([
         prisma.task.findMany({ where: { userId }, orderBy: { createdAt: "desc" } }),
         prisma.notebook.findMany({ where: { userId }, orderBy: { createdAt: "asc" } }),
@@ -75,6 +85,7 @@ export class SyncService {
         prisma.dailyMood.findMany({ where: { userId } }),
         prisma.weeklyReflection.findUnique({ where: { userId } }),
         prisma.tag.findMany({ where: { userId }, orderBy: { createdAt: "asc" } }),
+        prisma.journalEntry.findMany({ where: { userId }, orderBy: [{ date: "desc" }, { time: "desc" }] }),
       ]);
 
     // Chuyển đổi dailyMoods sang format key-value chuẩn API contract
@@ -103,6 +114,7 @@ export class SyncService {
       notebooks,
       stickyNotes,
       habits: formattedHabits,
+      journalEntries,
       dailyMoods: moodsMap,
       weeklyReflection: weeklyReflection?.text || "",
       tags: tags.map((t) => t.name),
@@ -465,6 +477,49 @@ export class SyncService {
             },
             update: {},
           });
+        }
+      }
+
+      // 9. Upsert JournalEntries
+      if (payload.journalEntries && payload.journalEntries.length > 0) {
+        for (const j of payload.journalEntries) {
+          const clientUpdatedAt = j.updatedAt
+            ? new Date(j.updatedAt)
+            : defaultPayloadTime || new Date();
+          const validNotebookId =
+            j.notebookId && validNotebookIds.has(j.notebookId) ? j.notebookId : null;
+
+          const existing = await tx.journalEntry.findFirst({
+            where: { id: j.id, userId },
+          });
+
+          if (!existing) {
+            await tx.journalEntry.create({
+              data: {
+                id: j.id,
+                userId,
+                date: j.date,
+                time: j.time || "00:00",
+                content: j.content || "",
+                notebookId: validNotebookId,
+                linkedTaskId: j.linkedTaskId || null,
+                createdAt: j.createdAt ? new Date(j.createdAt) : new Date(),
+                updatedAt: clientUpdatedAt,
+              },
+            });
+          } else if (clientUpdatedAt >= existing.updatedAt) {
+            await tx.journalEntry.update({
+              where: { id: j.id },
+              data: {
+                date: j.date,
+                time: j.time !== undefined ? j.time : existing.time,
+                content: j.content !== undefined ? j.content : existing.content,
+                notebookId: j.notebookId !== undefined ? validNotebookId : existing.notebookId,
+                linkedTaskId: j.linkedTaskId !== undefined ? j.linkedTaskId : existing.linkedTaskId,
+                updatedAt: clientUpdatedAt,
+              },
+            });
+          }
         }
       }
     });

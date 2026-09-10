@@ -86,3 +86,48 @@
 - Không tạo thêm FAB riêng trong từng tab nếu chức năng đã thuộc `ContextAwareFab`.
 - Nếu cần chỉnh giao diện, đối chiếu source thực tế trước vì worktree còn có các thay đổi khác chưa thuộc phạm vi bàn giao này.
 - Chưa xác minh visual bằng trình duyệt ở các viewport; cần kiểm tra thủ công mobile, tablet và desktop trước khi đánh dấu hoàn tất UI.
+
+## Bổ Sung: Back Trong App Và Guardrail Planner
+
+- Đã bổ sung xử lý Back dùng chung trong `client/src/App.tsx`: ưu tiên đóng task detail, Settings detail, note detail, notebook detail, rồi mới quay về workspace trước đó.
+- Trên Capacitor, nút Back phần cứng chỉ gọi thoát app sau khi không còn màn hình nội bộ nào để quay lại.
+- Trên browser/PWA, history guard giữ người dùng trong app để Back lần đầu tháo lớp giao diện hiện tại thay vì rời app ngay.
+- Planner không còn hiện Quick Add ở ngày quá khứ; các nút xóa và dời việc trong lịch tuần đã nối callback thật.
+- Task detail đã bỏ autosave khi đang nhập/chọn; chỉ lưu khi bấm `Lưu`. Note và Journal không thuộc thay đổi này.
+- Kiểm tra cuối lượt: `npx tsc --noEmit --pretty false` đạt, `npm run build` trong client đạt, `git diff --check` không phát hiện lỗi whitespace.
+- Chưa thay thế được kiểm tra Back trên Android/iOS thật; cần kiểm tra thủ công khi đóng gói APK/PWA.
+
+## Bổ Sung: Account Menu Và Swipe Task (2026-09-07)
+
+- Header desktop, tablet và mobile hiện dùng luồng menu tài khoản thay vì mở thẳng AuthModal.
+- Desktop mở Settings bằng popup lớn trong `DesktopShell`; tablet/mobile chuyển tới Settings fullscreen và giữ quy tắc ẩn bottom dock.
+- Người dùng chưa đăng nhập chọn `Đăng nhập / Đăng ký` sẽ đi tới route `/login`; người dùng đã đăng nhập có hành động `Đăng xuất` dùng `logout` của store.
+- Desktop và tablet dùng component dùng chung `client/src/components/layout/AccountMenu.tsx`; mobile giữ menu header nhưng đã nối cùng callback Settings/login/logout.
+- `TaskCard` ở ngữ cảnh Today có action rail phía sau task. Vuốt trái đủ ngưỡng sẽ giữ task ở vị trí mở và hiện `Dời sang ngày mai`/`Xóa`; kéo ngược về vị trí ban đầu sẽ hủy.
+- Long press trên touch vẫn mở action rail; chạm task bình thường vẫn mở chi tiết.
+- Đã kiểm tra: `client/npx tsc --noEmit --pretty false`, `client/npm run build`, `git diff --check` đều đạt. Build còn cảnh báo bundle chính > 500 kB.
+- Chưa xác minh bằng thiết bị thật: pointer capture trên Android Chrome/iOS Safari và vị trí dropdown ở mọi kích thước màn hình.
+
+## Mobile Focus Pass - 2026-09-10
+
+- Mobile notes hiện mở màn hình `Mục lục trang` trước; người dùng chạm vào một note mới vào editor. Nút `Danh sách ghi chú` quay lại list và không còn tự focus note đầu tiên.
+- Mobile planner đã giữ đúng ngày người dùng chọn; không còn effect reset về hôm nay sau mỗi render. Day view phân tách rõ `Lịch hẹn` và `Công việc`.
+- Header mobile bỏ icon khối cạnh tên `Kế hoạch`, `Hạn định`, `Ghi chú`, `Nhật ký`, `Sổ tay`; Hôm nay giữ logo gọn ở đầu app.
+- Chuyển cảnh mobile bỏ fade cũ ở workspace chính: tab trượt từ dưới lên, màn chi tiết trượt từ phải vào, back quay lại bằng chiều ngược. Settings drill-down, note editor và task detail dùng cùng quy tắc.
+- Mobile không còn gợi ý phím tắt trong placeholder/hướng dẫn tạo task; mục `Phím tắt bàn phím` tiếp tục bị ẩn khỏi Settings mobile.
+- Toolbar rich-text của note vẫn ẩn khi chưa chạm vùng soạn thảo và chỉ fixed phía trên bàn phím khi editor được focus.
+- Đã bỏ blur nền ở các overlay mobile để giữ đúng quy tắc giao diện nét mực, không glassmorphism.
+- Đã kiểm tra trực tiếp viewport `390x844`: Today, Kế hoạch, Hạn định, Ghi chép, note editor/list, Settings, login, task detail, search overlay và back flow.
+- Xác minh: `npx tsc --noEmit --pretty false` đạt; `npm run build:client` đạt; `git diff --check` đạt; console browser không có warning/error. Build còn cảnh báo chunk chính lớn hơn `500 kB`, không chặn build.
+## Mobile Planner Follow-up - 2026-09-10
+
+- Replaced the mobile Planner agenda's weekly strip plus inline selected-day task list with seven full-width day rows. Each row summarizes task, appointment, deadline, and completion counts, previews up to two task titles, and opens the selected day detail directly.
+- Fixed mobile task swipe actions showing through untouched rows by giving the row surface an opaque background and disabling action hit targets until the row is actually translated.
+- Renamed the mobile agenda control to `7 ngày` so the control matches the new list behavior while retaining the desktop `Lịch trình` label.
+- Verification: mobile browser snapshot shows the seven-day list; `npx tsc --noEmit --pretty false` passes; `npm run build:client` passes; `git diff --check` passes. The existing Vite large-chunk warning remains non-blocking.
+
+## Habit Surface Removal - 2026-09-10
+
+- Removed habit cards and quick-check controls from Today on mobile, tablet, and desktop.
+- Removed habit counts from active Settings sync statistics and account/auth data summaries so the current UI no longer presents an unfinished habit workflow.
+- Kept habit data and sync/storage fields intact for backward compatibility; no existing habit records are deleted.

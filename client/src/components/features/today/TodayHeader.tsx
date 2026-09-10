@@ -21,9 +21,9 @@ export const TodayHeader: React.FC<TodayHeaderProps> = ({
         {/* Tiêu đề Hôm Nay + Badge Ngày */}
         <div className="flex items-center gap-2">
           <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#1C1917]">
-            Hôm 
+            Hôm nay
           </h1>
-          <span className="text-[11px] font-mono font-bold bg-[#FEF08A] px-2 py-0.5 rounded-[4px] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626]">
+          <span className="text-[11px] font-mono font-bold bg-[#1C1917] text-white px-2 py-0.5 rounded-[4px] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626]">
             {dayNum}/{monthNum}
           </span>
         </div>
@@ -40,7 +40,7 @@ export const TodayHeader: React.FC<TodayHeaderProps> = ({
       {totalCount > 0 && (
         <div className="w-full h-1.5 bg-white border border-[#262626] rounded-[2px] overflow-hidden shadow-[1px_1px_0px_#262626]">
           <div
-            className="h-full bg-[#BBF7D0] border-r border-[#262626] transition-all duration-300"
+            className="h-full bg-[#1C1917] border-r border-[#262626] transition-all duration-300"
             style={{ width: `${progressPercent}%` }}
           />
         </div>

@@ -29,10 +29,10 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const variantClasses = {
-    primary: "bg-[#FEF08A] text-[#1C1917] hover:bg-[#FDE047]",
-    secondary: "bg-[#FFFFFF] text-[#1C1917] hover:bg-[#F3EFE6]",
-    danger: "bg-[#FECDD3] text-[#1C1917] hover:bg-[#FDA4AF]",
-    mint: "bg-[#BBF7D0] text-[#1C1917] hover:bg-[#86EFAC]",
+    primary: "bg-[#1C1917] text-white hover:bg-[#262626] border-[#1C1917]",
+    secondary: "bg-[#FFFFFF] text-[#1C1917] hover:bg-[#FAF8F3] border-[#262626]",
+    danger: "bg-[#1C1917] text-white hover:bg-[#262626] border-[#1C1917]",
+    mint: "bg-white text-[#1C1917] hover:bg-[#FAF8F3] border-[#262626]",
   };
 
   return (

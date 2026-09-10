@@ -37,10 +37,13 @@ export const NoteCard: React.FC<NoteCardProps> = ({
   const [showNotebookMenu, setShowNotebookMenu] = useState(false);
   const [showToolbar, setShowToolbar] = useState(true);
   const [isMobileViewport, setIsMobileViewport] = useState(() =>
-    typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches
+    typeof window !== "undefined" && window.matchMedia("(max-width: 1023px)").matches
   );
   const [isEditorFocused, setIsEditorFocused] = useState(false);
-  const mobileKeyboardOffset = useMobileKeyboardOffset();
+  const {
+    offset: mobileKeyboardOffset,
+    isVisible: isMobileKeyboardVisible,
+  } = useMobileKeyboardOffset();
 
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -49,7 +52,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
   const isComposingRef = useRef(false);
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const mediaQuery = window.matchMedia("(max-width: 1023px)");
     const updateViewport = () => setIsMobileViewport(mediaQuery.matches);
 
     updateViewport();
@@ -62,6 +65,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
     setTitle(note.title);
     setNotebookId(note.notebookId);
     if (editorRef.current && !isComposingRef.current) {
+      editorRef.current.setAttribute("autocomplete", "off");
       if (editorRef.current.innerHTML !== note.content) {
         editorRef.current.innerHTML = note.content || "";
       }
@@ -273,7 +277,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
             onClick={() => setShowToolbar(!showToolbar)}
             className={`hidden md:flex px-2 py-0.5 rounded-[4px] border border-[#262626] text-[10px] font-bold items-center gap-1 shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] transition-all ${
               showToolbar
-                ? "bg-[#FEF08A] text-[#1C1917]"
+                ? "bg-[#1C1917] text-white"
                 : "bg-white text-[#78716C] hover:bg-[#FAF8F3]"
             }`}
             title="Bật/Tắt thanh công cụ soạn thảo"
@@ -285,11 +289,11 @@ export const NoteCard: React.FC<NoteCardProps> = ({
           {/* Trạng thái lưu */}
           <span className="text-[10px] font-mono flex items-center gap-1 text-[#78716C]">
             {isSaved ? (
-              <span className="text-emerald-800 font-bold flex items-center gap-0.5" title="Đã lưu">
+              <span className="text-[#1C1917] font-bold flex items-center gap-0.5" title="Đã lưu">
                 <Check size={12} strokeWidth={2.8} />
               </span>
             ) : (
-              <span className="text-amber-800 italic" title="Đang lưu...">...</span>
+              <span className="text-[#78716C] italic" title="Đang lưu...">...</span>
             )}
           </span>
 
@@ -298,7 +302,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
             <button
               type="button"
               onClick={() => onDelete(note.id)}
-              className="w-6 h-6 rounded bg-white hover:bg-rose-50 border border-[#262626] flex items-center justify-center text-[#78716C] hover:text-rose-600 transition-colors shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
+              className="w-6 h-6 rounded bg-white hover:bg-[#FAF8F3] border border-[#262626] flex items-center justify-center text-[#78716C] hover:text-[#1C1917] transition-colors shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
               title="Xóa trang ghi chú này"
               aria-label="Xóa trang ghi chú"
             >
@@ -320,10 +324,18 @@ export const NoteCard: React.FC<NoteCardProps> = ({
         }}
       >
         <div className="pt-2 shrink-0">
-        <input
-          ref={titleInputRef}
-          type="text"
-          value={title}
+          <input
+            ref={titleInputRef}
+            type="text"
+            name={`note-title-${note.id}`}
+            autoComplete="off"
+            autoCorrect="on"
+            autoCapitalize="sentences"
+            inputMode="text"
+            data-form-type="other"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            value={title}
           onChange={handleTitleChange}
           onBlur={handleBlur}
           placeholder="Tiêu đề trang ghi chú..."
@@ -332,7 +344,8 @@ export const NoteCard: React.FC<NoteCardProps> = ({
         </div>
 
       {/* 3. Thanh Công Cụ WYSIWYG Soạn Thảo */}
-      {showToolbar && (!isMobileViewport || isEditorFocused) && (
+      {showToolbar &&
+        (!isMobileViewport || (isEditorFocused && isMobileKeyboardVisible)) && (
         <div
           className="pt-1.5 shrink-0 note-editor-toolbar--active"
           style={
@@ -344,6 +357,7 @@ export const NoteCard: React.FC<NoteCardProps> = ({
           <NoteToolbar
             editorRef={editorRef}
             onContentChange={handleEditorInput}
+            keyboardVisible={isMobileViewport && isEditorFocused && isMobileKeyboardVisible}
           />
         </div>
       )}
@@ -358,10 +372,21 @@ export const NoteCard: React.FC<NoteCardProps> = ({
           ref={editorRef}
           contentEditable
           suppressContentEditableWarning
+          role="textbox"
+          aria-label="Nội dung ghi chú"
+          aria-multiline="true"
+          aria-autocomplete="none"
+          spellCheck
+          autoCorrect="on"
+          autoCapitalize="sentences"
+          inputMode="text"
+          data-form-type="other"
+          data-lpignore="true"
+          data-1p-ignore="true"
           onInput={handleEditorInput}
           onBlur={handleBlur}
           data-placeholder="Bắt đầu viết ghi chú..."
-          className="w-full flex-1 p-2 bg-transparent text-xs sm:text-sm text-[#1C1917] focus:outline-none resize-none leading-relaxed font-sans overflow-y-auto rich-note-editor selection:bg-[#FEF08A] [&_h1]:text-base [&_h1]:sm:text-lg [&_h1]:font-black [&_h1]:my-1 [&_h1]:text-[#1C1917] [&_h2]:text-sm [&_h2]:sm:text-base [&_h2]:font-bold [&_h2]:my-1 [&_h2]:text-[#1C1917] [&_p]:my-0.5 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1 [&_blockquote]:border-l-[3px] [&_blockquote]:border-[#262626] [&_blockquote]:pl-2.5 [&_blockquote]:my-1.5 [&_blockquote]:italic [&_blockquote]:bg-[#FAF8F3] [&_blockquote]:py-0.5 [&_blockquote]:rounded-r"
+          className="w-full flex-1 p-2 bg-transparent text-xs sm:text-sm text-[#1C1917] focus:outline-none resize-none leading-relaxed font-sans overflow-y-auto rich-note-editor selection:bg-[#1C1917] selection:text-white [&_h1]:text-base [&_h1]:sm:text-lg [&_h1]:font-black [&_h1]:my-1 [&_h1]:text-[#1C1917] [&_h2]:text-sm [&_h2]:sm:text-base [&_h2]:font-bold [&_h2]:my-1 [&_h2]:text-[#1C1917] [&_p]:my-0.5 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1 [&_blockquote]:border-l-[3px] [&_blockquote]:border-[#262626] [&_blockquote]:pl-2.5 [&_blockquote]:my-1.5 [&_blockquote]:italic [&_blockquote]:bg-[#FAF8F3] [&_blockquote]:py-0.5 [&_blockquote]:rounded-r"
         />
       </div>
 

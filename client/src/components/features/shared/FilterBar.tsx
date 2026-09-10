@@ -90,7 +90,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               type="button"
               onClick={onResetFilters}
               title="Xóa bộ lọc"
-              className="h-7 px-1.5 py-1 rounded-[3px] bg-rose-50 border border-rose-300 text-rose-700 text-[11px] font-bold flex items-center gap-0.5 hover:bg-rose-100 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none whitespace-nowrap shrink-0"
+              className="h-7 px-1.5 py-1 rounded-[3px] bg-[#FAF8F3] border border-[#262626] text-[#1C1917] text-[11px] font-bold flex items-center gap-0.5 hover:bg-[#E7E5E4] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none whitespace-nowrap shrink-0"
             >
               <X size={12} strokeWidth={2.5} />
               <span className="hidden xs:inline">Xóa</span>
@@ -100,16 +100,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <button
             type="button"
             onClick={onToggleDrawer}
-            className={`h-7 px-2 py-1 rounded-[3px] border-[1.5px] text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
+            className={`h-7 px-2.5 py-1 rounded-[3px] border-[1.5px] text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
               isDrawerOpen || activeFilterCount > 0
-                ? "bg-[#FEF08A] border-[#262626] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
-                : "bg-white border-[#D4CEBF] text-[#78716C] hover:text-[#1C1917]"
+                ? "bg-[#1C1917] border-[#1C1917] text-white shadow-none"
+                : "bg-white border-[#D4CEBF] text-[#78716C] hover:text-[#1C1917] hover:border-[#1C1917]"
             }`}
           >
             <SlidersHorizontal size={12} strokeWidth={2.2} />
-            <span>Lọc</span>
+            <span>Bộ lọc</span>
             {activeFilterCount > 0 && (
-              <span className="w-3.5 h-3.5 rounded-full bg-[#262626] text-white text-[9px] flex items-center justify-center font-mono font-bold shrink-0">
+              <span className="w-4 h-4 rounded-full bg-white text-[#1C1917] text-[9px] flex items-center justify-center font-mono font-bold shrink-0">
                 {activeFilterCount}
               </span>
             )}
@@ -118,9 +118,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </div>
       </div>
 
-      {/* Tầng 2: Bộ Lọc Nâng Cao (Drawer Mở Rộng) */}
+      {/* Tầng 2: Bộ Lọc Nâng Cao (Drawer Mở Rộng - Tối giản giấy mực) */}
       {isDrawerOpen && (
-        <div className="p-2.5 bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] space-y-2 animate-in slide-in-from-top-2 duration-150 text-xs">
+        <div className="p-3 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] space-y-2.5 animate-in slide-in-from-top-1 duration-150 text-xs">
           {/* 1. Loại Thời Gian */}
           {onTimeTypeChange && (
             <div className="flex items-center gap-2 flex-wrap">
@@ -128,18 +128,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <div className="flex items-center gap-1.5 flex-wrap">
                 {[
                   { key: "all", label: "Tất cả" },
-                  {
-                    key: "scheduled",
-                    label: "Lịch hẹn",
-                    icon: Clock,
-                    activeClass: "bg-amber-100 text-amber-900 border-amber-400 font-bold shadow-[1px_1px_0px_#262626]",
-                  },
-                  {
-                    key: "deadline",
-                    label: "Hạn chót",
-                    icon: Hourglass,
-                    activeClass: "bg-rose-100 text-rose-900 border-rose-400 font-bold shadow-[1px_1px_0px_#262626]",
-                  },
+                  { key: "scheduled", label: "Lịch hẹn", icon: Clock },
+                  { key: "deadline", label: "Hạn chót", icon: Hourglass },
                 ].map((t) => {
                   const isSelected = timeTypeFilter === t.key;
                   const Icon = t.icon;
@@ -148,10 +138,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                       key={t.key}
                       type="button"
                       onClick={() => onTimeTypeChange(t.key as any)}
-                      className={`h-6 px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
+                      className={`h-6 px-2.5 py-0.5 rounded-[3px] border text-[11px] font-bold transition-all flex items-center gap-1 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
                         isSelected
-                          ? t.activeClass || "bg-[#262626] text-white border-[#262626] font-bold shadow-[1px_1px_0px_#262626]"
-                          : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                          ? "bg-[#1C1917] text-white border-[#1C1917] shadow-none"
+                          : "border-[#D4CEBF] bg-[#FAF8F3] text-[#78716C] hover:text-[#1C1917] hover:border-[#1C1917]"
                       }`}
                     >
                       {Icon && <Icon size={11} strokeWidth={2.2} />}
@@ -169,9 +159,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             <div className="flex items-center gap-1.5 flex-wrap">
               {[
                 { key: "all", label: "Tất cả" },
-                { key: "high", label: "Gấp", dotClass: "bg-rose-500", activeClass: "bg-rose-100 text-rose-800 border-rose-400 font-bold shadow-[1px_1px_0px_#262626]" },
-                { key: "medium", label: "Vừa", dotClass: "bg-amber-400", activeClass: "bg-amber-100 text-amber-800 border-amber-400 font-bold shadow-[1px_1px_0px_#262626]" },
-                { key: "low", label: "Thấp", dotClass: "bg-emerald-500", activeClass: "bg-emerald-100 text-emerald-800 border-emerald-400 font-bold shadow-[1px_1px_0px_#262626]" },
+                { key: "high", label: "Gấp", dotClass: "bg-[#EF4444]" },
+                { key: "medium", label: "Vừa", dotClass: "bg-[#0284C7]" },
+                { key: "low", label: "Thấp", dotClass: "bg-[#10B981]" },
               ].map((p) => {
                 const isSelected = priorityFilter === p.key;
                 return (
@@ -179,10 +169,10 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     key={p.key}
                     type="button"
                     onClick={() => onPriorityChange(p.key as any)}
-                    className={`h-6 px-2 py-0.5 rounded-[3px] border text-[11px] transition-all flex items-center gap-1 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
+                    className={`h-6 px-2.5 py-0.5 rounded-[3px] border text-[11px] font-bold transition-all flex items-center gap-1.5 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
                       isSelected
-                        ? p.activeClass || "bg-[#262626] text-white border-[#262626] font-bold shadow-[1px_1px_0px_#262626]"
-                        : "border-[#D4CEBF] bg-white text-[#78716C] hover:text-[#1C1917]"
+                        ? "bg-[#1C1917] text-white border-[#1C1917] shadow-none"
+                        : "border-[#D4CEBF] bg-[#FAF8F3] text-[#78716C] hover:text-[#1C1917] hover:border-[#1C1917]"
                     }`}
                   >
                     {p.dotClass && <span className={`w-1.5 h-1.5 rounded-full ${p.dotClass}`} />}

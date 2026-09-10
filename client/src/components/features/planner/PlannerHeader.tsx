@@ -1,7 +1,8 @@
 import React from "react";
-import { ChevronLeft, ChevronRight, Package, Calendar, CalendarDays, CalendarRange } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, CalendarDays } from "lucide-react";
+import { useResponsiveLayout } from "../../../shared/hooks";
 
-export type PlannerViewMode = "week" | "month" | "year";
+export type PlannerViewMode = "agenda" | "month";
 
 export interface PlannerHeaderProps {
   viewMode: PlannerViewMode;
@@ -10,8 +11,6 @@ export interface PlannerHeaderProps {
   onPrev: () => void;
   onNext: () => void;
   onToday: () => void;
-  unscheduledCount: number;
-  onOpenBacklog: () => void;
 }
 
 export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
@@ -21,12 +20,12 @@ export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
   onPrev,
   onNext,
   onToday,
-  unscheduledCount,
-  onOpenBacklog,
 }) => {
+  const { isMobile, isTablet } = useResponsiveLayout();
+
   return (
     <div className="flex items-center justify-between gap-2.5 flex-wrap pb-2 border-b border-[#262626] select-none">
-      {/* 1. Bộ Điều Hướng Thời Gian */}
+      {/* 1. Bộ điều hướng thời gian */}
       <div className="flex items-center gap-2 flex-wrap">
         {/* Nút Chuyển Mốc Thời Gian (< Label >) */}
         <div className="flex items-center gap-1 bg-white border-[1.5px] border-[#262626] rounded-[5px] p-0.5 shadow-[1.5px_1.5px_0px_#262626]">
@@ -62,25 +61,25 @@ export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
           className="px-2.5 py-1 text-xs font-bold bg-[#FAF8F3] hover:bg-[#F3EFE6] border-[1.5px] border-[#262626] rounded-[5px] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all"
           title="Nhảy về mốc hiện tại"
         >
-          {viewMode === "week" ? "Tuần này" : viewMode === "year" ? "Năm nay" : "Tháng này"}
+          {viewMode === "agenda" ? "Tuần này" : "Tháng này"}
         </button>
       </div>
 
-      {/* 2. Cụm Chuyển 3 Chế Độ Xem (Tuần | Tháng | Năm) + Nút Hộp Chờ */}
+      {/* 2. Chuyển giữa lịch trình và lịch tháng */}
       <div className="flex items-center gap-2 flex-wrap">
-        {/* Segmented Switch: Tuần | Tháng | Năm */}
+        {/* Chỉ giữ hai cách xem có giá trị sử dụng trong Planner. */}
         <div className="inline-flex p-0.5 bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626]">
           <button
             type="button"
-            onClick={() => onViewModeChange("week")}
+            onClick={() => onViewModeChange("agenda")}
             className={`flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-xs font-bold transition-all ${
-              viewMode === "week"
-                ? "bg-[#FEF08A] text-[#1C1917] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626]"
+              viewMode === "agenda"
+                ? "bg-[#BBF7D0] text-[#166534] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626]"
                 : "bg-transparent text-[#78716C] hover:text-[#1C1917] border border-transparent"
             } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
           >
-            <CalendarDays size={13} strokeWidth={viewMode === "week" ? 2.5 : 2} />
-            <span>Tuần</span>
+            <CalendarDays size={13} strokeWidth={viewMode === "agenda" ? 2.5 : 2} />
+            <span>{isMobile || isTablet ? "7 ngày" : "Lịch trình"}</span>
           </button>
 
           <button
@@ -93,42 +92,9 @@ export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
             } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
           >
             <Calendar size={13} strokeWidth={viewMode === "month" ? 2.5 : 2} />
-            <span>Tháng</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onViewModeChange("year")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-xs font-bold transition-all ${
-              viewMode === "year"
-                ? "bg-[#DDD6FE] text-[#1C1917] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626]"
-                : "bg-transparent text-[#78716C] hover:text-[#1C1917] border border-transparent"
-            } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
-          >
-            <CalendarRange size={13} strokeWidth={viewMode === "year" ? 2.5 : 2} />
-            <span>Năm</span>
+            <span>Lịch tháng</span>
           </button>
         </div>
-
-        {/* Nút Hộp Chờ Riêng Biệt */}
-        <button
-          type="button"
-          onClick={onOpenBacklog}
-          className={`px-2.5 py-1.5 text-xs font-bold rounded-[5px] border-[1.5px] border-[#262626] flex items-center gap-1.5 transition-all shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
-            unscheduledCount > 0
-              ? "bg-[#FEF08A] hover:bg-[#FDE047] text-[#1C1917]"
-              : "bg-white hover:bg-[#FBF9F4] text-[#78716C]"
-          }`}
-          title="Xem các công việc chưa quyết định ngày"
-        >
-          <Package size={13} strokeWidth={2.4} className="shrink-0" />
-          <span className="hidden sm:inline">Hộp chờ</span>
-          {unscheduledCount > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full bg-[#262626] text-white text-[10px] font-mono leading-none">
-              {unscheduledCount}
-            </span>
-          )}
-        </button>
       </div>
     </div>
   );

@@ -201,7 +201,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
 
         {/* Error Message */}
         {errorMsg && (
-          <p className="flex items-center gap-1.5 text-xs font-bold text-rose-600">
+          <p className="flex items-center gap-1.5 text-xs font-bold text-[#1C1917]">
             <AlertCircle size={13} strokeWidth={2.4} />
             <span>{errorMsg}</span>
           </p>
@@ -214,7 +214,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
               key={num}
               type="button"
               onClick={() => handleKeyPress(num)}
-              className="h-11 bg-white hover:bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[6px] text-base font-mono font-bold text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center"
+              className="h-11 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[6px] text-base font-mono font-bold text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center cursor-pointer"
             >
               {num}
             </button>
@@ -225,7 +225,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
           <button
             type="button"
             onClick={() => handleKeyPress("0")}
-            className="h-11 bg-white hover:bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[6px] text-base font-mono font-bold text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center"
+            className="h-11 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[6px] text-base font-mono font-bold text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center cursor-pointer"
           >
             0
           </button>

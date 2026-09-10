@@ -18,11 +18,11 @@ export const StickyNote: React.FC<StickyNoteProps> = ({
   className = "",
 }) => {
   const colorMap = {
-    yellow: "bg-[#FEF08A]",
-    coral: "bg-[#FECDD3]",
-    mint: "bg-[#BBF7D0]",
-    sky: "bg-[#BAE6FD]",
-    lavender: "bg-[#DDD6FE]",
+    yellow: "bg-[#FAF8F3]",
+    coral: "bg-[#F5F5F4]",
+    mint: "bg-white",
+    sky: "bg-[#FAF8F3]",
+    lavender: "bg-[#E7E5E4]",
   };
 
   const rotation = tilt === "left" ? "-rotate-1" : "rotate-1";

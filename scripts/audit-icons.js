@@ -44,9 +44,7 @@ function auditIcons() {
     const isEmojiConfig =
       relPath.includes("CustomEmojiPicker") ||
       relPath.includes("defaultData") ||
-      relPath.includes("types") ||
-      // Emoji trong landing page là nội dung marketing có chủ đích.
-      relPath.includes("features/marketing");
+      relPath.includes("types");
 
     // 1. Quét Import Lucide React & phát hiện icon import dư
     const importRegex = /import\s*\{([^}]+)\}\s*from\s*["']lucide-react["']/g;

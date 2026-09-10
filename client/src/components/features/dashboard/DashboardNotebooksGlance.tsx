@@ -74,8 +74,7 @@ export const DashboardNotebooksGlance: React.FC<DashboardNotebooksGlanceProps> =
             >
               <div className="flex items-center gap-2">
                 <div
-                  className="w-6 h-6 rounded border border-[#262626] flex items-center justify-center shrink-0 shadow-[0.5px_0.5px_0px_#262626]"
-                  style={{ backgroundColor: nb.color || "#FEF08A" }}
+                  className="w-6 h-6 rounded border border-[#262626] flex items-center justify-center shrink-0 shadow-[0.5px_0.5px_0px_#262626] bg-[#FAF8F3]"
                 >
                   <DynamicIcon name={nb.icon || "lucide:BookOpen"} size={13} strokeWidth={2.2} />
                 </div>
@@ -87,7 +86,7 @@ export const DashboardNotebooksGlance: React.FC<DashboardNotebooksGlanceProps> =
               <div className="pt-2 flex items-center justify-between text-[10px] font-mono text-[#78716C]">
                 <span>{nb.pendingCount} việc chờ</span>
                 {nb.pendingCount === 0 && nb.totalCount > 0 && (
-                  <span className="inline-flex items-center gap-1 text-emerald-800 font-bold">
+                  <span className="inline-flex items-center gap-1 text-[#1C1917] font-bold">
                     <CheckCircle2 size={11} strokeWidth={2.4} />
                     Xong
                   </span>

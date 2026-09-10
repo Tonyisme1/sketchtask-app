@@ -131,9 +131,9 @@ export const TasksTab: React.FC<TasksTabProps> = ({
         return {
           label: "Hôm nay",
           icon: Sun,
-          accentBg: "bg-[#FEF08A]",
-          textColor: "text-[#1C1917]",
-          iconColor: "text-amber-700",
+          accentBg: "bg-[#1C1917]",
+          textColor: "text-white",
+          iconColor: "text-white",
           badge: pendingTodayCount > 0 ? pendingTodayCount : null,
           badgeColor: "bg-white text-[#1C1917] border-[#262626]",
         };
@@ -141,9 +141,9 @@ export const TasksTab: React.FC<TasksTabProps> = ({
         return {
           label: "Kế hoạch",
           icon: CalendarIcon,
-          accentBg: "bg-[#BAE6FD]",
-          textColor: "text-[#1C1917]",
-          iconColor: "text-sky-700",
+          accentBg: "bg-[#1C1917]",
+          textColor: "text-white",
+          iconColor: "text-white",
           badge: null,
           badgeColor: "",
         };
@@ -151,24 +151,24 @@ export const TasksTab: React.FC<TasksTabProps> = ({
         return {
           label: "Hạn định",
           icon: Hourglass,
-          accentBg: "bg-[#FECDD3]",
-          textColor: "text-rose-950",
-          iconColor: "text-rose-700",
+          accentBg: "bg-[#1C1917]",
+          textColor: "text-white",
+          iconColor: "text-white",
           badge: deadlineAlertTotal > 0 ? deadlineAlertTotal : null,
-          badgeColor: overdueCount > 0 ? "bg-rose-600 text-white animate-pulse" : "bg-amber-600 text-white",
+          badgeColor: "bg-[#FAF8F3] text-[#1C1917]",
         };
       default:
         return {
           label: "Hôm nay",
           icon: Sun,
-          accentBg: "bg-[#FEF08A]",
-          textColor: "text-[#1C1917]",
-          iconColor: "text-amber-700",
+          accentBg: "bg-[#1C1917]",
+          textColor: "text-white",
+          iconColor: "text-white",
           badge: null,
           badgeColor: "",
         };
     }
-  }, [activeTaskSubTab, pendingTodayCount, deadlineAlertTotal, overdueCount]);
+  }, [activeTaskSubTab, pendingTodayCount, deadlineAlertTotal]);
 
   return (
     <div className="space-y-3 sm:space-y-4 w-full min-w-0 pb-12 select-none animate-in fade-in duration-150">
@@ -179,15 +179,15 @@ export const TasksTab: React.FC<TasksTabProps> = ({
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 shrink-0">
           {activeTaskSubTab === "today" ? (
             /* Khi ở Tab Hôm nay: Hiển thị badge Hôm nay gọn gàng */
-            <div className="px-3 py-1.5 rounded-[5px] border-[1.5px] border-[#262626] text-xs font-bold flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#262626] bg-[#FEF08A] text-[#1C1917]">
-              <Sun size={14} strokeWidth={2.4} className="text-amber-700" />
+            <div className="px-3 py-1.5 rounded-[5px] border-[1.5px] border-[#262626] text-xs font-bold flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#262626] bg-[#1C1917] text-white">
+              <Sun size={14} strokeWidth={2.4} className="text-white" />
               <span>Hôm nay</span>
               {pendingTodayCount > 0 ? (
                 <span className="font-mono text-[10px] px-1.5 py-0.2 rounded-[3px] border border-[#262626] bg-white text-[#1C1917] leading-none font-bold">
                   {pendingTodayCount} việc
                 </span>
               ) : (
-                <span className="text-[10px] text-emerald-800 font-bold leading-none">
+                <span className="text-[10px] text-white/90 font-bold leading-none">
                   <span className="inline-flex items-center gap-1">
                     <Check size={11} strokeWidth={3} />
                     Xong hết
@@ -204,11 +204,11 @@ export const TasksTab: React.FC<TasksTabProps> = ({
                 onClick={() => setActiveTaskSubTab("planner")}
                 className={`px-3 py-1.5 rounded-[5px] border-[1.5px] border-[#262626] text-xs font-bold transition-all flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer shrink-0 ${
                   activeTaskSubTab === "planner"
-                    ? "bg-[#BAE6FD] text-[#1C1917]"
-                    : "bg-white text-[#78716C] hover:bg-[#FAF8F3]"
+                    ? "bg-[#1C1917] text-white"
+                    : "bg-white text-[#78716C] hover:bg-[#FAF8F3] hover:text-[#1C1917]"
                 }`}
               >
-                <CalendarIcon size={14} strokeWidth={2.4} className="text-sky-700" />
+                <CalendarIcon size={14} strokeWidth={2.4} className={activeTaskSubTab === "planner" ? "text-white" : "text-[#78716C]"} />
                 <span>Lịch kế hoạch</span>
               </button>
 
@@ -218,16 +218,16 @@ export const TasksTab: React.FC<TasksTabProps> = ({
                 onClick={() => setActiveTaskSubTab("deadlines")}
                 className={`px-3 py-1.5 rounded-[5px] border-[1.5px] border-[#262626] text-xs font-bold transition-all flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer shrink-0 ${
                   activeTaskSubTab === "deadlines"
-                    ? "bg-[#FECDD3] text-rose-950"
-                    : "bg-white text-[#78716C] hover:bg-[#FAF8F3]"
+                    ? "bg-[#1C1917] text-white"
+                    : "bg-white text-[#78716C] hover:bg-[#FAF8F3] hover:text-[#1C1917]"
                 }`}
               >
-                <Hourglass size={14} strokeWidth={2.4} className="text-rose-700" />
+                <Hourglass size={14} strokeWidth={2.4} className={activeTaskSubTab === "deadlines" ? "text-white" : "text-[#78716C]"} />
                 <span>Hạn định</span>
                 {deadlineAlertTotal > 0 && (
                   <span
                     className={`font-mono text-[10px] px-1.5 py-0.2 rounded-[3px] border border-[#262626] leading-none font-bold ${
-                      overdueCount > 0 ? "bg-rose-600 text-white animate-pulse" : "bg-amber-600 text-white"
+                      activeTaskSubTab === "deadlines" ? "bg-white text-[#1C1917]" : "bg-[#1C1917] text-white"
                     }`}
                   >
                     {deadlineAlertTotal}

@@ -109,3 +109,12 @@ export interface TabConfig {
   icon: string;
   accentColor: string;
 }
+
+export type SettingsSectionKey =
+  | "account"
+  | "general"
+  | "notifications"
+  | "data"
+  | "security"
+  | "shortcuts"
+  | "about";

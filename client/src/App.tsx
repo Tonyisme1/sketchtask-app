@@ -1,37 +1,64 @@
 import { useCallback, useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
-import { NavigationTarget, TabKey } from "./types";
-import { AppProvider, useAppStore } from "./stores/appStore";
-import { AppShell } from "./components/layout/AppShell";
-import { TasksTab } from "./components/features/tasks/TasksTab";
-import { NotesTab } from "./components/features/notes/NotesTab";
-import { JournalTab } from "./components/features/journal/JournalTab";
-import { NotebooksTab } from "./components/features/notebooks/NotebooksTab";
-import { SettingsTab } from "./components/features/settings/SettingsTab";
-import { ReviewTab } from "./components/features/review/ReviewTab";
-import { AuthPage } from "./components/features/auth/AuthPage";
-import { AdminPage } from "./components/features/admin/AdminPage";
-import {
-  LandingPage,
-  MarketingRoute,
-} from "./components/features/marketing/LandingPage";
+import { App as CapacitorApp } from "@capacitor/app";
+import { NavigationTarget, TabKey } from "./shared/types";
+import { AppProvider, useAppStore } from "./shared/stores";
+import { useResponsiveLayout } from "./shared/hooks";
+
+// 3 Dedicated Platform Shells & Workspaces
+import { DesktopShell, DesktopWorkspace } from "./desktop";
+import { TabletShell, TabletWorkspace } from "./tablet";
+import { MobileShell, MobileWorkspace } from "./mobile";
+
+// Standalone Feature Pages
+import { AuthPage } from "./features";
+import { ToastViewport } from "./components/ui/feedback/ToastViewport";
 
 // ==========================================
-// MAIN APP CONTENT (4 luồng chính + các mục phụ trong menu)
+// MAIN APP CONTENT (Dispatch theo 3 nền tảng: Desktop, Tablet, Mobile)
 // ==========================================
 
 interface MainAppContentProps {
   onNavigateRoute: (path: string) => void;
 }
 
+const APP_BACK_EVENT = "sketchtask:app-back";
+
+interface AppBackEventDetail {
+  handled: boolean;
+}
+
 function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("tasks");
   const [navigationTarget, setNavigationTarget] = useState<NavigationTarget | undefined>();
-  const { activeTaskSubTab, setActiveTaskSubTab } = useAppStore();
+  const {
+    activeTaskSubTab,
+    setActiveTaskSubTab,
+    activeDetailTaskId,
+    closeTaskDetail,
+    setSelectedNotebookId,
+    selectedNotebookId,
+    setIsMobileNoteDetailOpen,
+    isMobileNoteDetailOpen,
+    setSettingsMobileSubView,
+    settingsMobileSubView,
+  } = useAppStore();
+  const { isDesktop, isTablet } = useResponsiveLayout();
 
   const [previousTab, setPreviousTab] = useState<TabKey>("today");
 
   const handleTabChange = (tab: TabKey | string, target?: NavigationTarget) => {
+    // Đóng panel task detail & các mục con khi chuyển tab hoặc chuyển không gian
+    closeTaskDetail();
+    setSelectedNotebookId(null);
+    setIsMobileNoteDetailOpen(false);
+    setSettingsMobileSubView(null);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+
     // Lưu tab trước đó nếu không phải là settings/notebooks
     if (activeTab !== "settings" && activeTab !== "notebooks") {
       if (activeTab === "tasks") {
@@ -62,9 +89,16 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
       setActiveTab("journal");
       return;
     }
+    if (tab === "tasks") {
+      // Hôm nay là workspace riêng; khi vào Công việc, mở chế độ lịch gần nhất.
+      if (activeTaskSubTab === "today") {
+        setActiveTaskSubTab("planner");
+      }
+      setActiveTab("tasks");
+      return;
+    }
     if (
       tab === "notes" ||
-      tab === "tasks" ||
       tab === "review" ||
       tab === "notebooks" ||
       tab === "settings"
@@ -75,102 +109,211 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     setActiveTab(tab as TabKey);
   };
 
-  const renderActiveTabContent = () => {
-    switch (activeTab) {
-      case "tasks":
-        return (
-          <TasksTab
-            navigationTarget={navigationTarget}
-            onClearNavigationTarget={() => setNavigationTarget(undefined)}
-          />
-        );
-      case "notes":
-        return (
-          <NotesTab
-            navigationTarget={navigationTarget}
-            onClearNavigationTarget={() => setNavigationTarget(undefined)}
-            onNavigateTab={handleTabChange}
-          />
-        );
-      case "journal":
-        return (
-          <JournalTab
-            navigationTarget={navigationTarget}
-            onClearNavigationTarget={() => setNavigationTarget(undefined)}
-            onNavigateTab={handleTabChange}
-          />
-        );
-      case "notebooks":
-        return (
-          <NotebooksTab
-            navigationTarget={navigationTarget}
-            onClearNavigationTarget={() => setNavigationTarget(undefined)}
-            onNavigateTab={handleTabChange}
-          />
-        );
-      case "settings":
-        return (
-          <SettingsTab
-            onNavigateTab={handleTabChange}
-            onNavigateRoute={onNavigateRoute}
-            previousTab={previousTab}
-          />
-        );
-      case "review":
-        return <ReviewTab onNavigateTab={handleTabChange} />;
-      default:
-        return <TasksTab />;
-    }
+  const handleClearNavigationTarget = () => {
+    setNavigationTarget(undefined);
   };
 
+  const handleInAppBack = useCallback(() => {
+    if (activeDetailTaskId) {
+      closeTaskDetail();
+      return true;
+    }
+    if (settingsMobileSubView) {
+      setSettingsMobileSubView(null);
+      return true;
+    }
+    if (isMobileNoteDetailOpen) {
+      setIsMobileNoteDetailOpen(false);
+      return true;
+    }
+    if (selectedNotebookId) {
+      setSelectedNotebookId(null);
+      return true;
+    }
+    if (activeTab === "settings") {
+      handleTabChange(previousTab);
+      return true;
+    }
+    if (activeTab === "tasks" && activeTaskSubTab !== "today") {
+      handleTabChange("today");
+      return true;
+    }
+    return false;
+  }, [
+    activeDetailTaskId,
+    activeTab,
+    activeTaskSubTab,
+    closeTaskDetail,
+    handleTabChange,
+    isMobileNoteDetailOpen,
+    previousTab,
+    selectedNotebookId,
+    setIsMobileNoteDetailOpen,
+    setSelectedNotebookId,
+    setSettingsMobileSubView,
+    settingsMobileSubView,
+  ]);
+
+  // Hardware/browser Back first unwinds the active in-app surface.
+  useEffect(() => {
+    const handleBackRequest = (event: Event) => {
+      const detail = (event as CustomEvent<AppBackEventDetail>).detail;
+      if (handleInAppBack()) {
+        detail.handled = true;
+      }
+    };
+
+    window.addEventListener(APP_BACK_EVENT, handleBackRequest);
+    return () => window.removeEventListener(APP_BACK_EVENT, handleBackRequest);
+  }, [handleInAppBack]);
+
+  // 1. Desktop Shell (width >= 1024px)
+  if (isDesktop) {
+    return (
+      <DesktopShell
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        onNavigateRoute={onNavigateRoute}
+        previousTab={previousTab}
+      >
+        <DesktopWorkspace
+          activeTab={activeTab}
+          navigationTarget={navigationTarget}
+          onClearNavigationTarget={handleClearNavigationTarget}
+          onNavigateTab={handleTabChange}
+          onNavigateRoute={onNavigateRoute}
+          previousTab={previousTab}
+        />
+      </DesktopShell>
+    );
+  }
+
+  // 2. Tablet Shell (768px <= width < 1024px)
+  if (isTablet) {
+    return (
+      <TabletShell
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        onNavigateRoute={onNavigateRoute}
+        previousTab={previousTab}
+      >
+        <TabletWorkspace
+          activeTab={activeTab}
+          navigationTarget={navigationTarget}
+          onClearNavigationTarget={handleClearNavigationTarget}
+          onNavigateTab={handleTabChange}
+          onNavigateRoute={onNavigateRoute}
+          previousTab={previousTab}
+        />
+      </TabletShell>
+    );
+  }
+
+  // 3. Mobile Shell (width < 768px)
   return (
-    <AppShell
+    <MobileShell
       activeTab={activeTab}
       onTabChange={handleTabChange}
       onNavigateRoute={onNavigateRoute}
+      previousTab={previousTab}
     >
-      {renderActiveTabContent()}
-    </AppShell>
+      <MobileWorkspace
+        activeTab={activeTab}
+        navigationTarget={navigationTarget}
+        onClearNavigationTarget={handleClearNavigationTarget}
+        onNavigateTab={handleTabChange}
+        onNavigateRoute={onNavigateRoute}
+        previousTab={previousTab}
+      />
+    </MobileShell>
   );
 }
 
 type AppRoute =
   | { kind: "app" }
-  | { kind: "auth"; mode: "signin" | "signup" }
-  | { kind: "admin" }
-  | { kind: "marketing"; route: MarketingRoute };
+  | { kind: "auth" };
 
 const resolveRoute = (pathname: string): AppRoute => {
-  // The native shell must open the bundled workspace directly. The marketing
-  // landing page remains the default entry point for the public web app.
+  // The native shell must open the bundled workspace directly. The public web
+  // entry point is intentionally limited to the login screen.
   if (Capacitor.isNativePlatform() && pathname === "/") {
     return { kind: "app" };
   }
   if (pathname === "/app" || pathname.startsWith("/app/")) {
     return { kind: "app" };
   }
-  if (pathname === "/login") return { kind: "auth", mode: "signin" };
-  if (pathname === "/register") return { kind: "auth", mode: "signup" };
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) return { kind: "admin" };
-  if (pathname === "/features") {
-    return { kind: "marketing", route: "features" };
-  }
-  if (pathname === "/how-it-works") {
-    return { kind: "marketing", route: "how-it-works" };
-  }
-  if (pathname === "/pricing") {
-    return { kind: "marketing", route: "pricing" };
-  }
-  return { kind: "marketing", route: "home" };
+  return { kind: "auth" };
 };
 
 function AppRouter() {
   const [pathname, setPathname] = useState(() => window.location.pathname);
 
   useEffect(() => {
-    const handlePopState = () => setPathname(window.location.pathname);
+    const handlePopState = (event: PopStateEvent) => {
+      const isAppRoute = resolveRoute(window.location.pathname).kind === "app";
+      const isAppEntry = Boolean(event.state?.__sketchTaskAppEntry);
+
+      if (isAppRoute && isAppEntry) {
+        const detail: AppBackEventDetail = { handled: false };
+        window.dispatchEvent(new CustomEvent<AppBackEventDetail>(APP_BACK_EVENT, { detail }));
+
+        if (detail.handled) {
+          const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+          window.history.pushState(
+            { ...(event.state || {}), __sketchTaskAppGuard: true },
+            "",
+            currentUrl,
+          );
+          return;
+        }
+
+        // No internal surface remains: continue to the page that opened the app.
+        window.history.go(-1);
+        return;
+      }
+
+      setPathname(window.location.pathname);
+    };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (resolveRoute(pathname).kind !== "app") return;
+
+    const currentState = window.history.state || {};
+    if (currentState.__sketchTaskAppEntry || currentState.__sketchTaskAppGuard) return;
+
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    window.history.replaceState(
+      { ...currentState, __sketchTaskAppEntry: true },
+      "",
+      currentUrl,
+    );
+    window.history.pushState(
+      { ...currentState, __sketchTaskAppGuard: true },
+      "",
+      currentUrl,
+    );
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+
+    let listener: { remove: () => Promise<void> } | undefined;
+    void CapacitorApp.addListener("backButton", () => {
+      const detail: AppBackEventDetail = { handled: false };
+      window.dispatchEvent(new CustomEvent<AppBackEventDetail>(APP_BACK_EVENT, { detail }));
+      if (!detail.handled) {
+        void CapacitorApp.exitApp();
+      }
+    }).then((registeredListener) => {
+      listener = registeredListener;
+    });
+
+    return () => {
+      void listener?.remove();
+    };
   }, []);
 
   const navigate = useCallback((path: string, replace = false) => {
@@ -191,13 +334,7 @@ function AppRouter() {
   if (route.kind === "app") {
     return <MainAppContent onNavigateRoute={navigate} />;
   }
-  if (route.kind === "auth") {
-    return <AuthPage mode={route.mode} onNavigate={navigate} />;
-  }
-  if (route.kind === "admin") {
-    return <AdminPage onNavigate={navigate} />;
-  }
-  return <LandingPage route={route.route} onNavigate={navigate} />;
+  return <AuthPage onNavigate={navigate} />;
 }
 
 // ==========================================
@@ -208,6 +345,7 @@ export default function App() {
   return (
     <AppProvider>
       <AppRouter />
+      <ToastViewport />
     </AppProvider>
   );
 }

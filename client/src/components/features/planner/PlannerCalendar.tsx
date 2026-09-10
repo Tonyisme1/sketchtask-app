@@ -90,15 +90,15 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
           if (!isCurrentMonth) {
             bgClass = "bg-[#FAF8F3] opacity-60";
           } else if (isSelected) {
-            if (isToday) bgClass = "bg-[#BBF7D0] z-10 border-[2px] border-[#262626] shadow-[2px_2px_0px_#262626] rounded-[4px] -m-[1px]";
-            else if (isPast) bgClass = "bg-[#FECDD3] z-10 border-[2px] border-[#262626] shadow-[2px_2px_0px_#262626] rounded-[4px] -m-[1px]";
-            else bgClass = "bg-[#FEF08A] z-10 border-[2px] border-[#262626] shadow-[2px_2px_0px_#262626] rounded-[4px] -m-[1px]";
+            if (isToday) bgClass = "bg-[#BBF7D0] ring-2 ring-inset ring-[#262626]";
+            else if (isPast) bgClass = "bg-[#FECDD3] ring-2 ring-inset ring-[#262626]";
+            else bgClass = "bg-[#BAE6FD] ring-2 ring-inset ring-[#262626]";
           } else if (isToday) {
             bgClass = "bg-[#BBF7D0]/40 hover:bg-[#BBF7D0]/60";
           } else if (isPast) {
             bgClass = "bg-[#FECDD3]/15 hover:bg-[#FECDD3]/30";
           } else {
-            bgClass = "bg-[#FEF08A]/10 hover:bg-[#FEF08A]/25";
+            bgClass = "bg-[#BAE6FD]/20 hover:bg-[#BAE6FD]/35";
           }
 
           let dayNumColor = "";
@@ -124,7 +124,7 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
               disabled={!isCurrentMonth}
               title={dateAriaLabel}
               aria-label={dateAriaLabel}
-              className={`relative flex min-w-0 min-h-[64px] flex-col justify-between p-1.5 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#262626] disabled:cursor-default sm:min-h-[94px] sm:p-2 lg:min-h-[114px] lg:p-2.5 ${bgClass}`}
+              className={`relative flex min-w-0 min-h-[56px] flex-col justify-between p-1.5 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#262626] disabled:cursor-default sm:min-h-[78px] sm:p-2 lg:min-h-[92px] lg:p-2.5 ${bgClass}`}
             >
               {/* Header của ô: Số ngày + Tổng việc */}
               <div className="flex items-start justify-between gap-1 w-full">
@@ -144,25 +144,25 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
               {/* Markers trạng thái bên dưới */}
               {taskCount > 0 && isCurrentMonth ? (
                 <div className="flex min-h-4 min-w-0 max-w-full items-center gap-1 overflow-hidden font-mono text-[9px] font-bold sm:gap-2 sm:text-[11px]">
-                  {/* 1. Lịch hẹn sắp tới / hôm nay: chấm vàng */}
+                  {/* 1. Lịch hẹn sắp tới / hôm nay */}
                   {summary.scheduled > 0 && (
-                    <span className="inline-flex items-center gap-0.5 text-amber-900 shrink-0" title={`${summary.scheduled} việc có lịch hẹn`}>
-                      <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400 border border-[#262626]/60 sm:hidden" />
+                    <span className="inline-flex items-center gap-0.5 text-[#1C1917] shrink-0" title={`${summary.scheduled} việc có lịch hẹn`}>
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-[#1C1917] border border-[#262626]/60 sm:hidden" />
                       <Clock size={11} strokeWidth={2.4} className="hidden sm:block" />
                       <span className="hidden md:inline">{summary.scheduled}</span>
                     </span>
                   )}
 
-                  {/* 2. Deadline quá hạn: CHỈ hiển thị chấm đỏ khi overdue */}
+                  {/* 2. Quá hạn */}
                   {summary.overdue > 0 && (
-                    <span className="inline-flex items-center gap-0.5 text-rose-800 shrink-0" title={`${summary.overdue} việc quá hạn`}>
-                      <span className="h-2 w-2 shrink-0 rounded-full bg-rose-500 border border-[#262626]/60 sm:hidden" />
+                    <span className="inline-flex items-center gap-0.5 text-[#1C1917] shrink-0" title={`${summary.overdue} việc quá hạn`}>
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-[#1C1917] border border-[#262626] sm:hidden" />
                       <AlertCircle size={11} strokeWidth={2.4} className="hidden sm:block" />
                       <span className="hidden md:inline">{summary.overdue}</span>
                     </span>
                   )}
 
-                  {/* 3. Lịch hẹn đã qua: CHẤM XÁM / TRUNG TÍNH (không bị đọc thành deadline quá hạn) */}
+                  {/* 3. Lịch hẹn đã qua */}
                   {summary.pastScheduled > 0 && (
                     <span className="inline-flex items-center gap-0.5 text-[#57534E] shrink-0" title={`${summary.pastScheduled} lịch hẹn đã qua`}>
                       <span className="h-2 w-2 shrink-0 rounded-full bg-[#78716C] border border-[#262626]/60 sm:hidden" />
@@ -171,10 +171,10 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
                     </span>
                   )}
 
-                  {/* 4. Đã hoàn thành: chấm xanh lá */}
+                  {/* 4. Đã hoàn thành */}
                   {summary.completed > 0 && (
-                    <span className="inline-flex items-center gap-0.5 text-emerald-800 shrink-0" title={`${summary.completed} việc đã xong`}>
-                      <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400 border border-[#262626]/60 sm:hidden" />
+                    <span className="inline-flex items-center gap-0.5 text-[#57534E] shrink-0" title={`${summary.completed} việc đã xong`}>
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-[#E7E5E4] border border-[#262626]/60 sm:hidden" />
                       <Check size={11} strokeWidth={2.4} className="hidden sm:block" />
                       <span className="hidden md:inline">{summary.completed}</span>
                     </span>

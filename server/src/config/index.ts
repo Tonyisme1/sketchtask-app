@@ -3,8 +3,21 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const isProduction = process.env.NODE_ENV === "production";
+const databaseUrl = process.env.DATABASE_URL;
 const rawJwtSecret = process.env.JWT_SECRET;
 const defaultSecret = "sketchtask_super_secret_jwt_key_2026";
+
+if (!databaseUrl) {
+  throw new Error(
+    "FATAL: DATABASE_URL chưa được cấu hình.",
+  );
+}
+
+if (isProduction && !/^postgres(ql)?:\/\//.test(databaseUrl)) {
+  throw new Error(
+    "FATAL: Trong môi trường Production, DATABASE_URL phải là connection string PostgreSQL (postgresql:// hoặc postgres://).",
+  );
+}
 
 // Trong môi trường production: Bắt buộc phải có JWT_SECRET mạnh, không được để trống hoặc dùng key mặc định yếu
 if (isProduction) {
@@ -17,13 +30,7 @@ if (isProduction) {
 
 export const config = {
   port: Number(process.env.PORT) || 5000,
-  databaseUrl: process.env.DATABASE_URL || "file:./dev.db",
+  databaseUrl,
   jwtSecret: rawJwtSecret || defaultSecret,
   isProduction,
-  adminEmails: new Set(
-    (process.env.ADMIN_EMAILS || "")
-      .split(",")
-      .map((email) => email.trim().toLowerCase())
-      .filter(Boolean),
-  ),
 };

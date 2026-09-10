@@ -89,9 +89,9 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
           : "Đang chờ xử lý",
       icon: CalendarDays,
       bg: "bg-[#FFFDF8]",
-      badgeBg: "bg-[#FEF08A]",
+      badgeBg: "bg-[#E0F2FE]",
       borderColor: "border-[#262626]",
-      iconColor: "text-amber-900",
+      iconColor: "text-[#0369A1]",
     },
     {
       id: "completed" as const,
@@ -105,9 +105,9 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
           : "Bắt đầu ngày mới",
       icon: CheckCircle2,
       bg: "bg-[#FFFDF8]",
-      badgeBg: "bg-[#BBF7D0]",
+      badgeBg: "bg-[#DCFCE7]",
       borderColor: "border-[#262626]",
-      iconColor: "text-emerald-800",
+      iconColor: "text-[#166534]",
     },
     {
       id: "overdue" as const,
@@ -119,9 +119,9 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
           : "Tiến độ đúng hạn",
       icon: AlertCircle,
       bg: "bg-[#FFFDF8]",
-      badgeBg: overdueTasksCount > 0 ? "bg-[#FECDD3]" : "bg-[#FAF8F3]",
+      badgeBg: overdueTasksCount > 0 ? "bg-[#FEE2E2]" : "bg-[#FAF8F3]",
       borderColor: "border-[#262626]",
-      iconColor: overdueTasksCount > 0 ? "text-rose-700" : "text-[#78716C]",
+      iconColor: overdueTasksCount > 0 ? "text-[#991B1B]" : "text-[#78716C]",
     },
     {
       id: "journal" as const,
@@ -133,9 +133,9 @@ export const DashboardSummary: React.FC<DashboardSummaryProps> = ({
           : "Chưa có dòng ghi chép",
       icon: BookOpen,
       bg: "bg-[#FFFDF8]",
-      badgeBg: "bg-[#DDD6FE]",
+      badgeBg: "bg-[#E0F2FE]",
       borderColor: "border-[#262626]",
-      iconColor: "text-purple-900",
+      iconColor: "text-[#0369A1]",
     },
   ];
 

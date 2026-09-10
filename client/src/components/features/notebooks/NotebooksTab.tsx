@@ -2,12 +2,10 @@ import React, { useState, useEffect, useMemo } from "react";
 import { NavigationTarget, NotebookDto, TaskDto, TabKey } from "../../../types";
 import { NoteItem } from "../notes/NoteTypes";
 import { useAppStore } from "../../../stores/appStore";
-import { NotebookHeader } from "./NotebookHeader";
+import { useResponsiveLayout } from "../../../shared/hooks";
 import { NotebookEditor } from "./NotebookEditor";
 import { NotebookList } from "./NotebookList";
 import { NotebookDetail } from "./NotebookDetail";
-import { TaskDetailModal } from "../../ui/overlays/TaskDetailModal";
-import { EditTaskModal } from "../../ui/overlays/EditTaskModal";
 import { loadNotesFromStorage, saveNotesToStorage } from "../../../utils/noteStorage";
 import { getLocalTodayStr } from "../../../utils/date";
 import { useScrollLock } from "../../../hooks/useScrollLock";
@@ -33,8 +31,8 @@ interface NotebooksTabProps {
 export const NotebooksTab: React.FC<NotebooksTabProps> = ({
   navigationTarget,
   onClearNavigationTarget,
-  onNavigateTab,
 }) => {
+  const { isMobile } = useResponsiveLayout();
   const {
     notebooks,
     tasks,
@@ -48,10 +46,10 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
     moveTaskToTomorrow,
     addJournalEntry,
     deleteJournalEntry,
+    openTaskDetail,
+    selectedNotebookId,
+    setSelectedNotebookId,
   } = useAppStore();
-
-  // Sổ tay đang chọn để xem chi tiết
-  const [selectedNotebookId, setSelectedNotebookId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!navigationTarget?.notebookId) return;
@@ -59,7 +57,7 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
       setSelectedNotebookId(navigationTarget.notebookId);
     }
     onClearNavigationTarget?.();
-  }, [navigationTarget, notebooks, onClearNavigationTarget]);
+  }, [navigationTarget, notebooks, onClearNavigationTarget, setSelectedNotebookId]);
 
   // State nạp và đồng bộ danh sách Ghi chú
   const [notes, setNotes] = useState<NoteItem[]>(() => loadNotesFromStorage());
@@ -85,10 +83,6 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
 
   // State chỉnh sửa sổ tay
   const [editingNotebook, setEditingNotebook] = useState<NotebookDto | null>(null);
-
-  // State modal xem chi tiết & sửa task
-  const [selectedTaskForDetail, setSelectedTaskForDetail] = useState<TaskDto | null>(null);
-  const [editingTask, setEditingTask] = useState<TaskDto | null>(null);
   useScrollLock(Boolean(editingNotebook));
 
   // Cuốn sổ hiện tại đang chọn
@@ -277,10 +271,10 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
           onEditNotebook={() => handleStartEditNotebook(currentNotebook)}
           onRequestDeleteNotebook={(id) => handleDeleteNotebook(id)}
           onToggleTask={toggleTask}
-          onEditTask={(task) => setEditingTask(task)}
+          onEditTask={(task) => openTaskDetail(task.id)}
           onDeleteTask={deleteTask}
           onMoveTomorrow={moveTaskToTomorrow}
-          onClickTask={(task) => setSelectedTaskForDetail(task)}
+          onClickTask={(task) => openTaskDetail(task.id)}
           onCreateNote={handleCreateNoteInNotebook}
           onDeleteNote={handleDeleteNoteInNotebook}
           onUpdateNote={handleUpdateNoteInNotebook}
@@ -317,28 +311,6 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
             </div>
           </div>
         )}
-
-        {/* Modal Xem Chi Tiết Task */}
-        {selectedTaskForDetail && (
-          <TaskDetailModal
-            task={selectedTaskForDetail}
-            isOpen={Boolean(selectedTaskForDetail)}
-            onClose={() => setSelectedTaskForDetail(null)}
-            onEdit={(task) => {
-              setSelectedTaskForDetail(null);
-              setEditingTask(task);
-            }}
-          />
-        )}
-
-        {/* Modal Chỉnh Sửa Task */}
-        {editingTask && (
-          <EditTaskModal
-            task={editingTask}
-            isOpen={Boolean(editingTask)}
-            onClose={() => setEditingTask(null)}
-          />
-        )}
       </>
     );
   }
@@ -347,17 +319,7 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
   // VIEW: KỆ SỔ TAY (Danh sách sổ)
   // ==========================================
   return (
-    <div className="w-full min-w-0 space-y-4 pb-8 select-none">
-      <NotebookHeader
-        isCreatingInline={isCreatingInline}
-        onStartCreate={() => {
-          setIsCreatingInline(true);
-          setEditingNotebook(null);
-        }}
-        notebookCount={notebooks.length}
-        onNavigateTab={onNavigateTab}
-      />
-
+    <div className={`w-full min-w-0 space-y-4 pb-8 select-none ${isMobile ? "mobile-tab-enter" : ""}`}>
       {/* Form tạo nhanh sổ mới */}
       {isCreatingInline && (
         <NotebookEditor
@@ -408,7 +370,6 @@ export const NotebooksTab: React.FC<NotebooksTabProps> = ({
         journalEntries={journalEntries}
         isTiltEnabled={isTiltEnabled}
         onSelectNotebook={(id) => setSelectedNotebookId(id)}
-        onEditNotebook={handleStartEditNotebook}
         onRequestDeleteNotebook={handleDeleteNotebook}
       />
     </div>

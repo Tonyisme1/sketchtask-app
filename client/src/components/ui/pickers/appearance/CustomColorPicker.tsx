@@ -20,33 +20,35 @@ export interface CustomColorPickerProps {
 }
 
 export const DEFAULT_PALETTE: ColorOption[] = [
-  // 🟡 Nhóm Vàng & Cam ấm
-  { name: "Vàng nghệ", hex: "#FEF08A" },
-  { name: "Vàng chanh", hex: "#FDE047" },
-  { name: "Cam đào", hex: "#FED7AA" },
-  { name: "Cam mật", hex: "#FB923C" },
-  { name: "Hổ phách", hex: "#FBBF24" },
+  // ⚪ Nhóm Trắng & Giấy
+  { name: "Trắng tinh", hex: "#FFFFFF" },
+  { name: "Giấy ngà", hex: "#FAF8F3" },
+  { name: "Giấy phác thảo", hex: "#F5F5F4" },
+  { name: "Giấy xi măng", hex: "#E7E5E4" },
 
-  // 🟢 Nhóm Xanh lá & Thảo mộc
-  { name: "Bạc hà", hex: "#BBF7D0" },
-  { name: "Lục non", hex: "#86EFAC" },
-  { name: "Xanh bơ", hex: "#A7F3D0" },
-  { name: "Xanh xô", hex: "#D9F99D" },
-  { name: "Ngọc bích", hex: "#6EE7B7" },
+  // ⚫ Nhóm Đen & Mực
+  { name: "Mực đen", hex: "#1C1917" },
+  { name: "Đen viền", hex: "#262626" },
+  { name: "Xám than", hex: "#57534E" },
+  { name: "Xám chì", hex: "#78716C" },
 
-  // 🔵 Nhóm Da trời & Biển
-  { name: "Da trời", hex: "#BAE6FD" },
-  { name: "Xanh biển", hex: "#7DD3FC" },
-  { name: "Lam ngọc", hex: "#A5F3FC" },
+  // 🔴 Nhóm Đỏ
+  { name: "Đỏ pastel", hex: "#FEE2E2" },
+  { name: "Đỏ san hô", hex: "#FECDD3" },
+  { name: "Đỏ tươi", hex: "#EF4444" },
+  { name: "Đỏ thẫm", hex: "#DC2626" },
+
+  // 🟢 Nhóm Xanh lá cây
+  { name: "Bạc hà nhạt", hex: "#DCFCE7" },
+  { name: "Lục non", hex: "#BBF7D0" },
+  { name: "Xanh ngọc", hex: "#10B981" },
+  { name: "Xanh lá thẫm", hex: "#166534" },
+
+  // 🔵 Nhóm Xanh dương nhạt
+  { name: "Lam ngọc nhạt", hex: "#E0F2FE" },
+  { name: "Da trời nhạt", hex: "#BAE6FD" },
   { name: "Thanh thiên", hex: "#38BDF8" },
-  { name: "Chàm nhạt", hex: "#93C5FD" },
-
-  // 🟣 Nhóm Tím & Hồng
-  { name: "Oải hương", hex: "#DDD6FE" },
-  { name: "Tím mộng", hex: "#C4B5FD" },
-  { name: "Hồng phấn", hex: "#FBCFE8" },
-  { name: "San hô hồng", hex: "#FECDD3" },
-  { name: "Hoa sen", hex: "#F472B6" },
+  { name: "Xanh biển", hex: "#0284C7" },
 ];
 
 export const CustomColorPicker: React.FC<CustomColorPickerProps> = ({

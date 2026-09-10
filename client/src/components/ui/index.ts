@@ -25,16 +25,19 @@ export * from "./pickers/time/TodayTimeView";
 export * from "./pickers/time/PlannerDateTimeView";
 export * from "./pickers/time/DateTimeView";
 export * from "./pickers/time/TimeSliderAdjuster";
+export * from "./pickers/time/TimePickerPopover";
+export * from "./pickers/time/DatePickerPopover";
 
 // Overlays
 export * from "./overlays/ConfirmModal";
-export * from "./overlays/EditTaskModal";
-export * from "./overlays/TaskDetailModal";
 export * from "./overlays/UpdateModal";
-export * from "./overlays/GlobalTaskCreateModal";
+export * from "./overlays/GlobalSearchModal";
+export * from "./overlays/NotificationDrawer";
 
 // Feedback
 export * from "./feedback/EmptyStateDoodle";
+export * from "./feedback/ToastViewport";
+export * from "./feedback/ToastViewport";
 
 // Branding
 export * from "./branding/BrandLogo";

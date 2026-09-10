@@ -3,6 +3,8 @@ import { NoteItem } from "./NoteTypes";
 import { NotebookDto } from "../../../types";
 import { NoteToolbar } from "./NoteToolbar";
 import { useMobileKeyboardOffset } from "./useMobileKeyboardOffset";
+import { useAppStore } from "../../../stores/appStore";
+import { useResponsiveLayout } from "../../../shared/hooks";
 import {
   FileText,
   Plus,
@@ -11,9 +13,8 @@ import {
   Check,
   BookMarked,
   ChevronDown,
-  Search,
-  X,
-  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 export interface NoteMasterDetailViewProps {
@@ -42,9 +43,8 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   onDeleteNote,
   onCreateClick,
 }) => {
-  const [isMobileViewport, setIsMobileViewport] = useState(() =>
-    typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches
-  );
+  const { setIsMobileNoteDetailOpen } = useAppStore();
+  const { isMobile, isTablet } = useResponsiveLayout();
 
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(() => {
     if (initialNoteId && notes.some((n) => n.id === initialNoteId)) {
@@ -53,56 +53,53 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
     if (newlyCreatedId && notes.some((n) => n.id === newlyCreatedId)) {
       return newlyCreatedId;
     }
-    return isMobileViewport ? null : notes.length > 0 ? notes[0].id : null;
+    // Luôn bắt đầu ở danh sách. Chỉ mở editor sau khi người dùng chọn note.
+    return null;
   });
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
   const [isEditorFocused, setIsEditorFocused] = useState(false);
-  const mobileKeyboardOffset = useMobileKeyboardOffset();
+  const [mobileNoteTransition, setMobileNoteTransition] = useState<"forward" | "back">("forward");
+  const {
+    offset: mobileKeyboardOffset,
+    isVisible: isMobileKeyboardVisible,
+  } = useMobileKeyboardOffset();
 
+  // Đảm bảo selectedNoteId luôn trỏ tới note hợp lệ mà không tự mở note đầu.
   useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 767px)");
-    const handleViewportChange = () => setIsMobileViewport(mediaQuery.matches);
-
-    handleViewportChange();
-    mediaQuery.addEventListener("change", handleViewportChange);
-    return () => mediaQuery.removeEventListener("change", handleViewportChange);
-  }, []);
+    if (notes.length > 0) {
+      if (selectedNoteId && !notes.some((n) => n.id === selectedNoteId)) {
+        setSelectedNoteId(null);
+      }
+    } else {
+      setSelectedNoteId(null);
+    }
+  }, [notes, selectedNoteId]);
 
   // Tự động chuyển sang note mới tạo nếu có newlyCreatedId mới
   const prevNewlyCreatedIdRef = useRef<string | null>(newlyCreatedId || null);
   useEffect(() => {
     if (initialNoteId && notes.some((note) => note.id === initialNoteId)) {
+      setMobileNoteTransition("forward");
       setSelectedNoteId(initialNoteId);
-      setIsMobileDetailOpen(true);
+      setIsMobileNoteDetailOpen(isMobile);
     }
-  }, [initialNoteId, notes]);
+  }, [initialNoteId, isMobile, notes, setIsMobileNoteDetailOpen]);
 
   useEffect(() => {
     if (newlyCreatedId && newlyCreatedId !== prevNewlyCreatedIdRef.current) {
       prevNewlyCreatedIdRef.current = newlyCreatedId;
+      setMobileNoteTransition("forward");
       setSelectedNoteId(newlyCreatedId);
-      setIsMobileDetailOpen(true);
+      setIsMobileNoteDetailOpen(isMobile);
+      setTimeout(() => {
+        titleInputRef.current?.focus();
+      }, 80);
     }
-  }, [newlyCreatedId]);
-
-  // Đảm bảo selectedNoteId luôn trỏ tới 1 note hợp lệ khi danh sách notes thay đổi
-  useEffect(() => {
-    if (notes.length > 0) {
-      if (!selectedNoteId && !isMobileViewport) {
-        setSelectedNoteId(notes[0].id);
-      } else if (selectedNoteId && !notes.some((n) => n.id === selectedNoteId)) {
-        setSelectedNoteId(notes[0].id);
-      }
-    } else {
-      setSelectedNoteId(null);
-    }
-  }, [notes, selectedNoteId, isMobileViewport]);
+  }, [isMobile, newlyCreatedId, setIsMobileNoteDetailOpen]);
 
   const selectedNote = notes.find((n) => n.id === selectedNoteId) || null;
 
-  // State cho DUY NHẤT 1 TRÌNH SOẠN THẢO ở cột bên phải
+  // State cho TRÌNH SOẠN THẢO
   const [title, setTitle] = useState(selectedNote?.title || "");
   const [notebookId, setNotebookId] = useState<string | undefined>(selectedNote?.notebookId);
   const [isSaved, setIsSaved] = useState(true);
@@ -114,21 +111,13 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   const notebookMenuRef = useRef<HTMLDivElement>(null);
   const isComposingRef = useRef(false);
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 767px)");
-    const updateViewport = () => setIsMobileViewport(mediaQuery.matches);
-
-    updateViewport();
-    mediaQuery.addEventListener("change", updateViewport);
-    return () => mediaQuery.removeEventListener("change", updateViewport);
-  }, []);
-
   // Đồng bộ nội dung editor khi đổi note được chọn
   useEffect(() => {
     if (selectedNote) {
       setTitle(selectedNote.title);
       setNotebookId(selectedNote.notebookId);
       if (editorRef.current && !isComposingRef.current) {
+        editorRef.current.setAttribute("autocomplete", "off");
         if (editorRef.current.innerHTML !== selectedNote.content) {
           editorRef.current.innerHTML = selectedNote.content || "";
         }
@@ -137,7 +126,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
     }
   }, [selectedNote?.id, selectedNote?.title, selectedNote?.content, selectedNote?.notebookId]);
 
-  // Đóng notebook menu khi click ngoài
+  // Đóng dropdown khi click ngoài
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (notebookMenuRef.current && !notebookMenuRef.current.contains(e.target as Node)) {
@@ -204,32 +193,23 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
     setIsSaved(true);
   };
 
-  // Handler khi click chuyển note ở cột trái
-  const handleSelectNoteItem = (targetId: string) => {
-    if (targetId === selectedNoteId) {
-      setIsMobileDetailOpen(true);
-      return;
-    }
+  const handleOpenNote = (targetId: string) => {
+    setMobileNoteTransition("forward");
+    setSelectedNoteId(targetId);
+    setIsMobileNoteDetailOpen(isMobile);
+  };
 
-    // Lưu note hiện tại nếu đang có thay đổi chưa lưu
+  const handleCloseNoteEditor = () => {
     if (selectedNote && !isSaved) {
-      const currentHtml = editorRef.current ? editorRef.current.innerHTML : (selectedNote.content || "");
+      const currentHtml = editorRef.current
+        ? editorRef.current.innerHTML
+        : selectedNote.content || "";
       flushSave(title, currentHtml, notebookId);
     }
-
-    isComposingRef.current = false;
-    setSelectedNoteId(targetId);
-    setIsMobileDetailOpen(true);
-
-    const targetNote = notes.find((n) => n.id === targetId);
-    if (targetNote) {
-      setTitle(targetNote.title);
-      setNotebookId(targetNote.notebookId);
-      if (editorRef.current) {
-        editorRef.current.innerHTML = targetNote.content || "";
-      }
-      setIsSaved(true);
-    }
+    setShowNotebookMenu(false);
+    setMobileNoteTransition("back");
+    setSelectedNoteId(null);
+    setIsMobileNoteDetailOpen(false);
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -261,379 +241,321 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   const currentNotebook = notebookId
     ? notebooks.find((n) => n.id === notebookId)
     : null;
+  const contentCharacterCount = stripHtml(selectedNote?.content || "").length;
+  const isTouchLayout = isMobile || isTablet;
+  const shouldShowToolbar =
+    isEditorFocused && (!isTouchLayout || isMobileKeyboardVisible);
 
-  // Lọc danh sách bên trái theo query con
-  const filteredList = notes.filter((n) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
+  // =========================================================================
+  // DANH SÁCH GHI CHÚ: CHỈ MỞ EDITOR SAU KHI NGƯỜI DÙNG CHỌN NOTE
+  // =========================================================================
+  if (!selectedNote && notes.length > 0) {
     return (
-      n.title.toLowerCase().includes(q) ||
-      stripHtml(n.content).toLowerCase().includes(q)
-    );
-  });
+      <div className={`w-full min-w-0 space-y-3 select-none ${
+        mobileNoteTransition === "back" ? "mobile-panel-back-enter" : "mobile-tab-enter"
+      }`}>
+        <div className="space-y-2.5">
+          {notes.map((note, index) => {
+            const plainContent = stripHtml(note.content || "").replace(/\s+/g, " ").trim();
+            const notebook = note.notebookId
+              ? notebooks.find((item) => item.id === note.notebookId)
+              : null;
 
+            return (
+              <button
+                key={note.id}
+                type="button"
+                onClick={() => handleOpenNote(note.id)}
+                className="w-full text-left bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] p-3 shadow-[2px_2px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+              >
+                <div className="flex items-start gap-2.5">
+                  <span className="font-mono text-[10px] text-[#78716C] pt-0.5 shrink-0">
+                    #{index + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-black text-[#1C1917] truncate">
+                      {note.title || "Ghi chú không tiêu đề"}
+                    </h3>
+                    <p className="mt-1 text-xs leading-relaxed text-[#78716C] line-clamp-2">
+                      {plainContent || "Chưa có nội dung"}
+                    </p>
+                    <div className="mt-2 flex items-center justify-between gap-2 text-[10px] font-mono text-[#78716C]">
+                      <span className="truncate">
+                        {notebook ? `Sổ: ${notebook.name}` : "Chưa gắn sổ"}
+                      </span>
+                      <span className="shrink-0">{note.updatedAt || note.createdAt}</span>
+                    </div>
+                  </div>
+                  <ChevronRight size={16} className="text-[#78716C] shrink-0 mt-0.5" />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // EMPTY STATE KHI CHƯA CÓ TRANG GHI CHÚ NÀO
+  // =========================================================================
+  if (!selectedNote || notes.length === 0) {
+    return (
+      <div className="w-full min-w-0 select-none animate-in fade-in duration-150">
+        <div className="bg-[#FFFDF8] border-[1.5px] border-dashed border-[#262626] rounded-[8px] p-8 sm:p-14 text-center shadow-[3px_3px_0px_#262626] space-y-3.5">
+          <div className="w-14 h-14 rounded-[8px] bg-[#FEF08A] border-[1.5px] border-[#262626] flex items-center justify-center mx-auto shadow-[2px_2px_0px_#262626]">
+            <FileText size={26} className="text-[#1C1917]" />
+          </div>
+          <div className="space-y-1">
+            <h3 className="text-lg font-bold text-[#1C1917]">
+              Chưa có trang ghi chú nào
+            </h3>
+            <p className="text-xs sm:text-sm text-[#78716C] max-w-sm mx-auto">
+              Hãy mở trang ghi chú đầu tiên để bắt đầu lưu trữ ý tưởng, tài liệu và kế hoạch!
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onCreateClick}
+            className="px-5 py-2.5 bg-[#BBF7D0] hover:bg-[#86EFAC] text-emerald-950 border-[1.5px] border-[#262626] rounded-[6px] text-sm font-bold shadow-[2px_2px_0px_#262626] active:translate-y-[0.5px] transition-all cursor-pointer inline-flex items-center gap-2"
+          >
+            <Plus size={17} strokeWidth={2.6} />
+            <span>Mở trang ghi chú mới</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // TRÌNH SOẠN THẢO GHI CHÚ TRỰC TIẾP TOÀN KHÔNG GIAN (OPEN WORKSPACE)
+  // =========================================================================
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 items-start select-none">
-      {/* ========================================================================= */}
-      {/* CỘT TRÁI (4/12): DANH SÁCH PREVIEW NOTE (CHỈ LÀ PREVIEW ITEMS)            */}
-      {/* ========================================================================= */}
-      <div
-        className={`md:col-span-4 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3 shadow-[2px_2px_0px_#262626] flex-col min-h-[500px] h-[calc(100vh-14rem)] ${
-          isMobileDetailOpen ? "hidden md:flex" : "flex"
-        }`}
-      >
-        {/* Header Mục Lục */}
-        <div className="flex items-center justify-between pb-2.5 border-b border-[#E7E5E4] shrink-0">
-          <div className="flex items-center gap-1.5">
-            <FileText size={14} className="text-emerald-950" />
-            <span className="text-xs font-bold text-[#1C1917] uppercase tracking-wider font-mono">
-              Mục lục trang ({notes.length})
-            </span>
+    <div className={`w-full min-w-0 select-none ${
+      isMobile
+        ? "space-y-3 bg-[#FBF9F4] mobile-panel-enter"
+        : "space-y-4 animate-in fade-in duration-150"
+    }`}>
+      {/* 1. Thanh thao tác ghi chú: quay lại, chọn sổ và xóa */}
+      <div className={`flex items-center gap-2 ${
+        isMobile
+          ? "border-b border-[#262626]/20 pb-2"
+          : "rounded-[8px] border-[1.5px] border-[#262626] bg-[#FFFDF8] p-2.5 shadow-[2.5px_2.5px_0px_#262626] sm:p-3"
+      }`}>
+        <button
+          type="button"
+          onClick={handleCloseNoteEditor}
+          className={`inline-flex min-w-0 items-center gap-1.5 text-xs font-bold text-[#1C1917] transition-all cursor-pointer ${
+            isMobile
+              ? "h-10 w-10 flex-none justify-center rounded-[4px] border border-transparent bg-transparent px-0 shadow-none active:bg-[#F3EFE6]"
+              : "h-9 flex-1 rounded-[4px] border-[1.5px] border-[#262626] bg-white px-2.5 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+          }`}
+          aria-label="Quay lại danh sách ghi chú"
+          title="Quay lại danh sách ghi chú"
+        >
+          <ChevronLeft size={isMobile ? 24 : 16} strokeWidth={2.4} />
+          <span className={isMobile ? "sr-only" : "truncate"}>Danh sách ghi chú</span>
+        </button>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Dropdown Gắn Vào Sổ Tay */}
+          <div ref={notebookMenuRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setShowNotebookMenu(!showNotebookMenu)}
+              className={`h-9 px-3 rounded-[4px] border-[1.5px] border-[#262626] text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer ${
+                currentNotebook
+                  ? "text-[#1C1917]"
+                  : "bg-[#FAF8F3] text-[#78716C] hover:bg-[#F5F2EA]"
+              }`}
+              style={{
+                backgroundColor: currentNotebook
+                  ? currentNotebook.color || "#BBF7D0"
+                  : undefined,
+              }}
+            >
+              <BookMarked size={14} strokeWidth={2.4} />
+              <span className="max-w-[100px] sm:max-w-[140px] truncate">
+                {currentNotebook ? currentNotebook.name : "Gắn Sổ..."}
+              </span>
+              <ChevronDown size={13} strokeWidth={2.4} />
+            </button>
+
+            {showNotebookMenu && (
+              <div className="absolute right-0 top-full mt-1.5 w-56 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] p-1.5 shadow-[3.5px_3.5px_0px_#262626] z-50 space-y-1 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#78716C] font-mono border-b border-[#E7E5E4]">
+                  Chọn Sổ Tay
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleSelectNotebook(undefined)}
+                  className={`w-full text-left px-2.5 py-1.5 rounded-[4px] text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
+                    !notebookId
+                      ? "bg-[#FAF8F3] font-bold border border-[#262626]"
+                      : "hover:bg-[#FAF8F3] text-[#78716C]"
+                  }`}
+                >
+                  <span>(Không thuộc sổ tay)</span>
+                  {!notebookId && <Check size={14} className="text-emerald-800" />}
+                </button>
+
+                {notebooks.map((nb) => (
+                  <button
+                    key={nb.id}
+                    type="button"
+                    onClick={() => handleSelectNotebook(nb.id)}
+                    className={`w-full text-left px-2.5 py-1.5 rounded-[4px] text-xs flex items-center justify-between transition-colors cursor-pointer ${
+                      notebookId === nb.id
+                        ? "font-bold border border-[#262626]"
+                        : "hover:bg-[#FAF8F3] text-[#1C1917]"
+                    }`}
+                    style={{
+                      backgroundColor:
+                        notebookId === nb.id
+                          ? nb.color || "#BBF7D0"
+                          : undefined,
+                    }}
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <div
+                        className="w-2.5 h-2.5 rounded-[2px] border border-[#262626] shrink-0"
+                        style={{ backgroundColor: nb.color || "#BBF7D0" }}
+                      />
+                      <span className="truncate">{nb.name}</span>
+                    </div>
+                    {notebookId === nb.id && (
+                      <Check size={14} className="text-emerald-950 shrink-0" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
+          {/* Nút Xóa */}
           <button
             type="button"
             onClick={() => {
-              onCreateClick();
-              setIsMobileDetailOpen(true);
+              onDeleteNote(selectedNote.id);
+              setSelectedNoteId(null);
+              setIsMobileNoteDetailOpen(false);
             }}
-            className="px-2.5 py-1 bg-[#BBF7D0] hover:bg-[#86EFAC] text-emerald-950 border border-[#262626] rounded-[4px] text-xs font-bold shadow-[1px_1px_0px_#262626] flex items-center gap-1 active:translate-y-[0.5px] transition-all cursor-pointer"
+            className={`h-9 w-9 rounded-[4px] flex items-center justify-center transition-colors cursor-pointer ${
+              isMobile
+                ? "border border-transparent bg-transparent text-[#78716C] shadow-none hover:bg-[#FECDD3] hover:text-[#BE123C]"
+                : "border-[1.5px] border-[#262626] bg-white text-[#78716C] shadow-[1.5px_1.5px_0px_#262626] hover:bg-rose-50 hover:text-rose-600 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+            }`}
+            title="Xóa trang ghi chú này"
+            aria-label="Xóa trang ghi chú này"
           >
-            <Plus size={12} strokeWidth={2.6} />
-            <span>Thêm trang</span>
+            <Trash2 size={16} strokeWidth={2.2} />
           </button>
         </div>
+      </div>
 
-        {/* Ô Tìm Kiếm Trong Danh Sách */}
-        <div className="pt-2 pb-2 shrink-0">
-          <div className="relative">
-            <Search
-              size={13}
-              strokeWidth={2.2}
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#78716C]"
-            />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Lọc nhanh trang..."
-              className="w-full h-7 pl-7 pr-7 bg-white border border-[#262626] rounded-[4px] text-xs text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:ring-1 focus:ring-[#262626]"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#78716C] hover:text-[#1C1917]"
-              >
-                <X size={11} strokeWidth={2.4} />
-              </button>
+      {/* 2. Thẻ Khung Soạn Thảo (Không gian mở toàn màn hình, thoáng đãng) */}
+      <div
+        className={`flex flex-col overflow-hidden ${
+          isMobile
+            ? "h-[calc(100dvh-7.5rem)] min-h-[420px] bg-transparent px-1 pb-4"
+            : "h-[calc(100dvh-8.5rem)] min-h-[420px] max-h-[760px] rounded-[8px] border-[1.5px] border-[#262626] bg-[#FFFDF8] p-4 shadow-[3px_3px_0px_#262626] sm:p-6 md:h-[calc(100dvh-12rem)] md:min-h-[520px] md:max-h-[820px] md:p-8"
+        }`}
+      >
+        {/* Tiêu đề ghi chú */}
+        <div className="shrink-0">
+          <input
+            ref={titleInputRef}
+            type="text"
+            name={`note-title-${selectedNote.id}`}
+            autoComplete="off"
+            autoCorrect="on"
+            autoCapitalize="sentences"
+            inputMode="text"
+            data-form-type="other"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            value={title}
+            onChange={handleTitleChange}
+            onBlur={handleBlur}
+            placeholder="Tiêu đề trang ghi chú..."
+            className={`w-full bg-transparent border-b-2 border-transparent focus:border-[#262626] font-black text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none transition-colors ${
+              isMobile
+                ? "px-1 py-2 text-[30px] leading-tight"
+                : "px-2 py-2 text-xl sm:text-2xl md:text-3xl"
+            }`}
+          />
+          <div className={`mt-1.5 flex items-center gap-1.5 font-mono text-[#78716C] ${
+            isMobile ? "px-1 text-xs" : "text-[10px]"
+          }`}>
+            <Clock size={12} strokeWidth={2.2} />
+            {isMobile ? (
+              <>
+                <span>{selectedNote.updatedAt || selectedNote.createdAt}</span>
+                <span aria-hidden="true">|</span>
+                <span>{contentCharacterCount} ký tự</span>
+              </>
+            ) : (
+              <span>Cập nhật: {selectedNote.updatedAt || selectedNote.createdAt}</span>
             )}
           </div>
         </div>
 
-        {/* Danh Sách Cuộn Dọc Các Preview Item */}
-        <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 py-1">
-          {filteredList.length === 0 ? (
-            <div className="text-center py-10 text-xs text-[#78716C]">
-              Không có trang nào phù hợp.
-            </div>
-          ) : (
-            filteredList.map((note, index) => {
-              const isSelected = note.id === selectedNoteId;
-              const nb = note.notebookId
-                ? notebooks.find((n) => n.id === note.notebookId)
-                : null;
-              const plainSnippet = stripHtml(note.content).slice(0, 80);
-
-              return (
-                <div
-                  key={note.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => handleSelectNoteItem(note.id)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      handleSelectNoteItem(note.id);
-                    }
-                  }}
-                  className={`group relative p-2.5 rounded-[6px] border transition-all cursor-pointer ${
-                    isSelected
-                      ? "bg-[#FEF08A] border-[#262626] shadow-[2px_2px_0px_#262626] font-bold text-[#1C1917]"
-                      : "bg-white hover:bg-[#FAF8F3] border-[#E7E5E4] hover:border-[#262626] shadow-[0.5px_0.5px_0px_#262626]"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-1 mb-1">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="font-mono text-[10px] text-[#78716C] font-bold shrink-0">
-                        #{index + 1}
-                      </span>
-                      <h4
-                        className={`text-xs font-bold truncate ${
-                          isSelected ? "text-[#1C1917]" : "text-[#292524]"
-                        }`}
-                      >
-                        {note.title || "Ghi chú không tiêu đề"}
-                      </h4>
-                    </div>
-
-                    {/* Nút xóa item */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteNote(note.id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 focus:opacity-100 w-5 h-5 rounded hover:bg-rose-100 flex items-center justify-center text-[#78716C] hover:text-rose-700 transition-opacity"
-                      title="Xóa trang này"
-                    >
-                      <Trash2 size={11} strokeWidth={2.2} />
-                    </button>
-                  </div>
-
-                  {/* Trích đoạn nội dung */}
-                  <p className="text-[11px] text-[#78716C] line-clamp-2 leading-relaxed mb-1.5 font-sans">
-                    {plainSnippet || "(Trang trống...)"}
-                  </p>
-
-                  {/* Sổ tay & Thời gian cập nhật */}
-                  <div className="flex items-center justify-between text-[9px] font-mono text-[#78716C]">
-                    {nb ? (
-                      <span
-                        className="px-1.5 py-0.2 rounded border border-[#262626] text-[#1C1917] font-bold truncate max-w-[120px]"
-                        style={{ backgroundColor: nb.color || "#BBF7D0" }}
-                      >
-                        {nb.name}
-                      </span>
-                    ) : (
-                      <span className="text-stone-400 italic">Chưa gán sổ</span>
-                    )}
-                    <span>{note.updatedAt || note.createdAt}</span>
-                  </div>
-                </div>
-              );
-            })
-          )}
+        {/* Thanh Công Cụ Soạn Thảo WYSIWYG */}
+        <div
+          className={`pt-1 shrink-0 ${
+            shouldShowToolbar
+              ? "note-editor-toolbar--active"
+              : "note-editor-toolbar--hidden"
+          }`}
+          style={
+            {
+              "--note-keyboard-offset": `${mobileKeyboardOffset}px`,
+            } as React.CSSProperties
+          }
+        >
+          <NoteToolbar
+            editorRef={editorRef}
+            onContentChange={handleEditorInput}
+            keyboardVisible={isTouchLayout && isMobileKeyboardVisible}
+          />
         </div>
-      </div>
 
-      {/* ========================================================================= */}
-      {/* CỘT PHẢI (8/12): DUY NHẤT 1 TRÌNH SOẠN THẢO CHO NOTE ĐANG CHỌN           */}
-      {/* ========================================================================= */}
-      <div
-        className={`md:col-span-8 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3.5 sm:p-4 shadow-[2.5px_2.5px_0px_#262626] flex-col min-h-[500px] h-[calc(100vh-14rem)] justify-between ${
-          isMobileDetailOpen ? "flex" : "hidden md:flex"
-        }`}
-      >
-        {selectedNote ? (
-          <>
-            {/* 1. Header Trang & Chọn Sổ Tay */}
-            <div className="flex items-center justify-between pb-3 border-b border-[#262626] shrink-0 gap-2 flex-wrap">
-              <div className="flex items-center gap-2">
-                {/* Nút Quay Lại Danh Sách trên Mobile */}
-                <button
-                  type="button"
-                  onClick={() => setIsMobileDetailOpen(false)}
-                  className="md:hidden flex items-center gap-1 px-2 py-1 bg-white hover:bg-[#FEF08A] border border-[#262626] rounded-[4px] text-xs font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
-                  title="Quay lại danh sách mục lục"
-                >
-                  <ArrowLeft size={13} strokeWidth={2.4} />
-                  <span>Mục lục</span>
-                </button>
-
-                {/* Dropdown Gắn Vào Sổ Tay */}
-                <div ref={notebookMenuRef} className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setShowNotebookMenu(!showNotebookMenu)}
-                    className={`px-2.5 py-1 rounded-[4px] border border-[#262626] text-xs font-bold flex items-center gap-1.5 shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] transition-all ${
-                      currentNotebook
-                        ? "text-[#1C1917]"
-                        : "bg-[#FAF8F3] text-[#78716C] hover:bg-[#F5F2EA]"
-                    }`}
-                    style={{
-                      backgroundColor: currentNotebook
-                        ? currentNotebook.color || "#BBF7D0"
-                        : undefined,
-                    }}
-                  >
-                    <BookMarked size={12} strokeWidth={2.4} />
-                    <span className="max-w-[140px] truncate">
-                      {currentNotebook ? currentNotebook.name : "Gắn Sổ tay..."}
-                    </span>
-                    <ChevronDown size={11} strokeWidth={2.4} />
-                  </button>
-
-                  {showNotebookMenu && (
-                    <div className="absolute left-0 top-full mt-1 w-52 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] p-1 shadow-[3px_3px_0px_#262626] z-50 space-y-1 animate-in fade-in zoom-in-95 duration-100">
-                      <div className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#78716C] font-mono border-b border-[#E7E5E4]">
-                        Chọn Sổ Tay
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleSelectNotebook(undefined)}
-                        className={`w-full text-left px-2 py-1 rounded-[4px] text-xs flex items-center justify-between transition-colors ${
-                          !notebookId
-                            ? "bg-[#FAF8F3] font-bold border border-[#262626]"
-                            : "hover:bg-[#FAF8F3] text-[#78716C]"
-                        }`}
-                      >
-                        <span>(Không thuộc sổ tay)</span>
-                        {!notebookId && <Check size={12} className="text-emerald-800" />}
-                      </button>
-
-                      {notebooks.map((nb) => (
-                        <button
-                          key={nb.id}
-                          type="button"
-                          onClick={() => handleSelectNotebook(nb.id)}
-                          className={`w-full text-left px-2 py-1 rounded-[4px] text-xs flex items-center justify-between transition-colors ${
-                            notebookId === nb.id
-                              ? "font-bold border border-[#262626]"
-                              : "hover:bg-[#FAF8F3] text-[#1C1917]"
-                          }`}
-                          style={{
-                            backgroundColor:
-                              notebookId === nb.id
-                                ? nb.color || "#BBF7D0"
-                                : undefined,
-                          }}
-                        >
-                          <div className="flex items-center gap-1.5 truncate">
-                            <div
-                              className="w-2.5 h-2.5 rounded-[2px] border border-[#262626] shrink-0"
-                              style={{ backgroundColor: nb.color || "#BBF7D0" }}
-                            />
-                            <span className="truncate">{nb.name}</span>
-                          </div>
-                          {notebookId === nb.id && (
-                            <Check size={12} className="text-emerald-950 shrink-0" />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Trạng thái lưu & Nút xóa */}
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-mono flex items-center gap-1 text-[#78716C]">
-                  {isSaved ? (
-                    <span className="text-emerald-800 font-bold flex items-center gap-0.5">
-                      <Check size={12} strokeWidth={2.6} />
-                      <span>Đã lưu</span>
-                    </span>
-                  ) : (
-                    <span className="text-amber-800 italic">Đang lưu...</span>
-                  )}
-                </span>
-
-                <button
-                  type="button"
-                  onClick={() => onDeleteNote(selectedNote.id)}
-                  className="w-7 h-7 rounded bg-white hover:bg-rose-50 border border-[#262626] flex items-center justify-center text-[#78716C] hover:text-rose-600 transition-colors shadow-[0.5px_0.5px_0px_#262626] active:translate-y-[0.5px]"
-                  title="Xóa trang ghi chú"
-                >
-                  <Trash2 size={13} strokeWidth={2.2} />
-                </button>
-              </div>
-            </div>
-
-            {/* 2. Tiêu Đề Ghi Chú */}
-            <div
-              className="flex flex-col flex-1 min-h-0"
-              onFocusCapture={() => setIsEditorFocused(true)}
-              onBlurCapture={(event) => {
-                const nextFocused = event.relatedTarget as Node | null;
-                if (!event.currentTarget.contains(nextFocused)) {
-                  setIsEditorFocused(false);
-                }
-              }}
-            >
-              <div className="pt-2 shrink-0">
-              <input
-                ref={titleInputRef}
-                type="text"
-                value={title}
-                onChange={handleTitleChange}
-                onBlur={handleBlur}
-                placeholder="Tiêu đề trang ghi chú..."
-                className="w-full px-2 py-1.5 bg-transparent border-b-2 border-transparent focus:border-[#262626] text-base sm:text-lg font-bold text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none transition-colors"
-              />
-              </div>
-
-            {/* 3. Thanh Công Cụ Soạn Thảo WYSIWYG Kiểu Word (Duy nhất 1 instance) */}
-            <div
-              className={`pt-2 shrink-0 ${
-                isEditorFocused
-                  ? "note-editor-toolbar--active"
-                  : "note-editor-toolbar--hidden"
-              }`}
-              style={
-                {
-                  "--note-keyboard-offset": `${mobileKeyboardOffset}px`,
-                } as React.CSSProperties
-              }
-            >
-              <NoteToolbar
-                editorRef={editorRef}
-                onContentChange={handleEditorInput}
-              />
-            </div>
-
-            {/* 4. Khung Soạn Thảo Toàn Màn Hình */}
-            <div
-              className={`flex-1 overflow-y-auto py-2 my-1 ${
-                isEditorFocused ? "pb-14 md:pb-2" : ""
-              }`}
-            >
-              <div
-                ref={editorRef}
-                contentEditable
-                suppressContentEditableWarning
-                onInput={handleEditorInput}
-                onBlur={handleBlur}
-                data-placeholder="Bắt đầu viết ghi chú..."
-                className="w-full h-full min-h-[260px] p-2 bg-transparent text-xs sm:text-sm text-[#1C1917] focus:outline-none resize-none leading-relaxed font-sans selection:bg-[#FEF08A] [&_h1]:text-lg [&_h1]:sm:text-xl [&_h1]:font-black [&_h1]:my-2 [&_h1]:text-[#1C1917] [&_h2]:text-base [&_h2]:sm:text-lg [&_h2]:font-bold [&_h2]:my-1.5 [&_h2]:text-[#1C1917] [&_p]:my-1 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:my-1 [&_blockquote]:border-l-[3px] [&_blockquote]:border-[#262626] [&_blockquote]:pl-3 [&_blockquote]:my-2 [&_blockquote]:italic [&_blockquote]:bg-[#FAF8F3] [&_blockquote]:py-1 [&_blockquote]:rounded-r"
-              />
-            </div>
-
-            {/* 5. Chân Trang */}
-            </div>
-
-            <div className="pt-2 border-t border-[#D4CEBF] flex items-center justify-between text-[11px] font-mono text-[#78716C] shrink-0">
-              <div className="flex items-center gap-1.5">
-                <Clock size={12} strokeWidth={2.2} />
-                <span>Cập nhật: {selectedNote.updatedAt || selectedNote.createdAt}</span>
-              </div>
-            </div>
-          </>
-        ) : (
-          /* Empty State khi chưa chọn note hoặc không có note nào */
-          <div className="flex-1 flex flex-col items-center justify-center space-y-3 text-center p-8">
-            <div className="w-12 h-12 rounded-[8px] bg-[#FEF08A] border-[1.5px] border-[#262626] flex items-center justify-center shadow-[2px_2px_0px_#262626]">
-              <FileText size={24} className="text-[#1C1917]" />
-            </div>
-            <div className="space-y-1">
-              <h4 className="font-bold text-sm text-[#1C1917]">
-                Chưa có trang ghi chú nào được chọn
-              </h4>
-              <p className="text-xs text-[#78716C] max-w-xs">
-                Hãy chọn một trang từ mục lục bên trái hoặc tạo trang mới.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={onCreateClick}
-              className="px-3.5 py-1.5 bg-[#BBF7D0] hover:bg-[#86EFAC] text-emerald-950 border border-[#262626] rounded-[6px] text-xs font-bold shadow-[1.5px_1.5px_0px_#262626] flex items-center gap-1.5 active:translate-y-[0.5px] transition-all cursor-pointer"
-            >
-              <Plus size={14} strokeWidth={2.6} />
-              <span>Tạo trang mới</span>
-            </button>
-          </div>
-        )}
+        {/* Khung Soạn Thảo Rich-Text */}
+        <div
+          className={`flex min-h-0 flex-1 flex-col py-2 ${
+            shouldShowToolbar ? "pb-14 md:pb-2" : ""
+          }`}
+        >
+          <div
+            ref={editorRef}
+            contentEditable
+            suppressContentEditableWarning
+            role="textbox"
+            aria-label="Nội dung ghi chú"
+            aria-multiline="true"
+            aria-autocomplete="none"
+            spellCheck
+            autoCorrect="on"
+            autoCapitalize="sentences"
+            inputMode="text"
+            data-form-type="other"
+            data-lpignore="true"
+            data-1p-ignore="true"
+            onFocus={() => setIsEditorFocused(true)}
+            onInput={handleEditorInput}
+            onBlur={(event) => {
+              setIsEditorFocused(false);
+              handleBlur();
+            }}
+            data-placeholder="Bắt đầu viết nội dung ghi chú tại đây..."
+            className={`w-full min-h-0 flex-1 overflow-y-auto overscroll-contain bg-transparent text-[#1C1917] focus:outline-none resize-none font-sans selection:bg-[#FEF08A] [&_h1]:text-xl [&_h1]:sm:text-2xl [&_h1]:font-black [&_h1]:my-3 [&_h1]:text-[#1C1917] [&_h2]:text-lg [&_h2]:sm:text-xl [&_h2]:font-bold [&_h2]:my-2 [&_h2]:text-[#1C1917] [&_p]:my-1.5 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-2 [&_blockquote]:border-l-4 [&_blockquote]:border-[#262626] [&_blockquote]:pl-4 [&_blockquote]:my-3 [&_blockquote]:italic [&_blockquote]:bg-[#FAF8F3] [&_blockquote]:py-1.5 [&_blockquote]:rounded-r ${
+              isMobile
+                ? "px-1 pt-6 text-[17px] leading-[1.65]"
+                : "p-3 text-sm leading-relaxed sm:text-base"
+            }`}
+          />
+        </div>
       </div>
     </div>
   );

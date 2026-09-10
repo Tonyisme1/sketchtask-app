@@ -72,18 +72,27 @@ export class AuthService {
     avatarBg?: string;
     googleId?: string;
   }) {
-    let user = await prisma.user.findUnique({ where: { email: data.email } });
+    const cleanEmail = data.email.trim().toLowerCase();
+    let user = await prisma.user.findUnique({ where: { email: cleanEmail } });
 
     if (!user) {
       user = await prisma.user.create({
         data: {
-          email: data.email,
-          name: data.name,
+          email: cleanEmail,
+          name: data.name.trim() || cleanEmail.split("@")[0],
           avatar: data.avatar || "lucide:Sparkles",
           avatarBg: data.avatarBg || "#FEF08A",
           googleId: data.googleId || `google_${Date.now()}`,
         },
       });
+    } else {
+      // Nếu user đã tồn tại, cập nhật googleId nếu chưa có
+      if (data.googleId && !user.googleId) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { googleId: data.googleId },
+        });
+      }
     }
 
     const token = signToken({ userId: user.id, email: user.email });

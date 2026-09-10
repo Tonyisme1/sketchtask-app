@@ -471,7 +471,24 @@ body {
   animation: textMarquee 6s ease-in-out infinite;
 }
 
-/* 8. Placeholder cho Rich Note WYSIWYG Editor */
+/* 8. Hiệu ứng ô xem chi tiết trượt từ ngoài vào trong (Slide In Right) */
+@keyframes detailSlideInRight {
+  0% {
+    opacity: 0.3;
+    transform: translate3d(100%, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-detail-slide-in {
+  animation: detailSlideInRight 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* 9. Placeholder cho Rich Note WYSIWYG Editor */
 .rich-note-editor:empty:before {
   content: attr(data-placeholder);
   color: #a8a29e;
@@ -485,6 +502,14 @@ body {
   display: block;
 }
 
+.note-toolbar-scroll {
+  scrollbar-width: none;
+}
+
+.note-toolbar-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes mobileEditorToolbarEnter {
   from {
     opacity: 0;
@@ -496,7 +521,7 @@ body {
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   .note-editor-toolbar--hidden {
     display: none;
   }
@@ -505,7 +530,7 @@ body {
     position: fixed;
     left: max(8px, env(safe-area-inset-left));
     right: max(8px, env(safe-area-inset-right));
-    bottom: calc(var(--note-keyboard-offset, 0px) + env(safe-area-inset-bottom));
+    bottom: max(var(--note-keyboard-offset, 0px), env(safe-area-inset-bottom));
     z-index: 60;
     animation: mobileEditorToolbarEnter 160ms ease-out;
     will-change: transform, opacity;

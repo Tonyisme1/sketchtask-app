@@ -56,7 +56,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           {greeting}{displayName ? `, ${displayName}` : "!"}
         </h1>
         <p className="text-xs sm:text-sm text-[#78716C] truncate mt-0.5 font-medium flex items-center gap-1.5">
-          <Sparkles size={12} className="text-amber-600 shrink-0" />
+          <Sparkles size={12} className="text-[#1C1917] shrink-0" />
           <span>Vững vàng từng bước, hoàn thành trọn vẹn mục tiêu ngày mới</span>
         </p>
       </div>
@@ -67,7 +67,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
         <button
           type="button"
           onClick={() => onNavigateTab?.("tasks")}
-          className="h-8 px-2.5 bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center gap-1 text-xs font-bold text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
+          className="h-8 px-2.5 bg-[#1C1917] hover:bg-[#262626] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center gap-1 text-xs font-bold text-white active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
           title="Tạo việc mới hôm nay"
         >
           <Plus size={13} strokeWidth={2.6} />
@@ -81,7 +81,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           className="h-8 px-2.5 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center gap-1 text-xs font-bold text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
           title="Mở nhật ký hôm nay"
         >
-          <BookOpen size={13} strokeWidth={2.2} className="text-purple-900" />
+          <BookOpen size={13} strokeWidth={2.2} className="text-[#1C1917]" />
           <span className="hidden sm:inline">Nhật ký</span>
         </button>
 

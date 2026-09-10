@@ -2,18 +2,28 @@ import React, { useState, useMemo } from "react";
 import {
   Flame,
   CheckCircle2,
+  Calendar,
   Sparkles,
   BookOpen,
+  Tag as TagIcon,
   TrendingUp,
   Award,
   Plus,
+  ArrowRight,
   Edit3,
   Trash2,
   X,
+  Target,
+  FileText,
   Layers,
+  Clock,
   Check,
+  AlertCircle,
+  FolderOpen,
   User,
   Settings,
+  UserCheck,
+  ShieldCheck,
 } from "lucide-react";
 import { TabKey, HabitDto, TaskDto } from "../../../types";
 import { useAppStore } from "../../../stores/appStore";
@@ -46,6 +56,7 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
     updateHabit,
     deleteHabit,
     openAuthModal,
+    setSettingsMobileSubView,
   } = useAppStore();
 
   const now = new Date();
@@ -259,8 +270,7 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
       <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-4 sm:p-5 shadow-[2.5px_2.5px_0px_#262626] space-y-3.5">
         <div className="flex items-center gap-3.5 sm:gap-4">
           <div
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-[12px] border-[1.5px] border-[#262626] flex items-center justify-center shadow-[2px_2px_0px_#262626] shrink-0 -rotate-1"
-            style={{ backgroundColor: user.avatarBg || "#DDD6FE" }}
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-[12px] border-[1.5px] border-[#262626] flex items-center justify-center shadow-[2px_2px_0px_#262626] shrink-0 -rotate-1 bg-[#FAF8F3]"
           >
             <DynamicIcon name={user.avatar || "lucide:User"} size={30} strokeWidth={2.2} className="text-[#1C1917]" />
           </div>
@@ -270,7 +280,7 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
               <h2 className="text-base sm:text-xl font-black text-[#1C1917] truncate leading-tight">
                 {user.name}
               </h2>
-              <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-[#FEF08A] text-[#1C1917] border border-[#262626] font-bold shrink-0">
+              <span className="font-mono text-[10px] px-2 py-0.5 rounded-full bg-[#1C1917] text-white border border-[#262626] font-bold shrink-0">
                 {user.isSignedIn ? "Thành viên" : "Khách"}
               </span>
             </div>
@@ -285,7 +295,8 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
           <button
             type="button"
             onClick={() => {
-              openAuthModal();
+              onNavigateTab?.("settings");
+              setSettingsMobileSubView("account");
             }}
             className="w-full py-2 px-3 rounded-[6px] bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] text-xs font-bold text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center gap-1.5 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer transition-all truncate"
           >
@@ -295,8 +306,11 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
 
           <button
             type="button"
-            onClick={() => onNavigateTab?.("settings")}
-            className="w-full py-2 px-3 rounded-[6px] bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] text-xs font-bold text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center gap-1.5 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer transition-all truncate"
+            onClick={() => {
+              onNavigateTab?.("settings");
+              setSettingsMobileSubView(null);
+            }}
+            className="w-full py-2 px-3 rounded-[6px] bg-[#1C1917] hover:bg-[#262626] border-[1.5px] border-[#262626] text-xs font-bold text-white shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center gap-1.5 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer transition-all truncate"
           >
             <Settings size={14} strokeWidth={2.2} />
             <span className="truncate">Cài đặt</span>
@@ -304,21 +318,21 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
         </div>
       </div>
 
-      {/* 1. Bộ Lọc Khung Thời Gian (Xếp dọc: Tiêu đề ở trên, thanh chọn ở dưới) */}
-      <div className="space-y-2 pt-1 pb-1">
-        <div className="flex items-center gap-1.5 text-xs font-black text-[#1C1917] uppercase tracking-wider font-mono">
+      {/* 1. Bộ Lọc Khung Thời Gian (Gọn gàng, loại bỏ header thừa) */}
+      <div className="flex items-center justify-between gap-2 pt-1 pb-1">
+        <span className="text-xs font-black text-[#1C1917] uppercase tracking-wider font-mono flex items-center gap-1.5">
           <TrendingUp size={15} strokeWidth={2.4} className="text-[#1C1917]" />
-          <span>Thống kê năng suất</span>
-        </div>
+          <span>Thống kê</span>
+        </span>
 
-        {/* Thanh chuyển đổi khung thời gian: Tuần này | Tháng này | Tất cả */}
-        <div className="grid grid-cols-3 gap-1 bg-[#FAF8F3] border-[1.5px] border-[#262626] p-1 rounded-[6px] shadow-[1.5px_1.5px_0px_#262626]">
+        {/* Thanh chuyển đổi khung thời gian: Tuần này | Tháng này | Toàn bộ */}
+        <div className="flex items-center gap-1 bg-[#FAF8F3] border-[1.5px] border-[#262626] p-0.5 rounded-[6px] shadow-[1.5px_1.5px_0px_#262626]">
           <button
             type="button"
             onClick={() => setTimeHorizon("week")}
-            className={`py-1.5 px-2 rounded-[4px] text-xs font-bold transition-all cursor-pointer text-center active:translate-y-[0.5px] ${
+            className={`px-2.5 py-1 rounded-[4px] text-[11px] font-bold transition-all cursor-pointer active:translate-y-[0.5px] ${
               timeHorizon === "week"
-                ? "bg-[#FEF08A] text-[#1C1917] border border-[#262626] shadow-[1px_1px_0px_#262626]"
+                ? "bg-[#1C1917] text-white border border-[#262626] shadow-none"
                 : "text-[#78716C] hover:text-[#1C1917]"
             }`}
           >
@@ -327,9 +341,9 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
           <button
             type="button"
             onClick={() => setTimeHorizon("month")}
-            className={`py-1.5 px-2 rounded-[4px] text-xs font-bold transition-all cursor-pointer text-center active:translate-y-[0.5px] ${
+            className={`px-2.5 py-1 rounded-[4px] text-[11px] font-bold transition-all cursor-pointer active:translate-y-[0.5px] ${
               timeHorizon === "month"
-                ? "bg-[#BAE6FD] text-[#1C1917] border border-[#262626] shadow-[1px_1px_0px_#262626]"
+                ? "bg-[#1C1917] text-white border border-[#262626] shadow-none"
                 : "text-[#78716C] hover:text-[#1C1917]"
             }`}
           >
@@ -338,9 +352,9 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
           <button
             type="button"
             onClick={() => setTimeHorizon("all")}
-            className={`py-1.5 px-2 rounded-[4px] text-xs font-bold transition-all cursor-pointer text-center active:translate-y-[0.5px] ${
+            className={`px-2.5 py-1 rounded-[4px] text-[11px] font-bold transition-all cursor-pointer active:translate-y-[0.5px] ${
               timeHorizon === "all"
-                ? "bg-[#BBF7D0] text-emerald-950 border border-[#262626] shadow-[1px_1px_0px_#262626]"
+                ? "bg-[#1C1917] text-white border border-[#262626] shadow-none"
                 : "text-[#78716C] hover:text-[#1C1917]"
             }`}
           >
@@ -355,10 +369,10 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
         <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3 sm:p-3.5 shadow-[2px_2px_0px_#262626] flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs font-bold text-[#1C1917]">
             <span className="flex items-center gap-1">
-              <CheckCircle2 size={14} className="text-emerald-700" strokeWidth={2.4} />
+              <CheckCircle2 size={14} className="text-[#16A34A]" strokeWidth={2.4} />
               <span>Hoàn thành</span>
             </span>
-            <span className="font-mono text-[10px] px-1.5 py-0.2 bg-[#BBF7D0] border border-[#262626] rounded">
+            <span className="font-mono text-[10px] px-1.5 py-0.2 bg-[#DCFCE7] text-[#166534] border border-[#16A34A] rounded font-bold">
               {completionRate}%
             </span>
           </div>
@@ -374,7 +388,7 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
         <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3 sm:p-3.5 shadow-[2px_2px_0px_#262626] flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs font-bold text-[#1C1917]">
             <span className="flex items-center gap-1">
-              <TrendingUp size={14} className="text-sky-700" strokeWidth={2.4} />
+              <TrendingUp size={14} className="text-[#0284C7]" strokeWidth={2.4} />
               <span>Tốc độ</span>
             </span>
           </div>
@@ -390,14 +404,11 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
         <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3 sm:p-3.5 shadow-[2px_2px_0px_#262626] flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs font-bold text-[#1C1917]">
             <span className="flex items-center gap-1">
-              <Flame size={14} className="text-orange-600" strokeWidth={2.4} />
+              <Flame size={14} className="text-[#DC2626]" strokeWidth={2.4} />
               <span>Thói quen</span>
             </span>
-            <span className="font-mono text-[10px] px-1.5 py-0.2 bg-[#FED7AA] border border-[#262626] rounded">
-              <span className="inline-flex items-center gap-1">
-                <Flame size={10} strokeWidth={2.4} />
-                {weeklyHabitStats.maxStreak} ngày
-              </span>
+            <span className="font-mono text-[10px] px-1.5 py-0.2 bg-[#FEE2E2] text-[#991B1B] border border-[#DC2626] rounded font-bold">
+              🔥 {weeklyHabitStats.maxStreak} ngày
             </span>
           </div>
           <div className="mt-2 flex items-baseline gap-1">
@@ -412,7 +423,7 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
         <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3 sm:p-3.5 shadow-[2px_2px_0px_#262626] flex flex-col justify-between">
           <div className="flex items-center justify-between text-xs font-bold text-[#1C1917]">
             <span className="flex items-center gap-1">
-              <BookOpen size={14} className="text-purple-700" strokeWidth={2.4} />
+              <BookOpen size={14} className="text-[#0284C7]" strokeWidth={2.4} />
               <span>Nhật ký</span>
             </span>
           </div>
@@ -433,7 +444,7 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
           <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3.5 sm:p-4 shadow-[2px_2px_0px_#262626] space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
               <div className="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[#1C1917]">
-                <TrendingUp size={16} className="text-sky-700" strokeWidth={2.4} />
+                <TrendingUp size={16} className="text-[#0284C7]" strokeWidth={2.4} />
                 <span>Hoàn thành 7 ngày</span>
               </div>
               <span className="text-[10px] text-[#78716C] font-mono">
@@ -456,10 +467,10 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
                     <div
                       className={`w-full rounded-[4px] border-[1.5px] border-[#262626] transition-all ${
                         day.isToday
-                          ? "bg-[#FEF08A] shadow-[1.5px_1.5px_0px_#262626]"
+                          ? "bg-[#0284C7] shadow-[1.5px_1.5px_0px_#262626]"
                           : day.count > 0
                           ? "bg-[#BAE6FD] shadow-[1px_1px_0px_#262626]"
-                          : "bg-[#F3EFE6] border-dashed border-[#D4CEBF]"
+                          : "bg-[#FAF8F3] border-dashed border-[#D4CEBF]"
                       }`}
                       style={{ height: `${barHeight}px` }}
                       title={`${day.dayName} (${day.dayNum}): ${day.count} việc hoàn thành`}
@@ -486,13 +497,13 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
           <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3.5 sm:p-4 shadow-[2px_2px_0px_#262626] space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
               <div className="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[#1C1917]">
-                <Flame size={16} className="text-orange-600" strokeWidth={2.4} />
+                <Flame size={16} className="text-[#1C1917]" strokeWidth={2.4} />
                 <span>Thói quen tuần ({habits.length})</span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsHabitManagerOpen(true)}
-                className="px-2.5 py-1 bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-[10px] font-bold text-[#1C1917] flex items-center gap-1 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
+                className="px-2.5 py-1 bg-[#1C1917] hover:bg-[#262626] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-[10px] font-bold text-white flex items-center gap-1 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
               >
                 <Plus size={11} strokeWidth={2.6} />
                 <span>Quản lý</span>
@@ -533,11 +544,8 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
                           {habit.name}
                         </span>
                         {habit.streak && habit.streak > 0 ? (
-                          <span className="text-[9px] font-mono font-bold text-orange-800 shrink-0">
-                            <span className="inline-flex items-center gap-0.5">
-                              <Flame size={9} strokeWidth={2.4} />
-                              {habit.streak}
-                            </span>
+                          <span className="text-[9px] font-mono font-bold text-[#1C1917] shrink-0">
+                            🔥{habit.streak}
                           </span>
                         ) : null}
                       </div>
@@ -555,12 +563,12 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
                               onClick={() => toggleHabitDay(habit.id, day.dateStr)}
                               className={`w-6 h-6 rounded-[3px] border transition-all flex items-center justify-center text-xs active:scale-90 cursor-pointer ${
                                 isDone
-                                  ? "bg-[#BBF7D0] border-[#262626] text-emerald-950 font-bold shadow-[0.5px_0.5px_0px_#262626]"
+                                  ? "bg-[#1C1917] border-[#262626] text-white font-bold shadow-[0.5px_0.5px_0px_#262626]"
                                   : "bg-white border-[#D4CEBF] text-transparent hover:border-[#262626]"
                               }`}
                               title={`${habit.name} - ${day.dayName} (${day.dayNum})`}
                             >
-                              {isDone ? <Check size={12} strokeWidth={3} /> : null}
+                              {isDone ? "✓" : ""}
                             </button>
                           </div>
                         );
@@ -579,15 +587,12 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
           <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3.5 sm:p-4 shadow-[2.5px_2.5px_0px_#262626] space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
               <div className="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[#1C1917]">
-                <Sparkles size={16} className="text-amber-700" strokeWidth={2.4} />
+                <Sparkles size={16} className="text-[#1C1917]" strokeWidth={2.4} />
                 <span>Ghi chú tuần</span>
               </div>
               {isSavedNotice && (
-                <span className="text-[10px] text-emerald-800 font-bold animate-in fade-in">
-                  <span className="inline-flex items-center gap-1">
-                    <Check size={11} strokeWidth={3} />
-                    Đã lưu
-                  </span>
+                <span className="text-[10px] text-[#1C1917] font-bold animate-in fade-in">
+                  ✓ Đã lưu
                 </span>
               )}
             </div>
@@ -596,7 +601,7 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
               <textarea
                 value={weeklyReflection}
                 onChange={(e) => handleReflectionChange(e.target.value)}
-                placeholder="Nhập ..... của bạn "
+                placeholder="Nhập ghi chú tuần của bạn tại đây"
                 rows={3}
                 className="w-full p-2.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] text-xs text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:bg-[#FFFDF8] shadow-[1.5px_1.5px_0px_#262626] resize-none leading-relaxed font-sans"
               />
@@ -629,7 +634,7 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
                       </div>
                       <div className="w-full h-1.5 bg-[#FAF8F3] border border-[#262626] rounded-[2px] overflow-hidden">
                         <div
-                          className="h-full bg-[#DDD6FE] border-r border-[#262626]"
+                          className="h-full bg-[#1C1917] border-r border-[#262626]"
                           style={{ width: `${item.percent}%` }}
                         />
                       </div>
@@ -665,23 +670,14 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
                 Độ ưu tiên:
               </span>
               <div className="grid grid-cols-3 gap-1.5 text-center font-bold text-[10px]">
-                <div className="p-1 bg-rose-50 border border-rose-300 rounded text-rose-950">
-                  <span className="inline-flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                    Gấp: {priorityDistribution.high}
-                  </span>
+                <div className="p-1 bg-[#FEE2E2] border border-[#DC2626] rounded text-[#991B1B]">
+                  🔴 Gấp: {priorityDistribution.high}
                 </div>
-                <div className="p-1 bg-amber-50 border border-amber-300 rounded text-amber-950">
-                  <span className="inline-flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                    Vừa: {priorityDistribution.medium}
-                  </span>
+                <div className="p-1 bg-[#E0F2FE] border border-[#0284C7] rounded text-[#0369A1]">
+                  🔵 Vừa: {priorityDistribution.medium}
                 </div>
-                <div className="p-1 bg-emerald-50 border border-emerald-300 rounded text-emerald-950">
-                  <span className="inline-flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    Thấp: {priorityDistribution.low}
-                  </span>
+                <div className="p-1 bg-[#DCFCE7] border border-[#16A34A] rounded text-[#166534]">
+                  🟢 Thấp: {priorityDistribution.low}
                 </div>
               </div>
             </div>
@@ -692,7 +688,7 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
             <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3.5 sm:p-4 shadow-[2px_2px_0px_#262626] space-y-2">
               <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]">
                 <div className="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-[#1C1917]">
-                  <Award size={15} className="text-amber-700" />
+                  <Award size={15} className="text-[#1C1917]" />
                   <span>Vừa hoàn thành</span>
                 </div>
                 <span className="text-[10px] font-mono text-[#78716C]">
@@ -705,7 +701,7 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
                     key={t.id}
                     className="flex items-center gap-2 p-1.5 bg-[#FAF8F3] border border-[#262626] rounded-[4px] text-xs font-bold text-[#1C1917]"
                   >
-                    <Check size={12} className="text-emerald-700" strokeWidth={3} />
+                    <span className="text-[#1C1917] font-bold">✓</span>
                     <span className="line-through text-[#57534E] truncate flex-1 font-medium">
                       {t.title}
                     </span>
@@ -739,7 +735,7 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
               <button
                 type="button"
                 onClick={() => setIsHabitManagerOpen(false)}
-                className="w-8 h-8 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center justify-center hover:bg-[#FECDD3] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                className="w-8 h-8 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center justify-center hover:bg-[#FAF8F3] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
               >
                 <X size={16} strokeWidth={2.4} />
               </button>
@@ -775,7 +771,7 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
                 <button
                   type="submit"
                   disabled={!draftHabitName.trim()}
-                  className="h-9 px-3.5 bg-[#BBF7D0] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-xs font-bold text-emerald-950 disabled:opacity-50 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                  className="h-9 px-3.5 bg-[#1C1917] text-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] text-xs font-bold disabled:opacity-50 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer hover:bg-[#262626]"
                 >
                   {editingHabitId ? "Lưu thay đổi" : "+ Thêm thói quen"}
                 </button>
@@ -797,9 +793,7 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-bold truncate text-[#1C1917]">{habit.name}</p>
                       <p className="text-[10px] text-[#78716C]">
-                        {habit.frequency === "daily" ? "Mỗi ngày" : "Mỗi tuần"} ·
-                        <Flame size={10} className="text-orange-600" strokeWidth={2.4} />
-                        {habit.streak || 0} ngày liên tiếp
+                        {habit.frequency === "daily" ? "Mỗi ngày" : "Mỗi tuần"} · 🔥 {habit.streak || 0} ngày liên tiếp
                       </p>
                     </div>
                     <button
@@ -809,14 +803,14 @@ export const ReviewTab: React.FC<ReviewTabProps> = ({ onNavigateTab, onNavigateR
                         setDraftHabitName(habit.name);
                         setDraftFrequency(habit.frequency);
                       }}
-                      className="w-7 h-7 bg-[#BAE6FD] border border-[#262626] rounded-[4px] flex items-center justify-center active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                      className="w-7 h-7 bg-[#FAF8F3] hover:bg-[#E7E5E4] text-[#1C1917] border border-[#262626] rounded-[4px] flex items-center justify-center active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
                     >
                       <Edit3 size={13} strokeWidth={2.3} />
                     </button>
                     <button
                       type="button"
                       onClick={() => deleteHabit(habit.id)}
-                      className="w-7 h-7 bg-[#FECDD3] border border-[#262626] rounded-[4px] flex items-center justify-center active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                      className="w-7 h-7 bg-[#FAF8F3] hover:bg-[#E7E5E4] text-[#1C1917] border border-[#262626] rounded-[4px] flex items-center justify-center active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
                     >
                       <Trash2 size={13} strokeWidth={2.3} />
                     </button>

@@ -10,6 +10,7 @@ export interface NotebookHeaderProps {
   onSearchChange?: (query: string) => void;
   notebookCount?: number;
   onNavigateTab?: (tab: TabKey) => void;
+  showWorkspaceTabs?: boolean;
 }
 
 export const NotebookHeader: React.FC<NotebookHeaderProps> = ({
@@ -19,6 +20,7 @@ export const NotebookHeader: React.FC<NotebookHeaderProps> = ({
   onSearchChange,
   notebookCount,
   onNavigateTab,
+  showWorkspaceTabs = false,
 }) => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-[#262626] select-none">
@@ -50,6 +52,7 @@ export const NotebookHeader: React.FC<NotebookHeaderProps> = ({
       )}
 
       {/* Cụm Phải: Segmented Tabs [ Ghi chú | Nhật ký | Sổ tay ] + Nút Tạo Sổ */}
+      {showWorkspaceTabs ? (
       <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 self-start sm:self-auto shrink-0">
         {/* 1. Ghi chú */}
         <button
@@ -96,7 +99,27 @@ export const NotebookHeader: React.FC<NotebookHeaderProps> = ({
           </Button>
         )}
       </div>
+      ) : (
+        <div className="flex items-center gap-2 shrink-0">
+          <BookMarked size={16} strokeWidth={2.4} className="text-amber-800" />
+          <span className="text-sm font-bold text-[#1C1917]">Sổ tay</span>
+          {notebookCount !== undefined && (
+            <span className="font-mono text-[10px] px-1.5 py-0.5 rounded-[3px] border border-[#262626] bg-white text-[#1C1917] leading-none font-bold">
+              {notebookCount}
+            </span>
+          )}
+          {!isCreatingInline && (
+            <Button
+              onClick={onStartCreate}
+              variant="primary"
+              size="sm"
+              className="shrink-0"
+            >
+              + Tạo sổ
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
-

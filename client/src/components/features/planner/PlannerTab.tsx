@@ -1,24 +1,22 @@
 import React, { useState, useMemo } from "react";
 import { useAppStore } from "../../../stores/appStore";
+import { useResponsiveLayout } from "../../../shared/hooks";
 import { TaskDto } from "../../../types";
-import { getLocalTodayStr, formatShortDayMonth } from "../../../utils/date";
+import { getLocalTodayStr } from "../../../utils/date";
 import {
   getTaskEffectiveDate,
-  moveTaskToDate,
+  getTaskEffectiveTime,
   getTaskTemporalState,
   normalizeTaskTimeType,
-  isTaskUnscheduled,
   isTaskForSpecificDate,
 } from "../../../utils/taskSemantics";
 import { PlannerHeader, PlannerViewMode } from "./PlannerHeader";
 import { PlannerCalendar } from "./PlannerCalendar";
 import { PlannerWeekView } from "./PlannerWeekView";
-import { PlannerYearView } from "./PlannerYearView";
+import { PlannerDayTimeline, PlannerDayTimelineMode } from "./PlannerDayTimeline";
 import { TodayScheduleNotes } from "../today/TodayScheduleNotes";
-import { TodayComposerSidebar } from "../today/TodayComposerSidebar";
 import { TaskList } from "../shared/TaskList";
 import { FilterBar } from "../shared/FilterBar";
-import { PlannerBacklog } from "./PlannerBacklog";
 import { ArrowLeft, Lock, ListTodo } from "lucide-react";
 
 const DAY_NAMES = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"];
@@ -41,39 +39,37 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
 }) => {
   const {
     tasks,
-    updateTask,
     toggleTask,
     deleteTask,
     moveTaskToNextDay,
     hideCompletedTasks,
     setSelectedPlannerDate,
+    openTaskDetail,
   } = useAppStore();
+  const { isMobile, isDesktop } = useResponsiveLayout();
 
-  const now = new Date();
-  const todayStr = getLocalTodayStr(now);
+  const todayStr = getLocalTodayStr(new Date());
+  const [todayYear, todayMonth, todayDay] = todayStr.split("-").map(Number);
+  const todayDate = new Date(todayYear, todayMonth - 1, todayDay);
 
-  // Chế độ xem: "week" (Tuần) | "month" (Tháng) | "year" (Năm)
-  const [viewMode, setViewMode] = useState<PlannerViewMode>("week");
+  // Chế độ xem: biểu đồ theo giờ hoặc lịch tháng.
+  const [viewMode, setViewMode] = useState<PlannerViewMode>("agenda");
 
-  // Màn hình hiển thị: "overview" (theo viewMode) | "day" (chi tiết ngày) | "backlog" (hộp chờ)
-  const [plannerScreen, setPlannerScreen] = useState<"overview" | "day" | "backlog">("overview");
+  // Màn hình hiển thị: tổng quan theo tuần/tháng hoặc chi tiết ngày.
+  const [plannerScreen, setPlannerScreen] = useState<"overview" | "day">("overview");
 
   // Offsets thời gian
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [monthOffset, setMonthOffset] = useState<number>(0);
-  const [yearOffset, setYearOffset] = useState<number>(0);
 
   // Ngày đang được chọn để xem chi tiết trong DayPlanView
   const [selectedDateStr, setSelectedDateStr] = useState<string>(todayStr);
+  const [dayViewMode, setDayViewMode] = useState<PlannerDayTimelineMode>("hour");
 
   // Đồng bộ ngày được chọn sang global store cho FAB thông minh
   React.useEffect(() => {
     setSelectedPlannerDate(selectedDateStr);
   }, [selectedDateStr, setSelectedPlannerDate]);
-
-  // Drawer Panel State
-  const [activeTask, setActiveTask] = useState<TaskDto | null>(null);
-  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
 
   // Lắng nghe khi được chuyển từ Tab Hạn định sang
   React.useEffect(() => {
@@ -83,18 +79,12 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
       setSelectedDateStr(targetDateStr);
       setPlannerScreen("day");
     } else {
-      // An undated search result belongs in the backlog, not in today's list.
-      setPlannerScreen("backlog");
-    }
-
-    if (targetTaskId) {
-      const found = tasks.find((t) => t.id === targetTaskId);
-      if (found && targetDateStr) {
-        setActiveTask(found);
-      }
+      // Việc không có ngày không đi qua màn hình trung gian; mở thẳng chi tiết.
+      setPlannerScreen("overview");
+      if (targetTaskId) openTaskDetail(targetTaskId);
     }
     onClearTarget?.();
-  }, [targetDateStr, targetTaskId, tasks, onClearTarget]);
+  }, [targetDateStr, targetTaskId, openTaskDetail, onClearTarget]);
 
   // Filter state cho DayPlanView
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
@@ -104,16 +94,11 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
-  // Danh sách các việc chưa sắp lịch (Hộp chờ)
-  const unscheduledTasks = useMemo(() => {
-    return tasks.filter((t) => !t.completed && isTaskUnscheduled(t));
-  }, [tasks]);
-
   // ==========================================
   // 1. TÍNH TOÁN DỮ LIỆU TUẦN (WEEK VIEW)
   // ==========================================
   const { weekDays, weekLabel } = useMemo(() => {
-    const currentMonday = new Date(now);
+    const currentMonday = new Date(todayDate);
     const dayOfWeek = currentMonday.getDay();
     const distanceToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
     currentMonday.setDate(currentMonday.getDate() + distanceToMonday + weekOffset * 7);
@@ -141,16 +126,16 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
       weekDays: days,
       weekLabel: `Tuần ${label}`,
     };
-  }, [now, weekOffset, todayStr]);
+  }, [todayStr, weekOffset]);
 
   // ==========================================
   // 2. TÍNH TOÁN DỮ LIỆU THÁNG (MONTH VIEW)
   // ==========================================
   const { monthLabel, matrix: monthMatrix } = useMemo(() => {
     const targetDate = new Date(
-      now.getFullYear(),
-      now.getMonth() + monthOffset,
-      1
+      todayDate.getFullYear(),
+      todayDate.getMonth() + monthOffset,
+      1,
     );
     const year = targetDate.getFullYear();
     const month = targetDate.getMonth();
@@ -202,21 +187,11 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
       monthLabel: `Tháng ${month + 1}, ${year}`,
       matrix,
     };
-  }, [now, monthOffset]);
-
-  // ==========================================
-  // 3. TÍNH TOÁN DỮ LIỆU NĂM (YEAR VIEW)
-  // ==========================================
-  const currentYear = now.getFullYear() + yearOffset;
-  const yearLabel = `Năm ${currentYear}`;
+  }, [monthOffset, todayStr]);
 
   // Tiêu đề Header phụ thuộc vào viewMode
   const currentTitleLabel =
-    viewMode === "week"
-      ? weekLabel
-      : viewMode === "month"
-      ? monthLabel
-      : yearLabel;
+    viewMode === "agenda" ? weekLabel : monthLabel;
 
   // Lấy các task cho một ngày cụ thể
   const getTasksForDate = (dateStr: string): TaskDto[] => {
@@ -254,35 +229,24 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
 
   // Điều hướng Prev / Next / Today
   const handlePrev = () => {
-    if (viewMode === "week") setWeekOffset((prev) => prev - 1);
-    else if (viewMode === "month") setMonthOffset((prev) => prev - 1);
-    else setYearOffset((prev) => prev - 1);
+    if (viewMode === "agenda") setWeekOffset((prev) => prev - 1);
+    else setMonthOffset((prev) => prev - 1);
   };
 
   const handleNext = () => {
-    if (viewMode === "week") setWeekOffset((prev) => prev + 1);
-    else if (viewMode === "month") setMonthOffset((prev) => prev + 1);
-    else setYearOffset((prev) => prev + 1);
+    if (viewMode === "agenda") setWeekOffset((prev) => prev + 1);
+    else setMonthOffset((prev) => prev + 1);
   };
 
   const handleResetToCurrent = () => {
-    if (viewMode === "week") setWeekOffset(0);
-    else if (viewMode === "month") setMonthOffset(0);
-    else setYearOffset(0);
+    if (viewMode === "agenda") setWeekOffset(0);
+    else setMonthOffset(0);
   };
 
   // Xử lý khi chọn một ngày
   const handleSelectDate = (dateStr: string) => {
     setSelectedDateStr(dateStr);
     setPlannerScreen("day");
-  };
-
-  // Xử lý khi chọn tháng từ Year View
-  const handleSelectMonthFromYear = (monthIndex: number) => {
-    const targetMonthOffset =
-      (currentYear - now.getFullYear()) * 12 + (monthIndex - now.getMonth());
-    setMonthOffset(targetMonthOffset);
-    setViewMode("month");
   };
 
   // Danh sách công việc của ngày đang chọn trong DayPlanView
@@ -370,21 +334,16 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
     (notebookFilter !== "all" ? 1 : 0) +
     (tagFilter !== "all" ? 1 : 0);
 
-  // Xếp việc từ backlog vào ngày đang chọn
-  const handleScheduleFromBacklog = (taskId: string, targetDateStr: string) => {
-    const task = tasks.find((item) => item.id === taskId);
-    if (!task) return;
-    updateTask(taskId, moveTaskToDate(task, targetDateStr));
-  };
-
   return (
-    <div className="space-y-4 w-full min-w-0 pb-16 select-none animate-in fade-in duration-150">
+    <div className={`space-y-4 w-full min-w-0 pb-16 select-none ${
+      isMobile ? "" : "animate-in fade-in duration-150"
+    }`}>
       {/* ========================================== */}
-      {/* MÀN HÌNH TỔNG QUAN (TUẦN / THÁNG / NĂM) */}
+      {/* MÀN HÌNH TỔNG QUAN (LỊCH TRÌNH / LỊCH THÁNG) */}
       {/* ========================================== */}
       {plannerScreen === "overview" && (
-        <div className="space-y-3 animate-in fade-in duration-150">
-          {/* Header Planner Điều Hướng 3 Chế Độ */}
+        <div className={isMobile ? "space-y-3 mobile-tab-enter" : "space-y-3 animate-in fade-in duration-150"}>
+          {/* Header Planner điều hướng hai cách xem */}
           <PlannerHeader
             viewMode={viewMode}
             onViewModeChange={setViewMode}
@@ -392,33 +351,29 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
             onPrev={handlePrev}
             onNext={handleNext}
             onToday={handleResetToCurrent}
-            unscheduledCount={unscheduledTasks.length}
-            onOpenBacklog={() => setPlannerScreen("backlog")}
           />
 
-          {/* 1. VIEW TUẦN (WEEK VIEW) */}
-          {viewMode === "week" && (
+          {/* 1. LỊCH TRÌNH THEO TUẦN */}
+          {viewMode === "agenda" && (
             <PlannerWeekView
               weekDays={weekDays}
               todayStr={todayStr}
+              selectedDateStr={selectedDateStr}
+              onPreviewDate={setSelectedDateStr}
               getTasksForDate={getTasksForDate}
               onSelectDate={handleSelectDate}
               onSelectTask={(task) => {
                 const taskDate = getTaskEffectiveDate(task) || selectedDateStr;
                 setSelectedDateStr(taskDate);
-                setActiveTask(task);
                 setPlannerScreen("day");
               }}
               onToggleTask={toggleTask}
-              onQuickAddForDate={(dateStr) => {
-                setSelectedDateStr(dateStr);
-                setActiveTask(null);
-                setPlannerScreen("day");
-              }}
+              onDeleteTask={deleteTask}
+              onMoveTomorrow={moveTaskToNextDay}
             />
           )}
 
-          {/* 2. VIEW THÁNG (MONTH VIEW) */}
+          {/* 2. LỊCH THÁNG */}
           {viewMode === "month" && (
             <PlannerCalendar
               selectedDateStr={selectedDateStr}
@@ -430,16 +385,6 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
             />
           )}
 
-          {/* 3. VIEW NĂM (YEAR VIEW) */}
-          {viewMode === "year" && (
-            <PlannerYearView
-              year={currentYear}
-              todayStr={todayStr}
-              tasks={tasks}
-              onSelectMonth={handleSelectMonthFromYear}
-              onSelectDate={handleSelectDate}
-            />
-          )}
         </div>
       )}
 
@@ -453,9 +398,9 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
         const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
         return (
-          <div className="space-y-4 animate-in fade-in duration-150">
+          <div className={isMobile ? "space-y-4 mobile-panel-enter" : "space-y-4 animate-in fade-in duration-150"}>
             {/* 1. Header Quay Lại & Tên Ngày & Tiến Độ Đồng Bộ TodayHeader */}
-            <div className="pb-2 border-b border-[#262626] space-y-1.5 animate-in fade-in duration-150 select-none">
+            <div className="pb-2 border-b border-[#262626] space-y-1.5 select-none">
               <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex min-w-0 items-center gap-2">
                   <button
@@ -473,10 +418,10 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
                     <span className="hidden sm:inline">
                       {fromTab === "deadlines"
                         ? "Quay lại Hạn định"
-                        : `Quay lại ${viewMode === "week" ? "Tuần" : viewMode === "year" ? "Năm" : "Lịch Tháng"}`}
+                        : `Quay lại ${viewMode === "agenda" ? "Lịch trình" : "Lịch tháng"}`}
                     </span>
                     <span className="sm:hidden">
-                      {fromTab === "deadlines" ? "Hạn" : viewMode === "week" ? "Tuần" : viewMode === "year" ? "Năm" : "Lịch"}
+                      {fromTab === "deadlines" ? "Hạn" : viewMode === "agenda" ? "Lịch" : "Lịch tháng"}
                     </span>
                   </button>
 
@@ -517,16 +462,6 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
               )}
             </div>
 
-            {/* Banner Cảnh Báo Khóa Tạo Việc Cho Ngày Quá Khứ */}
-            {isPastDate && (
-              <div className="flex items-center gap-2 p-2.5 bg-amber-50 border-[1.5px] border-amber-300 rounded-[6px] text-xs text-amber-950 font-medium shadow-[1px_1px_0px_#262626] animate-in fade-in">
-                <Lock size={14} className="text-amber-800 shrink-0" strokeWidth={2.4} />
-                <span>
-                  <strong>Lưu ý:</strong> Đây là ngày trong quá khứ nên hệ thống đã khóa chức năng thêm việc mới. Bạn có thể tick hoàn thành, dời ngày sang hôm nay/tương lai hoặc xóa việc.
-                </span>
-              </div>
-            )}
-
             {/* 2. BỘ LỌC 2 TẦNG DÙNG CHUNG INLINE (Y HỆT TAB HÔM NAY) */}
             <FilterBar
               statusFilter={statusFilter}
@@ -550,148 +485,88 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
               activeFilterCount={activeAdvancedFilterCount}
             />
 
-            {/* 3. BỐ CỤC 2 CỘT: KHU VỰC CÔNG VIỆC (TRÁI) & PANEL THÊM/SỬA VIỆC (PHẢI) */}
-            <div className="flex flex-col lg:flex-row gap-4 items-start w-full">
-              {/* KHU VỰC TRÁI: (A) Lịch Hẹn Nằm Trên -> (B) Danh Sách Task Nằm Dưới */}
-              <div className="flex-1 min-w-0 space-y-4 w-full">
-                {/* (A) PHẦN TRÊN: LỊCH HẸN & KHUNG GIỜ CỦA NGÀY (TodayScheduleNotes) */}
-                {(() => {
-                  const scheduledDayTasks = filteredTasks.filter((t) => {
-                    if (t.parentTaskId) return false;
-                    const normTime = normalizeTaskTimeType(t);
-                    return normTime === "scheduled" || (Boolean(t.startTime) && normTime !== "deadline");
-                  });
+            {/* 3. BỐ CỤC KHU VỰC CÔNG VIỆC TRONG NGÀY */}
+            <div className="space-y-4 w-full">
+              {/* (A) PHẦN TRÊN: LỊCH HẸN & KHUNG GIỜ CỦA NGÀY (TodayScheduleNotes) */}
+              {(() => {
+                const scheduledDayTasks = filteredTasks.filter((t) => {
+                  const normTime = normalizeTaskTimeType(t);
+                  return normTime === "scheduled" || (Boolean(t.startTime) && normTime !== "deadline");
+                });
+                const timedDayTasks = filteredTasks.filter((task) => Boolean(getTaskEffectiveTime(task)));
 
-                  if (scheduledDayTasks.length === 0) return null;
-
+                if (isDesktop) {
                   return (
-                    <TodayScheduleNotes
-                      scheduledTasks={scheduledDayTasks}
-                      onToggle={toggleTask}
-                      onEdit={(task) => {
-                        setActiveTask(task);
-                      }}
-                      onDelete={setDeletingTaskId}
-                      onAddSubtask={(parent) => {
-                        setActiveTask(parent);
-                      }}
-                      onClick={(task) => setActiveTask(task)}
-                      activeTaskId={activeTask?.id}
-                      title="Lịch hẹn trong ngày"
+                    <PlannerDayTimeline
+                      tasks={timedDayTasks}
+                      mode={dayViewMode}
+                      onModeChange={setDayViewMode}
+                      onSelectTask={(task) => openTaskDetail(task.id)}
+                      onToggleTask={toggleTask}
+                      onDeleteTask={deleteTask}
+                      onMoveTomorrow={moveTaskToNextDay}
                     />
                   );
-                })()}
+                }
 
-                {/* (B) PHẦN DƯỚI: DANH SÁCH CÔNG VIỆC CẦN LÀM TRONG NGÀY */}
-                {(() => {
-                  const todoDayTasks = filteredTasks.filter((t) => {
-                    const normTime = normalizeTaskTimeType(t);
-                    return !(normTime === "scheduled" || (Boolean(t.startTime) && normTime !== "deadline"));
-                  });
+                if (scheduledDayTasks.length === 0) return null;
 
-                  return (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between pb-1 border-b border-[#262626]/20">
-                        <div className="flex items-center gap-1.5 text-xs font-bold text-[#1C1917]">
-                          <ListTodo size={14} className="text-[#57534E]" />
-                          <span>Công việc cần làm trong ngày ({todoDayTasks.length})</span>
-                        </div>
-                      </div>
-
-                      <TaskList
-                        tasks={todoDayTasks}
-                        emptyMessage="Chưa có công việc nào trong ngày này"
-                        emptySubMessage={isPastDate ? "Ngày trong quá khứ không có công việc nào." : "Thêm công việc để bắt đầu lên kế hoạch!"}
-                        emptyActionText={isPastDate ? undefined : "+ Thêm việc vào ngày này"}
-                        onEmptyAction={undefined}
-                        onToggle={toggleTask}
-                        onEdit={(task) => setActiveTask(task)}
-                        onDelete={deleteTask}
-                        onMoveTomorrow={moveTaskToNextDay}
-                        onAddSubtask={(parent) => setActiveTask(parent)}
-                        onClick={(task) => setActiveTask(task)}
-                        variant="planner"
-                        hideDate={true}
-                        baseDateStr={selectedDateStr}
-                        activeTaskId={activeTask?.id}
-                      />
-                    </div>
-                  );
-                })()}
-              </div>
-
-              {/* CỘT CẠNH PHẢI: Panel Thao Tác Thêm & Sửa Việc Của Ngày Đó (Khóa khi là ngày quá khứ và không có activeTask) */}
-              <div className="shrink-0 sticky top-16 self-start w-full sm:w-auto">
-                {isPastDate && !activeTask ? (
-                  <div className="p-4 bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[8px] shadow-[2px_2px_0px_#262626] text-center space-y-2.5 w-full sm:w-[320px]">
-                    <div className="w-10 h-10 mx-auto rounded-full bg-amber-100 border-[1.5px] border-[#262626] flex items-center justify-center text-amber-900 shadow-[1.5px_1.5px_0px_#262626]">
-                      <Lock size={18} strokeWidth={2.4} />
-                    </div>
-                    <h4 className="font-bold text-xs sm:text-sm text-[#1C1917]">Đã khóa tạo việc mới</h4>
-                    <p className="text-[11px] text-[#78716C] leading-relaxed">
-                      Đây là ngày trong quá khứ. Bạn không thể tạo thêm việc mới. Bấm vào một công việc cũ để xem hoặc dời sang ngày mới.
-                    </p>
-                  </div>
-                ) : activeTask ? (
-                  <TodayComposerSidebar
-                    isOpen={true}
-                    onToggle={() => {}}
-                    parentTask={null}
-                    editingTask={activeTask}
-                    onSelectTask={setActiveTask}
-                    onClearParentTask={() => {}}
-                    onCancelEdit={() => setActiveTask(null)}
-                    onDeleteTask={(id) => {
-                      deleteTask(id);
-                      if (activeTask?.id === id) setActiveTask(null);
-                    }}
-                    onMoveTomorrow={(id) => {
-                      moveTaskToNextDay(id);
-                      setActiveTask(null);
-                    }}
-                    onAddSubtaskToTask={(parent) => setActiveTask(parent)}
+                return (
+                  <TodayScheduleNotes
+                    scheduledTasks={scheduledDayTasks}
+                    onToggle={toggleTask}
+                    onEdit={(task) => openTaskDetail(task.id)}
+                    onDelete={deleteTask}
+                    onMoveTomorrow={moveTaskToNextDay}
+                    onClick={(task) => openTaskDetail(task.id)}
+                    activeTaskId={targetTaskId}
+                    title="Lịch hẹn"
                   />
-                ) : null}
-              </div>
+                );
+              })()}
+
+              {/* (B) PHẦN DƯỚI: DANH SÁCH CÔNG VIỆC CẦN LÀM TRONG NGÀY */}
+              {(() => {
+                const todoDayTasks = filteredTasks.filter((t) => {
+                  const normTime = normalizeTaskTimeType(t);
+                  return isDesktop
+                    ? !getTaskEffectiveTime(t)
+                    : !(normTime === "scheduled" || (Boolean(t.startTime) && normTime !== "deadline"));
+                });
+
+                return (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between pb-1 border-b border-[#262626]/20">
+                      <div className="flex items-center gap-1.5 text-sm font-bold text-[#1C1917]">
+                        <ListTodo size={14} className="text-[#57534E]" />
+                        <span>Công việc ({todoDayTasks.length})</span>
+                      </div>
+                    </div>
+
+                    <TaskList
+                      tasks={todoDayTasks}
+                      emptyMessage="Chưa có công việc trong ngày này"
+                      emptySubMessage={isPastDate ? "Không có công việc trong ngày." : "Chưa có công việc."}
+                      emptyActionText={isPastDate ? undefined : "+ Thêm việc vào ngày này"}
+                      onEmptyAction={isPastDate ? undefined : () => openTaskDetail("new")}
+                      onToggle={toggleTask}
+                      onEdit={(task) => openTaskDetail(task.id)}
+                      onDelete={deleteTask}
+                      onMoveTomorrow={moveTaskToNextDay}
+                      onClick={(task) => openTaskDetail(task.id)}
+                      variant="planner"
+                      hideDate={true}
+                      baseDateStr={selectedDateStr}
+                      activeTaskId={targetTaskId}
+                      showQuickAdd={false}
+                    />
+                  </div>
+                );
+              })()}
             </div>
           </div>
         );
       })()}
-
-      {/* ========================================== */}
-      {/* MÀN HÌNH HỘP CHỜ (UNSCHEDULED BACKLOG) */}
-      {/* ========================================== */}
-      {plannerScreen === "backlog" && (
-        <div className="space-y-3 animate-in fade-in duration-150">
-          <div className="flex items-center justify-between pb-2 border-b border-[#262626]">
-            <button
-              type="button"
-              onClick={() => setPlannerScreen("overview")}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF8F3] hover:bg-[#F3EFE6] border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] transition-all"
-            >
-              <ArrowLeft size={14} strokeWidth={2.4} />
-              <span>Quay lại Kế hoạch</span>
-            </button>
-            <h3 className="font-bold text-sm text-[#1C1917]">
-              Hộp Chờ Công Việc ({unscheduledTasks.length})
-            </h3>
-          </div>
-
-          <PlannerBacklog
-            isOpen={plannerScreen === "backlog"}
-            onClose={() => setPlannerScreen("overview")}
-            tasks={unscheduledTasks}
-            onScheduleToDate={handleScheduleFromBacklog}
-            onEdit={(task: TaskDto) => {
-              setActiveTask(task);
-              if (task.dueDate) {
-                setSelectedDateStr(task.dueDate.split(" ")[0]);
-                setPlannerScreen("day");
-              }
-            }}
-          />
-        </div>
-      )}
     </div>
   );
 };

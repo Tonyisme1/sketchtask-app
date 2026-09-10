@@ -6,7 +6,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { TaskDto, NotebookDto, HabitDto, TaskStatus, TaskPriority, TaskTimeType, JournalEntryDto } from "../types";
+import { TaskDto, NotebookDto, HabitDto, TaskStatus, TaskPriority, TaskTimeType, JournalEntryDto, SettingsSectionKey } from "../types";
 import { api, authStorage } from "../services/api";
 import { syncSocket } from "../services/syncSocket";
 import { smartMergeAppData } from "../utils/syncMerge";
@@ -14,6 +14,7 @@ import { notificationService } from "../services/notificationService";
 import { sounds } from "../utils/soundEffects";
 import { generateSample50Tasks } from "../data/sample50Tasks";
 import { getLocalTodayStr, getNextDayStr } from "../utils/date";
+import { dispatchToast } from "../utils/toast";
 import {
   constrainTaskToParent,
   getInheritedParentSchedule,
@@ -22,7 +23,7 @@ import {
   wouldCreateTaskCycle,
 } from "../utils/taskSemantics";
 
-export type { TaskDto, TaskPriority, NotebookDto, HabitDto, TaskStatus, TaskTimeType, JournalEntryDto };
+export type { TaskDto, TaskPriority, NotebookDto, HabitDto, TaskStatus, TaskTimeType, JournalEntryDto, SettingsSectionKey };
 
 // ==========================================
 // STORE: AppStore (Offline-First + Realtime WebSocket Sync Engine)
@@ -96,10 +97,6 @@ export interface AppContextType {
   isAuthModalOpen: boolean;
   openAuthModal: () => void;
   closeAuthModal: () => void;
-
-  // Onboarding
-  isFirstVisit: boolean;
-  dismissOnboarding: () => void;
 
   // Settings
   theme: ColorTheme;
@@ -220,9 +217,32 @@ export interface AppContextType {
   selectedPlannerDate: string;
   setSelectedPlannerDate: (date: string) => void;
 
+  // Active Detail Task (Full page Document Canvas)
+  activeDetailTaskId: string | null;
+  openTaskDetail: (taskId?: string) => void;
+  closeTaskDetail: () => void;
+
+  // Quick Task Creation Modal
+  isQuickTaskModalOpen: boolean;
+  quickTaskInitialData: { dueDate?: string; notebookId?: string; tag?: string } | null;
+  openQuickTaskModal: (initialData?: { dueDate?: string; notebookId?: string; tag?: string }) => void;
+  closeQuickTaskModal: () => void;
+
   // Active Note SubTab (Ghi chú | Nhật ký)
   activeNoteSubTab: "notes" | "journal";
   setActiveNoteSubTab: (subTab: "notes" | "journal") => void;
+
+  // Settings Mobile SubView
+  settingsMobileSubView: SettingsSectionKey | null;
+  setSettingsMobileSubView: (view: SettingsSectionKey | null) => void;
+
+  // Selected Notebook Detail ID (Kệ sổ)
+  selectedNotebookId: string | null;
+  setSelectedNotebookId: (id: string | null) => void;
+
+  // Mobile Note Detail State (Trình soạn thảo ghi chú toàn màn hình trên mobile)
+  isMobileNoteDetailOpen: boolean;
+  setIsMobileNoteDetailOpen: (open: boolean) => void;
 }
 
 export const APP_STORAGE_KEY = "sketchtask_local_storage_v2";
@@ -513,17 +533,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const openAuthModal = useCallback(() => setIsAuthModalOpen(true), []);
   const closeAuthModal = useCallback(() => setIsAuthModalOpen(false), []);
 
-  // --- First visit onboarding ---
-  const [isFirstVisit, setIsFirstVisit] = useState<boolean>(() => {
-    return !localStorage.getItem(`${STORAGE_KEY}_visited`);
-  });
-
-  const dismissOnboarding = () => {
-    localStorage.setItem(`${STORAGE_KEY}_visited`, "1");
-    setIsFirstVisit(false);
-  };
-
   // --- Settings state ---
+  const [settingsMobileSubView, setSettingsMobileSubViewState] = useState<SettingsSectionKey | null>(null);
+  const setSettingsMobileSubView = useCallback((view: SettingsSectionKey | null) => {
+    setSettingsMobileSubViewState(view);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, []);
+
+  // --- Selected Notebook Detail ID (Kệ sổ) ---
+  const [selectedNotebookId, setSelectedNotebookIdState] = useState<string | null>(null);
+  const setSelectedNotebookId = useCallback((id: string | null) => {
+    setSelectedNotebookIdState(id);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, []);
+
+  // --- Mobile Note Detail State ---
+  const [isMobileNoteDetailOpen, setIsMobileNoteDetailOpenState] = useState<boolean>(false);
+  const setIsMobileNoteDetailOpen = useCallback((open: boolean) => {
+    setIsMobileNoteDetailOpenState(open);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, []);
   const [isTiltEnabled, setIsTiltEnabled] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_tilt`);
@@ -572,18 +613,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const setIsNotificationsEnabled = (enabled: boolean) => {
     setIsNotificationsEnabledState(enabled);
+    notificationService.setEnabled(enabled);
     localStorage.setItem(
       `${STORAGE_KEY}_notifications_enabled`,
       JSON.stringify(enabled),
     );
     if (!enabled) {
-      // Hủy toàn bộ thông báo khi người dùng tắt
-      if (typeof window !== "undefined" && "LocalNotifications" in window) {
-        notificationService.cancelAll?.();
-      }
+      // Hủy toàn bộ thông báo trên cả native và web khi người dùng tắt.
+      void notificationService.cancelAll();
     } else {
       // Đồng bộ lại thông báo khi bật
-      notificationService.syncAllTasks(tasks);
+      void notificationService.syncAllTasks(tasks);
     }
   };
 
@@ -639,11 +679,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   // --- Active Task SubTab (Hôm nay | Kế hoạch | Hạn định) ---
-  const [activeTaskSubTab, setActiveTaskSubTab] = useState<"today" | "planner" | "deadlines">("today");
+  const [activeTaskSubTab, setActiveTaskSubTabState] = useState<"today" | "planner" | "deadlines">("today");
+  const setActiveTaskSubTab = useCallback((subTab: "today" | "planner" | "deadlines") => {
+    setActiveTaskSubTabState(subTab);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, []);
   const [selectedPlannerDate, setSelectedPlannerDate] = useState<string>(() => getLocalTodayStr());
 
   // --- Active Note SubTab (Ghi chú | Nhật ký) ---
-  const [activeNoteSubTab, setActiveNoteSubTab] = useState<"notes" | "journal">("notes");
+  const [activeNoteSubTab, setActiveNoteSubTabState] = useState<"notes" | "journal">("notes");
+  const setActiveNoteSubTab = useCallback((subTab: "notes" | "journal") => {
+    setActiveNoteSubTabState(subTab);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, []);
 
   // --- Sound Effects & Paper Style Settings ---
   const [isSoundEnabled, setIsSoundEnabledState] = useState<boolean>(() => {
@@ -823,6 +879,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const [theme, setTheme] = useState<ColorTheme>("warm");
 
+  // Khôi phục lịch nhắc sau khi reload. Preference của app và quyền của OS
+  // là hai lớp độc lập; notificationService sẽ tự kiểm tra quyền trước khi gửi.
+  useEffect(() => {
+    notificationService.setEnabled(isNotificationsEnabled);
+    void notificationService.syncAllTasks(tasks);
+    // Chỉ khởi tạo lịch một lần; các thao tác CRUD tự cập nhật từng task.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Flag ngăn loop sync khi nhận update từ socket
   const isApplyingRemoteSync = useRef(false);
   const syncDebounceTimer = useRef<any>(null);
@@ -892,6 +957,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     notebooks,
     stickyNotes,
     habits,
+    journalEntries,
     dailyMoods,
     weeklyReflection,
     tags,
@@ -904,6 +970,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       notebooks,
       stickyNotes,
       habits,
+      journalEntries,
       dailyMoods,
       weeklyReflection,
       tags,
@@ -914,6 +981,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     notebooks,
     stickyNotes,
     habits,
+    journalEntries,
     dailyMoods,
     weeklyReflection,
     tags,
@@ -958,6 +1026,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       notebooks: current.notebooks,
       stickyNotes: current.stickyNotes,
       habits: current.habits,
+      journalEntries: current.journalEntries,
       dailyMoods: current.dailyMoods,
       weeklyReflection: current.weeklyReflection,
       tags: current.tags,
@@ -1011,6 +1080,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           notebooks: partialData?.notebooks ?? current.notebooks,
           stickyNotes: partialData?.stickyNotes ?? current.stickyNotes,
           habits: partialData?.habits ?? current.habits,
+          journalEntries: partialData?.journalEntries ?? current.journalEntries,
           dailyMoods: partialData?.dailyMoods ?? current.dailyMoods,
           weeklyReflection:
             partialData?.weeklyReflection ?? current.weeklyReflection,
@@ -1047,6 +1117,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             notebooks: currentLocal.notebooks,
             stickyNotes: currentLocal.stickyNotes,
             habits: currentLocal.habits,
+            journalEntries: currentLocal.journalEntries,
             dailyMoods: currentLocal.dailyMoods,
             weeklyReflection: currentLocal.weeklyReflection,
             tags: currentLocal.tags,
@@ -1058,9 +1129,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setNotebooks(merged.notebooks);
         setStickyNotes(merged.stickyNotes);
         setHabits(merged.habits);
+        setJournalEntries(merged.journalEntries || []);
         setDailyMoods(merged.dailyMoods);
         setWeeklyReflection(merged.weeklyReflection);
         setTags(merged.tags);
+
+        // Rebuild reminders from the merged server snapshot so a login does
+        // not leave the device with the previous account's notification schedule.
+        void notificationService.syncAllTasks(merged.tasks);
 
         // Đẩy bản hợp nhất lên server để hoàn thiện đồng bộ 2 chiều
         await pushDataToServer(merged);
@@ -1435,6 +1511,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const deleteTask = (id: string) => {
     const taskToDelete = tasks.find((t) => t.id === id);
+    if (!taskToDelete) return;
+
     notificationService.cancelTask(id);
 
     setTasks((prev) => {
@@ -1458,10 +1536,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         return next;
       });
     }
+
+    dispatchToast({ message: `Đã xóa "${taskToDelete.title}".` });
   };
 
   const moveTaskToNextDay = (id: string, baseDateStr?: string) => {
     const currentTodayStr = getLocalTodayStr();
+    const taskToMove = tasks.find((task) => task.id === id);
+    if (!taskToMove) return;
+
     setTasks((prev) => {
       const next = prev.map((t) => {
         if (t.id !== id) return t;
@@ -1485,6 +1568,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       triggerDebouncedPush({ tasks: next });
       return next;
     });
+
+    dispatchToast({ message: `Đã dời "${taskToMove.title}" sang ngày mai.` });
   };
 
   const moveTaskToTomorrow = (id: string) => {
@@ -1817,6 +1902,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     };
     setJournalEntries((prev) => {
       const next = [...prev, newEntry];
+      triggerDebouncedPush({ journalEntries: next });
       return next;
     });
     return newEntry;
@@ -1829,12 +1915,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           ? { ...item, ...updates, updatedAt: new Date().toISOString() }
           : item
       );
+      triggerDebouncedPush({ journalEntries: next });
       return next;
     });
   };
 
   const deleteJournalEntry = (id: string) => {
-    setJournalEntries((prev) => prev.filter((item) => item.id !== id));
+    setJournalEntries((prev) => {
+      const next = prev.filter((item) => item.id !== id);
+      triggerDebouncedPush({ journalEntries: next });
+      return next;
+    });
   };
 
   const openJournalWithTask = (task: TaskDto) => {
@@ -1869,6 +1960,46 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     return removedCount;
   };
 
+  // --- Active Detail Task (Full page Document Canvas) ---
+  const [activeDetailTaskId, setActiveDetailTaskId] = useState<string | null>(null);
+  const openTaskDetail = useCallback((taskId?: string) => {
+    setActiveDetailTaskId(taskId || "new");
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, []);
+  const closeTaskDetail = useCallback(() => {
+    setActiveDetailTaskId(null);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, []);
+
+  // --- Quick Task Creation Modal ---
+  const [isQuickTaskModalOpen, setIsQuickTaskModalOpen] = useState(false);
+  const [quickTaskInitialData, setQuickTaskInitialData] = useState<{
+    dueDate?: string;
+    notebookId?: string;
+    tag?: string;
+  } | null>(null);
+
+  const openQuickTaskModal = useCallback(
+    (initialData?: { dueDate?: string; notebookId?: string; tag?: string }) => {
+      setQuickTaskInitialData(initialData || null);
+      setIsQuickTaskModalOpen(true);
+    },
+    []
+  );
+
+  const closeQuickTaskModal = useCallback(() => {
+    setIsQuickTaskModalOpen(false);
+    setQuickTaskInitialData(null);
+  }, []);
+
   return (
     <AppContext.Provider
       value={{
@@ -1886,8 +2017,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         isAuthModalOpen,
         openAuthModal,
         closeAuthModal,
-        isFirstVisit,
-        dismissOnboarding,
         theme,
         setTheme,
         isTiltEnabled,
@@ -1963,8 +2092,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setActiveTaskSubTab,
         selectedPlannerDate,
         setSelectedPlannerDate,
+        activeDetailTaskId,
+        openTaskDetail,
+        closeTaskDetail,
+        isQuickTaskModalOpen,
+        quickTaskInitialData,
+        openQuickTaskModal,
+        closeQuickTaskModal,
         activeNoteSubTab,
         setActiveNoteSubTab,
+        settingsMobileSubView,
+        setSettingsMobileSubView,
+        selectedNotebookId,
+        setSelectedNotebookId,
+        isMobileNoteDetailOpen,
+        setIsMobileNoteDetailOpen,
       }}
     >
       {children}

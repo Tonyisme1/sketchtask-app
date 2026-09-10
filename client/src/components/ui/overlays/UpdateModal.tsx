@@ -70,13 +70,13 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
         className="relative w-full max-w-sm bg-[#FBF9F4] dark:bg-[#262626] border-[2px] border-[#262626] dark:border-[#57534E] rounded-[8px] shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col space-y-3.5 mobile-bottom-sheet-enter"
       >
         {/* Paper Tape Effect */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-28 h-5 bg-[#FEF08A]/90 border-x border-[#262626]/40 rotate-1 shadow-[1px_1px_0px_#262626] pointer-events-none" />
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-28 h-5 bg-[#FAF8F3] border-x border-[#262626]/40 rotate-1 shadow-[1px_1px_0px_#262626] pointer-events-none" />
 
         {/* Header */}
         <div className="flex items-center justify-between pb-2 border-b border-[#262626] dark:border-[#57534E]">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#FEF08A] border border-[#262626] rounded-[4px] flex items-center justify-center shadow-[1px_1px_0px_#262626]">
-              <Sparkles size={16} className="text-amber-700" />
+            <div className="w-8 h-8 bg-[#1C1917] border border-[#262626] rounded-[4px] flex items-center justify-center shadow-[1px_1px_0px_#262626]">
+              <Sparkles size={16} className="text-white" />
             </div>
             <div>
               <h3 className="font-bold text-sm text-[#1C1917] dark:text-[#FBF9F4]">
@@ -106,7 +106,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
         {/* Changelog Content */}
         <div className="p-3 bg-white dark:bg-[#1C1917] border border-[#D4CEBF] dark:border-[#44403C] rounded-[6px] space-y-1 text-xs">
           <p className="font-bold text-[11px] text-[#1C1917] dark:text-[#FBF9F4] flex items-center gap-1">
-            <Sparkles size={12} className="text-amber-600" />
+            <Sparkles size={12} className="text-[#1C1917] dark:text-white" />
             <span>Có gì mới trong bản này:</span>
           </p>
           <p className="text-[11px] text-[#78716C] dark:text-[#A8A29E] leading-relaxed">
@@ -130,7 +130,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
           <button
             type="button"
             onClick={handleApplyUpdate}
-            className="flex-1 py-2 bg-[#BBF7D0] hover:bg-[#86EFAC] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] flex items-center justify-center gap-1.5 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all select-none"
+            className="flex-1 py-2 bg-[#1C1917] hover:bg-[#262626] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-white flex items-center justify-center gap-1.5 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all select-none"
           >
             <RefreshCw size={13} strokeWidth={2.5} />
             <span>Cập nhật ngay</span>
