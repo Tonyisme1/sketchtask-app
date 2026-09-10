@@ -18,7 +18,7 @@ client/android/app/src/main/assets/capacitor.config.json
 client/android/app/capacitor.build.gradle
 client/android/capacitor.settings.gradle
 
-# Local database & storage backups (the app uses PostgreSQL)
+# Local database & storage backups (the app uses SQLite)
 *.db
 *.db-journal
 server/prisma/*.db

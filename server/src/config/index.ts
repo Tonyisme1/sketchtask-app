@@ -13,9 +13,15 @@ if (!databaseUrl) {
   );
 }
 
-if (isProduction && !/^postgres(ql)?:\/\//.test(databaseUrl)) {
+if (isProduction && !/^file:/.test(databaseUrl)) {
   throw new Error(
-    "FATAL: Trong môi trường Production, DATABASE_URL phải là connection string PostgreSQL (postgresql:// hoặc postgres://).",
+    "FATAL: Trong môi trường Production, DATABASE_URL phải là đường dẫn SQLite dạng file:.",
+  );
+}
+
+if (isProduction && process.env.RENDER === "true" && !/^file:\/var\/data\//.test(databaseUrl)) {
+  throw new Error(
+    "FATAL: Trên Render, DATABASE_URL phải trỏ vào Persistent Disk: file:/var/data/sketchtask.db.",
   );
 }
 

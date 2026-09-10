@@ -29,8 +29,8 @@ interface PlannerTimelineProps {
 
 const START_HOUR = 0;
 const END_HOUR = 24;
-const HOUR_HEIGHT = 44;
-const MINUTE_MARKS = [15, 30, 45];
+const HOUR_HEIGHT = 128;
+const QUARTER_START_MINUTES = [0, 15, 30, 45];
 
 const parseTime = (value?: string) => {
   if (!value || !/^\d{2}:\d{2}$/.test(value)) return undefined;
@@ -253,7 +253,7 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
               {timelineLayout.hours.map(({ hour, top, height }) => (
                 <div
                   key={hour}
-                  className="absolute left-0 right-0 border-b border-[#D4CEBF] px-1.5 pt-1 font-mono text-[10px] text-[#78716C]"
+                  className="absolute left-0 right-0 flex items-center justify-end border-b border-[#D4CEBF] px-1.5 font-mono text-[10px] text-[#78716C]"
                   style={{ top, height }}
                 >
                   {formatTime(hour * 60)}
@@ -265,15 +265,15 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
               {timelineLayout.hours.map(({ hour, top, height }) => (
                 <div
                   key={hour}
-                  className="absolute left-0 right-0 border-b border-[#D4CEBF]"
+                  className="absolute left-0 right-0"
                   style={{ top, height }}
                 >
-                  {MINUTE_MARKS.map((minute) => (
-                    <span
+                  {QUARTER_START_MINUTES.map((minute) => (
+                    <div
                       key={minute}
                       aria-hidden="true"
-                      className="pointer-events-none absolute bottom-0 top-0 border-l border-dashed border-[#D4CEBF]/70"
-                      style={{ left: `${(minute / 60) * 100}%` }}
+                      className="absolute left-0 right-0 border-b border-[#D4CEBF]"
+                      style={{ top: `${(minute / 60) * 100}%`, height: "25%" }}
                     />
                   ))}
                 </div>

@@ -13,7 +13,10 @@ import {
 import { PlannerHeader, PlannerViewMode } from "./PlannerHeader";
 import { PlannerCalendar } from "./PlannerCalendar";
 import { PlannerWeekView } from "./PlannerWeekView";
-import { PlannerDayTimeline, PlannerDayTimelineMode } from "./PlannerDayTimeline";
+import {
+  PlannerDayDisplayMode,
+  PlannerDayTimeline,
+} from "./PlannerDayTimeline";
 import { TodayScheduleNotes } from "../today/TodayScheduleNotes";
 import { TaskList } from "../shared/TaskList";
 import { FilterBar } from "../shared/FilterBar";
@@ -66,7 +69,7 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
 
   // Ngày đang được chọn để xem chi tiết trong DayPlanView
   const [selectedDateStr, setSelectedDateStr] = useState<string>(todayStr);
-  const [dayViewMode, setDayViewMode] = useState<PlannerDayTimelineMode>("hour");
+  const [dayDisplayMode, setDayDisplayMode] = useState<PlannerDayDisplayMode>("chart");
 
   // Đồng bộ ngày được chọn sang global store cho FAB thông minh
   React.useEffect(() => {
@@ -508,8 +511,9 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
                   return (
                     <PlannerDayTimeline
                       tasks={timedDayTasks}
-                      mode={dayViewMode}
-                      onModeChange={setDayViewMode}
+                      listTasks={filteredTasks}
+                      displayMode={dayDisplayMode}
+                      onDisplayModeChange={setDayDisplayMode}
                       onSelectTask={(task) => openTaskDetail(task.id)}
                       onToggleTask={toggleTask}
                       onDeleteTask={deleteTask}
@@ -536,6 +540,8 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
 
               {/* (B) PHẦN DƯỚI: DANH SÁCH CÔNG VIỆC CẦN LÀM TRONG NGÀY */}
               {(() => {
+                if (isDesktop) return null;
+
                 const todoDayTasks = filteredTasks.filter((t) => {
                   const normTime = normalizeTaskTimeType(t);
                   return isDesktop

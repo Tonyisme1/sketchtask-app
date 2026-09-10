@@ -1,15 +1,17 @@
 import React from "react";
-import { ArrowRight, Check, Clock, Trash2 } from "lucide-react";
+import { ArrowRight, Check, Clock, ListTodo, Trash2 } from "lucide-react";
 import { TaskDto } from "../../../types";
 import { getTaskEffectiveTime, normalizeTaskTimeType } from "../../../utils/taskSemantics";
+import { TaskList } from "../shared/TaskList";
 import { buildTimelineGridLayout } from "./plannerTimelineLayout";
 
-export type PlannerDayTimelineMode = "hour" | "minute";
+export type PlannerDayDisplayMode = "chart" | "list";
 
 interface PlannerDayTimelineProps {
   tasks: TaskDto[];
-  mode: PlannerDayTimelineMode;
-  onModeChange: (mode: PlannerDayTimelineMode) => void;
+  listTasks?: TaskDto[];
+  displayMode: PlannerDayDisplayMode;
+  onDisplayModeChange: (mode: PlannerDayDisplayMode) => void;
   onSelectTask: (task: TaskDto) => void;
   onToggleTask: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
@@ -17,8 +19,8 @@ interface PlannerDayTimelineProps {
 }
 
 const MINUTES_PER_DAY = 24 * 60;
-const HOUR_ROW_HEIGHT = 52;
-const MINUTE_MARKS = [15, 30, 45];
+const HOUR_ROW_HEIGHT = 160;
+const QUARTER_START_MINUTES = [0, 15, 30, 45];
 
 const parseTime = (value?: string) => {
   if (!value || !/^\d{2}:\d{2}$/.test(value)) return undefined;
@@ -135,21 +137,74 @@ const DayTimelineTaskCard: React.FC<{
 // === PHẦN 2: Biểu đồ ngày với hai mức chi tiết dành riêng cho desktop ===
 export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
   tasks,
-  mode,
-  onModeChange,
+  listTasks,
+  displayMode,
+  onDisplayModeChange,
   onSelectTask,
   onToggleTask,
   onDeleteTask,
   onMoveTomorrow,
 }) => {
   const rowHeight = HOUR_ROW_HEIGHT;
-  const visibleMinuteMarks = mode === "hour" ? [] : MINUTE_MARKS;
+  const displayListTasks = listTasks ?? tasks;
   const timedTasks = tasks
     .map((task) => ({ task, range: getTaskRange(task) }))
     .filter((item): item is { task: TaskDto; range: { start: number; end: number } } => Boolean(item.range))
     .sort((a, b) => a.range.start - b.range.start);
 
   const timelineLayout = buildTimelineGridLayout(tasks, getTaskRange, rowHeight, 32);
+
+  // === PHẦN 3: Danh sách task thay thế biểu đồ trong chi tiết ngày ===
+  if (displayMode === "list") {
+    return (
+      <section className="space-y-2.5 select-none animate-in fade-in duration-150">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#262626]/20 pb-1.5">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-[#1C1917]">
+            <ListTodo size={14} strokeWidth={2.4} />
+            <span>Danh sách công việc ({displayListTasks.length})</span>
+          </div>
+
+          <div
+            className="inline-flex items-center gap-0.5 rounded-[5px] border-[1.5px] border-[#262626] bg-[#FAF8F3] p-0.5 shadow-[1px_1px_0px_#262626]"
+            role="tablist"
+            aria-label="Kiểu hiển thị chi tiết ngày"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={false}
+              onClick={() => onDisplayModeChange("chart")}
+              className="rounded-[3px] px-2 py-1 text-[10px] font-bold text-[#57534E] transition-all hover:bg-white active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+            >
+              Biểu đồ
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected
+              className="rounded-[3px] border-[1.5px] border-[#262626] bg-[#1C1917] px-2 py-1 text-[10px] font-bold text-white shadow-[1px_1px_0px_#262626] transition-all active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+            >
+              Danh sách
+            </button>
+          </div>
+        </div>
+
+        <TaskList
+          tasks={displayListTasks}
+          emptyMessage="Chưa có công việc trong ngày này"
+          emptySubMessage="Các task của ngày sẽ hiển thị ở đây."
+          onToggle={onToggleTask}
+          onEdit={onSelectTask}
+          onDelete={onDeleteTask}
+          onMoveTomorrow={onMoveTomorrow}
+          onClick={onSelectTask}
+          variant="planner"
+          hideDate={true}
+          showQuickAdd={false}
+        />
+      </section>
+    );
+  }
 
   if (timedTasks.length === 0) return null;
 
@@ -161,33 +216,31 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
           <span>Biểu đồ trong ngày ({timedTasks.length})</span>
         </div>
 
-        <div className="inline-flex items-center gap-0.5 rounded-[5px] border-[1.5px] border-[#262626] bg-[#FAF8F3] p-0.5 shadow-[1px_1px_0px_#262626]" role="tablist" aria-label="Kiểu biểu đồ ngày">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === "hour"}
-            onClick={() => onModeChange("hour")}
-            className={`rounded-[3px] px-2 py-1 text-[10px] font-bold transition-all active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
-              mode === "hour"
-                ? "border-[1.5px] border-[#262626] bg-[#1C1917] text-white shadow-[1px_1px_0px_#262626]"
-                : "text-[#57534E] hover:bg-white"
-            }`}
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
+          <div
+            className="inline-flex items-center gap-0.5 rounded-[5px] border-[1.5px] border-[#262626] bg-[#FAF8F3] p-0.5 shadow-[1px_1px_0px_#262626]"
+            role="tablist"
+            aria-label="Kiểu hiển thị chi tiết ngày"
           >
-            Theo giờ
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === "minute"}
-            onClick={() => onModeChange("minute")}
-            className={`rounded-[3px] px-2 py-1 text-[10px] font-bold transition-all active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
-              mode === "minute"
-                ? "border-[1.5px] border-[#262626] bg-[#1C1917] text-white shadow-[1px_1px_0px_#262626]"
-                : "text-[#57534E] hover:bg-white"
-            }`}
-          >
-            Giờ-phút
-          </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected
+              className="rounded-[3px] border-[1.5px] border-[#262626] bg-[#1C1917] px-2 py-1 text-[10px] font-bold text-white shadow-[1px_1px_0px_#262626] transition-all active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+            >
+              Biểu đồ
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={false}
+              onClick={() => onDisplayModeChange("list")}
+              className="rounded-[3px] px-2 py-1 text-[10px] font-bold text-[#57534E] transition-all hover:bg-white active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+            >
+              Danh sách
+            </button>
+          </div>
+
         </div>
       </div>
 
@@ -202,7 +255,7 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
               {timelineLayout.hours.map(({ hour, top, height }) => (
                 <div
                   key={hour}
-                  className="absolute left-0 right-0 border-b border-[#D4CEBF] px-1.5 pt-1 font-mono text-[10px] text-[#57534E]"
+                  className="absolute left-0 right-0 flex items-center justify-end border-b border-[#D4CEBF] px-1.5 font-mono text-[10px] text-[#57534E]"
                   style={{ top, height }}
                 >
                   {formatTime(hour * 60)}
@@ -214,15 +267,15 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
               {timelineLayout.hours.map(({ hour, top, height }) => (
                 <div
                   key={hour}
-                  className="absolute left-0 right-0 border-b border-[#D4CEBF]"
+                  className="absolute left-0 right-0"
                   style={{ top, height }}
                 >
-                  {visibleMinuteMarks.map((minute) => (
-                    <span
+                  {QUARTER_START_MINUTES.map((minute) => (
+                    <div
                       key={minute}
                       aria-hidden="true"
-                      className="pointer-events-none absolute bottom-0 top-0 border-l border-dashed border-[#D4CEBF]/70"
-                      style={{ left: `${(minute / 60) * 100}%` }}
+                      className="absolute left-0 right-0 border-b border-[#D4CEBF]"
+                      style={{ top: `${(minute / 60) * 100}%`, height: "25%" }}
                     />
                   ))}
                 </div>

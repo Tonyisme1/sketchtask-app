@@ -1,6 +1,6 @@
-// Prisma Schema cho My_Task_App (PostgreSQL local và production)
+// Prisma Schema cho My_Task_App (SQLite local và production)
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
