@@ -417,13 +417,14 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
               key={task.id}
               type="button"
               onClick={() => onSelectTask(task)}
-              className={`rounded-[5px] border-[1.5px] border-[#262626] px-3 py-1.5 text-xs font-bold shadow-[1.5px_1.5px_0px_#262626] transition-all active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
+              className={`rounded-[5px] border-[1.5px] border-[#262626] px-3 py-1.5 text-xs font-bold shadow-[1.5px_1.5px_0px_#262626] transition-all active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none inline-flex items-center gap-1.5 ${
                 task.completed
                   ? "bg-[#BBF7D0] line-through opacity-70"
                   : "bg-white hover:bg-[#FAF8F3]"
               }`}
             >
-              📌 {task.title}
+              <Pin size={12} className="text-[#1C1917] shrink-0" />
+              <span>{task.title}</span>
             </button>
           ))}
         </div>

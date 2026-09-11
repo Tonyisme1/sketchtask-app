@@ -309,7 +309,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
           <button
             type="button"
             onClick={onCreateClick}
-            className="px-5 py-2.5 bg-[#BBF7D0] hover:bg-[#86EFAC] text-emerald-950 border-[1.5px] border-[#262626] rounded-[6px] text-sm font-bold shadow-[2px_2px_0px_#262626] active:translate-y-[0.5px] transition-all cursor-pointer inline-flex items-center gap-2"
+            className="px-5 py-2.5 bg-[#1C1917] hover:bg-black text-white border-[1.5px] border-[#262626] rounded-[6px] text-sm font-bold shadow-[2px_2px_0px_#262626] active:translate-y-[0.5px] transition-all cursor-pointer inline-flex items-center gap-2"
           >
             <Plus size={17} strokeWidth={2.6} />
             <span>Mở trang ghi chú mới</span>
@@ -325,13 +325,13 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   return (
     <div className={`w-full min-w-0 select-none ${
       isMobile
-        ? "bg-[#FBF9F4] mobile-panel-enter"
+        ? "bg-[#FFFDF8] min-h-screen mobile-panel-enter"
         : "space-y-4"
     }`}>
       {/* 1. Thanh thao tác ghi chú: quay lại, chọn sổ và xóa (Đồng bộ MobileHeader) */}
       <div className={`flex items-center justify-between gap-2 ${
         isMobile
-          ? `sticky top-0 z-30 bg-[#FBF9F4] border-b border-[#262626]/20 px-3.5 sm:px-5 min-h-[56px] sm:min-h-[60px] ${
+          ? `sticky top-0 z-30 bg-[#FFFDF8] border-b border-[#262626]/20 px-3.5 sm:px-5 min-h-[56px] sm:min-h-[60px] ${
               isNativePlatform()
                 ? "pt-11 pb-2.5"
                 : "pt-[max(env(safe-area-inset-top),10px)] pb-2.5"
@@ -364,7 +364,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
             }}
             className={`h-9 w-9 rounded-[4px] flex items-center justify-center transition-colors cursor-pointer ${
               isMobile
-                ? "border border-transparent bg-transparent text-[#78716C] shadow-none hover:bg-[#FECDD3] hover:text-[#BE123C]"
+                ? "border border-transparent bg-transparent text-[#78716C] shadow-none hover:bg-rose-50 hover:text-rose-600"
                 : "border-[1.5px] border-[#262626] bg-white text-[#78716C] shadow-[1.5px_1.5px_0px_#262626] hover:bg-rose-50 hover:text-rose-600 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
             }`}
             title="Xóa trang ghi chú này"
@@ -379,7 +379,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
       <div
         className={`flex flex-col overflow-hidden ${
           isMobile
-            ? "min-h-[calc(100dvh-70px)] bg-transparent px-3.5 py-4 sm:px-5 sm:py-5 pb-28"
+            ? "min-h-[calc(100dvh-70px)] bg-[#FFFDF8] px-4 py-4 sm:px-6 sm:py-5 pb-28"
             : "h-[calc(100dvh-8.5rem)] min-h-[420px] max-h-[760px] rounded-[8px] border-[1.5px] border-[#262626] bg-[#FFFDF8] p-4 shadow-[3px_3px_0px_#262626] sm:p-6 md:h-[calc(100dvh-12rem)] md:min-h-[520px] md:max-h-[820px] md:p-8"
         }`}
       >

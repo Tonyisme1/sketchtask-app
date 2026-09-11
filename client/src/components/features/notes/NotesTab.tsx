@@ -99,7 +99,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
   };
 
   return (
-    <div className="w-full min-w-0 space-y-3.5 pb-12 select-none">
+    <div className={`w-full min-w-0 select-none ${isMobileNoteDetailOpen ? "p-0" : "space-y-3.5 pb-12"}`}>
       <div className={`items-center gap-2.5 border-b border-[#262626]/30 pb-3 ${isMobileNoteDetailOpen ? "hidden" : "flex"}`}>
         <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-[5px] border-[1.5px] border-[#262626] bg-white px-2.5 shadow-[1.5px_1.5px_0px_#262626]">
           <Search size={14} strokeWidth={2.4} className="shrink-0 text-[#78716C]" />
@@ -134,7 +134,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
         </div>
       )}
 
-      <div className="pt-0.5">
+      <div className={isMobileNoteDetailOpen ? "p-0" : "pt-0.5"}>
         <NoteMasterDetailView
           notes={filteredNotes}
           newlyCreatedId={newlyCreatedId}

@@ -195,11 +195,11 @@ export const JournalBook: React.FC<JournalBookProps> = ({
   }
 
   return (
-    <div className={`w-full min-w-0 select-none ${isMobile ? "bg-[#FBF9F4]" : "space-y-3 pb-10"}`}>
-      <div className={`flex flex-wrap items-center justify-between gap-2 border-b border-[#262626]/20 ${isMobile ? `sticky top-0 z-30 bg-[#FBF9F4] px-2 sm:px-3.5 min-h-[50px] ${isNativePlatform() ? "pt-10 pb-2" : "pt-[max(env(safe-area-inset-top),6px)] pb-2"}` : "pb-2"}`}>
+    <div className={`w-full min-w-0 select-none ${isMobile ? "bg-[#FFFDF8] min-h-screen mobile-panel-enter" : "space-y-3 pb-10"}`}>
+      <div className={`flex flex-wrap items-center justify-between gap-2 border-b border-[#262626]/20 ${isMobile ? `sticky top-0 z-30 bg-[#FFFDF8] px-3.5 sm:px-5 min-h-[52px] ${isNativePlatform() ? "pt-11 pb-2.5" : "pt-[max(env(safe-area-inset-top),8px)] pb-2.5"}` : "pb-2"}`}>
         <div className="flex flex-wrap items-center gap-1.5">
-          <button type="button" onClick={() => setIsJournalBookOpen(false)} className="flex h-8 items-center gap-1 rounded-[4px] border border-[#262626] bg-white px-2 text-xs font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]" title="Quay lại nhật ký">
-            <ArrowLeft size={13} strokeWidth={2.4} /><span className="hidden sm:inline">Đóng</span>
+          <button type="button" onClick={() => setIsJournalBookOpen(false)} className="flex h-8 items-center gap-1 rounded-[4px] border border-[#262626] bg-white px-2.5 text-xs font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]" title="Quay lại nhật ký">
+            <ArrowLeft size={13} strokeWidth={2.4} /><span>Đóng</span>
           </button>
           <div className="flex items-center gap-0.5 rounded-[5px] border-[1.5px] border-[#262626] bg-white p-0.5 shadow-[1.5px_1.5px_0px_#262626]">
             <button type="button" onClick={handlePrevDay} className="flex h-7 w-7 items-center justify-center rounded-[3px] text-[#1C1917] hover:bg-[#F3EFE6]" title="Ngày trước"><ChevronLeft size={14} strokeWidth={2.4} /></button>
@@ -210,7 +210,7 @@ export const JournalBook: React.FC<JournalBookProps> = ({
         </div>
       </div>
 
-      <div className={isMobile ? "space-y-3 px-2 py-2 pb-24 sm:px-4" : "space-y-3 pt-1"}>
+      <div className={isMobile ? "space-y-3 px-3.5 py-3.5 pb-28 sm:px-6" : "space-y-3 pt-1"}>
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#262626]/20 pb-1.5">
           <div className="flex items-center gap-2">
             <div className="flex h-6 w-6 items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] bg-[#1C1917] text-white shadow-[1px_1px_0px_#262626]"><BookOpen size={13} strokeWidth={2.4} /></div>

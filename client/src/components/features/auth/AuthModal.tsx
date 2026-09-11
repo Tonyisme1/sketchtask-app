@@ -33,12 +33,11 @@ import { useModalBackClose } from "../../../hooks/useModalBackClose";
 // ==========================================
 
 const AVATAR_COLORS = [
-  { name: "Vàng Nắng", hex: "#FEF08A" },
-  { name: "Xanh Bạc Hà", hex: "#BBF7D0" },
-  { name: "Xanh Da Trời", hex: "#BAE6FD" },
-  { name: "Tím Oải Hương", hex: "#DDD6FE" },
-  { name: "Hồng San Hô", hex: "#FECDD3" },
-  { name: "Cam Đào", hex: "#FED7AA" },
+  { name: "Trắng Giấy", hex: "#FFFDF8" },
+  { name: "Vàng Nhạt", hex: "#FEF08A" },
+  { name: "Xám Bút Chì", hex: "#E7E5E4" },
+  { name: "Nâu Đất", hex: "#D4CEBF" },
+  { name: "Mực Đen", hex: "#262626" },
 ];
 
 const AVATAR_ICONS = [
@@ -489,7 +488,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       {tasks.length}
                     </span>
                     <span className="text-[9px] text-[#78716C] font-semibold flex items-center justify-center gap-0.5">
-                      <CheckSquare size={10} className="text-amber-700 shrink-0" />
+                      <CheckSquare size={10} className="text-[#1C1917] shrink-0" />
                       <span>Việc</span>
                     </span>
                   </div>
@@ -499,7 +498,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       {stickyNotes.length}
                     </span>
                     <span className="text-[9px] text-[#78716C] font-semibold flex items-center justify-center gap-0.5">
-                      <Lightbulb size={10} className="text-amber-500 shrink-0" />
+                      <Lightbulb size={10} className="text-[#1C1917] shrink-0" />
                       <span>Ý tưởng</span>
                     </span>
                   </div>
@@ -509,7 +508,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       {journalEntries.length}
                     </span>
                     <span className="text-[9px] text-[#78716C] font-semibold flex items-center justify-center gap-0.5">
-                      <BookOpen size={10} className="text-sky-700 shrink-0" />
+                      <BookOpen size={10} className="text-[#1C1917] shrink-0" />
                       <span>Nhật ký</span>
                     </span>
                   </div>
@@ -520,28 +519,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               {/* Devices & Protection */}
               <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3 shadow-[2px_2px_0px_#262626] space-y-2">
                 <span className="text-[11px] font-black uppercase tracking-wider text-[#1C1917] font-mono flex items-center gap-1.5">
-                  <ShieldCheck size={13} strokeWidth={2.4} className="text-emerald-700" />
+                  <ShieldCheck size={13} strokeWidth={2.4} className="text-[#1C1917]" />
                   <span>Thiết Bị & Kết Nối</span>
                 </span>
 
                 <div className="space-y-1.5 text-xs">
                   <div className="flex items-center justify-between bg-white p-2 rounded border border-[#262626]/10 shadow-[0.5px_0.5px_0px_#262626]">
                     <span className="flex items-center gap-2 text-[#1C1917] font-bold text-xs">
-                      <Laptop size={13} strokeWidth={2} className="text-stone-700" />
+                      <Laptop size={13} strokeWidth={2} className="text-[#1C1917]" />
                       <span>Thiết bị hiện tại</span>
                     </span>
-                    <span className="flex items-center gap-1 text-[9px] font-mono text-emerald-700 font-bold">
-                      <Radio size={10} className="animate-pulse text-emerald-600" />
+                    <span className="flex items-center gap-1 text-[9px] font-mono text-[#1C1917] font-bold">
+                      <Radio size={10} className="animate-pulse text-[#1C1917]" />
                       Realtime Online
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between bg-white p-2 rounded border border-[#262626]/10 shadow-[0.5px_0.5px_0px_#262626]">
                     <span className="flex items-center gap-2 text-[#1C1917] font-bold text-xs">
-                      <Smartphone size={13} strokeWidth={2} className="text-stone-700" />
+                      <Smartphone size={13} strokeWidth={2} className="text-[#1C1917]" />
                       <span>Điện thoại di động</span>
                     </span>
-                    <span className="text-[9px] font-mono text-emerald-700 font-semibold">
+                    <span className="text-[9px] font-mono text-[#78716C]">
                       Tự động đồng bộ
                     </span>
                   </div>

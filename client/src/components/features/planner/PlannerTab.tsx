@@ -24,7 +24,7 @@ import { TaskList } from "../shared/TaskList";
 import { FilterBar } from "../shared/FilterBar";
 import { TodayProgressBar } from "../today/TodayProgressBar";
 import { registerBackHandler } from "../../../utils/backNavigation";
-import { ArrowLeft, Lock, ListTodo } from "lucide-react";
+import { ArrowLeft, Lock, ListTodo, Search, X } from "lucide-react";
 
 const DAY_NAMES = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"];
 const SHORT_DAY_NAMES = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
@@ -107,6 +107,7 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
   }, [fromTab, onBackToDeadlines, plannerScreen]);
 
   // Filter state cho DayPlanView
+  const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
   const [timeTypeFilter, setTimeTypeFilter] = useState<"all" | "scheduled" | "deadline">("all");
   const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all");
@@ -274,6 +275,14 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
   // Lọc danh sách công việc của ngày
   const filteredTasks = useMemo(() => {
     return selectedDayTasks.filter((task) => {
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchesTitle = task.title.toLowerCase().includes(q);
+        const matchesTag = getTaskTags(task).some((t) => t.toLowerCase().includes(q));
+        const matchesNote = task.description?.toLowerCase().includes(q);
+        if (!matchesTitle && !matchesTag && !matchesNote) return false;
+      }
+
       if (hideCompletedTasks && statusFilter === "all" && task.completed)
         return false;
 
@@ -311,6 +320,7 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
     });
   }, [
     selectedDayTasks,
+    searchQuery,
     hideCompletedTasks,
     statusFilter,
     timeTypeFilter,
@@ -461,7 +471,29 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
               />
             </div>
 
-            {/* 2. BỘ LỌC 2 TẦNG DÙNG CHUNG INLINE (Y HỆT TAB HÔM NAY) */}
+            {/* 2. Thanh tìm kiếm trên cùng của ngày */}
+            <div className="flex min-w-0 items-center gap-1.5 rounded-[5px] border-[1.5px] border-[#262626] bg-white px-2.5 shadow-[1.5px_1.5px_0px_#262626]">
+              <Search size={14} strokeWidth={2.4} className="shrink-0 text-[#78716C]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Tìm việc trong ngày này..."
+                className="w-full bg-transparent py-2 text-xs text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none sm:text-sm"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="shrink-0 text-[#78716C] hover:text-[#1C1917] cursor-pointer"
+                  title="Xóa tìm kiếm"
+                >
+                  <X size={13} strokeWidth={2.4} />
+                </button>
+              )}
+            </div>
+
+            {/* 3. BỘ LỌC 2 TẦNG DÙNG CHUNG INLINE (Y HỆT TAB HÔM NAY) */}
             <FilterBar
               statusFilter={statusFilter}
               onStatusChange={setStatusFilter}

@@ -35,7 +35,13 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
     activeTaskSubTab,
     setActiveTaskSubTab,
     tasks,
+    isMobileNoteDetailOpen,
+    isJournalBookOpen,
   } = useAppStore();
+
+  const isFullBleed =
+    (activeTab === "notes" && Boolean(isMobileNoteDetailOpen)) ||
+    (activeTab === "journal" && Boolean(isJournalBookOpen));
 
   const todayStr = getLocalTodayStr(new Date());
 
@@ -137,7 +143,9 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
   return (
     <main
       className={`w-full min-w-0 select-none animate-in fade-in duration-150 ${
-        activeTab === "ai"
+        isFullBleed
+          ? "p-0"
+          : activeTab === "ai"
           ? "px-3 py-2 sm:px-5 pb-16"
           : "px-3.5 py-3 sm:px-5 pb-28"
       }`}

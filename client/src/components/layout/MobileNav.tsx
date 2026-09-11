@@ -247,7 +247,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             onClick={() => setIsCreateSheetOpen(true)}
             aria-label="Tạo mới công việc hoặc ghi chú"
             title="Tạo mới"
-            className="relative min-h-[44px] flex items-center justify-center rounded-[8px] bg-[#FEF08A] text-[#1C1917] border-[1.5px] border-[#262626] shadow-[2px_2px_0px_#262626] hover:bg-[#FDE047] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer mx-1"
+            className="relative min-h-[44px] flex items-center justify-center rounded-[8px] bg-[#1C1917] text-white border-[1.5px] border-[#262626] shadow-[2px_2px_0px_#262626] hover:bg-black active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer mx-1"
           >
             <Plus size={22} strokeWidth={2.8} />
           </button>

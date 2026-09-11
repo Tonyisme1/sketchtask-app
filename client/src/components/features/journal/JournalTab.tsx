@@ -28,8 +28,8 @@ export const JournalTab: React.FC<JournalTabProps> = ({
   }, [setIsJournalBookOpen]);
 
   return (
-    <div className={`w-full min-w-0 space-y-4 pb-12 ${
-      isMobile ? "" : "animate-in fade-in duration-150"
+    <div className={`w-full min-w-0 ${
+      isMobile ? "p-0" : "space-y-4 pb-12 animate-in fade-in duration-150"
     }`}>
       <JournalBook
         initialDate={navigationTarget?.date}

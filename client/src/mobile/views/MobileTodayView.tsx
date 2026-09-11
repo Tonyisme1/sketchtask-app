@@ -102,17 +102,37 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
   const totalTodayCount = todayList.length;
 
   return (
-    <div className="w-full min-w-0 space-y-2 select-none pb-6">
-      {/* 1. Tiến độ tổng quan (Siêu gọn) */}
+    <div className="w-full min-w-0 space-y-2.5 select-none pb-6">
+      {/* 1. Thanh tìm kiếm trên cùng */}
+      <div className="flex min-w-0 items-center gap-1.5 rounded-[5px] border-[1.5px] border-[#262626] bg-white px-2.5 shadow-[1.5px_1.5px_0px_#262626]">
+        <Search size={14} strokeWidth={2.4} className="shrink-0 text-[#78716C]" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="Tìm việc hôm nay..."
+          className="w-full bg-transparent py-2 text-xs text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none sm:text-sm"
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery("")}
+            className="shrink-0 text-[#78716C] hover:text-[#1C1917] cursor-pointer"
+            title="Xóa tìm kiếm"
+          >
+            <X size={13} strokeWidth={2.4} />
+          </button>
+        )}
+      </div>
+
+      {/* 2. Tiến độ tổng quan (Siêu gọn) */}
       <TodayProgressBar
         completedCount={completedTodayCount}
         totalCount={totalTodayCount}
       />
 
-      {/* 2. Mobile Filter Bar (Tối giản & tích hợp Tìm kiếm inline) */}
+      {/* 3. Mobile Filter Bar (2 Tầng Cốt Lõi Tối Giản) */}
       <TodayFilterBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
         statusFilter={statusFilter}
         onStatusChange={setStatusFilter}
         timeTypeFilter={timeTypeFilter}
@@ -124,7 +144,6 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
         isFilterDrawerOpen={isFilterDrawerOpen}
         onToggleFilterDrawer={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
         onResetFilters={() => {
-          setSearchQuery("");
           setTimeTypeFilter("all");
           setStatusFilter("all");
           setPriorityFilter("all");

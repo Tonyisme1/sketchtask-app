@@ -288,9 +288,9 @@ const SettingsGroup: React.FC<SettingsGroupProps> = ({ title, icon: Icon, childr
 
 const AVATAR_COLORS = [
   { name: "Trắng Giấy", hex: "#FFFDF8" },
-  { name: "Xanh Bạc Hà", hex: "#BBF7D0" },
-  { name: "Xanh Da Trời", hex: "#BAE6FD" },
-  { name: "Hồng San Hô", hex: "#FECDD3" },
+  { name: "Vàng Nhạt", hex: "#FEF08A" },
+  { name: "Xám Bút Chì", hex: "#E7E5E4" },
+  { name: "Nâu Đất", hex: "#D4CEBF" },
   { name: "Mực Đen", hex: "#262626" },
 ];
 
@@ -742,7 +742,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     {tasks.length}
                   </span>
                   <span className="text-[10px] text-[#78716C] font-semibold flex items-center justify-center gap-1 mt-0.5">
-                    <CheckSquare size={11} className="text-amber-700 shrink-0" />
+                    <CheckSquare size={11} className="text-[#1C1917] dark:text-white shrink-0" />
                     <span>Công việc</span>
                   </span>
                 </div>
@@ -752,7 +752,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     {stickyNotes.length}
                   </span>
                   <span className="text-[10px] text-[#78716C] font-semibold flex items-center justify-center gap-1 mt-0.5">
-                    <Lightbulb size={11} className="text-amber-500 shrink-0" />
+                    <Lightbulb size={11} className="text-[#1C1917] dark:text-white shrink-0" />
                     <span>Ghi chú</span>
                   </span>
                 </div>
@@ -762,7 +762,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     {journalEntries.length}
                   </span>
                   <span className="text-[10px] text-[#78716C] font-semibold flex items-center justify-center gap-1 mt-0.5">
-                    <BookOpen size={11} className="text-sky-700 shrink-0" />
+                    <BookOpen size={11} className="text-[#1C1917] dark:text-white shrink-0" />
                     <span>Nhật ký</span>
                   </span>
                 </div>
@@ -773,11 +773,11 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
             <div className="bg-[#FFFDF8] dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] rounded-[8px] p-4 shadow-[2px_2px_0px_#262626] space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-[#262626]/15 dark:border-[#3A3A3C]">
                 <span className="text-xs font-black uppercase tracking-wider text-[#1C1917] dark:text-white font-mono flex items-center gap-1.5">
-                  <ShieldCheck size={14} strokeWidth={2.4} className="text-emerald-700" />
+                  <ShieldCheck size={14} strokeWidth={2.4} className="text-[#1C1917] dark:text-white" />
                   <span>Thiết Bị & Kết Nối</span>
                 </span>
-                <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-700 font-bold">
-                  <Radio size={11} className="animate-pulse text-emerald-600" />
+                <span className="flex items-center gap-1 text-[10px] font-mono text-[#1C1917] dark:text-white font-bold">
+                  <Radio size={11} className="animate-pulse text-[#1C1917] dark:text-white" />
                   {user.isSignedIn ? "Online Realtime" : "Offline Cục Bộ"}
                 </span>
               </div>
@@ -785,17 +785,17 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               <div className="space-y-2 text-xs">
                 <div className="flex items-center justify-between bg-white dark:bg-[#2C2C2E] p-2.5 rounded-[6px] border border-[#262626]/20 shadow-[0.5px_0.5px_0px_#262626]">
                   <span className="flex items-center gap-2 text-[#1C1917] dark:text-[#E5E5EA] font-bold">
-                    <Laptop size={15} strokeWidth={2} className="text-stone-700 dark:text-stone-300" />
+                    <Laptop size={15} strokeWidth={2} className="text-[#1C1917] dark:text-[#E5E5EA]" />
                     <span>Thiết bị hiện tại</span>
                   </span>
-                  <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 font-bold">
+                  <span className="text-[10px] font-mono text-[#1C1917] dark:text-[#E5E5EA] font-bold">
                     Đang hoạt động
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between bg-white dark:bg-[#2C2C2E] p-2.5 rounded-[6px] border border-[#262626]/20 shadow-[0.5px_0.5px_0px_#262626]">
                   <span className="flex items-center gap-2 text-[#1C1917] dark:text-[#E5E5EA] font-bold">
-                    <Smartphone size={15} strokeWidth={2} className="text-stone-700 dark:text-stone-300" />
+                    <Smartphone size={15} strokeWidth={2} className="text-[#1C1917] dark:text-[#E5E5EA]" />
                     <span>Điện thoại / Máy tính bảng</span>
                   </span>
                   <span className="text-[10px] font-mono text-[#78716C] dark:text-stone-400">
@@ -1511,7 +1511,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               className="w-full flex items-center justify-between p-3.5 bg-white dark:bg-[#1C1C1E] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E] border-[1.5px] border-[#262626] rounded-[8px] shadow-[2px_2px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer text-left group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[6px] bg-[#E0F2FE] border border-[#262626] flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:scale-105 transition-transform">
+                <div className="w-9 h-9 rounded-[6px] bg-[#FAF8F3] border border-[#262626] flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:scale-105 transition-transform">
                   <Settings size={18} strokeWidth={2.4} />
                 </div>
                 <div>
@@ -1529,7 +1529,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               className="w-full flex items-center justify-between p-3.5 bg-white dark:bg-[#1C1C1E] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E] border-[1.5px] border-[#262626] rounded-[8px] shadow-[2px_2px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer text-left group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[6px] bg-[#BAE6FD] border border-[#262626] flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:scale-105 transition-transform">
+                <div className="w-9 h-9 rounded-[6px] bg-[#FAF8F3] border border-[#262626] flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:scale-105 transition-transform">
                   <Bell size={18} strokeWidth={2.4} />
                 </div>
                 <div>
@@ -1547,7 +1547,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               className="w-full flex items-center justify-between p-3.5 bg-white dark:bg-[#1C1C1E] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E] border-[1.5px] border-[#262626] rounded-[8px] shadow-[2px_2px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer text-left group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[6px] bg-[#BBF7D0] border border-[#262626] flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:scale-105 transition-transform">
+                <div className="w-9 h-9 rounded-[6px] bg-[#FAF8F3] border border-[#262626] flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:scale-105 transition-transform">
                   <Cloud size={18} strokeWidth={2.4} />
                 </div>
                 <div>
@@ -1565,7 +1565,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               className="w-full flex items-center justify-between p-3.5 bg-white dark:bg-[#1C1C1E] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E] border-[1.5px] border-[#262626] rounded-[8px] shadow-[2px_2px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer text-left group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[6px] bg-[#FECDD3] border border-[#262626] flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:scale-105 transition-transform">
+                <div className="w-9 h-9 rounded-[6px] bg-[#FAF8F3] border border-[#262626] flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:scale-105 transition-transform">
                   <ShieldCheck size={18} strokeWidth={2.4} />
                 </div>
                 <div>
@@ -1583,7 +1583,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               className="w-full flex items-center justify-between p-3.5 bg-white dark:bg-[#1C1C1E] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E] border-[1.5px] border-[#262626] rounded-[8px] shadow-[2px_2px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer text-left group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[6px] bg-[#E7E5E4] border border-[#262626] flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:scale-105 transition-transform">
+                <div className="w-9 h-9 rounded-[6px] bg-[#FAF8F3] border border-[#262626] flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:scale-105 transition-transform">
                   <Sparkles size={18} strokeWidth={2.4} />
                 </div>
                 <div>
