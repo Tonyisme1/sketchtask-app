@@ -101,6 +101,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
+  const initialSignedInRef = useRef(user.isSignedIn);
+
   useScrollLock(isVisible);
 
   useEffect(() => {
@@ -110,6 +112,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   // Keep the auth sheet mounted while it returns to the previous screen.
   useEffect(() => {
     if (isOpen) {
+      initialSignedInRef.current = user.isSignedIn;
       setIsVisible(true);
       setIsClosing(false);
       setEditNameValue(user.name);
@@ -125,7 +128,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }, 220);
 
     return () => window.clearTimeout(exitTimer);
-  }, [isOpen, isVisible, user.name]);
+  }, [isOpen, isVisible, user.name, user.isSignedIn]);
 
   // Khóa cuộn trang khi modal mở
   useEffect(() => {
@@ -294,7 +297,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* ========================================== */}
         {/* TRƯỜNG HỢP 1: ĐÃ ĐĂNG NHẬP (QUẢN LÝ TÀI KHOẢN CÁ NHÂN) */}
         {/* ========================================== */}
-        {user.isSignedIn ? (
+        {user.isSignedIn && initialSignedInRef.current ? (
           <div className="flex-1 flex flex-col justify-start w-full max-w-sm mx-auto min-h-0 space-y-3.5 pt-1">
             {/* 1. Header with Back button & Title */}
             <div className="flex items-center justify-between pb-3 border-b border-[#262626]/20 shrink-0">
