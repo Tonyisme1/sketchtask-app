@@ -48,6 +48,11 @@ import {
   CheckCircle2,
   ListTodo,
   BookOpen,
+  Laptop,
+  Smartphone,
+  Radio,
+  CheckSquare,
+  Lightbulb,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -719,10 +724,91 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               )}
             </div>
 
+            {/* Dữ Liệu Đồng Bộ Summary */}
+            <div className="bg-[#FFFDF8] dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] rounded-[8px] p-4 shadow-[2px_2px_0px_#262626] space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-[#262626]/15 dark:border-[#3A3A3C]">
+                <span className="text-xs font-black uppercase tracking-wider text-[#1C1917] dark:text-white font-mono flex items-center gap-1.5">
+                  <Cloud size={14} strokeWidth={2.4} className="text-[#1C1917] dark:text-white" />
+                  <span>Dữ Liệu Đồng Bộ Đám Mây</span>
+                </span>
+                <span className="font-mono text-[10px] text-[#1C1917] dark:text-white bg-[#FAF8F3] dark:bg-[#2C2C2E] px-2 py-0.5 rounded border border-[#262626] font-bold">
+                  {lastSyncedAt ? `Đã lưu (${lastSyncedAt})` : user.isSignedIn ? "Realtime Sẵn Sàng" : "Chế độ Cục Bộ"}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-3 gap-2">
+                <div className="p-2.5 bg-white dark:bg-[#2C2C2E] border border-[#262626]/20 rounded-[6px] text-center shadow-[0.5px_0.5px_0px_#262626]">
+                  <span className="block font-mono text-sm font-black text-[#1C1917] dark:text-white">
+                    {tasks.length}
+                  </span>
+                  <span className="text-[10px] text-[#78716C] font-semibold flex items-center justify-center gap-1 mt-0.5">
+                    <CheckSquare size={11} className="text-amber-700 shrink-0" />
+                    <span>Công việc</span>
+                  </span>
+                </div>
+
+                <div className="p-2.5 bg-white dark:bg-[#2C2C2E] border border-[#262626]/20 rounded-[6px] text-center shadow-[0.5px_0.5px_0px_#262626]">
+                  <span className="block font-mono text-sm font-black text-[#1C1917] dark:text-white">
+                    {stickyNotes.length}
+                  </span>
+                  <span className="text-[10px] text-[#78716C] font-semibold flex items-center justify-center gap-1 mt-0.5">
+                    <Lightbulb size={11} className="text-amber-500 shrink-0" />
+                    <span>Ghi chú</span>
+                  </span>
+                </div>
+
+                <div className="p-2.5 bg-white dark:bg-[#2C2C2E] border border-[#262626]/20 rounded-[6px] text-center shadow-[0.5px_0.5px_0px_#262626]">
+                  <span className="block font-mono text-sm font-black text-[#1C1917] dark:text-white">
+                    {journalEntries.length}
+                  </span>
+                  <span className="text-[10px] text-[#78716C] font-semibold flex items-center justify-center gap-1 mt-0.5">
+                    <BookOpen size={11} className="text-sky-700 shrink-0" />
+                    <span>Nhật ký</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Thiết Bị & Kết Nối (Devices & Protection) */}
+            <div className="bg-[#FFFDF8] dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] rounded-[8px] p-4 shadow-[2px_2px_0px_#262626] space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-[#262626]/15 dark:border-[#3A3A3C]">
+                <span className="text-xs font-black uppercase tracking-wider text-[#1C1917] dark:text-white font-mono flex items-center gap-1.5">
+                  <ShieldCheck size={14} strokeWidth={2.4} className="text-emerald-700" />
+                  <span>Thiết Bị & Kết Nối</span>
+                </span>
+                <span className="flex items-center gap-1 text-[10px] font-mono text-emerald-700 font-bold">
+                  <Radio size={11} className="animate-pulse text-emerald-600" />
+                  {user.isSignedIn ? "Online Realtime" : "Offline Cục Bộ"}
+                </span>
+              </div>
+
+              <div className="space-y-2 text-xs">
+                <div className="flex items-center justify-between bg-white dark:bg-[#2C2C2E] p-2.5 rounded-[6px] border border-[#262626]/20 shadow-[0.5px_0.5px_0px_#262626]">
+                  <span className="flex items-center gap-2 text-[#1C1917] dark:text-[#E5E5EA] font-bold">
+                    <Laptop size={15} strokeWidth={2} className="text-stone-700 dark:text-stone-300" />
+                    <span>Thiết bị hiện tại</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 font-bold">
+                    Đang hoạt động
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between bg-white dark:bg-[#2C2C2E] p-2.5 rounded-[6px] border border-[#262626]/20 shadow-[0.5px_0.5px_0px_#262626]">
+                  <span className="flex items-center gap-2 text-[#1C1917] dark:text-[#E5E5EA] font-bold">
+                    <Smartphone size={15} strokeWidth={2} className="text-stone-700 dark:text-stone-300" />
+                    <span>Điện thoại / Máy tính bảng</span>
+                  </span>
+                  <span className="text-[10px] font-mono text-[#78716C] dark:text-stone-400">
+                    Tự động đồng bộ PWA
+                  </span>
+                </div>
+              </div>
+            </div>
+
             {/* Cloud Sync Group */}
-            <SettingsGroup title="Đồng bộ Đám mây & Thiết bị" icon={Cloud}>
+            <SettingsGroup title="Đồng bộ Đám mây & Thủ công" icon={Cloud}>
               <SettingsRow
-                title="Trạng thái đồng bộ"
+                title="Đồng bộ thủ công"
                 description={
                   lastSyncedAt
                     ? `Lần đồng bộ gần nhất: ${lastSyncedAt}`
