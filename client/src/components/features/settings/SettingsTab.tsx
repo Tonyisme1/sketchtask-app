@@ -1400,6 +1400,24 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
 
           {/* 3. Danh Mục Tính Năng & Cài Đặt */}
           <div className="space-y-2">
+            {/* Hồ sơ & Tài khoản */}
+            <button
+              type="button"
+              onClick={() => setSettingsMobileSubView("account")}
+              className="w-full flex items-center justify-between p-3.5 bg-white dark:bg-[#1C1C1E] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E] border-[1.5px] border-[#262626] rounded-[8px] shadow-[2px_2px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer text-left group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-[6px] bg-[#FEF08A] border border-[#262626] flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:scale-105 transition-transform">
+                  <User size={18} strokeWidth={2.4} />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-[#1C1917] dark:text-white">Tài khoản & Hồ sơ cá nhân</p>
+                  <p className="text-[10px] font-mono text-[#78716C] mt-0.5">Đổi tên, màu đại diện & đồng bộ đám mây</p>
+                </div>
+              </div>
+              <ChevronRight size={16} strokeWidth={2.4} className="text-[#78716C]" />
+            </button>
+
             {/* Cài đặt hệ thống */}
             <button
               type="button"
@@ -1407,7 +1425,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               className="w-full flex items-center justify-between p-3.5 bg-white dark:bg-[#1C1C1E] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E] border-[1.5px] border-[#262626] rounded-[8px] shadow-[2px_2px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer text-left group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[6px] bg-[#FEF08A] border border-[#262626] flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:scale-105 transition-transform">
+                <div className="w-9 h-9 rounded-[6px] bg-[#E0F2FE] border border-[#262626] flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:scale-105 transition-transform">
                   <Settings size={18} strokeWidth={2.4} />
                 </div>
                 <div>
