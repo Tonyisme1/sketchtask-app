@@ -185,40 +185,28 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
       } transition-colors duration-200 select-none`}
     >
       <div className="relative flex items-center justify-between min-h-[40px] w-full">
-        {/* Nút Quay lại trong màn hình Cài đặt */}
-        {isSettings && (
-          <div className="z-20 shrink-0 mr-2">
-            {settingsMobileSubView ? (
-              <button
-                type="button"
-                onClick={() => setSettingsMobileSubView(null)}
-                className="w-9 h-9 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] active:translate-y-[0.5px] cursor-pointer"
-                title="Quay lại cài đặt"
-              >
-                <ArrowLeft size={18} strokeWidth={2.4} />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onTabChange(previousTab || "today")}
-                className="w-9 h-9 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] active:translate-y-[0.5px] cursor-pointer"
-                title="Quay lại"
-              >
-                <ArrowLeft size={18} strokeWidth={2.4} />
-              </button>
-            )}
-          </div>
-        )}
-
         {/* 1. KHU VỰC NHÃN TAB: CĂN THẲNG HÀNG CHUẨN XÁC VỚI CÁC NÚT BÊN PHẢI */}
-        <div
-          className={`flex items-center transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] z-10 ${
-            isScrolled
-              ? "absolute left-1/2 -translate-x-1/2 justify-center max-w-[75vw]"
-              : "relative justify-start min-w-0"
-          }`}
-        >
-        {activeTab === "tasks" || activeTab === "today" || activeTab === "planner" || activeTab === "deadlines" ? (
+        <div className="flex items-center gap-2 min-w-0 z-10">
+          {/* Nút Quay lại CHỈ KHI đang ở màn hình con của Cài đặt */}
+          {isSettings && settingsMobileSubView && (
+            <button
+              type="button"
+              onClick={() => setSettingsMobileSubView(null)}
+              className="w-9 h-9 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] active:translate-y-[0.5px] cursor-pointer shrink-0"
+              title="Quay lại cài đặt"
+            >
+              <ArrowLeft size={18} strokeWidth={2.4} />
+            </button>
+          )}
+
+          <div
+            className={`flex items-center transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              isScrolled
+                ? "absolute left-1/2 -translate-x-1/2 justify-center max-w-[75vw]"
+                : "relative justify-start min-w-0"
+            }`}
+          >
+          {activeTab === "tasks" || activeTab === "today" || activeTab === "planner" || activeTab === "deadlines" ? (
           /* Dropdown chọn đổi giữa Hôm nay, Kế hoạch và Hạn định */
           <div ref={taskDropdownRef} className="relative">
             <button
@@ -427,18 +415,19 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             </span>
           </button>
         )}
-      </div>
+          </div>
+        </div>
 
-      {/* 2. GÓC PHẢI: THÔNG BÁO & TÀI KHOẢN (Mờ dần và trượt ẩn đi khi cuộn xuống) */}
-      {!isSettings && (
-        <div
-          className={`flex items-center gap-2 shrink-0 ml-auto z-10 transition-all duration-250 ease-out ${
-            isScrolled
-              ? "opacity-0 translate-x-3 pointer-events-none scale-95"
-              : "opacity-100 translate-x-0 pointer-events-auto scale-100"
-          }`}
-        >
-          {/* Chuông Thông Báo */}
+        {/* 2. GÓC PHẢI: THÔNG BÁO & TÀI KHOẢN (Mờ dần và trượt ẩn đi khi cuộn xuống) */}
+        {!settingsMobileSubView && (
+          <div
+            className={`flex items-center gap-2 shrink-0 ml-auto z-10 transition-all duration-250 ease-out ${
+              isScrolled
+                ? "opacity-0 translate-x-3 pointer-events-none scale-95"
+                : "opacity-100 translate-x-0 pointer-events-auto scale-100"
+            }`}
+          >
+            {/* Chuông Thông Báo */}
           <button
             type="button"
             onClick={onOpenNotifications}

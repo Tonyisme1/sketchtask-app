@@ -301,10 +301,10 @@ const INITIAL_TAGS: string[] = [
 ];
 
 const INITIAL_USER: UserProfile = {
-  name: "Khách (Chưa đăng nhập)",
+  name: "Khách",
   email: "",
   avatar: "lucide:User",
-  avatarBg: "#BBF7D0",
+  avatarBg: "#FEF08A",
   isSignedIn: false,
 };
 
@@ -438,7 +438,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       const savedToken = authStorage.getToken();
       const saved = localStorage.getItem(`${STORAGE_KEY}_user`);
       if (saved && savedToken) {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (
+          !parsed.avatarBg ||
+          parsed.avatarBg === "#BBF7D0" ||
+          parsed.avatarBg === "#BAE6FD" ||
+          parsed.avatarBg === "#FECDD3" ||
+          parsed.avatarBg === "#DDD6FE" ||
+          parsed.avatarBg === "#FED7AA"
+        ) {
+          parsed.avatarBg = "#FEF08A";
+        }
+        return parsed;
       }
       return INITIAL_USER;
     } catch {
@@ -1216,7 +1227,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
               name: res.data.name,
               email: res.data.email,
               avatar: res.data.avatar || "lucide:User",
-              avatarBg: res.data.avatarBg || "#BBF7D0",
+              avatarBg: res.data.avatarBg || "#FEF08A",
               isSignedIn: true,
             });
             // Mở kết nối WebSocket
@@ -1309,7 +1320,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         name: res.data.user.name,
         email: res.data.user.email,
         avatar: res.data.user.avatar || "lucide:User",
-        avatarBg: res.data.user.avatarBg || "#BBF7D0",
+        avatarBg: res.data.user.avatarBg || "#FEF08A",
         isSignedIn: true,
       });
       syncSocket.connect();
@@ -1332,7 +1343,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         name: res.data.user.name,
         email: res.data.user.email,
         avatar: res.data.user.avatar || "lucide:User",
-        avatarBg: res.data.user.avatarBg || "#BBF7D0",
+        avatarBg: res.data.user.avatarBg || "#FEF08A",
         isSignedIn: true,
       });
       syncSocket.connect();
@@ -1374,7 +1385,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     name: string,
     email: string,
     avatar = "lucide:User",
-    avatarBg = "#BBF7D0",
+    avatarBg = "#FEF08A",
   ) => {
     loginWithCredentials(email, "123456").catch(() => {
       // Fallback local

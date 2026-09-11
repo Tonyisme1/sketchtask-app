@@ -26,14 +26,11 @@ export const AVATAR_ICONS = [
 ];
 
 export const AVATAR_BG_COLORS = [
-  { hex: "#BBF7D0", name: "Bạc hà" },
   { hex: "#FEF08A", name: "Vàng nghệ" },
-  { hex: "#FECDD3", name: "San hô" },
-  { hex: "#BAE6FD", name: "Da trời" },
-  { hex: "#DDD6FE", name: "Oải hương" },
-  { hex: "#FED7AA", name: "Cam đào" },
-  { hex: "#D9F99D", name: "Xanh xô" },
-  { hex: "#E7E5E4", name: "Cát ngà" },
+  { hex: "#FFFDF8", name: "Trắng giấy" },
+  { hex: "#E7E5E4", name: "Xám bút chì" },
+  { hex: "#D4CEBF", name: "Nâu đất" },
+  { hex: "#262626", name: "Mực đen" },
 ];
 
 export interface CustomAvatarPickerProps {

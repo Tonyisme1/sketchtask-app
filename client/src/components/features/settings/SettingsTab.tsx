@@ -1407,14 +1407,14 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         </div>
       ) : platform === "mobile" ? (
         /* TRANG CÁ NHÂN (PERSONAL PROFILE HUB TRÊN MOBILE) */
-        <div className="w-full max-w-xl mx-auto space-y-3.5 pb-12 select-none animate-in fade-in duration-150">
+        <div className="w-full max-w-xl mx-auto space-y-3.5 pb-32 sm:pb-36 select-none animate-in fade-in duration-150">
           {/* 1. Thẻ Hồ Sơ Người Dùng */}
-          <section className="bg-[#FFFDF8] dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] rounded-[10px] p-4 shadow-[3px_3px_0px_#262626] space-y-3">
+          <section className="bg-[#FFFDF8] dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] rounded-[8px] p-3.5 shadow-[2.5px_2.5px_0px_#262626] space-y-3">
             <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setSettingsMobileSubView("account")}
-                className="relative w-13 h-13 rounded-[8px] border-[1.5px] border-[#262626] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center shrink-0 cursor-pointer active:translate-y-[0.5px] transition-all"
+                className="relative w-12 h-12 rounded-[6px] border-[1.5px] border-[#262626] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center shrink-0 cursor-pointer active:translate-y-[0.5px] transition-all"
                 style={{ backgroundColor: user.avatarBg || "#FEF08A" }}
                 title="Thay đổi ảnh đại diện"
               >
@@ -1427,8 +1427,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
-                  <h2 className="font-black text-base text-[#1C1917] dark:text-white tracking-tight truncate">
-                    {user.name || "Người dùng"}
+                  <h2 className="font-black text-sm text-[#1C1917] dark:text-white tracking-tight truncate">
+                    {user.name || (user.isSignedIn ? "Người dùng" : "Khách (Offline)")}
                   </h2>
                   <button
                     type="button"
@@ -1447,7 +1447,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               <button
                 type="button"
                 onClick={() => setSettingsMobileSubView("account")}
-                className="px-2.5 py-1 bg-white hover:bg-[#FAF8F3] dark:bg-[#2C2C2E] border border-[#262626] rounded-[5px] text-[11px] font-bold text-[#1C1917] dark:text-[#E5E5EA] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer shrink-0"
+                className="px-2.5 py-1 bg-white hover:bg-[#FAF8F3] dark:bg-[#2C2C2E] border border-[#262626] rounded-[4px] text-[11px] font-bold text-[#1C1917] dark:text-[#E5E5EA] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer shrink-0"
               >
                 Hồ sơ
               </button>
@@ -1493,7 +1493,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               className="w-full flex items-center justify-between p-3.5 bg-white dark:bg-[#1C1C1E] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E] border-[1.5px] border-[#262626] rounded-[8px] shadow-[2px_2px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer text-left group"
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-[6px] bg-[#FEF08A] border border-[#262626] flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:scale-105 transition-transform">
+                <div className="w-9 h-9 rounded-[6px] bg-[#FAF8F3] border border-[#262626] flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:scale-105 transition-transform">
                   <User size={18} strokeWidth={2.4} />
                 </div>
                 <div>

@@ -131,8 +131,8 @@ export const MobileShell: React.FC<MobileShellProps> = ({
         onNavigateTab={onTabChange}
       />
 
-      {/* Mobile Bottom Dock (Hidden when viewing task detail) */}
-      {!isDetailOpen && !isSettingsView && (
+      {/* Mobile Bottom Dock (Hidden only when viewing task detail or full note/journal editor) */}
+      {!isDetailOpen && (
         <MobileNav
           activeTab={activeTab}
           activeTaskSubTab={activeTaskSubTab}
