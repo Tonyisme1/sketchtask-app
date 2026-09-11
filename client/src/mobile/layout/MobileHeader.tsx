@@ -180,45 +180,44 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
     <header
       className={`sticky top-0 z-30 bg-[#FBF9F4]/95 backdrop-blur-md px-3.5 sm:px-5 ${
         isNativePlatform()
-          ? "pt-12 pb-3"
-          : "pt-[max(env(safe-area-inset-top),16px)] pb-3"
-      } relative flex items-center justify-between min-h-[58px] sm:min-h-[62px] transition-colors duration-200 select-none`}
+          ? "pt-11 pb-2"
+          : "pt-[max(env(safe-area-inset-top),12px)] pb-2"
+      } transition-colors duration-200 select-none`}
     >
-      {/* Nút Quay lại trong màn hình Cài đặt (giữ cố định bên trái) */}
-      {isSettings && (
-        <div className="z-20 shrink-0 mr-2">
-          {settingsMobileSubView ? (
-            <button
-              type="button"
-              onClick={() => setSettingsMobileSubView(null)}
-              className="w-9 h-9 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] active:translate-y-[0.5px] cursor-pointer"
-              title="Quay lại cài đặt"
-            >
-              <ArrowLeft size={18} strokeWidth={2.4} />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => onTabChange(previousTab || "today")}
-              className="w-9 h-9 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] active:translate-y-[0.5px] cursor-pointer"
-              title="Quay lại"
-            >
-              <ArrowLeft size={18} strokeWidth={2.4} />
-            </button>
-          )}
-        </div>
-      )}
+      <div className="relative flex items-center justify-between min-h-[40px] w-full">
+        {/* Nút Quay lại trong màn hình Cài đặt */}
+        {isSettings && (
+          <div className="z-20 shrink-0 mr-2">
+            {settingsMobileSubView ? (
+              <button
+                type="button"
+                onClick={() => setSettingsMobileSubView(null)}
+                className="w-9 h-9 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] active:translate-y-[0.5px] cursor-pointer"
+                title="Quay lại cài đặt"
+              >
+                <ArrowLeft size={18} strokeWidth={2.4} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onTabChange(previousTab || "today")}
+                className="w-9 h-9 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] active:translate-y-[0.5px] cursor-pointer"
+                title="Quay lại"
+              >
+                <ArrowLeft size={18} strokeWidth={2.4} />
+              </button>
+            )}
+          </div>
+        )}
 
-      {/* 1. KHU VỰC NHÃN TAB: TRƯỢT TỪ VỊ TRÍ GỐC (TRÁI) RA CHÍNH GIỮA KHI CUỘN XUỐNG */}
-      <div
-        className={`absolute top-1/2 -translate-y-1/2 flex items-center transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] z-10 ${
-          isScrolled
-            ? "left-1/2 -translate-x-1/2 justify-center max-w-[75vw]"
-            : isSettings
-              ? "left-14 sm:left-16 translate-x-0 justify-start max-w-[60vw]"
-              : "left-3.5 sm:left-5 translate-x-0 justify-start max-w-[65vw]"
-        }`}
-      >
+        {/* 1. KHU VỰC NHÃN TAB: CĂN THẲNG HÀNG CHUẨN XÁC VỚI CÁC NÚT BÊN PHẢI */}
+        <div
+          className={`flex items-center transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] z-10 ${
+            isScrolled
+              ? "absolute left-1/2 -translate-x-1/2 justify-center max-w-[75vw]"
+              : "relative justify-start min-w-0"
+          }`}
+        >
         {activeTab === "tasks" || activeTab === "today" || activeTab === "planner" || activeTab === "deadlines" ? (
           /* Dropdown chọn đổi giữa Hôm nay, Kế hoạch và Hạn định */
           <div ref={taskDropdownRef} className="relative">
@@ -518,6 +517,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
           </div>
         </div>
       )}
+      </div>
     </header>
   );
 };
