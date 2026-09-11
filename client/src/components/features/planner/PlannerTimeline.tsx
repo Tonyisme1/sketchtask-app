@@ -1,11 +1,22 @@
-import React from "react";
-import { ArrowRight, Check, Clock, Trash2 } from "lucide-react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
+import {
+  ArrowRight,
+  Check,
+  Clock,
+  Compass,
+  Moon,
+  Plus,
+  Sun,
+  Trash2,
+} from "lucide-react";
 import { TaskDto } from "../../../types";
 import {
   getTaskEffectiveTime,
   normalizeTaskTimeType,
+  getTaskTimelineRangeForDate,
 } from "../../../utils/taskSemantics";
 import { buildTimelineGridLayout } from "./plannerTimelineLayout";
+import { useAppStore } from "../../../stores/appStore";
 
 interface TimelineDay {
   dateStr: string;
@@ -29,34 +40,13 @@ interface PlannerTimelineProps {
 
 const START_HOUR = 0;
 const END_HOUR = 24;
-const HOUR_HEIGHT = 128;
+const HOUR_HEIGHT = 260; // Kích thước siêu lớn (gấp 4 lần), cực kỳ rộng rãi và trực quan
 const QUARTER_START_MINUTES = [0, 15, 30, 45];
-
-const parseTime = (value?: string) => {
-  if (!value || !/^\d{2}:\d{2}$/.test(value)) return undefined;
-  const [hours, minutes] = value.split(":").map(Number);
-  if (hours > 23 || minutes > 59) return undefined;
-  return hours * 60 + minutes;
-};
 
 const formatTime = (minutes: number) => {
   const hours = Math.floor(minutes / 60);
   const remainder = minutes % 60;
   return `${String(hours).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
-};
-
-const getTimelineRange = (task: TaskDto) => {
-  const start = parseTime(getTaskEffectiveTime(task));
-  if (start === undefined) return undefined;
-
-  const type = normalizeTaskTimeType(task);
-  const rawEnd = type === "scheduled" ? parseTime(task.endTime) : undefined;
-  const end = rawEnd !== undefined && rawEnd > start ? rawEnd : start + (type === "scheduled" ? 60 : 45);
-
-  return {
-    start: Math.max(START_HOUR * 60, Math.min(start, END_HOUR * 60 - 30)),
-    end: Math.min(END_HOUR * 60, Math.max(end, start + 30)),
-  };
 };
 
 interface TimelineTaskCardProps {
@@ -69,7 +59,7 @@ interface TimelineTaskCardProps {
   onMoveTomorrow?: (taskId: string) => void;
 }
 
-// === PHẦN 1: Thẻ task dùng trong biểu đồ tuần ===
+// === PHẦN 1: Thẻ task hiển thị trong ô giờ của timeline (Giao diện cũ gọn gàng, bố trí chuẩn) ===
 const TimelineTaskCard: React.FC<TimelineTaskCardProps> = ({
   task,
   style,
@@ -87,63 +77,80 @@ const TimelineTaskCard: React.FC<TimelineTaskCardProps> = ({
       : time
         ? `Hạn ${time}`
         : "";
+
   const tone = task.completed
     ? "bg-[#BBF7D0]"
     : type === "scheduled"
       ? "bg-[#BAE6FD]"
       : type === "deadline"
         ? "bg-[#FECDD3]"
-        : "bg-white";
+        : "bg-[#FEF08A]";
 
   return (
     <article
       style={style}
-      className={`group absolute overflow-hidden border-[1.5px] border-[#262626] ${tone} p-1.5 shadow-[1.5px_1.5px_0px_#262626]`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelectTask(task);
+      }}
+      className={`group absolute overflow-hidden rounded-[4px] border-[1.5px] border-[#262626] ${tone} p-1.5 shadow-[1.5px_1.5px_0px_#262626] cursor-pointer transition-all hover:z-20 hover:shadow-[3px_3px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
     >
       <div className="flex min-w-0 items-start gap-1.5">
         <button
           type="button"
-          onClick={() => onToggleTask(task.id)}
-          aria-label={task.completed ? `Bỏ hoàn thành: ${task.title}` : `Hoàn thành: ${task.title}`}
-          className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border-[1.5px] border-[#262626] bg-white text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleTask(task.id);
+          }}
+          aria-label={
+            task.completed
+              ? `Bỏ hoàn thành: ${task.title}`
+              : `Hoàn thành: ${task.title}`
+          }
+          className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border-[1.5px] border-[#262626] bg-white text-[#1C1917] shadow-[0.5px_0.5px_0px_#262626] active:scale-90"
         >
           {task.completed && <Check size={11} strokeWidth={3} />}
         </button>
 
-        <button
-          type="button"
-          onClick={() => onSelectTask(task)}
-          className="min-w-0 flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0284C7]"
-          title="Mở chi tiết task"
-        >
-          <span className={`block truncate text-[11px] font-bold leading-tight text-[#1C1917] ${task.completed ? "line-through opacity-60" : ""}`}>
-            {showLabel ? task.title : "Tiếp tục"}
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <span
+            className={`block truncate text-xs font-bold leading-tight text-[#1C1917] ${
+              task.completed ? "line-through opacity-60" : ""
+            }`}
+          >
+            {showLabel ? task.title : "..."}
           </span>
-          {showLabel && (
-            <span className="mt-0.5 block truncate font-mono text-[9px] text-[#57534E]">
+          {showLabel && timeLabel && (
+            <span className="mt-0.5 block truncate font-mono text-[10px] font-medium text-[#57534E]">
               {timeLabel}
             </span>
           )}
-        </button>
+        </div>
 
-        <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+        <div className="hidden shrink-0 items-center gap-0.5 group-hover:flex">
           {onMoveTomorrow && (
             <button
               type="button"
-              onClick={() => onMoveTomorrow(task.id)}
-              aria-label={`Dời sang ngày mai: ${task.title}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMoveTomorrow(task.id);
+              }}
               title="Dời sang ngày mai"
-              className="flex h-5 w-5 items-center justify-center rounded-[3px] border border-[#262626] bg-white text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+              aria-label={`Dời sang ngày mai: ${task.title}`}
+              className="flex h-5 w-5 items-center justify-center rounded-[3px] border border-[#262626] bg-white text-[#1C1917] shadow-[0.5px_0.5px_0px_#262626] hover:bg-[#FAF8F3] active:scale-95"
             >
               <ArrowRight size={11} strokeWidth={2.4} />
             </button>
           )}
           <button
             type="button"
-            onClick={() => onDeleteTask(task.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteTask(task.id);
+            }}
+            title="Xóa công việc"
             aria-label={`Xóa task: ${task.title}`}
-            title="Xóa task"
-            className="flex h-5 w-5 items-center justify-center rounded-[3px] border border-[#BE123C] bg-white text-[#BE123C] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+            className="flex h-5 w-5 items-center justify-center rounded-[3px] border border-[#BE123C] bg-white text-[#BE123C] shadow-[0.5px_0.5px_0px_#BE123C] hover:bg-[#FFE4E6] active:scale-95"
           >
             <Trash2 size={11} strokeWidth={2.4} />
           </button>
@@ -153,12 +160,10 @@ const TimelineTaskCard: React.FC<TimelineTaskCardProps> = ({
   );
 };
 
-// === PHẦN 2: Biểu đồ tuần với trục thời gian dọc ===
+// === PHẦN 2: Lưới Thời khóa biểu 7 Cột Tuần Siêu Lớn 4X cho Desktop ===
 export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
   weekDays,
-  todayStr,
   selectedDateStr,
-  onPreviewDate,
   getTasksForDate,
   onSelectDate,
   onSelectTask,
@@ -166,154 +171,416 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
   onDeleteTask,
   onMoveTomorrow,
 }) => {
-  const hours = Array.from({ length: END_HOUR - START_HOUR }, (_, index) => START_HOUR + index);
-  const selectedDay = weekDays.find((day) => day.dateStr === selectedDateStr)
-    ?? weekDays.find((day) => day.dateStr === todayStr)
-    ?? weekDays[0];
-  const selectedDayTasks = selectedDay ? getTasksForDate(selectedDay.dateStr) : [];
-  const selectedTimedTasks = selectedDayTasks
-    .map((task) => ({ task, range: getTimelineRange(task) }))
-    .filter((item): item is { task: TaskDto; range: { start: number; end: number } } => Boolean(item.range));
-  const timelineLayout = buildTimelineGridLayout(
-    selectedDayTasks,
-    getTimelineRange,
-    HOUR_HEIGHT,
-    32,
+  const { openQuickTaskModal } = useAppStore();
+  const timelineScrollRef = useRef<HTMLDivElement>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Cập nhật giờ hiện tại mỗi 60 giây
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Tính số phút hiện tại trong ngày (0 - 1439)
+  const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes();
+  const currentHourTop = (currentMinutes / 60) * HOUR_HEIGHT;
+
+  // Tính toán trước layout timeline cho cả 7 ngày trong tuần
+  const daysLayoutData = useMemo(() => {
+    return weekDays.map((day) => {
+      const allTasks = getTasksForDate(day.dateStr);
+      const timedTasks = allTasks.filter((task) =>
+        Boolean(getTaskEffectiveTime(task)),
+      );
+      const allDayTasks = allTasks.filter(
+        (task) => !getTaskEffectiveTime(task),
+      );
+
+      const completedCount = allTasks.filter((t) => t.completed).length;
+      const scheduledCount = allTasks.filter(
+        (t) => normalizeTaskTimeType(t) === "scheduled",
+      ).length;
+      const deadlineCount = allTasks.filter(
+        (t) => normalizeTaskTimeType(t) === "deadline",
+      ).length;
+
+      // Kiểm tra có task sáng sớm (00:00 - 06:00) hoặc đêm muộn (22:00 - 24:00)
+      const hasEarlyOrNightTasks = timedTasks.some((t) => {
+        const range = getTaskTimelineRangeForDate(t, day.dateStr);
+        return range ? range.start < 360 || range.end > 1320 : false;
+      });
+
+      const layout = buildTimelineGridLayout(
+        timedTasks,
+        (task) => getTaskTimelineRangeForDate(task, day.dateStr),
+        HOUR_HEIGHT,
+        85,
+      );
+
+      return {
+        day,
+        allTasks,
+        timedTasks,
+        allDayTasks,
+        completedCount,
+        scheduledCount,
+        deadlineCount,
+        hasEarlyOrNightTasks,
+        layout,
+      };
+    });
+  }, [weekDays, getTasksForDate]);
+
+  // Kiểm tra toàn tuần có việc ngoài giờ (00:00 - 06:00 hoặc sau 22:00) không
+  const hasOffHoursTasksInWeek = useMemo(() => {
+    return daysLayoutData.some((d) => d.hasEarlyOrNightTasks);
+  }, [daysLayoutData]);
+
+  // Tự động cuộn đến vị trí giờ hiện tại khi mở giao diện lần đầu
+  useEffect(() => {
+    if (!timelineScrollRef.current) return;
+    const targetScroll = Math.max(0, currentHourTop - 180);
+    timelineScrollRef.current.scrollTo({
+      top: targetScroll,
+      behavior: "smooth",
+    });
+  }, []);
+
+  // Điều hướng nhanh đến các khung giờ
+  const scrollToHour = (hour: number) => {
+    if (!timelineScrollRef.current) return;
+    timelineScrollRef.current.scrollTo({
+      top: Math.max(0, hour * HOUR_HEIGHT - 60),
+      behavior: "smooth",
+    });
+  };
+
+  const scrollToNow = () => {
+    if (!timelineScrollRef.current) return;
+    timelineScrollRef.current.scrollTo({
+      top: Math.max(0, currentHourTop - 160),
+      behavior: "smooth",
+    });
+  };
+
+  // Mở modal tạo việc nhanh khi bấm vào ô giờ trống
+  const handleCellClick = (dateStr: string, hour: number) => {
+    const startStr = `${String(hour).padStart(2, "0")}:00`;
+    const endStr = `${String(Math.min(23, hour + 1)).padStart(2, "0")}:00`;
+    openQuickTaskModal({
+      dueDate: dateStr,
+      timeType: "scheduled",
+      startTime: startStr,
+      endTime: endStr,
+    });
+  };
+
+  const hours = Array.from(
+    { length: END_HOUR - START_HOUR },
+    (_, i) => START_HOUR + i,
   );
 
   return (
-    <div className="w-full space-y-3.5 select-none animate-in fade-in duration-150">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#262626]/20 pb-2">
-        <div className="flex items-center gap-2 text-xs font-bold text-[#1C1917]">
-          <Clock size={15} strokeWidth={2.4} />
-          <span>Thời khóa biểu tuần</span>
+    <div className="w-full space-y-3 select-none animate-in fade-in duration-150">
+      {/* 1. Header Toolbar của Lịch Trình Tuần */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#262626]/20 pb-2.5">
+        <div className="flex items-center gap-2.5 text-sm font-bold text-[#1C1917]">
+          <Clock size={18} strokeWidth={2.4} />
+          <span className="text-sm font-black">Thời khóa biểu 7 ngày (24 giờ)</span>
+          {hasOffHoursTasksInWeek && (
+            <span className="rounded-[4px] border border-[#CA8A04] bg-[#FEF08A] px-2.5 py-1 text-xs font-bold text-[#854D0E] shadow-sm">
+              🌙 Có việc sáng sớm / đêm muộn
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-3 font-mono text-[10px] text-[#57534E]">
-          <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-[2px] bg-[#BAE6FD]" />Lịch hẹn</span>
-          <span className="inline-flex items-center gap-1"><i className="h-2 w-2 rounded-[2px] bg-[#FECDD3]" />Hạn</span>
+
+        {/* Nút điều hướng nhanh khung giờ */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={scrollToNow}
+            title="Cuộn tới giờ hiện tại"
+            className="flex items-center gap-1.5 rounded-[5px] border-2 border-[#262626] bg-[#FAF8F3] px-3 py-1.5 text-xs font-bold text-[#1C1917] shadow-[2px_2px_0px_#262626] transition-all hover:bg-white active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+          >
+            <Compass size={14} strokeWidth={2.4} className="text-[#E11D48]" />
+            <span>Bây giờ ({formatTime(currentMinutes)})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => scrollToHour(7)}
+            title="Cuộn tới 07:00 sáng"
+            className="flex items-center gap-1.5 rounded-[5px] border-2 border-[#262626] bg-[#FAF8F3] px-3 py-1.5 text-xs font-bold text-[#1C1917] shadow-[2px_2px_0px_#262626] transition-all hover:bg-white active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+          >
+            <Sun size={14} strokeWidth={2.4} className="text-[#D97706]" />
+            <span>Ban ngày (07h)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => scrollToHour(20)}
+            title="Cuộn tới 20:00 tối"
+            className="flex items-center gap-1.5 rounded-[5px] border-2 border-[#262626] bg-[#FAF8F3] px-3 py-1.5 text-xs font-bold text-[#1C1917] shadow-[2px_2px_0px_#262626] transition-all hover:bg-white active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+          >
+            <Moon size={14} strokeWidth={2.4} className="text-[#4338CA]" />
+            <span>Ban đêm (20h)</span>
+          </button>
         </div>
       </div>
 
+      {/* 2. Container Lưới 7 Cột Tuần Cuộn Thông Minh Cỡ Lớn */}
       <div
-        className="min-h-[360px] max-h-[70vh] overflow-auto rounded-[6px] border-[1.5px] border-[#262626] bg-white shadow-[2px_2px_0px_#262626]"
+        ref={timelineScrollRef}
+        className="max-h-[78vh] min-h-[550px] overflow-auto rounded-[8px] border-2 border-[#262626] bg-white shadow-[3px_3px_0px_#262626]"
         tabIndex={0}
-        aria-label="Vùng cuộn thời khóa biểu tuần"
+        aria-label="Khung cuộn thời khóa biểu tuần"
       >
-        <div className="min-w-[620px]">
-          <div className="sticky top-0 z-20 grid grid-cols-[62px_repeat(7,minmax(0,1fr))] border-b-[1.5px] border-[#262626] bg-[#FAF8F3]">
-            <div className="flex items-center justify-center border-r border-[#D4CEBF] font-mono text-[10px] text-[#78716C]">
-              NGÀY
+        <div className="min-w-[1680px]">
+          {/* A. Sticky Header: 7 Cột Tiêu Đề Ngày Cỡ Lớn */}
+          <div className="sticky top-0 z-30 grid grid-cols-[80px_repeat(7,minmax(220px,1fr))] border-b-2 border-[#262626] bg-[#FAF8F3] shadow-md">
+            {/* Cột mốc giờ góc trái */}
+            <div className="flex flex-col items-center justify-center border-r-2 border-[#D4CEBF] bg-[#F5F2EA] p-2 font-mono text-xs font-bold text-[#78716C]">
+              <span className="text-sm font-black">GIỜ</span>
+              <span className="text-[10px] text-[#A8A29E]">24H</span>
             </div>
-            {weekDays.map((day) => {
-              const dayTasks = getTasksForDate(day.dateStr);
-              const completed = dayTasks.filter((task) => task.completed).length;
-              const scheduled = dayTasks.filter(
-                (task) => normalizeTaskTimeType(task) === "scheduled",
-              ).length;
-              const deadlines = dayTasks.filter(
-                (task) => normalizeTaskTimeType(task) === "deadline",
-              ).length;
-              const progressPercent = dayTasks.length > 0
-                ? Math.round((completed / dayTasks.length) * 100)
-                : 0;
-              const isSelected = day.dateStr === selectedDay?.dateStr;
-              const isToday = day.dateStr === todayStr;
 
-              return (
-                <button
-                  key={day.dateStr}
-                  type="button"
-                  onClick={() => (onPreviewDate ? onPreviewDate(day.dateStr) : onSelectDate(day.dateStr))}
-                  className={`relative min-h-[78px] border-r border-[#D4CEBF] px-1.5 py-1.5 text-left transition-colors last:border-r-0 hover:bg-white ${
-                    isSelected ? "bg-[#1C1917]" : isToday ? "bg-[#FAF8F3]" : ""
-                  }`}
-                  aria-label={`${day.dayName}, ngày ${day.dayNum}, ${dayTasks.length} việc`}
-                >
-                  {isToday && (
-                    <span className={`absolute right-1 top-0.5 rounded-[2px] px-1 text-[8px] font-bold ${isSelected ? "bg-[#FEF08A] text-[#1C1917]" : "bg-[#1C1917] text-white"}`}>
-                      Nay
-                    </span>
-                  )}
-                  <span className={`block text-[10px] font-semibold ${isSelected ? "text-white" : "text-[#57534E]"}`}>{day.dayName}</span>
-                  <span className={`block text-sm font-bold ${isSelected ? "text-white" : "text-[#1C1917]"}`}>{day.dayNum}</span>
-                  <span className={`mt-0.5 block truncate text-[10px] font-medium ${isSelected ? "text-[#E7E5E4]" : "text-[#78716C]"}`}>
-                    {dayTasks.length} việc · {scheduled} hẹn · {deadlines} hạn
-                  </span>
-                  <div className={`mt-1 h-1 w-full overflow-hidden rounded-[2px] border ${isSelected ? "border-[#E7E5E4] bg-[#57534E]" : "border-[#D4CEBF] bg-[#F3EFE6]"}`}>
+            {/* 7 Cột ngày Thứ 2 -> Chủ Nhật */}
+            {daysLayoutData.map(
+              ({
+                day,
+                allTasks,
+                completedCount,
+                scheduledCount,
+                deadlineCount,
+              }) => {
+                const isSelected = day.dateStr === selectedDateStr;
+                const isToday = day.isToday;
+                const progressPercent =
+                  allTasks.length > 0
+                    ? Math.round((completedCount / allTasks.length) * 100)
+                    : 0;
+
+                return (
+                  <div
+                    key={day.dateStr}
+                    className={`relative flex flex-col justify-between border-r-2 border-[#D4CEBF] p-3 transition-colors last:border-r-0 ${
+                      isSelected
+                        ? "bg-[#1C1917] text-white"
+                        : isToday
+                          ? "bg-[#FEF9C3]/60"
+                          : "bg-[#FAF8F3]"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`text-sm font-bold ${
+                            isSelected ? "text-white" : "text-[#1C1917]"
+                          }`}
+                        >
+                          {day.dayName}
+                        </span>
+                        <span
+                          className={`text-lg font-black ${
+                            isSelected
+                              ? "text-[#FEF08A]"
+                              : isToday
+                                ? "text-[#E11D48]"
+                                : "text-[#57534E]"
+                          }`}
+                        >
+                          {day.dayNum}
+                        </span>
+                      </div>
+
+                      {isToday && (
+                        <span className="rounded-[3px] bg-[#E11D48] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white shadow-sm">
+                          Hôm nay
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mt-1.5 flex items-center justify-between text-xs">
+                      <span
+                        className={
+                          isSelected ? "text-[#D6D3D1]" : "text-[#78716C]"
+                        }
+                      >
+                        {allTasks.length} việc
+                        {scheduledCount > 0 && ` · ${scheduledCount} hẹn`}
+                        {deadlineCount > 0 && ` · ${deadlineCount} hạn`}
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => onSelectDate(day.dateStr)}
+                        title="Xem chi tiết ngày"
+                        className={`rounded-[4px] px-2 py-1 text-xs font-bold transition-all shadow-sm ${
+                          isSelected
+                            ? "bg-white text-[#1C1917] hover:bg-[#FEF08A]"
+                            : "border border-[#262626]/40 bg-white text-[#1C1917] hover:bg-[#E7E5E4]"
+                        }`}
+                      >
+                        Chi tiết ➔
+                      </button>
+                    </div>
+
+                    {/* Thanh tiến độ */}
                     <div
-                      className={`h-full ${isSelected ? "bg-[#FEF08A]" : "bg-[#1C1917]"}`}
-                      style={{ width: `${progressPercent}%` }}
-                    />
+                      className={`mt-2 h-2 w-full overflow-hidden rounded-[3px] border border-[#262626]/40 ${
+                        isSelected ? "bg-[#44403C]" : "bg-[#E7E5E4]"
+                      }`}
+                    >
+                      <div
+                        className={`h-full ${
+                          isSelected ? "bg-[#FEF08A]" : "bg-[#16A34A]"
+                        }`}
+                        style={{ width: `${progressPercent}%` }}
+                      />
+                    </div>
                   </div>
-                </button>
-              );
-            })}
+                );
+              },
+            )}
           </div>
 
-          <div className="flex items-center justify-between gap-2 border-t border-[#D4CEBF] bg-[#FAF8F3] px-2 py-1 text-[10px] font-bold text-[#1C1917]">
-            <div>
-              {selectedDay ? `${selectedDay.dayName}, ngày ${selectedDay.dayNum}` : "Ngày đang chọn"}
-              <span className="ml-2 font-mono font-normal text-[#78716C]">{selectedTimedTasks.length} việc có giờ</span>
+          {/* B. Hàng Việc Cả Ngày (All-day Tasks Row) Cỡ Lớn */}
+          <div className="grid grid-cols-[80px_repeat(7,minmax(220px,1fr))] border-b-2 border-[#262626] bg-[#F5F2EA]/90">
+            <div className="flex items-center justify-center border-r-2 border-[#D4CEBF] px-2 py-2 font-mono text-xs font-bold text-[#78716C]">
+              CẢ NGÀY
             </div>
-            <button
-              type="button"
-              onClick={() => selectedDay && onSelectDate(selectedDay.dateStr)}
-              disabled={!selectedDay}
-              className="shrink-0 rounded-[3px] border-[1.5px] border-[#262626] bg-white px-2 py-1 text-[10px] font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626] transition-all hover:bg-[#F3EFE6] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Chi tiết ngày
-            </button>
+
+            {daysLayoutData.map(({ day, allDayTasks }) => (
+              <div
+                key={`allday-${day.dateStr}`}
+                className="min-h-[44px] space-y-1.5 border-r-2 border-[#D4CEBF] p-2 last:border-r-0"
+              >
+                {allDayTasks.slice(0, 3).map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => onSelectTask(t)}
+                    className={`block w-full truncate rounded-[5px] border-[1.5px] border-[#262626] px-2.5 py-1 text-left text-xs font-bold shadow-[1.5px_1.5px_0px_#262626] transition-all active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
+                      t.completed
+                        ? "bg-[#BBF7D0] line-through opacity-70"
+                        : "bg-white hover:bg-[#FAF8F3]"
+                    }`}
+                  >
+                    📌 {t.title}
+                  </button>
+                ))}
+                {allDayTasks.length > 3 && (
+                  <span className="block text-center font-mono text-xs font-bold text-[#78716C]">
+                    +{allDayTasks.length - 3} việc khác
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
 
-          <div className="grid grid-cols-[62px_minmax(0,1fr)]">
-            <div className="relative border-r border-[#D4CEBF] bg-[#FAF8F3]" style={{ height: timelineLayout.totalHeight }}>
-              {timelineLayout.hours.map(({ hour, top, height }) => (
+          {/* C. Thân Lưới 24 Giờ & 7 Cột Lịch Trình Cỡ Siêu Lớn */}
+          <div className="relative grid grid-cols-[80px_repeat(7,minmax(220px,1fr))] bg-white">
+            {/* Cột Trục Giờ (Left Gutter) */}
+            <div
+              className="relative border-r-2 border-[#D4CEBF] bg-[#FAF8F3]"
+              style={{ height: hours.length * HOUR_HEIGHT }}
+            >
+              {hours.map((hour) => (
                 <div
                   key={hour}
-                  className="absolute left-0 right-0 flex items-center justify-end border-b border-[#D4CEBF] px-1.5 font-mono text-[10px] text-[#78716C]"
-                  style={{ top, height }}
+                  className="absolute left-0 right-0 flex items-start justify-end border-b border-[#E7E5E4] pr-2.5 pt-2.5 font-mono text-xs font-bold text-[#78716C]"
+                  style={{
+                    top: hour * HOUR_HEIGHT,
+                    height: HOUR_HEIGHT,
+                  }}
                 >
                   {formatTime(hour * 60)}
                 </div>
               ))}
+
+              {/* Chỉ báo thời gian hiện tại trên trục giờ */}
+              <div
+                className="pointer-events-none absolute left-0 right-0 z-20 flex items-center justify-end pr-1.5"
+                style={{ top: currentHourTop - 11 }}
+              >
+                <span className="rounded-[4px] bg-[#E11D48] px-2 py-1 font-mono text-xs font-black text-white shadow-md">
+                  {formatTime(currentMinutes)}
+                </span>
+              </div>
             </div>
 
-            <div className="relative" style={{ height: timelineLayout.totalHeight }}>
-              {timelineLayout.hours.map(({ hour, top, height }) => (
-                <div
-                  key={hour}
-                  className="absolute left-0 right-0"
-                  style={{ top, height }}
-                >
-                  {QUARTER_START_MINUTES.map((minute) => (
-                    <div
-                      key={minute}
-                      aria-hidden="true"
-                      className="absolute left-0 right-0 border-b border-[#D4CEBF]"
-                      style={{ top: `${(minute / 60) * 100}%`, height: "25%" }}
-                    />
-                  ))}
-                </div>
-              ))}
+            {/* 7 Cột Timeline Tương Ứng 7 Ngày */}
+            {daysLayoutData.map(({ day, layout }) => (
+              <div
+                key={`timeline-${day.dateStr}`}
+                className={`relative border-r-2 border-[#D4CEBF] last:border-r-0 ${
+                  day.isToday ? "bg-[#FEF9C3]/15" : ""
+                }`}
+                style={{ height: hours.length * HOUR_HEIGHT }}
+              >
+                {/* Các ô giờ (Click để thêm task mới) */}
+                {hours.map((hour) => (
+                  <div
+                    key={hour}
+                    onClick={() => handleCellClick(day.dateStr, hour)}
+                    className="group/hour absolute left-0 right-0 border-b border-[#E7E5E4] transition-colors hover:bg-[#F3EFE6]/70 cursor-pointer"
+                    style={{
+                      top: hour * HOUR_HEIGHT,
+                      height: HOUR_HEIGHT,
+                    }}
+                    title={`Bấm để thêm việc lúc ${formatTime(hour * 60)}`}
+                  >
+                    {/* Vạch kẻ chia 15 phút */}
+                    {QUARTER_START_MINUTES.map((minute) => (
+                      <div
+                        key={minute}
+                        aria-hidden="true"
+                        className="absolute left-0 right-0 border-b border-[#F0ECE1]"
+                        style={{
+                          top: `${(minute / 60) * 100}%`,
+                          height: "25%",
+                        }}
+                      />
+                    ))}
 
-              {timelineLayout.segments.map((segment, index) => (
-                <TimelineTaskCard
-                  key={`${segment.task.id}-${index}`}
-                  task={segment.task}
-                  showLabel={segment.showLabel}
-                  style={{
-                    top: segment.top,
-                    left: `${segment.left}%`,
-                    width: `${segment.width}%`,
-                    height: segment.height,
-                  }}
-                  onSelectTask={onSelectTask}
-                  onToggleTask={onToggleTask}
-                  onDeleteTask={onDeleteTask}
-                  onMoveTomorrow={onMoveTomorrow}
-                />
-              ))}
-            </div>
+                    {/* Nút cộng mờ xuất hiện khi hover ô giờ */}
+                    <div className="absolute right-2.5 top-2.5 hidden items-center gap-1.5 rounded-[4px] border border-[#262626]/20 bg-white/95 px-2.5 py-1 font-mono text-xs font-bold text-[#57534E] shadow-sm group-hover/hour:flex">
+                      <Plus size={13} />
+                      <span>Thêm {formatTime(hour * 60)}</span>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Vạch Đỏ Giờ Hiện Tại (Current Time Red Line) nếu là Hôm Nay */}
+                {day.isToday && (
+                  <div
+                    className="pointer-events-none absolute left-0 right-0 z-20 h-[3px] bg-[#E11D48] shadow-[0_0_8px_#E11D48]"
+                    style={{ top: currentHourTop }}
+                  >
+                    <span className="absolute -left-1.5 -top-[5px] h-3.5 w-3.5 rounded-full border-2 border-white bg-[#E11D48]" />
+                  </div>
+                )}
+
+                {/* Các Thẻ Task Đã Định Vị Trong Ngày */}
+                {layout.segments.map((segment, index) => (
+                  <TimelineTaskCard
+                    key={`${segment.task.id}-${index}`}
+                    task={segment.task}
+                    showLabel={segment.showLabel}
+                    style={{
+                      top: segment.top,
+                      left: `calc(${segment.left}% + 2px)`,
+                      width: `calc(${segment.width}% - 4px)`,
+                      height: segment.height,
+                    }}
+                    onSelectTask={onSelectTask}
+                    onToggleTask={onToggleTask}
+                    onDeleteTask={onDeleteTask}
+                    onMoveTomorrow={onMoveTomorrow}
+                  />
+                ))}
+              </div>
+            ))}
           </div>
         </div>
       </div>

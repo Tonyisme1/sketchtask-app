@@ -1,7 +1,5 @@
 import React from "react";
 import { useAppStore } from "../../../stores/appStore";
-import { getTagStyle } from "../../../utils/tagColors";
-import { DynamicIcon } from "../../ui/core/DynamicIcon";
 import { CustomSelect } from "../../ui/pickers/select/CustomSelect";
 import {
   SlidersHorizontal,
@@ -10,6 +8,7 @@ import {
   X,
   Clock,
   Hourglass,
+  Search,
 } from "lucide-react";
 
 // ==========================================
@@ -17,48 +16,47 @@ import {
 // ==========================================
 
 export interface FilterBarProps {
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
   statusFilter: "all" | "active" | "completed";
   onStatusChange: (status: "all" | "active" | "completed") => void;
   timeTypeFilter?: "all" | "scheduled" | "deadline";
   onTimeTypeChange?: (timeType: "all" | "scheduled" | "deadline") => void;
   priorityFilter: "all" | "high" | "medium" | "low";
   onPriorityChange: (priority: "all" | "high" | "medium" | "low") => void;
-  notebookFilter: string;
-  onNotebookChange: (notebookId: string) => void;
   tagFilter: string;
   onTagChange: (tag: string) => void;
   isDrawerOpen: boolean;
   onToggleDrawer: () => void;
   onResetFilters: () => void;
   activeFilterCount: number;
-  hideNotebookFilter?: boolean;
   extraAction?: React.ReactNode;
 }
 
 export const FilterBar: React.FC<FilterBarProps> = ({
+  searchQuery,
+  onSearchChange,
   statusFilter,
   onStatusChange,
   timeTypeFilter = "all",
   onTimeTypeChange,
   priorityFilter,
   onPriorityChange,
-  notebookFilter,
-  onNotebookChange,
   tagFilter,
   onTagChange,
   isDrawerOpen,
   onToggleDrawer,
   onResetFilters,
   activeFilterCount,
-  hideNotebookFilter = false,
   extraAction,
 }) => {
-  const { notebooks, tags } = useAppStore();
+  const { tags } = useAppStore();
+  const [isSearchOpen, setIsSearchOpen] = React.useState(Boolean(searchQuery));
 
   return (
-    <div className="space-y-2 select-none animate-in fade-in slide-in-from-bottom-1 duration-150">
+    <div className="space-y-1.5 select-none animate-in fade-in slide-in-from-bottom-1 duration-150">
       {/* Tầng 1: Filter Bar Cốt Lõi */}
-      <div className="p-1.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] flex items-center justify-between gap-1.5 sm:gap-2 text-xs overflow-x-auto no-scrollbar">
+      <div className="p-1 bg-white border-[1.5px] border-[#262626] rounded-[5px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-between gap-1 text-xs overflow-x-auto no-scrollbar">
         {/* 3 Nút lọc trạng thái cốt lõi */}
         <div className="flex items-center gap-1 shrink-0">
           {[
@@ -70,9 +68,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               key={f.key}
               type="button"
               onClick={() => onStatusChange(f.key as any)}
-              className={`h-8 px-3 rounded-[4px] border-[1.5px] text-[13px] font-semibold transition-all whitespace-nowrap shrink-0 flex items-center justify-center active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
+              className={`h-7 px-2.5 rounded-[3px] border text-xs font-bold transition-all whitespace-nowrap shrink-0 flex items-center justify-center active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
                 statusFilter === f.key
-                  ? "bg-[#262626] text-white border-[#262626] shadow-[1px_1px_0px_#262626]"
+                  ? "bg-[#262626] text-white border-[#262626] shadow-[0.5px_0.5px_0px_#262626]"
                   : "bg-[#FBF9F4] text-[#78716C] border-[#D4CEBF] hover:text-[#1C1917]"
               }`}
             >
@@ -81,8 +79,54 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           ))}
         </div>
 
-        {/* Nút bên phải: Action phụ + Nút Lọc Nhỏ + Nút Xóa */}
+        {/* Nút bên phải: Tìm kiếm trong trang + Action phụ + Nút Lọc Nhỏ + Nút Xóa */}
         <div className="flex items-center gap-1 shrink-0">
+          {onSearchChange && (
+            isSearchOpen || Boolean(searchQuery) ? (
+              <div className="flex items-center gap-1 h-7 px-1.5 bg-[#FAF8F3] border border-[#262626] rounded-[3px] text-xs">
+                <Search size={11} className="text-[#78716C] shrink-0" strokeWidth={2.4} />
+                <input
+                  type="text"
+                  value={searchQuery || ""}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  placeholder="Tìm việc..."
+                  className="bg-transparent text-[11px] text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none w-20 sm:w-28 font-sans"
+                  autoFocus
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => onSearchChange("")}
+                    className="text-[#78716C] hover:text-[#1C1917] cursor-pointer"
+                  >
+                    <X size={10} strokeWidth={2.4} />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSearchOpen(false);
+                    onSearchChange("");
+                  }}
+                  className="text-[#78716C] hover:text-[#1C1917] text-[10px] font-bold cursor-pointer"
+                  title="Đóng"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsSearchOpen(true)}
+                className="h-7 px-2 rounded-[3px] border border-[#D4CEBF] bg-white hover:border-[#1C1917] text-[#78716C] hover:text-[#1C1917] text-xs font-bold flex items-center gap-1 active:translate-x-[0.5px] active:translate-y-[0.5px] transition-all cursor-pointer"
+                title="Tìm kiếm trong danh sách này"
+              >
+                <Search size={12} strokeWidth={2.4} />
+                <span className="hidden sm:inline">Tìm</span>
+              </button>
+            )
+          )}
+
           {extraAction}
 
           {activeFilterCount > 0 && (
@@ -90,9 +134,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               type="button"
               onClick={onResetFilters}
               title="Xóa bộ lọc"
-              className="h-8 px-2 rounded-[4px] bg-[#FAF8F3] border-[1.5px] border-[#262626] text-[#1C1917] text-xs font-semibold flex items-center gap-1 hover:bg-[#E7E5E4] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none whitespace-nowrap shrink-0"
+              className="h-7 px-2 rounded-[3px] bg-[#FAF8F3] border border-[#262626] text-[#1C1917] text-[11px] font-bold flex items-center gap-1 hover:bg-[#E7E5E4] active:translate-x-[0.5px] active:translate-y-[0.5px] whitespace-nowrap shrink-0 cursor-pointer"
             >
-              <X size={12} strokeWidth={2.5} />
+              <X size={11} strokeWidth={2.5} />
               <span className="hidden xs:inline">Xóa</span>
             </button>
           )}
@@ -100,20 +144,30 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <button
             type="button"
             onClick={onToggleDrawer}
-            className={`h-8 px-3 rounded-[4px] border-[1.5px] text-[13px] font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
+            className={`h-7 px-2.5 rounded-[3px] border text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 active:translate-x-[0.5px] active:translate-y-[0.5px] cursor-pointer ${
               isDrawerOpen || activeFilterCount > 0
                 ? "bg-[#1C1917] border-[#1C1917] text-white shadow-none"
                 : "bg-white border-[#D4CEBF] text-[#78716C] hover:text-[#1C1917] hover:border-[#1C1917]"
             }`}
           >
-            <SlidersHorizontal size={12} strokeWidth={2.2} />
-            <span>Bộ lọc</span>
+            <SlidersHorizontal size={12} strokeWidth={2.4} />
+            <span>Lọc</span>
             {activeFilterCount > 0 && (
-              <span className="w-4 h-4 rounded-full bg-white text-[#1C1917] text-[9px] flex items-center justify-center font-mono font-bold shrink-0">
+              <span
+                className={`ml-0.5 px-1 py-0.2 rounded-full font-mono text-[9px] font-black ${
+                  isDrawerOpen || activeFilterCount > 0
+                    ? "bg-[#FEF08A] text-[#1C1917]"
+                    : "bg-[#1C1917] text-white"
+                }`}
+              >
                 {activeFilterCount}
               </span>
             )}
-            {isDrawerOpen ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+            {isDrawerOpen ? (
+              <ChevronUp size={12} strokeWidth={2.4} />
+            ) : (
+              <ChevronDown size={12} strokeWidth={2.4} />
+            )}
           </button>
         </div>
       </div>
@@ -183,31 +237,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             </div>
           </div>
 
-          {/* 3. Cuốn Sổ Tay (Custom Dropdown) */}
-          {!hideNotebookFilter && (
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-semibold text-[#78716C] w-16 shrink-0">Sổ tay:</span>
-              <div className="min-w-[180px] flex-1 max-w-xs">
-                <CustomSelect
-                  options={[
-                    { value: "all", label: "Tất cả sổ tay" },
-                    { value: "none", label: "Không thuộc sổ tay" },
-                    ...notebooks.map((nb) => ({
-                      value: nb.id,
-                      label: nb.name,
-                      icon: nb.icon,
-                      color: nb.color,
-                    })),
-                  ]}
-                  value={notebookFilter}
-                  onChange={onNotebookChange}
-                  placeholder="Chọn sổ tay..."
-                />
-              </div>
-            </div>
-          )}
-
-          {/* 4. Nhãn (#Tag) (Custom Dropdown) */}
+          {/* 3. Nhãn (#Tag) (Custom Dropdown) */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-semibold text-[#78716C] w-16 shrink-0">Nhãn:</span>
             <div className="min-w-[180px] flex-1 max-w-xs">

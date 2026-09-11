@@ -34,7 +34,6 @@ export const JournalTab: React.FC<JournalTabProps> = ({
       <JournalBook
         initialDate={navigationTarget?.date}
         initialEntryId={navigationTarget?.journalEntryId}
-        notebookId={navigationTarget?.notebookId}
         onClearNavigationTarget={onClearNavigationTarget}
         onNavigateTab={onNavigateTab}
       />

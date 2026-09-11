@@ -2,19 +2,19 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAppStore } from "../../../stores/appStore";
 import { TaskPriority, TaskTimeType } from "../../../types";
 import { getLocalTodayStr } from "../../../utils/date";
-import { normalizeTaskTimeType } from "../../../utils/taskSemantics";
+import { normalizeTaskTimeType, getTaskTags, extractTagsFromTitle } from "../../../utils/taskSemantics";
 import { useResponsiveLayout } from "../../../shared/hooks";
+import { isNativePlatform } from "../../../services/notificationService";
 import { HandDrawnCheckbox } from "../../ui/core/HandDrawnCheckbox";
-import { CustomSelect } from "../../ui/pickers/select/CustomSelect";
+import { TagInputSelector } from "../../ui/pickers/select/TagInputSelector";
 import { TimePickerPopover } from "../../ui/pickers/time/TimePickerPopover";
 import { DatePickerPopover } from "../../ui/pickers/time/DatePickerPopover";
 import {
   ArrowLeft,
   Trash2,
   Calendar,
-  Hourglass,
+  Clock,
   Tag as TagIcon,
-  BookOpen,
   Check,
   Sparkles,
   CheckCircle2,
@@ -23,7 +23,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 
-type TaskEditorSection = "status" | "scheduled" | "deadline" | "notes" | "metadata" | "subtasks";
+type TaskEditorSection = "status" | "timing" | "organize" | "notes" | "subtasks";
 
 interface CollapsibleTaskSectionProps {
   title: string;
@@ -42,30 +42,37 @@ const CollapsibleTaskSection: React.FC<CollapsibleTaskSectionProps> = ({
   trailing,
   children,
 }) => (
-  <section className="task-detail-section border-b border-[#262626]/20 pb-2">
+  <section className="bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] overflow-hidden transition-all">
     <button
       type="button"
       onClick={onToggle}
       aria-expanded={open}
-      className="w-full min-h-[40px] flex items-center justify-between gap-2 py-1 text-left cursor-pointer rounded-[4px] hover:bg-[#FAF8F3] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#1C1917]"
+      className={`w-full min-h-[42px] px-3.5 py-2.5 flex items-center justify-between gap-2 text-left cursor-pointer transition-colors ${
+        open
+          ? "bg-[#F3EFE6] border-b-[1.5px] border-[#262626] text-[#1C1917]"
+          : "bg-white hover:bg-[#FAF8F3] text-[#1C1917]"
+      } focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#1C1917]`}
     >
-      <span className="task-detail-section-title text-xs font-black uppercase tracking-wider text-[#57534E] font-mono flex items-center gap-1.5">
-        {icon}
+      <span className="task-detail-section-title text-sm sm:text-[15px] font-bold text-[#1C1917] flex items-center gap-2.5">
+        <span className="w-6 h-6 rounded-[4px] bg-white border border-[#262626] text-[#1C1917] shadow-[0.5px_0.5px_0px_#262626] flex items-center justify-center shrink-0">
+          {icon}
+        </span>
         <span>{title}</span>
       </span>
       <span className="flex items-center gap-2 shrink-0">
         {trailing}
-        {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        <span className="text-[#57534E] flex items-center justify-center">
+          {open ? <ChevronUp size={16} strokeWidth={2.4} /> : <ChevronDown size={16} strokeWidth={2.4} />}
+        </span>
       </span>
     </button>
-    {open && <div className="pt-2 space-y-2">{children}</div>}
+    {open && <div className="p-3.5 space-y-3.5 bg-white">{children}</div>}
   </section>
 );
 
 export interface TaskDetailPageProps {
   taskId: string | "new";
   initialDate?: string;
-  notebookId?: string;
   parentTaskId?: string;
   onBack: () => void;
 }
@@ -77,18 +84,16 @@ const getEditorTimeType = (task: Parameters<typeof normalizeTaskTimeType>[0]): T
 export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   taskId,
   initialDate,
-  notebookId: defaultNotebookId,
   parentTaskId,
   onBack,
 }) => {
   const {
     tasks,
-    notebooks,
-    tags,
     addTask,
     updateTask,
     deleteTask,
     toggleTask,
+    activeTaskDetailInitialData,
   } = useAppStore();
   const { isMobile, isTablet } = useResponsiveLayout();
 
@@ -99,27 +104,28 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
 
   // State cục bộ (được khởi tạo từ task có sẵn hoặc tạo mới)
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(existingTask ? existingTask.id : null);
-  const [title, setTitle] = useState(existingTask ? existingTask.title : "");
-  const [description, setDescription] = useState(existingTask?.description || "");
+  const [title, setTitle] = useState(existingTask?.title || activeTaskDetailInitialData?.title || "");
+  const [description, setDescription] = useState(existingTask?.description || activeTaskDetailInitialData?.description || "");
   const [completed, setCompleted] = useState(existingTask ? existingTask.completed : false);
-  const [dueDate, setDueDate] = useState(existingTask?.dueDate || initialDate || todayStr);
+  const [dueDate, setDueDate] = useState(existingTask?.dueDate || activeTaskDetailInitialData?.dueDate || initialDate || todayStr);
+  const [isDateRange, setIsDateRange] = useState<boolean>(Boolean(existingTask?.startDate && existingTask?.endDate) || Boolean(activeTaskDetailInitialData?.startDate && activeTaskDetailInitialData?.endDate));
+  const [startDate, setStartDate] = useState(existingTask?.startDate || activeTaskDetailInitialData?.startDate || existingTask?.dueDate || initialDate || todayStr);
+  const [endDate, setEndDate] = useState(existingTask?.endDate || activeTaskDetailInitialData?.endDate || "");
   const [timeType, setTimeType] = useState<TaskTimeType>(
-    existingTask ? getEditorTimeType(existingTask) : "deadline",
+    existingTask ? getEditorTimeType(existingTask) : activeTaskDetailInitialData?.timeType || "deadline",
   );
-  const [startTime, setStartTime] = useState(existingTask?.startTime || "");
-  const [endTime, setEndTime] = useState(existingTask?.endTime || "");
-  const [deadlineTime, setDeadlineTime] = useState(existingTask?.deadlineTime || "");
-  const [priority, setPriority] = useState<TaskPriority>(existingTask?.priority || "medium");
-  const [notebookId, setNotebookId] = useState<string>(existingTask?.notebookId || defaultNotebookId || "none");
-  const [tag, setTag] = useState<string>(existingTask?.tag || "none");
+  const [startTime, setStartTime] = useState(existingTask?.startTime || activeTaskDetailInitialData?.startTime || "");
+  const [endTime, setEndTime] = useState(existingTask?.endTime || activeTaskDetailInitialData?.endTime || "");
+  const [deadlineTime, setDeadlineTime] = useState(existingTask?.deadlineTime || activeTaskDetailInitialData?.deadlineTime || "");
+  const [priority, setPriority] = useState<TaskPriority>(existingTask?.priority || activeTaskDetailInitialData?.priority || "medium");
+  const [selectedTags, setSelectedTags] = useState<string[]>(existingTask ? getTaskTags(existingTask) : activeTaskDetailInitialData?.tags || (activeTaskDetailInitialData?.tag ? [activeTaskDetailInitialData.tag] : []));
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [saveStatus, setSaveStatus] = useState<"saved" | "unsaved" | "saving">("saved");
   const [openSections, setOpenSections] = useState<Record<TaskEditorSection, boolean>>({
-    status: false,
-    scheduled: false,
-    deadline: false,
+    status: taskId !== "new",
+    timing: true,
+    organize: false,
     notes: false,
-    metadata: false,
     subtasks: false,
   });
 
@@ -129,27 +135,29 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   useEffect(() => {
     const task = taskId !== "new" ? tasks.find((t) => t.id === taskId) : null;
     setCurrentTaskId(task ? task.id : null);
-    setTitle(task ? task.title : "");
-    setDescription(task?.description || "");
+    setTitle(task?.title || activeTaskDetailInitialData?.title || "");
+    setDescription(task?.description || activeTaskDetailInitialData?.description || "");
     setCompleted(task ? task.completed : false);
-    setDueDate(task?.dueDate || initialDate || todayStr);
-    setTimeType(task ? getEditorTimeType(task) : "deadline");
-    setStartTime(task?.startTime || "");
-    setEndTime(task?.endTime || "");
-    setDeadlineTime(task?.deadlineTime || "");
-    setPriority(task?.priority || "medium");
-    setNotebookId(task?.notebookId || defaultNotebookId || "none");
-    setTag(task?.tag || "none");
+    const initialDue = task?.dueDate || activeTaskDetailInitialData?.dueDate || initialDate || todayStr;
+    setDueDate(initialDue);
+    setStartDate(task?.startDate || activeTaskDetailInitialData?.startDate || initialDue);
+    setEndDate(task?.endDate || activeTaskDetailInitialData?.endDate || "");
+    setIsDateRange(Boolean(task?.startDate && task?.endDate) || Boolean(activeTaskDetailInitialData?.startDate && activeTaskDetailInitialData?.endDate));
+    setTimeType(task ? getEditorTimeType(task) : activeTaskDetailInitialData?.timeType || "deadline");
+    setStartTime(task?.startTime || activeTaskDetailInitialData?.startTime || "");
+    setEndTime(task?.endTime || activeTaskDetailInitialData?.endTime || "");
+    setDeadlineTime(task?.deadlineTime || activeTaskDetailInitialData?.deadlineTime || "");
+    setPriority(task?.priority || activeTaskDetailInitialData?.priority || "medium");
+    setSelectedTags(task ? getTaskTags(task) : activeTaskDetailInitialData?.tags || (activeTaskDetailInitialData?.tag ? [activeTaskDetailInitialData.tag] : []));
     setSaveStatus("saved");
     setOpenSections({
-      status: false,
-      scheduled: false,
-      deadline: false,
+      status: taskId !== "new",
+      timing: true,
+      organize: false,
       notes: false,
-      metadata: false,
       subtasks: false,
     });
-  }, [taskId, initialDate, defaultNotebookId, todayStr]);
+  }, [taskId, initialDate, todayStr, activeTaskDetailInitialData]);
 
   // Autofocus vào tiêu đề khi tạo task mới
   useEffect(() => {
@@ -180,19 +188,30 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     const trimmedTitle = title.trim();
     if (!trimmedTitle) return;
 
+    // Bóc tách tự động nếu người dùng gõ #tag trong tiêu đề
+    const { cleanTitle, extractedTags } = extractTagsFromTitle(trimmedTitle);
+    const combinedTags = Array.from(new Set([...selectedTags, ...extractedTags]));
+
     setSaveStatus("saving");
     const taskData = {
-      title: trimmedTitle,
+      title: cleanTitle || trimmedTitle,
       description: description.trim() || undefined,
-      dueDate: dueDate || undefined,
+      dueDate: isDateRange ? (startDate || dueDate) : (dueDate || undefined),
+      startDate: isDateRange ? (startDate || dueDate) : undefined,
+      endDate: isDateRange && endDate ? endDate : undefined,
+      deadlineDate:
+        timeType === "deadline"
+          ? isDateRange
+            ? endDate || startDate || dueDate || undefined
+            : dueDate || undefined
+          : undefined,
       timeType,
-      // Persist only the fields belonging to the selected time type.
       startTime: timeType === "scheduled" ? startTime || undefined : undefined,
       endTime: timeType === "scheduled" ? endTime || undefined : undefined,
       deadlineTime: timeType === "deadline" ? deadlineTime || undefined : undefined,
       priority,
-      notebookId: notebookId !== "none" ? notebookId : undefined,
-      tag: tag !== "none" ? tag : undefined,
+      tag: combinedTags[0] || undefined,
+      tags: combinedTags.length > 0 ? combinedTags : undefined,
       parentTaskId: parentTaskId || undefined,
     };
 
@@ -221,8 +240,8 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
         dueDate: dueDate || todayStr,
         timeType,
         priority,
-        notebookId: notebookId !== "none" ? notebookId : undefined,
-        tag: tag !== "none" ? tag : undefined,
+        tag: selectedTags[0] || undefined,
+        tags: selectedTags.length > 0 ? selectedTags : undefined,
       });
       parentId = parentCreated.id;
       setCurrentTaskId(parentId);
@@ -255,16 +274,22 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   };
 
   return (
-    <div className={`task-detail-editor w-full h-full bg-[#FBF9F4] text-[#1C1917] select-none flex flex-col overflow-hidden ${isMobile || isTablet ? "pt-[max(env(safe-area-inset-top),12px)]" : ""}`}>
-      {/* 1. TOPBAR CỦA PANEL: Nút Quay Lại + Trạng Thái Lưu + Nút Xóa */}
-      <div className="shrink-0 z-20 bg-[#FBF9F4] border-b border-[#262626]/20 px-4 py-2.5 flex items-center justify-between">
+    <div className="task-detail-editor w-full h-full bg-[#FBF9F4] text-[#1C1917] select-none flex flex-col overflow-y-auto">
+      {/* 1. TOPBAR CỦA PANEL: Nút Quay Lại + Trạng Thái Lưu + Nút Xóa (Đồng bộ MobileHeader) */}
+      <div className={`shrink-0 z-30 sticky top-0 bg-[#FBF9F4] border-b border-[#262626]/20 px-3.5 sm:px-5 flex items-center justify-between min-h-[56px] sm:min-h-[60px] ${
+        isMobile || isTablet
+          ? isNativePlatform()
+            ? "pt-11 pb-2.5"
+            : "pt-[max(env(safe-area-inset-top),10px)] pb-2.5"
+          : "py-2.5"
+      }`}>
         {/* Nút Quay Lại */}
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] bg-white hover:bg-[#FAF8F3] border border-[#262626] shadow-[1px_1px_0px_#262626] text-sm font-bold active:translate-y-[0.5px] cursor-pointer transition-all"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[4px] bg-white hover:bg-[#FAF8F3] border border-[#262626] shadow-[1px_1px_0px_#262626] text-sm font-bold active:translate-y-[0.5px] cursor-pointer transition-all"
         >
-          <ArrowLeft size={13} strokeWidth={2.4} />
+          <ArrowLeft size={14} strokeWidth={2.4} />
           <span>Quay lại</span>
         </button>
 
@@ -276,9 +301,9 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             ) : saveStatus === "unsaved" ? (
               <span className="text-amber-700">Chưa lưu</span>
             ) : (
-              <span className="text-emerald-700 flex items-center gap-1 font-bold">
+              <span className="text-emerald-700 flex items-center gap-1 font-medium">
                 <Check size={12} strokeWidth={3} />
-                ĐÃ LƯU
+                Đã lưu
               </span>
             )}
           </span>
@@ -288,7 +313,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               type="button"
               onClick={handleSave}
               disabled={!title.trim()}
-              className="px-2.5 py-1 rounded-[4px] bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] shadow-[1px_1px_0px_#262626] text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+              className="px-2.5 py-1 rounded-[4px] bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] shadow-[1px_1px_0px_#262626] text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
             >
               Lưu
             </button>
@@ -307,8 +332,8 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
         </div>
       </div>
 
-      {/* 2. NỘI DUNG CHÍNH (FORM GỌN GÀNG, THOÁNG ĐÃNG) */}
-      <div className="flex-1 w-full p-4 space-y-4 overflow-y-auto">
+      {/* 2. NỘI DUNG CHÍNH (FORM GỌN GÀNG, ĐỒNG BỘ POPUP THÊM NHANH) */}
+      <div className="flex-1 w-full px-3.5 py-4 sm:px-5 sm:py-5 pb-28 space-y-4">
         {/* TIÊU ĐỀ CÔNG VIỆC */}
         <div className="space-y-1 pb-2 border-b border-[#262626]/15">
           <input
@@ -321,15 +346,15 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               markDraftChanged();
             }}
             placeholder="Tên công việc..."
-            className="w-full bg-transparent text-lg sm:text-xl font-black text-[#1C1917] placeholder:text-[#57534E] focus:outline-none tracking-tight leading-snug"
+            className="w-full bg-transparent text-lg sm:text-xl font-bold text-[#1C1917] placeholder:text-[#57534E] focus:outline-none tracking-tight leading-snug"
           />
         </div>
 
-        {/* MỤC 1: TRẠNG THÁI (STATUS) - Chỉ hiện khi sửa task đã tồn tại */}
+        {/* PHẦN 1: TRẠNG THÁI (STATUS) - CHỈ hiển thị khi XEM/SỬA task đã tồn tại, ẨN khi TẠO MỚI */}
         {taskId !== "new" && (
           <CollapsibleTaskSection
             title="Trạng thái"
-            icon={<CheckCircle2 size={12} />}
+            icon={<CheckCircle2 size={13} />}
             open={openSections.status}
             onToggle={() => toggleSection("status")}
           >
@@ -339,7 +364,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                 onClick={() => {
                   if (completed) handleToggleComplete();
                 }}
-                className={`flex-1 py-1.5 px-3 rounded-[4px] border-[1.5px] text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                className={`flex-1 py-1.5 px-3 rounded-[4px] border-[1.5px] text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   !completed
                     ? "bg-[#1C1917] text-white border-[#1C1917] shadow-[1.5px_1.5px_0px_#262626]"
                     : "bg-white text-[#78716C] border-[#D4CEBF] hover:bg-[#FAF8F3]"
@@ -353,7 +378,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                 onClick={() => {
                   if (!completed) handleToggleComplete();
                 }}
-                className={`flex-1 py-1.5 px-3 rounded-[4px] border-[1.5px] text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                className={`flex-1 py-1.5 px-3 rounded-[4px] border-[1.5px] text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                   completed
                     ? "bg-[#1C1917] text-white border-[#1C1917] shadow-[1.5px_1.5px_0px_#262626]"
                     : "bg-white text-[#78716C] border-[#D4CEBF] hover:bg-[#FAF8F3]"
@@ -366,132 +391,251 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
           </CollapsibleTaskSection>
         )}
 
-        {/* MỤC 2: LỊCH HẸN (SCHEDULED) */}
+        {/* PHẦN 2: THỜI GIAN (LỊCH HẸN & HẠN CHÓT) */}
         <CollapsibleTaskSection
-          title="Lịch hẹn"
-          icon={<Calendar size={12} />}
-          open={openSections.scheduled}
-          onToggle={() => toggleSection("scheduled")}
-          trailing={timeType === "scheduled" ? (
-            <span className="text-xs font-mono font-bold text-[#1C1917] bg-[#E7E5E4] px-1.5 py-0.2 rounded border border-[#A8A29E]">
-              Đang chọn
-            </span>
-          ) : undefined}
+          title="Thời gian"
+          icon={<Calendar size={13} />}
+          open={openSections.timing}
+          onToggle={() => toggleSection("timing")}
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {/* Ngày hẹn */}
-            <DatePickerPopover
-              value={dueDate}
-              onChange={(val) => {
-                setDueDate(val);
+          {/* Kiểu ngày: Trong ngày vs Khoảng ngày (Từ - Đến) */}
+          <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]/10 text-xs">
+            <span className="font-medium text-[#57534E] flex items-center gap-1">
+              <Calendar size={12} />
+              <span>Kiểu ngày:</span>
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDateRange(false);
+                  setEndDate("");
+                  markDraftChanged();
+                }}
+                className={`px-2 py-0.5 rounded-[3px] border font-medium text-xs transition-all cursor-pointer ${
+                  !isDateRange
+                    ? "bg-[#1C1917] text-white border-[#1C1917]"
+                    : "bg-[#FAF8F3] text-[#78716C] border-[#D4CEBF] hover:bg-white"
+                }`}
+              >
+                Trong ngày
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDateRange(true);
+                  if (!endDate) {
+                    const startVal = startDate || dueDate || todayStr;
+                    setStartDate(startVal);
+                    const d = new Date(startVal);
+                    d.setDate(d.getDate() + 2);
+                    setEndDate(d.toISOString().split("T")[0]);
+                  }
+                  markDraftChanged();
+                }}
+                className={`px-2 py-0.5 rounded-[3px] border font-medium text-xs transition-all cursor-pointer ${
+                  isDateRange
+                    ? "bg-[#1C1917] text-white border-[#1C1917]"
+                    : "bg-[#FAF8F3] text-[#78716C] border-[#D4CEBF] hover:bg-white"
+                }`}
+              >
+                Khoảng ngày (Từ – Đến)
+              </button>
+            </div>
+          </div>
+
+          {!isDateRange ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+              {/* Ngày thực hiện / Hạn chót */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-[#57534E] flex items-center gap-1">
+                  <Calendar size={12} />
+                  <span>Ngày:</span>
+                </label>
+                <DatePickerPopover
+                  value={dueDate}
+                  onChange={(val) => {
+                    setDueDate(val);
+                    markDraftChanged();
+                  }}
+                  placeholder="Chọn ngày"
+                  className="w-full"
+                />
+              </div>
+
+              {/* Giờ hạn chót hoặc khung giờ */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-[#57534E] flex items-center gap-1">
+                  <Clock size={12} />
+                  <span>Giờ / Khung giờ:</span>
+                </label>
+                {timeType === "scheduled" ? (
+                  <div className="flex items-center gap-1">
+                    <TimePickerPopover
+                      value={startTime}
+                      onChange={(val) => {
+                        setStartTime(val);
+                        markDraftChanged();
+                      }}
+                      placeholder="Bắt đầu"
+                      className="flex-1 min-w-0"
+                    />
+                    <span className="text-xs font-mono font-medium text-[#78716C]">-</span>
+                    <TimePickerPopover
+                      value={endTime}
+                      onChange={(val) => {
+                        setEndTime(val);
+                        markDraftChanged();
+                      }}
+                      placeholder="Kết thúc"
+                      align="right"
+                      className="flex-1 min-w-0"
+                    />
+                  </div>
+                ) : (
+                  <TimePickerPopover
+                    value={deadlineTime}
+                    onChange={(val) => {
+                      setDeadlineTime(val);
+                      markDraftChanged();
+                    }}
+                    placeholder="Không đặt giờ (Cả ngày)"
+                    align="right"
+                    className="w-full"
+                  />
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {/* Từ ngày */}
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-[#57534E] flex items-center gap-1">
+                    <Calendar size={12} />
+                    <span>Từ ngày:</span>
+                  </label>
+                  <DatePickerPopover
+                    value={startDate || dueDate}
+                    onChange={(val) => {
+                      setStartDate(val);
+                      setDueDate(val);
+                      markDraftChanged();
+                    }}
+                    placeholder="Ngày bắt đầu"
+                    className="w-full"
+                  />
+                </div>
+
+                {/* Đến ngày */}
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-[#57534E] flex items-center gap-1">
+                    <Calendar size={12} />
+                    <span>Đến ngày:</span>
+                  </label>
+                  <DatePickerPopover
+                    value={endDate}
+                    onChange={(val) => {
+                      setEndDate(val);
+                      markDraftChanged();
+                    }}
+                    placeholder="Ngày kết thúc"
+                    className="w-full"
+                  />
+                </div>
+              </div>
+
+              {/* Giờ chót hoặc khung giờ trong khoảng ngày */}
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-[#57534E] flex items-center gap-1">
+                  <Clock size={12} />
+                  <span>{timeType === "deadline" ? "Giờ chót (ngày kết thúc):" : "Khung giờ diễn ra:"}</span>
+                </label>
+                {timeType === "scheduled" ? (
+                  <div className="flex items-center gap-1">
+                    <TimePickerPopover
+                      value={startTime}
+                      onChange={(val) => {
+                        setStartTime(val);
+                        markDraftChanged();
+                      }}
+                      placeholder="Bắt đầu"
+                      className="flex-1 min-w-0"
+                    />
+                    <span className="text-xs font-mono font-medium text-[#78716C]">-</span>
+                    <TimePickerPopover
+                      value={endTime}
+                      onChange={(val) => {
+                        setEndTime(val);
+                        markDraftChanged();
+                      }}
+                      placeholder="Kết thúc"
+                      align="right"
+                      className="flex-1 min-w-0"
+                    />
+                  </div>
+                ) : (
+                  <TimePickerPopover
+                    value={deadlineTime}
+                    onChange={(val) => {
+                      setDeadlineTime(val);
+                      markDraftChanged();
+                    }}
+                    placeholder="Không đặt giờ (Cả ngày)"
+                    align="right"
+                    className="w-full"
+                  />
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Chế độ thời gian */}
+          <div className="flex items-center gap-2 pt-1 border-t border-[#262626]/10 text-sm">
+            <span className="text-xs font-medium text-[#57534E]">Loại:</span>
+            <button
+              type="button"
+              onClick={() => {
+                setTimeType("deadline");
                 markDraftChanged();
               }}
-              placeholder="Chọn ngày hẹn"
-              className="w-full"
-            />
-
-            {/* Khung giờ bắt đầu - kết thúc */}
-            <div className="flex items-center gap-1.5">
-              <TimePickerPopover
-                value={startTime}
-                onChange={(val) => {
-                  setStartTime(val);
-                  setTimeType("scheduled");
-                  markDraftChanged();
-                }}
-                placeholder="Bắt đầu"
-                className="flex-1 min-w-0"
-              />
-              <span className="text-[#78716C] font-mono font-bold">–</span>
-              <TimePickerPopover
-                value={endTime}
-                onChange={(val) => {
-                  setEndTime(val);
-                  setTimeType("scheduled");
-                  markDraftChanged();
-                }}
-                placeholder="Kết thúc"
-                align="right"
-                className="flex-1 min-w-0"
-              />
-            </div>
+              className={`px-2 py-0.5 rounded-[3px] border font-medium text-xs cursor-pointer ${
+                timeType === "deadline"
+                  ? "bg-[#1C1917] text-white border-[#1C1917]"
+                  : "bg-[#FAF8F3] text-[#78716C] border-[#D4CEBF]"
+              }`}
+            >
+              Hạn chót
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setTimeType("scheduled");
+                markDraftChanged();
+              }}
+              className={`px-2 py-0.5 rounded-[3px] border font-medium text-xs cursor-pointer ${
+                timeType === "scheduled"
+                  ? "bg-[#1C1917] text-white border-[#1C1917]"
+                  : "bg-[#FAF8F3] text-[#78716C] border-[#D4CEBF]"
+              }`}
+            >
+              Lịch hẹn
+            </button>
           </div>
         </CollapsibleTaskSection>
 
-        {/* MỤC 3: HẠN CHÓT (DUE / DEADLINE) */}
+        {/* PHẦN 3: PHÂN LOẠI & ƯU TIÊN */}
         <CollapsibleTaskSection
-          title="Hạn định"
-          icon={<Hourglass size={12} />}
-          open={openSections.deadline}
-          onToggle={() => toggleSection("deadline")}
-          trailing={timeType === "deadline" ? (
-            <span className="text-xs font-mono font-bold text-[#1C1917] bg-[#E7E5E4] px-1.5 py-0.2 rounded border border-[#A8A29E]">
-              Đang chọn
-            </span>
-          ) : undefined}
+          title="Phân loại"
+          icon={<Sparkles size={13} />}
+          open={openSections.organize}
+          onToggle={() => toggleSection("organize")}
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {/* Ngày hết hạn */}
-            <DatePickerPopover
-              value={dueDate}
-              onChange={(val) => {
-                setDueDate(val);
-                markDraftChanged();
-              }}
-              placeholder="Chọn ngày hết hạn"
-              className="w-full"
-            />
-
-            {/* Giờ chót */}
-            <div className="w-full">
-              <TimePickerPopover
-                value={deadlineTime}
-                onChange={(val) => {
-                  setDeadlineTime(val);
-                  setTimeType("deadline");
-                  markDraftChanged();
-                }}
-                placeholder="Không đặt giờ (Cả ngày)"
-                align="right"
-                className="w-full"
-              />
-            </div>
-          </div>
-        </CollapsibleTaskSection>
-
-        {/* MỤC 4: GHI CHÚ & NỘI DUNG (NOTES) */}
-        <CollapsibleTaskSection
-          title="Ghi chú & Chi tiết"
-          open={openSections.notes}
-          onToggle={() => toggleSection("notes")}
-          trailing={<span className="text-xs font-mono text-[#57534E]">Hỗ trợ Markdown</span>}
-        >
-          <textarea
-            rows={4}
-            value={description}
-            onChange={(e) => {
-              const nextVal = e.target.value;
-              setDescription(nextVal);
-              markDraftChanged();
-            }}
-            placeholder="Viết ghi chú, nội dung chi tiết, dàn ý cho công việc này..."
-            className="w-full p-3 bg-white border border-[#262626] rounded-[6px] shadow-[1px_1px_0px_#262626] text-sm font-medium text-[#1C1917] placeholder:text-[#57534E] focus:outline-none focus:ring-1 focus:ring-[#1C1917] leading-relaxed resize-y"
-          />
-        </CollapsibleTaskSection>
-
-        {/* MỤC 5: PHÂN LOẠI & MỨC ĐỘ (METADATA) */}
-        <CollapsibleTaskSection
-          title="Phân loại & Mức độ"
-          icon={<Sparkles size={12} />}
-          open={openSections.metadata}
-          onToggle={() => toggleSection("metadata")}
-        >
-
           <div className="space-y-2.5 text-sm">
             {/* Mức độ ưu tiên */}
             <div className="flex items-center justify-between gap-2">
-              <span className="font-bold text-[#57534E] flex items-center gap-1 shrink-0">
-                <Sparkles size={13} />
+              <span className="font-medium text-xs text-[#57534E] flex items-center gap-1 shrink-0">
+                <Sparkles size={12} />
                 <span>Ưu tiên:</span>
               </span>
               <div className="flex items-center gap-1.5">
@@ -508,7 +652,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                       setPriority(nextP);
                       markDraftChanged();
                     }}
-                    className={`px-2.5 py-1 rounded-[3px] border font-bold flex items-center gap-1 cursor-pointer transition-all ${
+                    className={`px-2.5 py-0.5 rounded-[3px] border font-medium text-xs flex items-center gap-1 cursor-pointer transition-all ${
                       priority === p.key
                         ? "bg-[#1C1917] text-white border-[#1C1917]"
                         : "bg-[#FAF8F3] text-[#78716C] border-[#D4CEBF] hover:bg-white"
@@ -521,60 +665,42 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               </div>
             </div>
 
-            {/* Sổ tay */}
-            <div className="flex items-center justify-between gap-2">
-              <span className="font-bold text-[#57534E] flex items-center gap-1 shrink-0">
-                <BookOpen size={13} />
-                <span>Sổ tay:</span>
+            {/* Nhãn Tag (#Tag) Đa Năng */}
+            <div className="pt-1 border-t border-[#262626]/10 space-y-1.5">
+              <span className="font-medium text-xs text-[#57534E] flex items-center gap-1">
+                <TagIcon size={12} />
+                <span>Nhãn (#Tag):</span>
               </span>
-              <div className="flex-1 max-w-[200px]">
-                <CustomSelect
-                  options={[
-                    { value: "none", label: "Không thuộc sổ tay" },
-                    ...notebooks.map((nb) => ({
-                      value: nb.id,
-                      label: nb.name,
-                      icon: nb.icon,
-                      color: nb.color,
-                    })),
-                  ]}
-                  value={notebookId}
-                  onChange={(val) => {
-                    setNotebookId(val);
-                    markDraftChanged();
-                  }}
-                  placeholder="Chọn sổ tay..."
-                />
-              </div>
+              <TagInputSelector
+                selectedTags={selectedTags}
+                onChange={(newTags) => {
+                  setSelectedTags(newTags);
+                  markDraftChanged();
+                }}
+                placeholder="Thêm nhãn (vd: CongViec, Gap...)"
+              />
             </div>
-
-            {/* Nhãn Tag */}
-            {tags.length > 0 && (
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-bold text-[#57534E] flex items-center gap-1 shrink-0">
-                  <TagIcon size={13} />
-                  <span>Nhãn (#):</span>
-                </span>
-                <div className="flex-1 max-w-[200px]">
-                  <CustomSelect
-                    options={[
-                      { value: "none", label: "Không gắn nhãn" },
-                      ...tags.map((t) => ({
-                        value: t,
-                        label: `#${t}`,
-                      })),
-                    ]}
-                    value={tag}
-                    onChange={(val) => {
-                      setTag(val);
-                      markDraftChanged();
-                    }}
-                    placeholder="Chọn nhãn..."
-                  />
-                </div>
-              </div>
-            )}
           </div>
+        </CollapsibleTaskSection>
+
+        {/* PHẦN 4: GHI CHÚ & CHI TIẾT */}
+        <CollapsibleTaskSection
+          title="Ghi chú"
+          icon={<TagIcon size={13} />}
+          open={openSections.notes}
+          onToggle={() => toggleSection("notes")}
+        >
+          <textarea
+            rows={3}
+            value={description}
+            onChange={(e) => {
+              const nextVal = e.target.value;
+              setDescription(nextVal);
+              markDraftChanged();
+            }}
+            placeholder="Thêm ghi chú chi tiết..."
+            className="w-full p-2.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] text-sm font-medium text-[#1C1917] placeholder:text-[#57534E] focus:outline-none resize-none"
+          />
         </CollapsibleTaskSection>
 
         {/* MỤC 6: DANH SÁCH VIỆC CON (SUBTASKS / CHECKLIST) */}
@@ -598,7 +724,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                     onChange={() => toggleTask(child.id)}
                   />
                   <span
-                    className={`text-sm font-bold truncate ${
+                    className={`text-sm font-medium truncate ${
                       child.completed ? "line-through text-[#78716C] opacity-70" : "text-[#1C1917]"
                     }`}
                   >
@@ -624,11 +750,11 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               value={newSubtaskTitle}
               onChange={(e) => setNewSubtaskTitle(e.target.value)}
               placeholder="+ Thêm việc con..."
-              className="flex-1 px-3 py-1.5 rounded-[4px] border-[1.5px] border-dashed border-[#262626] bg-white text-sm font-bold focus:outline-none focus:border-solid focus:border-[#1C1917]"
+              className="flex-1 px-3 py-1.5 rounded-[4px] border-[1.5px] border-dashed border-[#262626] bg-white text-sm font-medium focus:outline-none focus:border-solid focus:border-[#1C1917]"
             />
             <button
               type="submit"
-              className="px-3 py-1.5 bg-[#1C1917] text-white border-[1.5px] border-[#1C1917] rounded-[4px] text-sm font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
+              className="px-3 py-1.5 bg-[#1C1917] text-white border-[1.5px] border-[#1C1917] rounded-[4px] text-xs font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
             >
               Thêm
             </button>

@@ -192,7 +192,7 @@ export const getTaskDueInfo = (
       badgeBg: "bg-[#FEE2E2]",
       badgeBorder: "border-[#DC2626]",
       badgeText: "text-[#991B1B] font-bold",
-      badgeClass: "bg-[#FEE2E2] border-[#DC2626] text-[#991B1B] font-bold border font-mono animate-pulse",
+      badgeClass: "bg-[#FEE2E2] border-[#DC2626] text-[#991B1B] font-bold border font-mono",
       iconName: "alert",
       timeType: isDeadline ? "deadline" : undefined,
       isOverdue: true,

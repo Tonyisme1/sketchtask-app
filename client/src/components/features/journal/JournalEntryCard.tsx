@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { JournalEntryDto, TaskDto } from "../../../types";
 import { useAppStore } from "../../../stores/appStore";
 import { JournalTaskLinkPopover } from "./JournalTaskLinkPopover";
-import { JournalNotebookPopover } from "./JournalNotebookPopover";
 import {
   Trash2,
   Link as LinkIcon,
@@ -10,7 +9,6 @@ import {
   Square,
   AlertCircle,
   X,
-  BookMarked,
 } from "lucide-react";
 
 export interface JournalEntryCardProps {
@@ -34,12 +32,11 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
   onFocusPrev,
   onFocusNext,
 }) => {
-  const { tasks, notebooks, updateJournalEntry, openTaskDetail } = useAppStore();
+  const { tasks, updateJournalEntry, openTaskDetail } = useAppStore();
   const [content, setContent] = useState(entry.content);
   const [time, setTime] = useState(entry.time);
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [isTaskPickerOpen, setIsTaskPickerOpen] = useState(false);
-  const [isNotebookPickerOpen, setIsNotebookPickerOpen] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -179,20 +176,6 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
     });
   };
 
-  const handleSelectNotebook = (nbId?: string) => {
-    setIsNotebookPickerOpen(false);
-    updateJournalEntry(entry.id, {
-      notebookId: nbId,
-    });
-  };
-
-  const handleRemoveNotebook = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    updateJournalEntry(entry.id, {
-      notebookId: undefined,
-    });
-  };
-
   const handleRemoveTaskLink = (e: React.MouseEvent) => {
     e.stopPropagation();
     updateJournalEntry(entry.id, {
@@ -205,11 +188,6 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
     ? tasks.find((t) => t.id === entry.linkedTaskId)
     : null;
   const isLinkedTaskDeleted = Boolean(entry.linkedTaskId && !linkedTask);
-
-  // Tìm sổ tay liên kết
-  const assignedNotebook = entry.notebookId
-    ? notebooks.find((n) => n.id === entry.notebookId)
-    : null;
 
   return (
     <>
@@ -279,70 +257,9 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
             </button>
           </div>
 
-          {/* Hàng Metadata: Badge Sổ Tay & Task Liên Kết */}
+          {/* Hàng Metadata: Task Liên Kết */}
           <div className="flex items-center gap-1.5 flex-wrap px-1">
-            {/* 1. Sổ Tay Đính Kèm */}
-            <div className="relative">
-              {entry.notebookId ? (
-                assignedNotebook ? (
-                  <div
-                    onClick={() => setIsNotebookPickerOpen(!isNotebookPickerOpen)}
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] border border-[#262626] font-bold text-[10px] shadow-[0.5px_0.5px_0px_#262626] cursor-pointer transition-all active:translate-y-[0.5px] bg-[#FAF8F3]"
-                    title="Bấm để đổi sổ tay"
-                  >
-                    <BookMarked size={9} strokeWidth={2.4} className="text-[#1C1917]" />
-                    <span className="truncate max-w-[120px] text-[#1C1917]">
-                      {assignedNotebook.name}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleRemoveNotebook}
-                      className="hover:text-[#1C1917] text-[#78716C] ml-0.5 font-bold cursor-pointer"
-                      title="Gỡ khỏi sổ tay"
-                    >
-                      <X size={10} strokeWidth={2.6} />
-                    </button>
-                  </div>
-                ) : (
-                  <div
-                    onClick={() => setIsNotebookPickerOpen(!isNotebookPickerOpen)}
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#FAF8F3] border border-dashed border-[#A8A29E] rounded text-stone-500 text-[10px] italic cursor-pointer"
-                  >
-                    <BookMarked size={9} />
-                    <span>Sổ đã bị xóa</span>
-                    <button
-                      type="button"
-                      onClick={handleRemoveNotebook}
-                      className="hover:text-[#1C1917] text-[#78716C] ml-0.5 cursor-pointer"
-                    >
-                      <X size={10} strokeWidth={2.6} />
-                    </button>
-                  </div>
-                )
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setIsNotebookPickerOpen(!isNotebookPickerOpen)}
-                  className="opacity-0 group-hover:opacity-100 inline-flex items-center gap-1 text-[10px] font-bold text-[#78716C] hover:text-[#1C1917] hover:underline cursor-pointer transition-opacity"
-                  title="Chọn sổ tay cho dòng này"
-                >
-                  <BookMarked size={9} strokeWidth={2.4} />
-                  <span>Gắn Sổ</span>
-                </button>
-              )}
-
-              {/* Notebook Popover Inline */}
-              {isNotebookPickerOpen && (
-                <JournalNotebookPopover
-                  isOpen={isNotebookPickerOpen}
-                  selectedNotebookId={entry.notebookId}
-                  onSelectNotebook={handleSelectNotebook}
-                  onClose={() => setIsNotebookPickerOpen(false)}
-                />
-              )}
-            </div>
-
-            {/* 2. Task Liên Kết */}
+            {/* Task Liên Kết */}
             <div className="relative">
               {entry.linkedTaskId ? (
                 linkedTask ? (

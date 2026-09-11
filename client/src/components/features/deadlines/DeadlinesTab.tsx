@@ -8,6 +8,8 @@ import {
   ChevronUp,
   Hourglass,
   Trash2,
+  Search,
+  X,
 } from "lucide-react";
 import { useAppStore } from "../../../stores/appStore";
 import { useResponsiveLayout } from "../../../shared/hooks";
@@ -17,10 +19,12 @@ import { SketchTabs } from "../../layout/SketchTabs";
 import { ConfirmModal } from "../../ui/overlays/ConfirmModal";
 import { dispatchToast } from "../../../utils/toast";
 import {
+  getTaskDeadlineDate,
   getTaskEffectiveDate,
   getTaskEffectiveTime,
   getTaskTemporalState,
   normalizeTaskTimeType,
+  getTaskTags,
 } from "../../../utils/taskSemantics";
 import { TaskList } from "../shared/TaskList";
 
@@ -38,8 +42,8 @@ interface PendingBulkAction {
 
 const sortByDateAndTime = (tasks: TaskDto[]) =>
   [...tasks].sort((taskA, taskB) => {
-    const dateA = getTaskEffectiveDate(taskA) || "9999-99-99";
-    const dateB = getTaskEffectiveDate(taskB) || "9999-99-99";
+    const dateA = getTaskDeadlineDate(taskA) || getTaskEffectiveDate(taskA) || "9999-99-99";
+    const dateB = getTaskDeadlineDate(taskB) || getTaskEffectiveDate(taskB) || "9999-99-99";
     const dateOrder = dateA.localeCompare(dateB);
     if (dateOrder !== 0) return dateOrder;
     return (getTaskEffectiveTime(taskA) || "99:99").localeCompare(
@@ -51,7 +55,7 @@ const groupByDate = (tasks: TaskDto[]) => {
   const groups = new Map<string, TaskDto[]>();
 
   for (const task of tasks) {
-    const date = getTaskEffectiveDate(task) || "no-date";
+    const date = getTaskDeadlineDate(task) || getTaskEffectiveDate(task) || "no-date";
     const group = groups.get(date) || [];
     group.push(task);
     groups.set(date, group);
@@ -77,34 +81,50 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
   const todayStr = getLocalTodayStr(new Date());
   const tomorrowStr = getLocalTomorrowStr();
   const [view, setView] = useState<DeadlineView>("overdue");
+  const [searchQuery, setSearchQuery] = useState("");
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [pendingBulkAction, setPendingBulkAction] = useState<PendingBulkAction | null>(null);
+
+  const filterBySearch = (list: TaskDto[]) => {
+    if (!searchQuery.trim()) return list;
+    const q = searchQuery.toLowerCase().trim();
+    return list.filter(
+      (task) =>
+        task.title.toLowerCase().includes(q) ||
+        task.description?.toLowerCase().includes(q) ||
+        getTaskTags(task).some((t) => t.toLowerCase().includes(q))
+    );
+  };
 
   const overdueTasks = useMemo(
     () =>
       sortByDateAndTime(
-        tasks.filter((task) => {
-          if (task.completed) return false;
-          const state = getTaskTemporalState(task);
-          return state === "overdue" || state === "pastScheduled";
-        }),
+        filterBySearch(
+          tasks.filter((task) => {
+            if (task.completed) return false;
+            const state = getTaskTemporalState(task);
+            return state === "overdue" || state === "pastScheduled";
+          })
+        ),
       ),
-    [tasks],
+    [tasks, searchQuery],
   );
 
   const upcomingTasks = useMemo(
     () =>
       sortByDateAndTime(
-        tasks.filter((task) => {
-          if (task.completed) return false;
-          const state = getTaskTemporalState(task);
-          if (state === "overdue" || state === "pastScheduled") return false;
-          if (normalizeTaskTimeType(task) !== "deadline") return false;
-          const date = getTaskEffectiveDate(task);
-          return date === todayStr || date === tomorrowStr;
-        }),
+        filterBySearch(
+          tasks.filter((task) => {
+            if (task.completed) return false;
+            const state = getTaskTemporalState(task);
+            if (state === "overdue" || state === "pastScheduled") return false;
+            if (normalizeTaskTimeType(task) !== "deadline") return false;
+            const date = getTaskDeadlineDate(task) || getTaskEffectiveDate(task);
+            return date === todayStr || date === tomorrowStr;
+          })
+        ),
       ),
-    [tasks, todayStr, tomorrowStr],
+    [tasks, todayStr, tomorrowStr, searchQuery],
   );
 
   const overdueGroups = useMemo(() => groupByDate(overdueTasks), [overdueTasks]);
@@ -280,8 +300,8 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
     <div className={`space-y-3.5 w-full min-w-0 pb-16 select-none ${
       isMobile ? "" : "animate-in fade-in duration-150"
     }`}>
-      {/* 1. Tiêu đề + thanh chuyển đổi chính */}
-      <div className="space-y-3 select-none">
+      {/* 1. Tiêu đề + thanh chuyển đổi chính + Tìm kiếm */}
+      <div className="space-y-2.5 select-none">
         <SketchTabs
           ariaLabel="Chuyển loại hạn định"
           size="md"
@@ -314,6 +334,27 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
           ]}
         />
 
+        {/* Thanh tìm kiếm trong hạn định */}
+        <div className="flex items-center gap-1.5 h-9 px-2.5 bg-white border-[1.5px] border-[#262626] rounded-[5px] shadow-[1.5px_1.5px_0px_#262626] w-full">
+          <Search size={14} strokeWidth={2.4} className="text-[#78716C] shrink-0" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={`Tìm việc ${isOverdueView ? "quá hạn" : "sắp đến"}...`}
+            className="bg-transparent text-xs sm:text-sm text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none w-full font-sans"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="text-[#78716C] hover:text-[#1C1917] cursor-pointer shrink-0"
+              title="Xóa tìm kiếm"
+            >
+              <X size={13} strokeWidth={2.4} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 2. Tiêu Đề Khu Vực (Đồng Bộ PlannerWeekView) */}

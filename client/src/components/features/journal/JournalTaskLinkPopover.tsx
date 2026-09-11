@@ -24,7 +24,7 @@ export const JournalTaskLinkPopover: React.FC<JournalTaskLinkPopoverProps> = ({
   selectedTaskId,
   align = "left",
 }) => {
-  const { tasks, notebooks } = useAppStore();
+  const { tasks } = useAppStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "completed" | "active">("all");
   const popoverRef = useRef<HTMLDivElement>(null);
@@ -162,10 +162,6 @@ export const JournalTaskLinkPopover: React.FC<JournalTaskLinkPopoverProps> = ({
         ) : (
           filteredTasks.map((task) => {
             const isSelected = selectedTaskId === task.id;
-            const notebook = task.notebookId
-              ? notebooks.find((n) => n.id === task.notebookId)
-              : null;
-
             return (
               <button
                 key={task.id}
@@ -200,14 +196,6 @@ export const JournalTaskLinkPopover: React.FC<JournalTaskLinkPopoverProps> = ({
                       {task.dueDate && (
                         <span className="text-[9px] font-mono text-[#78716C]">
                           <Calendar size={9} strokeWidth={2.3} /> {task.dueDate}
-                        </span>
-                      )}
-                      {notebook && (
-                        <span
-                          className="text-[9px] font-bold px-1 rounded border border-[#262626]/40 truncate max-w-[80px]"
-                          style={{ backgroundColor: notebook.color || "#FAF8F3" }}
-                        >
-                          {notebook.name}
                         </span>
                       )}
                       {task.tag && (

@@ -5,7 +5,7 @@
 export type TaskTag = "Công việc" | "Cá nhân" | "Ý tưởng" | "Học tập" | string;
 export type TaskPriority = "low" | "medium" | "high";
 export type TaskStatus = "todo" | "in_progress" | "completed" | "archived";
-export type TaskTimeType = "scheduled" | "deadline" | "event" | "task";
+export type TaskTimeType = "scheduled" | "deadline" | "task";
 
 export interface TaskDto {
   id: string;
@@ -21,7 +21,6 @@ export interface TaskDto {
   tag?: TaskTag | null;
   priority?: TaskPriority | null;
   status: TaskStatus;
-  notebookId?: string | null;
   parentTaskId?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -38,7 +37,6 @@ export interface CreateTaskRequest {
   deadlineTime?: string | null;
   tag?: TaskTag | null;
   priority?: TaskPriority | null;
-  notebookId?: string | null;
   parentTaskId?: string | null;
 }
 
@@ -55,6 +53,5 @@ export interface UpdateTaskRequest {
   tag?: TaskTag | null;
   priority?: TaskPriority | null;
   status?: TaskStatus;
-  notebookId?: string | null;
   parentTaskId?: string | null;
 }

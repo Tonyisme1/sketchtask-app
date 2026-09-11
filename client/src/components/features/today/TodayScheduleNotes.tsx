@@ -16,7 +16,6 @@ interface TodayScheduleNotesProps {
   activeTaskId?: string | null;
   title?: string;
   hideHeader?: boolean;
-  hideNotebookBadge?: boolean;
 }
 
 export const TodayScheduleNotes: React.FC<TodayScheduleNotesProps> = ({
@@ -30,7 +29,6 @@ export const TodayScheduleNotes: React.FC<TodayScheduleNotesProps> = ({
   activeTaskId,
   title = "Lịch hẹn theo giờ",
   hideHeader = false,
-  hideNotebookBadge = false,
 }) => {
   const { isMobile } = useResponsiveLayout();
   if (scheduledTasks.length === 0) {
@@ -66,7 +64,6 @@ export const TodayScheduleNotes: React.FC<TodayScheduleNotesProps> = ({
         onClick={onClick}
         variant="today"
         hideDate={true}
-        hideNotebookBadge={hideNotebookBadge}
         activeTaskId={activeTaskId}
         showQuickAdd={false}
       />

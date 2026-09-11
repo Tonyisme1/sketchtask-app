@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { NavigationTarget } from "../../shared/types";
 import { useAppStore } from "../../shared/stores";
 import { MobileTodayView } from "./MobileTodayView";
@@ -49,7 +49,7 @@ export const MobileTasksView: React.FC<MobileTasksViewProps> = ({
   }, [navigationTarget, tasks, todayStr, setActiveTaskSubTab, onClearNavigationTarget]);
 
   return (
-    <div className="space-y-3.5 w-full min-w-0 select-none">
+    <div className="w-full min-w-0 select-none">
       {/* Content */}
       {activeTaskSubTab === "today" ? (
         <MobileTodayView

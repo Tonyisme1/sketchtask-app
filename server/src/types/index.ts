@@ -5,7 +5,7 @@
 export type TaskTag = "Công việc" | "Cá nhân" | "Ý tưởng" | "Học tập" | string;
 export type TaskPriority = "low" | "medium" | "high";
 export type TaskStatus = "todo" | "in_progress" | "completed" | "archived";
-export type TaskTimeType = "scheduled" | "deadline";
+export type TaskTimeType = "scheduled" | "deadline" | "task";
 
 export interface TaskDto {
   id: string;
@@ -13,15 +13,17 @@ export interface TaskDto {
   description?: string | null;
   completed: boolean;
   dueDate?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
   timeType?: TaskTimeType | string | null;
   startTime?: string | null;
   endTime?: string | null;
   deadlineDate?: string | null;
   deadlineTime?: string | null;
   tag?: string | null;
+  tags?: string[] | null;
   priority?: string | null;
   status: string;
-  notebookId?: string | null;
   parentTaskId?: string | null;
   createdAt: string;
   updatedAt: string;
@@ -31,14 +33,16 @@ export interface CreateTaskRequest {
   title: string;
   description?: string;
   dueDate?: string;
+  startDate?: string;
+  endDate?: string;
   timeType?: TaskTimeType | string;
   startTime?: string;
   endTime?: string;
   deadlineDate?: string;
   deadlineTime?: string;
   tag?: string;
+  tags?: string[];
   priority?: string;
-  notebookId?: string;
   parentTaskId?: string;
 }
 
@@ -47,49 +51,18 @@ export interface UpdateTaskRequest {
   description?: string;
   completed?: boolean;
   dueDate?: string;
+  startDate?: string;
+  endDate?: string;
   timeType?: TaskTimeType | string;
   startTime?: string;
   endTime?: string;
   deadlineDate?: string;
   deadlineTime?: string;
   tag?: string;
+  tags?: string[];
   priority?: string;
   status?: string;
-  notebookId?: string;
   parentTaskId?: string;
-}
-
-export type NotebookColor =
-  | "yellow"
-  | "coral"
-  | "mint"
-  | "sky"
-  | "lavender"
-  | string;
-
-export interface NotebookDto {
-  id: string;
-  name: string;
-  description?: string | null;
-  color: string;
-  icon?: string | null;
-  taskCount?: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateNotebookRequest {
-  name: string;
-  description?: string;
-  color?: string;
-  icon?: string;
-}
-
-export interface UpdateNotebookRequest {
-  name?: string;
-  description?: string;
-  color?: string;
-  icon?: string;
 }
 
 export interface HabitDto {

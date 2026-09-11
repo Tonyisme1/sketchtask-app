@@ -1,29 +1,35 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { TabKey, NavigationTarget } from "../../shared/types";
 import { useAppStore } from "../../shared/stores";
-import { BrandLogo, DynamicIcon } from "../../shared/ui";
+import { DynamicIcon } from "../../shared/ui";
 import { isNativePlatform } from "../../shared/services";
 import {
-  Search,
   Bell,
   ArrowLeft,
+  Settings,
   FileText,
   BookOpen,
   ChevronDown,
   Calendar as CalendarIcon,
   Hourglass,
+  Sun,
   Check,
-  Settings,
 } from "lucide-react";
-import { getTaskTemporalState, isTaskDueToday, getLocalTodayStr, getTaskEffectiveDate, normalizeTaskTimeType } from "../../shared/utils";
+import {
+  getTaskTemporalState,
+  isTaskDueToday,
+  getLocalTodayStr,
+  getTaskEffectiveDate,
+  normalizeTaskTimeType,
+} from "../../shared/utils";
 
 const SETTINGS_SECTION_TITLES: Record<string, string> = {
-  account: "Tài khoản & Đồng bộ",
+  account: "Tài khoản & Cá nhân",
   general: "Giao diện & Trải nghiệm",
   notifications: "Thông báo & Âm thanh",
   data: "Dữ liệu & Bộ nhớ",
   security: "Bảo mật",
-  shortcuts: "Phím tắt bàn phím",
+  shortcuts: "Phím tắt",
   about: "Trợ giúp & Giới thiệu",
 };
 
@@ -41,7 +47,6 @@ export interface MobileHeaderProps {
 export const MobileHeader: React.FC<MobileHeaderProps> = ({
   activeTab,
   onTabChange,
-  onOpenSearch,
   onOpenNotifications,
   onOpenSettings,
   onOpenLogin,
@@ -57,7 +62,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
     setSettingsMobileSubView,
   } = useAppStore();
 
-  const [isScrollingDown, setIsScrollingDown] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [now, setNow] = useState(() => Date.now());
   const [isTaskDropdownOpen, setIsTaskDropdownOpen] = useState(false);
   const [isNoteDropdownOpen, setIsNoteDropdownOpen] = useState(false);
@@ -91,28 +96,20 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
     };
   }, []);
 
-  // Cuộn trang trên mobile: trượt lên ẩn đi khi cuộn xuống, xuất hiện khi cuộn lên
+  // Theo dõi độ cuộn trang: Khi cuộn xuống quá 20px thì kích hoạt hiệu ứng di chuyển ra giữa
   useEffect(() => {
-    let lastScrollY = window.scrollY;
     let ticking = false;
-
     const handleScroll = () => {
       if (ticking) return;
       ticking = true;
       window.requestAnimationFrame(() => {
-        const currentScrollY = window.scrollY;
-        if (currentScrollY <= 15) {
-          setIsScrollingDown(false);
-        } else if (currentScrollY > lastScrollY + 6) {
-          setIsScrollingDown(true);
-        } else if (currentScrollY < lastScrollY - 2) {
-          setIsScrollingDown(false);
-        }
-        lastScrollY = currentScrollY;
+        const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+        setIsScrolled(scrollY > 20);
         ticking = false;
       });
     };
 
+    handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -152,58 +149,137 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
     return overdue + dueSoon;
   }, [tasks]);
 
+  const currentTitle = useMemo(() => {
+    if (activeTab === "today" || (activeTab === "tasks" && activeTaskSubTab === "today")) {
+      return "Hôm nay";
+    }
+    if (activeTab === "planner" || (activeTab === "tasks" && activeTaskSubTab === "planner")) {
+      return "Kế hoạch";
+    }
+    if (activeTab === "deadlines" || (activeTab === "tasks" && activeTaskSubTab === "deadlines")) {
+      return "Hạn định";
+    }
+    if (activeTab === "notes") {
+      return "Ghi chú";
+    }
+    if (activeTab === "journal") {
+      return "Nhật ký";
+    }
+    if (activeTab === "ai") {
+      return "Trợ lý AI";
+    }
+    if (activeTab === "settings") {
+      return settingsMobileSubView ? SETTINGS_SECTION_TITLES[settingsMobileSubView] || "Cài đặt" : "Cá nhân";
+    }
+    return "Công việc";
+  }, [activeTab, activeTaskSubTab, settingsMobileSubView]);
+
+  const isSettings = activeTab === "settings";
+
   return (
     <header
-      className={`sticky top-0 z-30 bg-[#FBF9F4] border-b border-[#262626]/20 px-3.5 sm:px-5 ${
+      className={`sticky top-0 z-30 bg-[#FBF9F4]/95 backdrop-blur-md px-3.5 sm:px-5 ${
         isNativePlatform()
-          ? "pt-11 pb-3"
-          : "pt-[max(env(safe-area-inset-top),10px)] pb-2.5"
-      } flex items-center justify-between transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform min-h-[56px] sm:min-h-[60px] ${
-        isScrollingDown ? "-translate-y-full" : "translate-y-0"
-      }`}
+          ? "pt-12 pb-3"
+          : "pt-[max(env(safe-area-inset-top),16px)] pb-3"
+      } relative flex items-center justify-between min-h-[58px] sm:min-h-[62px] transition-colors duration-200 select-none`}
     >
-      {/* 1. Header Left: Dynamic Tab Title / Dropdown Switcher */}
-      <div className="flex items-center gap-2 min-w-0">
-        {activeTab === "today" || (activeTab === "tasks" && activeTaskSubTab === "today") ? (
-          <div
-            onClick={() => onTabChange("tasks")}
-            className="cursor-pointer flex items-center gap-2 active:scale-95 transition-transform"
-          >
-            <BrandLogo size="md" />
-          </div>
-        ) : activeTab === "planner" || activeTab === "deadlines" ||
-          (activeTab === "tasks" && (activeTaskSubTab === "planner" || activeTaskSubTab === "deadlines")) ? (
-          /* Dropdown chọn đổi giữa Kế hoạch và Hạn định */
+      {/* Nút Quay lại trong màn hình Cài đặt (giữ cố định bên trái) */}
+      {isSettings && (
+        <div className="z-20 shrink-0 mr-2">
+          {settingsMobileSubView ? (
+            <button
+              type="button"
+              onClick={() => setSettingsMobileSubView(null)}
+              className="w-9 h-9 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] active:translate-y-[0.5px] cursor-pointer"
+              title="Quay lại cài đặt"
+            >
+              <ArrowLeft size={18} strokeWidth={2.4} />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onTabChange(previousTab || "today")}
+              className="w-9 h-9 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] active:translate-y-[0.5px] cursor-pointer"
+              title="Quay lại"
+            >
+              <ArrowLeft size={18} strokeWidth={2.4} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* 1. KHU VỰC NHÃN TAB: TRƯỢT TỪ VỊ TRÍ GỐC (TRÁI) RA CHÍNH GIỮA KHI CUỘN XUỐNG */}
+      <div
+        className={`absolute top-1/2 -translate-y-1/2 flex items-center transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] z-10 ${
+          isScrolled
+            ? "left-1/2 -translate-x-1/2 justify-center max-w-[75vw]"
+            : isSettings
+              ? "left-14 sm:left-16 translate-x-0 justify-start max-w-[60vw]"
+              : "left-3.5 sm:left-5 translate-x-0 justify-start max-w-[65vw]"
+        }`}
+      >
+        {activeTab === "tasks" || activeTab === "today" || activeTab === "planner" || activeTab === "deadlines" ? (
+          /* Dropdown chọn đổi giữa Hôm nay, Kế hoạch và Hạn định */
           <div ref={taskDropdownRef} className="relative">
             <button
               type="button"
-              onClick={() => setIsTaskDropdownOpen(!isTaskDropdownOpen)}
-              className="flex items-center gap-1.5 px-2 py-1.5 -ml-2 rounded-[6px] hover:bg-black/5 active:translate-y-[0.5px] transition-all cursor-pointer select-none"
+              onClick={() => {
+                if (isScrolled) {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                } else {
+                  setIsTaskDropdownOpen(!isTaskDropdownOpen);
+                }
+              }}
+              className="flex items-center gap-1.5 px-1.5 py-1 rounded-[6px] hover:bg-black/5 active:translate-y-[0.5px] transition-all cursor-pointer"
             >
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className="font-black text-lg text-[#1C1917] tracking-tight">
-                  {activeTaskSubTab === "deadlines" ? "Hạn định" : "Kế hoạch"}
-                </span>
-                <ChevronDown
-                  size={16}
-                  strokeWidth={2.6}
-                  className={`text-[#78716C] transition-transform duration-150 ${
-                    isTaskDropdownOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </div>
+              <span className="font-black text-[20px] sm:text-[22px] text-[#1C1917] tracking-tight leading-none">
+                {activeTaskSubTab === "today" ? "Hôm nay" : activeTaskSubTab === "deadlines" ? "Hạn định" : "Kế hoạch"}
+              </span>
+              <ChevronDown
+                size={18}
+                strokeWidth={2.6}
+                className={`text-[#78716C] transition-all duration-200 ${
+                  isScrolled
+                    ? "opacity-0 w-0 -mr-1 scale-0 pointer-events-none"
+                    : `opacity-100 w-4.5 ${isTaskDropdownOpen ? "rotate-180" : ""}`
+                }`}
+              />
             </button>
 
-            {isTaskDropdownOpen && (
+            {!isScrolled && isTaskDropdownOpen && (
               <div className="absolute left-0 top-full mt-2 w-52 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-1.5 shadow-[3.5px_3.5px_0px_#262626] z-50 space-y-1">
+                {/* 1. Hôm nay */}
                 <button
                   type="button"
                   onClick={() => {
+                    onTabChange("tasks");
+                    setActiveTaskSubTab("today");
+                    setIsTaskDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[5px] text-sm font-bold transition-all cursor-pointer ${
+                    activeTaskSubTab === "today"
+                      ? "bg-[#1C1917] text-white"
+                      : "hover:bg-[#FAF8F3] text-[#57534E]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <Sun size={16} strokeWidth={2.4} />
+                    <span>Hôm nay</span>
+                  </div>
+                  {activeTaskSubTab === "today" && <Check size={15} strokeWidth={2.6} />}
+                </button>
+
+                {/* 2. Kế hoạch */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    onTabChange("tasks");
                     setActiveTaskSubTab("planner");
                     setIsTaskDropdownOpen(false);
                   }}
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[5px] text-sm font-bold transition-all cursor-pointer ${
-                    activeTaskSubTab !== "deadlines"
+                    activeTaskSubTab === "planner"
                       ? "bg-[#1C1917] text-white"
                       : "hover:bg-[#FAF8F3] text-[#57534E]"
                   }`}
@@ -212,12 +288,14 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                     <CalendarIcon size={16} strokeWidth={2.4} />
                     <span>Kế hoạch</span>
                   </div>
-                  {activeTaskSubTab !== "deadlines" && <Check size={15} strokeWidth={2.6} />}
+                  {activeTaskSubTab === "planner" && <Check size={15} strokeWidth={2.6} />}
                 </button>
 
+                {/* 3. Hạn định */}
                 <button
                   type="button"
                   onClick={() => {
+                    onTabChange("tasks");
                     setActiveTaskSubTab("deadlines");
                     setIsTaskDropdownOpen(false);
                   }}
@@ -254,24 +332,30 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
           <div ref={noteDropdownRef} className="relative">
             <button
               type="button"
-              onClick={() => setIsNoteDropdownOpen(!isNoteDropdownOpen)}
-              className="flex items-center gap-1.5 px-2 py-1.5 -ml-2 rounded-[6px] hover:bg-black/5 active:translate-y-[0.5px] transition-all cursor-pointer select-none"
+              onClick={() => {
+                if (isScrolled) {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                } else {
+                  setIsNoteDropdownOpen(!isNoteDropdownOpen);
+                }
+              }}
+              className="flex items-center gap-1.5 px-1.5 py-1 rounded-[6px] hover:bg-black/5 active:translate-y-[0.5px] transition-all cursor-pointer"
             >
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span className="font-black text-lg text-[#1C1917] tracking-tight">
-                  {activeTab === "journal" ? "Nhật ký" : "Ghi chú"}
-                </span>
-                <ChevronDown
-                  size={16}
-                  strokeWidth={2.6}
-                  className={`text-[#78716C] transition-transform duration-150 ${
-                    isNoteDropdownOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </div>
+              <span className="font-black text-[20px] sm:text-[22px] text-[#1C1917] tracking-tight leading-none">
+                {activeTab === "journal" ? "Nhật ký" : "Ghi chú"}
+              </span>
+              <ChevronDown
+                size={18}
+                strokeWidth={2.6}
+                className={`text-[#78716C] transition-all duration-200 ${
+                  isScrolled
+                    ? "opacity-0 w-0 -mr-1 scale-0 pointer-events-none"
+                    : `opacity-100 w-4.5 ${isNoteDropdownOpen ? "rotate-180" : ""}`
+                }`}
+              />
             </button>
 
-            {isNoteDropdownOpen && (
+            {!isScrolled && isNoteDropdownOpen && (
               <div className="absolute left-0 top-full mt-2 w-48 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-1.5 shadow-[3.5px_3.5px_0px_#262626] z-50 space-y-1">
                 <button
                   type="button"
@@ -313,66 +397,49 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
               </div>
             )}
           </div>
-        ) : activeTab === "notebooks" ? (
-          <div className="flex items-center gap-1.5">
-            <span className="font-black text-lg text-[#1C1917] tracking-tight">Sổ tay</span>
-          </div>
-        ) : activeTab === "review" ? (
-          <div className="flex items-center gap-1.5">
-            <span className="font-black text-lg text-[#1C1917] tracking-tight">Cá nhân</span>
-          </div>
-        ) : activeTab === "settings" ? (
-          settingsMobileSubView ? (
-            <div className="flex items-center gap-2.5 min-w-0">
-              <button
-                type="button"
-                onClick={() => setSettingsMobileSubView(null)}
-                className="w-9 h-9 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] active:translate-y-[0.5px] cursor-pointer shrink-0"
-                title="Quay lại cài đặt"
-              >
-                <ArrowLeft size={18} strokeWidth={2.4} />
-              </button>
-              <span className="font-black text-lg text-[#1C1917] tracking-tight truncate">
-                {SETTINGS_SECTION_TITLES[settingsMobileSubView] || "Cài đặt"}
-              </span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => onTabChange(previousTab || "today")}
-                className="w-9 h-9 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] active:translate-y-[0.5px] cursor-pointer shrink-0"
-                title="Quay lại"
-              >
-                <ArrowLeft size={18} strokeWidth={2.4} />
-              </button>
-              <span className="font-black text-lg text-[#1C1917] tracking-tight">Cài đặt</span>
-            </div>
-          )
-        ) : (
-          <div
-            onClick={() => onTabChange("tasks")}
-            className="cursor-pointer flex items-center gap-2 active:scale-95 transition-transform"
+        ) : activeTab === "ai" ? (
+          <button
+            type="button"
+            onClick={() => isScrolled && window.scrollTo({ top: 0, behavior: "smooth" })}
+            className={`flex items-center gap-1.5 py-1 ${isScrolled ? "cursor-pointer" : "cursor-default"}`}
           >
-            <BrandLogo size="md" />
-          </div>
+            <span className="font-black text-[20px] sm:text-[22px] text-[#1C1917] tracking-tight leading-none">
+              Trợ lý AI
+            </span>
+          </button>
+        ) : isSettings ? (
+          <button
+            type="button"
+            onClick={() => isScrolled && window.scrollTo({ top: 0, behavior: "smooth" })}
+            className={`flex items-center gap-1.5 py-1 min-w-0 ${isScrolled ? "cursor-pointer" : "cursor-default"}`}
+          >
+            <span className="font-black text-[20px] sm:text-[22px] text-[#1C1917] tracking-tight truncate leading-none">
+              {currentTitle}
+            </span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => isScrolled && window.scrollTo({ top: 0, behavior: "smooth" })}
+            className={`flex items-center gap-1.5 py-1 ${isScrolled ? "cursor-pointer" : "cursor-default"}`}
+          >
+            <span className="font-black text-[20px] sm:text-[22px] text-[#1C1917] tracking-tight leading-none">
+              Công việc
+            </span>
+          </button>
         )}
       </div>
 
-      {/* 2. Header Right: Tìm Kiếm, Chuông Thông Báo, Tài Khoản */}
-      {activeTab !== "settings" && (
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Nút Tìm Kiếm */}
-          <button
-            type="button"
-            onClick={onOpenSearch}
-            title="Tìm kiếm"
-            className="w-9 h-9 border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] bg-white hover:bg-[#FAF8F3] transition-all select-none cursor-pointer active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
-          >
-            <Search size={17} strokeWidth={2.3} />
-          </button>
-
-          {/* Chuông Thông Báo Drawer Bottom Sheet */}
+      {/* 2. GÓC PHẢI: THÔNG BÁO & TÀI KHOẢN (Mờ dần và trượt ẩn đi khi cuộn xuống) */}
+      {!isSettings && (
+        <div
+          className={`flex items-center gap-2 shrink-0 ml-auto z-10 transition-all duration-250 ease-out ${
+            isScrolled
+              ? "opacity-0 translate-x-3 pointer-events-none scale-95"
+              : "opacity-100 translate-x-0 pointer-events-auto scale-100"
+          }`}
+        >
+          {/* Chuông Thông Báo */}
           <button
             type="button"
             onClick={onOpenNotifications}
@@ -387,7 +454,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             )}
           </button>
 
-          {/* Tài khoản & Cài đặt Dropdown */}
+          {/* Tài khoản Dropdown */}
           <div ref={accountDropdownRef} className="relative shrink-0">
             <button
               type="button"
@@ -413,7 +480,6 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
 
             {isAccountDropdownOpen && (
               <div className="absolute right-0 top-full mt-2 w-52 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] p-1.5 shadow-[3.5px_3.5px_0px_#262626] z-50 space-y-1">
-                {/* 1. Cài đặt */}
                 <button
                   type="button"
                   onClick={() => {
@@ -428,7 +494,6 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
 
                 <div className="border-t border-[#E7E5E4] my-1" />
 
-                {/* 2. Đăng nhập / Đăng ký hoặc Hồ sơ */}
                 <button
                   type="button"
                   onClick={() => {

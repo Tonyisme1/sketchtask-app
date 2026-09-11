@@ -5,7 +5,6 @@ import {
   CheckSquare,
   FileText,
   BookOpen,
-  BookMarked,
   Clock,
   ArrowRight,
   Calendar,
@@ -23,7 +22,7 @@ interface DesktopSearchAutocompleteProps {
 export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps> = ({
   onNavigateTab,
 }) => {
-  const { tasks, notebooks, journalEntries } = useAppStore();
+  const { tasks, journalEntries } = useAppStore();
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -75,14 +74,13 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
         tasks: recentTasks,
         notes: recentNotes,
         journal: recentJournals,
-        notebooks: notebooks.slice(0, 2),
       };
     }
 
     const matchingTasks = tasks
       .filter(
         (t) => matchesQuery(
-          [t.title, t.description, t.tag, notebooks.find((nb) => nb.id === t.notebookId)?.name]
+          [t.title, t.description, t.tag]
             .filter(Boolean)
             .join(" "),
           q,
@@ -102,24 +100,18 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
       )
       .slice(0, 3);
 
-    const matchingNotebooks = notebooks
-      .filter((nb) => matchesQuery(`${nb.name} ${nb.description || ""}`, q))
-      .slice(0, 3);
-
     return {
       isSuggestion: false,
       tasks: matchingTasks,
       notes: matchingNotes,
       journal: matchingJournal,
-      notebooks: matchingNotebooks,
     };
-  }, [query, tasks, notes, journalEntries, notebooks]);
+  }, [query, tasks, notes, journalEntries]);
 
   const totalResults =
     searchResults.tasks.length +
     searchResults.notes.length +
-    searchResults.journal.length +
-    searchResults.notebooks.length;
+    searchResults.journal.length;
 
   const handleSelectTask = (taskId: string, date?: string) => {
     onNavigateTab("today", { taskId, date });
@@ -133,11 +125,6 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
 
   const handleSelectJournal = (journalEntryId: string) => {
     onNavigateTab("journal", { journalEntryId });
-    setIsOpen(false);
-  };
-
-  const handleSelectNotebook = (notebookId: string) => {
-    onNavigateTab("notebooks", { notebookId });
     setIsOpen(false);
   };
 
@@ -310,32 +297,6 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
                 </div>
               )}
 
-              {/* 4. Sổ tay (Notebooks) */}
-              {searchResults.notebooks.length > 0 && (
-                <div className="pt-1">
-                  <div className="px-3 py-1 text-[10px] font-bold font-mono text-[#78716C] uppercase flex items-center gap-1">
-                    <BookMarked size={11} className="text-[#1C1917]" />
-                    <span>Sổ tay</span>
-                  </div>
-                  {searchResults.notebooks.map((nb) => (
-                    <button
-                      key={nb.id}
-                      type="button"
-                      onClick={() => handleSelectNotebook(nb.id)}
-                      className="w-full px-3 py-2 text-left flex items-center justify-between gap-2 hover:bg-[#FAF8F3] transition-colors cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <BookMarked size={13} className="text-[#1C1917] shrink-0" />
-                        <span className="text-xs font-bold text-[#1C1917] truncate">
-                          {nb.name}
-                        </span>
-                      </div>
-
-                      <ArrowRight size={12} className="text-[#A8A29E] group-hover:text-[#1C1917] shrink-0" />
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           )}
         </div>

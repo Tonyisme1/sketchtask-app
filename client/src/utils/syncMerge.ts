@@ -1,5 +1,6 @@
-import { TaskDto, NotebookDto, HabitDto, TaskStatus, JournalEntryDto } from "../types";
+import { TaskDto, HabitDto, JournalEntryDto, DeletedEntityIds } from "../types";
 import { StickyNoteItem } from "../stores/appStore";
+import { calculateConsecutiveStreak } from "./habitSemantics";
 
 // ==========================================
 // UTILS: Smart Merge Engine (Giải quyết xung đột Offline-First & Đăng nhập)
@@ -7,14 +8,30 @@ import { StickyNoteItem } from "../stores/appStore";
 
 export interface RawSyncData {
   tasks: TaskDto[];
-  notebooks: NotebookDto[];
   stickyNotes: StickyNoteItem[];
   habits: HabitDto[];
   journalEntries?: JournalEntryDto[];
   dailyMoods: Record<string, string>;
   weeklyReflection: string;
   tags: string[];
+  deleted?: Partial<DeletedEntityIds>;
 }
+
+const mergeDeletedEntityIds = (
+  local: Partial<DeletedEntityIds> = {},
+  remote: Partial<DeletedEntityIds> = {},
+): DeletedEntityIds => ({
+  tasks: Array.from(new Set([...(local.tasks || []), ...(remote.tasks || [])])),
+  stickyNotes: Array.from(new Set([...(local.stickyNotes || []), ...(remote.stickyNotes || [])])),
+  habits: Array.from(new Set([...(local.habits || []), ...(remote.habits || [])])),
+  journalEntries: Array.from(new Set([...(local.journalEntries || []), ...(remote.journalEntries || [])])),
+  tags: Array.from(new Set([...(local.tags || []), ...(remote.tags || [])])),
+});
+
+const withoutDeleted = <T extends { id: string }>(items: T[], deletedIds: string[]) => {
+  const deleted = new Set(deletedIds);
+  return items.filter((item) => !deleted.has(item.id));
+};
 
 /**
  * Hợp nhất thông minh danh sách Task giữa Local và Remote theo ID và Timestamp (Last-Write-Wins)
@@ -58,36 +75,6 @@ export function mergeTasks(localTasks: TaskDto[], remoteTasks: TaskDto[]): TaskD
 }
 
 /**
- * Hợp nhất danh sách Sổ tay (Notebooks)
- */
-export function mergeNotebooks(localNbs: NotebookDto[], remoteNbs: NotebookDto[]): NotebookDto[] {
-  const map = new Map<string, NotebookDto>();
-
-  for (const rNb of remoteNbs) {
-    map.set(rNb.id, rNb);
-  }
-
-  for (const lNb of localNbs) {
-    const existing = map.get(lNb.id);
-    if (!existing) {
-      // Kiểm tra theo tên sổ tay để tránh tạo 2 sổ trùng tên
-      const sameName = Array.from(map.values()).find((n) => n.name.trim().toLowerCase() === lNb.name.trim().toLowerCase());
-      if (!sameName) {
-        map.set(lNb.id, lNb);
-      }
-    } else {
-      const lTime = new Date(lNb.updatedAt || lNb.createdAt || 0).getTime();
-      const rTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
-      if (lTime > rTime) {
-        map.set(lNb.id, lNb);
-      }
-    }
-  }
-
-  return Array.from(map.values());
-}
-
-/**
  * Hợp nhất Sticky Notes
  */
 export function mergeStickyNotes(localNotes: StickyNoteItem[], remoteNotes: StickyNoteItem[]): StickyNoteItem[] {
@@ -98,7 +85,15 @@ export function mergeStickyNotes(localNotes: StickyNoteItem[], remoteNotes: Stic
   }
 
   for (const lNote of localNotes) {
-    if (!map.has(lNote.id)) {
+    const existing = map.get(lNote.id);
+    if (!existing) {
+      map.set(lNote.id, lNote);
+      continue;
+    }
+
+    const localTime = new Date(lNote.updatedAt || lNote.createdAt || 0).getTime();
+    const remoteTime = new Date(existing.updatedAt || existing.createdAt || 0).getTime();
+    if (localTime > remoteTime) {
       map.set(lNote.id, lNote);
     }
   }
@@ -130,7 +125,7 @@ export function mergeHabits(localHabits: HabitDto[], remoteHabits: HabitDto[]): 
       map.set(lHabit.id, {
         ...existing,
         completedDates: combinedDates,
-        streak: combinedDates.length,
+        streak: calculateConsecutiveStreak(combinedDates),
         updatedAt: new Date().toISOString(),
       });
     }
@@ -175,13 +170,25 @@ export function mergeJournalEntries(
  * Hợp nhất toàn bộ dữ liệu ứng dụng một cách thông minh và an toàn 100%
  */
 export function smartMergeAppData(localData: RawSyncData, remoteData: RawSyncData): RawSyncData {
-  const mergedTasks = mergeTasks(localData.tasks || [], remoteData.tasks || []);
-  const mergedNotebooks = mergeNotebooks(localData.notebooks || [], remoteData.notebooks || []);
-  const mergedStickyNotes = mergeStickyNotes(localData.stickyNotes || [], remoteData.stickyNotes || []);
-  const mergedHabits = mergeHabits(localData.habits || [], remoteData.habits || []);
-  const mergedJournalEntries = mergeJournalEntries(
+  const deleted = mergeDeletedEntityIds(localData.deleted, remoteData.deleted);
+  const mergedTasks = withoutDeleted(
+    mergeTasks(localData.tasks || [], remoteData.tasks || []),
+    deleted.tasks,
+  );
+  const mergedStickyNotes = withoutDeleted(
+    mergeStickyNotes(localData.stickyNotes || [], remoteData.stickyNotes || []),
+    deleted.stickyNotes,
+  );
+  const mergedHabits = withoutDeleted(
+    mergeHabits(localData.habits || [], remoteData.habits || []),
+    deleted.habits,
+  );
+  const mergedJournalEntries = withoutDeleted(
+    mergeJournalEntries(
     localData.journalEntries || [],
     remoteData.journalEntries || [],
+    ),
+    deleted.journalEntries,
   );
 
   // Gộp Moods
@@ -197,16 +204,18 @@ export function smartMergeAppData(localData: RawSyncData, remoteData: RawSyncDat
       : (remoteData.weeklyReflection || localData.weeklyReflection || "");
 
   // Gộp Tags
-  const mergedTags = Array.from(new Set([...(localData.tags || []), ...(remoteData.tags || [])]));
+  const mergedTags = Array.from(
+    new Set([...(localData.tags || []), ...(remoteData.tags || [])]),
+  ).filter((tag) => !deleted.tags.includes(tag));
 
   return {
     tasks: mergedTasks,
-    notebooks: mergedNotebooks,
     stickyNotes: mergedStickyNotes,
     habits: mergedHabits,
     journalEntries: mergedJournalEntries,
     dailyMoods: mergedMoods,
     weeklyReflection: mergedReflection,
     tags: mergedTags,
+    deleted,
   };
 }

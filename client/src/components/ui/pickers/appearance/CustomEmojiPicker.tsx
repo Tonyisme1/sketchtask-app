@@ -224,7 +224,7 @@ export const CustomEmojiPicker: React.FC<CustomEmojiPickerProps> = ({
                   title={item.name}
                   className={`h-11 rounded-[4px] border flex flex-col items-center justify-center transition-all ${
                     isSelected
-                      ? "bg-[#FEF08A] border-[#262626] shadow-[1.5px_1.5px_0px_#262626] font-bold scale-105 z-10"
+                      ? "bg-[#FEF08A] border-[#262626] shadow-[1.5px_1.5px_0px_#262626] font-bold ring-1 ring-[#262626] z-10"
                       : "border-transparent hover:border-[#262626] hover:bg-[#F3EFE6] text-[#1C1917]"
                   }`}
                 >

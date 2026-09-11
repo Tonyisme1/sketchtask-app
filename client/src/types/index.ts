@@ -7,43 +7,49 @@ export type TaskPriority = "low" | "medium" | "high";
 export type TaskStatus = "todo" | "in_progress" | "completed" | "archived";
 export type TaskTimeType = "scheduled" | "deadline" | "event" | "task";
 
+export interface TaskEditorInitialData {
+  title?: string;
+  description?: string;
+  dueDate?: string;
+  startDate?: string;
+  endDate?: string;
+  tag?: string;
+  timeType?: TaskTimeType;
+  startTime?: string;
+  endTime?: string;
+  deadlineTime?: string;
+  priority?: TaskPriority;
+  tags?: string[];
+}
+
 export interface TaskDto {
   id: string;
   title: string;
   description?: string;
   completed: boolean;
   dueDate?: string;
+  startDate?: string;
+  endDate?: string;
   timeType?: TaskTimeType;
   startTime?: string;
   endTime?: string;
   deadlineDate?: string;
   deadlineTime?: string;
   tag?: TaskTag;
+  tags?: TaskTag[];
   priority?: TaskPriority;
   status: TaskStatus;
-  notebookId?: string;
   parentTaskId?: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export type NotebookColor =
-  | "yellow"
-  | "coral"
-  | "mint"
-  | "sky"
-  | "lavender"
-  | string;
-
-export interface NotebookDto {
-  id: string;
-  name: string;
-  description?: string;
-  color: NotebookColor;
-  icon?: string;
-  taskCount?: number;
-  createdAt: string;
-  updatedAt: string;
+export interface DeletedEntityIds {
+  tasks: string[];
+  stickyNotes: string[];
+  habits: string[];
+  journalEntries: string[];
+  tags: string[];
 }
 
 export interface HabitDto {
@@ -71,33 +77,28 @@ export interface JournalEntryDto {
   date: string; // YYYY-MM-DD
   time: string; // HH:mm
   content: string;
-  notebookId?: string; // Sổ tay / mảng chủ đề
   linkedTaskId?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export type Task = TaskDto;
-export type Notebook = NotebookDto;
 export type Habit = HabitDto;
 export type StickyNote = StickyNoteDto;
 export type JournalEntry = JournalEntryDto;
 
 export type TabKey =
-  | "dashboard"
   | "tasks"
   | "notes"
   | "today"
   | "planner"
   | "deadlines"
-  | "notebooks"
   | "journal"
-  | "settings"
-  | "review";
+  | "ai"
+  | "settings";
 
 export interface NavigationTarget {
   taskId?: string;
-  notebookId?: string;
   noteId?: string;
   journalEntryId?: string;
   date?: string;

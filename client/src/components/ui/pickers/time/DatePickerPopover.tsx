@@ -197,90 +197,191 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
   const daysList = getDaysMatrix(viewYear, viewMonth);
   const displayLabel = value ? formatDisplayDate(value) : placeholder;
 
-  const panel = isOpen && panelPosition ? (
-    <div
-      ref={panelRef}
-      className="fixed z-[1000001] max-w-[calc(100vw-1rem)] bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] overflow-hidden p-2.5"
-      style={{
-        top: panelPosition.top,
-        left: panelPosition.left,
-        width: `min(${PANEL_WIDTH}px, calc(100vw - ${VIEWPORT_GUTTER * 2}px))`,
-      }}
-      onClick={(event) => event.stopPropagation()}
-    >
-      <div className="flex items-center justify-between pb-2 mb-1.5 border-b border-[#262626]/20">
-        <button
-          type="button"
-          onClick={handlePrevMonth}
-          className="p-1 rounded hover:bg-white border border-transparent hover:border-[#262626] text-[#1C1917] cursor-pointer active:translate-y-[0.5px]"
-          title="Tháng trước"
-        >
-          <ChevronLeft size={14} />
-        </button>
-        <span className="font-mono text-xs font-black text-[#1C1917]">
-          tháng {viewMonth + 1} năm {viewYear}
-        </span>
-        <button
-          type="button"
-          onClick={handleNextMonth}
-          className="p-1 rounded hover:bg-white border border-transparent hover:border-[#262626] text-[#1C1917] cursor-pointer active:translate-y-[0.5px]"
-          title="Tháng sau"
-        >
-          <ChevronRight size={14} />
-        </button>
-      </div>
+  const isMobileScreen = typeof window !== "undefined" && window.innerWidth < 768;
 
-      <div className="grid grid-cols-7 text-center font-mono text-[10px] font-bold text-[#78716C] mb-1">
-        {WEEKDAY_NAMES.map((day) => (
-          <div key={day} className="py-0.5">{day}</div>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-7 gap-1">
-        {daysList.map((item, index) => {
-          const isSelected = item.dateStr === value;
-          const isToday = item.dateStr === todayStr;
-          return (
+  const panel = isOpen && (panelPosition || isMobileScreen) ? (
+    isMobileScreen ? (
+      <div
+        className="fixed inset-0 z-[1000005] flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4 select-none animate-in fade-in duration-150"
+        onClick={() => setIsOpen(false)}
+      >
+        <div
+          ref={panelRef}
+          className="w-full max-w-[310px] bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[10px] shadow-[4px_4px_0px_#262626] overflow-hidden p-3.5 animate-in zoom-in-95 duration-150"
+          onClick={(event) => event.stopPropagation()}
+        >
+          {/* Header Tháng / Năm & Nút Đóng */}
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#262626]/20">
             <button
-              key={`${item.dateStr}-${index}`}
               type="button"
-              onClick={() => handleSelectDate(item.dateStr)}
-              className={`h-7 rounded-[4px] text-xs font-mono font-bold flex flex-col items-center justify-center relative transition-colors cursor-pointer ${
-                isSelected
-                  ? "bg-[#1C1917] text-white border border-[#1C1917] shadow-[1px_1px_0px_#262626] font-black"
-                  : item.isCurrentMonth
-                  ? "text-[#1C1917] hover:bg-white"
-                  : "text-[#A8A29E] hover:bg-[#F5F3EF]"
-              }`}
+              onClick={handlePrevMonth}
+              className="p-1 rounded-[4px] hover:bg-white border border-transparent hover:border-[#262626] text-[#1C1917] cursor-pointer active:translate-y-[0.5px]"
+              title="Tháng trước"
             >
-              <span>{item.dayNum}</span>
-              {isToday && (
-                <span className={`w-1 h-1 rounded-full absolute bottom-0.5 ${isSelected ? "bg-white" : "bg-[#1C1917]"}`} />
-              )}
+              <ChevronLeft size={16} strokeWidth={2.4} />
             </button>
-          );
-        })}
-      </div>
+            <span className="font-mono text-sm font-black text-[#1C1917]">
+              Tháng {viewMonth + 1}, {viewYear}
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={handleNextMonth}
+                className="p-1 rounded-[4px] hover:bg-white border border-transparent hover:border-[#262626] text-[#1C1917] cursor-pointer active:translate-y-[0.5px]"
+                title="Tháng sau"
+              >
+                <ChevronRight size={16} strokeWidth={2.4} />
+              </button>
+            </div>
+          </div>
 
-      <div className={`flex items-center ${showClear ? "justify-between" : "justify-end"} pt-2.5 mt-2 border-t border-[#262626]/20 text-xs font-mono font-bold`}>
-        {showClear && (
+          {/* Thứ trong tuần */}
+          <div className="grid grid-cols-7 text-center font-mono text-[11px] font-bold text-[#78716C] mb-1.5">
+            {WEEKDAY_NAMES.map((day) => (
+              <div key={day} className="py-0.5">{day}</div>
+            ))}
+          </div>
+
+          {/* Lưới các ngày */}
+          <div className="grid grid-cols-7 gap-1">
+            {daysList.map((item, index) => {
+              const isSelected = item.dateStr === value;
+              const isToday = item.dateStr === todayStr;
+              return (
+                <button
+                  key={`${item.dateStr}-${index}`}
+                  type="button"
+                  onClick={() => handleSelectDate(item.dateStr)}
+                  className={`h-8 rounded-[5px] text-xs font-mono font-bold flex flex-col items-center justify-center relative transition-all cursor-pointer ${
+                    isSelected
+                      ? "bg-[#1C1917] text-white border border-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] font-black scale-105"
+                      : item.isCurrentMonth
+                      ? "text-[#1C1917] bg-white/70 hover:bg-white border border-[#E7E5E4] hover:border-[#262626]"
+                      : "text-[#A8A29E]/60 bg-transparent hover:bg-[#F5F3EF]"
+                  }`}
+                >
+                  <span>{item.dayNum}</span>
+                  {isToday && (
+                    <span className={`w-1 h-1 rounded-full absolute bottom-1 ${isSelected ? "bg-white" : "bg-[#1C1917]"}`} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Nút hành động đáy */}
+          <div className="flex items-center justify-between pt-3 mt-2.5 border-t border-[#262626]/20 text-xs font-mono font-bold">
+            <button
+              type="button"
+              onClick={handleClear}
+              className="px-2.5 py-1 text-[#78716C] hover:text-rose-700 hover:underline cursor-pointer"
+            >
+              Xóa ngày
+            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleSelectToday}
+                className="px-3 py-1 bg-[#1C1917] text-white rounded-[4px] text-xs border border-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
+              >
+                Hôm nay
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="px-2.5 py-1 bg-white text-[#1C1917] rounded-[4px] text-xs border border-[#262626] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    ) : (
+      <div
+        ref={panelRef}
+        className="fixed z-[1000001] max-w-[calc(100vw-1rem)] bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] overflow-hidden p-2.5"
+        style={{
+          top: panelPosition?.top,
+          left: panelPosition?.left,
+          width: `min(${PANEL_WIDTH}px, calc(100vw - ${VIEWPORT_GUTTER * 2}px))`,
+        }}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-center justify-between pb-2 mb-1.5 border-b border-[#262626]/20">
           <button
             type="button"
-            onClick={handleClear}
-            className="text-[#78716C] hover:text-rose-700 hover:underline cursor-pointer"
+            onClick={handlePrevMonth}
+            className="p-1 rounded hover:bg-white border border-transparent hover:border-[#262626] text-[#1C1917] cursor-pointer active:translate-y-[0.5px]"
+            title="Tháng trước"
           >
-            Xóa
+            <ChevronLeft size={14} />
           </button>
-        )}
-        <button
-          type="button"
-          onClick={handleSelectToday}
-          className="px-2 py-0.5 bg-[#1C1917] text-white rounded text-[11px] border border-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
-        >
-          Hôm nay
-        </button>
+          <span className="font-mono text-xs font-black text-[#1C1917]">
+            tháng {viewMonth + 1} năm {viewYear}
+          </span>
+          <button
+            type="button"
+            onClick={handleNextMonth}
+            className="p-1 rounded hover:bg-white border border-transparent hover:border-[#262626] text-[#1C1917] cursor-pointer active:translate-y-[0.5px]"
+            title="Tháng sau"
+          >
+            <ChevronRight size={14} />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-7 text-center font-mono text-[10px] font-bold text-[#78716C] mb-1">
+          {WEEKDAY_NAMES.map((day) => (
+            <div key={day} className="py-0.5">{day}</div>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-7 gap-1">
+          {daysList.map((item, index) => {
+            const isSelected = item.dateStr === value;
+            const isToday = item.dateStr === todayStr;
+            return (
+              <button
+                key={`${item.dateStr}-${index}`}
+                type="button"
+                onClick={() => handleSelectDate(item.dateStr)}
+                className={`h-7 rounded-[4px] text-xs font-mono font-bold flex flex-col items-center justify-center relative transition-colors cursor-pointer ${
+                  isSelected
+                    ? "bg-[#1C1917] text-white border border-[#1C1917] shadow-[1px_1px_0px_#262626] font-black"
+                    : item.isCurrentMonth
+                    ? "text-[#1C1917] hover:bg-white"
+                    : "text-[#A8A29E] hover:bg-[#F5F3EF]"
+                }`}
+              >
+                <span>{item.dayNum}</span>
+                {isToday && (
+                  <span className={`w-1 h-1 rounded-full absolute bottom-0.5 ${isSelected ? "bg-white" : "bg-[#1C1917]"}`} />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className={`flex items-center ${showClear ? "justify-between" : "justify-end"} pt-2.5 mt-2 border-t border-[#262626]/20 text-xs font-mono font-bold`}>
+          {showClear && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="text-[#78716C] hover:text-rose-700 hover:underline cursor-pointer"
+            >
+              Xóa
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleSelectToday}
+            className="px-2 py-0.5 bg-[#1C1917] text-white rounded text-[11px] border border-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
+          >
+            Hôm nay
+          </button>
+        </div>
       </div>
-    </div>
+    )
   ) : null;
 
   return (

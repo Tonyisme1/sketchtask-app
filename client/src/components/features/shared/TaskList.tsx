@@ -3,7 +3,6 @@ import { TaskDto } from "../../../types";
 import { useAppStore } from "../../../stores/appStore";
 import { TaskCard } from "./TaskCard";
 import { InlineQuickAddRow } from "./InlineQuickAddRow";
-import { EmptyStateDoodle } from "../../ui/feedback/EmptyStateDoodle";
 import { buildMultiLevelTaskTree, TaskHierarchyNode } from "../../../utils/taskHierarchy";
 
 // ==========================================
@@ -22,13 +21,11 @@ export interface TaskListProps {
   onMoveTomorrow?: (taskId: string) => void;
   onAddSubtask?: (parentTask: TaskDto) => void;
   onClick?: (task: TaskDto) => void;
-  variant?: "today" | "planner" | "notebook" | "overdue";
+  variant?: "today" | "planner" | "overdue";
   hideDate?: boolean;
-  hideNotebookBadge?: boolean;
   baseDateStr?: string;
   moveButtonTitle?: string;
   activeTaskId?: string | null;
-  notebookId?: string;
   showQuickAdd?: boolean;
 }
 
@@ -44,9 +41,8 @@ const TaskTreeNodeItem: React.FC<{
   onMoveTomorrow?: (taskId: string) => void;
   onAddSubtask?: (parentTask: TaskDto) => void;
   onClick?: (task: TaskDto) => void;
-  variant?: "today" | "planner" | "notebook" | "overdue";
+  variant?: "today" | "planner" | "overdue";
   hideDate?: boolean;
-  hideNotebookBadge?: boolean;
   baseDateStr?: string;
   moveButtonTitle?: string;
   activeTaskId?: string | null;
@@ -63,7 +59,6 @@ const TaskTreeNodeItem: React.FC<{
   onClick,
   variant,
   hideDate,
-  hideNotebookBadge,
   baseDateStr,
   moveButtonTitle,
   activeTaskId,
@@ -89,7 +84,6 @@ const TaskTreeNodeItem: React.FC<{
         onClick={onClick}
         variant={variant}
         hideDate={hideDate}
-        hideNotebookBadge={hideNotebookBadge}
         baseDateStr={baseDateStr}
         moveButtonTitle={moveButtonTitle}
         isSubtask={node.depth > 0}
@@ -121,7 +115,6 @@ const TaskTreeNodeItem: React.FC<{
                 onClick={onClick}
                 variant={variant}
                 hideDate={hideDate}
-                hideNotebookBadge={hideNotebookBadge}
                 baseDateStr={baseDateStr}
                 moveButtonTitle={moveButtonTitle}
                 activeTaskId={activeTaskId}
@@ -146,11 +139,9 @@ export const TaskList: React.FC<TaskListProps> = ({
   onClick,
   variant = "today",
   hideDate = false,
-  hideNotebookBadge = false,
   baseDateStr,
   moveButtonTitle,
   activeTaskId,
-  notebookId,
   showQuickAdd = true,
 }) => {
   const { tasks: allTasks } = useAppStore();
@@ -174,7 +165,6 @@ export const TaskList: React.FC<TaskListProps> = ({
       {/* 1. Hàng Thêm Nhanh Inline Tại Đầu Hoặc Cuối Danh Sách */}
       {showQuickAdd && (
         <InlineQuickAddRow
-          notebookId={notebookId}
           defaultDueDate={baseDateStr}
           placeholder="Thêm công việc mới... (Nhấn Enter để lưu)"
         />
@@ -209,7 +199,6 @@ export const TaskList: React.FC<TaskListProps> = ({
                 onClick={onClick}
                 variant={variant}
                 hideDate={hideDate}
-                hideNotebookBadge={hideNotebookBadge}
                 baseDateStr={baseDateStr}
                 moveButtonTitle={moveButtonTitle}
                 activeTaskId={activeTaskId}

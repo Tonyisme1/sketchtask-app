@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
-import { ListTodo } from "lucide-react";
+import { ListTodo, Search, X } from "lucide-react";
 import { useAppStore } from "../../shared/stores";
-import { getLocalTodayStr, isTaskDueToday, normalizeTaskTimeType } from "../../shared/utils";
+import { getLocalTodayStr, isTaskDueToday, normalizeTaskTimeType, getTaskTags } from "../../shared/utils";
 import { TodayScheduleNotes } from "../../components/features/today/TodayScheduleNotes";
 import { TodayFilterBar } from "../../components/features/today/TodayFilterBar";
 import { TodayTaskList } from "../../components/features/today/TodayTaskList";
@@ -27,10 +27,10 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
   const now = new Date();
   const todayStr = getLocalTodayStr(now);
 
+  const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
   const [timeTypeFilter, setTimeTypeFilter] = useState<"all" | "scheduled" | "deadline">("all");
   const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all");
-  const [notebookFilter, setNotebookFilter] = useState<string>("all");
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
@@ -40,6 +40,14 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
 
   const filteredTodayTasks = useMemo(() => {
     return todayList.filter((task) => {
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchesTitle = task.title.toLowerCase().includes(q);
+        const matchesTag = getTaskTags(task).some((t) => t.toLowerCase().includes(q));
+        const matchesNote = task.description?.toLowerCase().includes(q);
+        if (!matchesTitle && !matchesTag && !matchesNote) return false;
+      }
+
       if (hideCompletedTasks && statusFilter === "all" && task.completed)
         return false;
 
@@ -55,24 +63,16 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
       if (priorityFilter !== "all" && task.priority !== priorityFilter)
         return false;
 
-      if (notebookFilter !== "all") {
-        if (notebookFilter === "inbox") {
-          if (task.notebookId) return false;
-        } else if (task.notebookId !== notebookFilter) {
-          return false;
-        }
-      }
-
-      if (tagFilter !== "all" && task.tag !== tagFilter) return false;
+      if (tagFilter !== "all" && !getTaskTags(task).includes(tagFilter)) return false;
 
       return true;
     });
   }, [
     todayList,
+    searchQuery,
     statusFilter,
     timeTypeFilter,
     priorityFilter,
-    notebookFilter,
     tagFilter,
     hideCompletedTasks,
   ]);
@@ -94,41 +94,40 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
     let count = 0;
     if (timeTypeFilter !== "all") count++;
     if (priorityFilter !== "all") count++;
-    if (notebookFilter !== "all") count++;
     if (tagFilter !== "all") count++;
     return count;
-  }, [timeTypeFilter, priorityFilter, notebookFilter, tagFilter]);
+  }, [timeTypeFilter, priorityFilter, tagFilter]);
 
   const completedTodayCount = todayList.filter((task) => task.completed).length;
   const totalTodayCount = todayList.length;
 
   return (
-    <div className="w-full min-w-0 space-y-3.5 select-none pb-6">
-      {/* 1. Tiến độ tổng quan đặt trước bộ lọc */}
+    <div className="w-full min-w-0 space-y-2 select-none pb-6">
+      {/* 1. Tiến độ tổng quan (Siêu gọn) */}
       <TodayProgressBar
         completedCount={completedTodayCount}
         totalCount={totalTodayCount}
       />
 
-      {/* 2. Mobile Filter Bar: đưa task lên ngay đầu workspace */}
+      {/* 2. Mobile Filter Bar (Tối giản & tích hợp Tìm kiếm inline) */}
       <TodayFilterBar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
         statusFilter={statusFilter}
         onStatusChange={setStatusFilter}
         timeTypeFilter={timeTypeFilter}
         onTimeTypeChange={setTimeTypeFilter}
         priorityFilter={priorityFilter}
         onPriorityChange={setPriorityFilter}
-        notebookFilter={notebookFilter}
-        onNotebookChange={setNotebookFilter}
         tagFilter={tagFilter}
         onTagChange={setTagFilter}
         isFilterDrawerOpen={isFilterDrawerOpen}
         onToggleFilterDrawer={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
         onResetFilters={() => {
+          setSearchQuery("");
           setTimeTypeFilter("all");
           setStatusFilter("all");
           setPriorityFilter("all");
-          setNotebookFilter("all");
           setTagFilter("all");
         }}
         activeFilterCount={activeFilterCount}

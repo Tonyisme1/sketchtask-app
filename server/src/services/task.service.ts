@@ -1,6 +1,16 @@
 import { prisma } from "../db.js";
 import { TaskDto, CreateTaskRequest, UpdateTaskRequest } from "../types/index.js";
 
+const parseTaskTags = (value: string | null | undefined): string[] => {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.filter((tag): tag is string => typeof tag === "string") : [];
+  } catch {
+    return [];
+  }
+};
+
 export class TaskService {
   /**
    * Lấy danh sách toàn bộ task của người dùng
@@ -22,10 +32,12 @@ export class TaskService {
       endTime: t.endTime,
       deadlineDate: t.deadlineDate,
       deadlineTime: t.deadlineTime,
+      startDate: t.startDate,
+      endDate: t.endDate,
       tag: t.tag,
+      tags: parseTaskTags(t.tags),
       priority: t.priority,
       status: t.status,
-      notebookId: t.notebookId,
       parentTaskId: t.parentTaskId,
       createdAt: t.createdAt.toISOString(),
       updatedAt: t.updatedAt.toISOString(),
@@ -48,10 +60,12 @@ export class TaskService {
         endTime: data.endTime || null,
         deadlineDate: data.deadlineDate || null,
         deadlineTime: data.deadlineTime || null,
+        startDate: data.startDate || null,
+        endDate: data.endDate || null,
         tag: data.tag || null,
+        tags: data.tags ? JSON.stringify(data.tags) : null,
         priority: data.priority || "medium",
         status: "todo",
-        notebookId: data.notebookId || null,
         parentTaskId: data.parentTaskId || null,
       },
     });
@@ -67,10 +81,12 @@ export class TaskService {
       endTime: created.endTime,
       deadlineDate: created.deadlineDate,
       deadlineTime: created.deadlineTime,
+      startDate: created.startDate,
+      endDate: created.endDate,
       tag: created.tag,
+      tags: parseTaskTags(created.tags),
       priority: created.priority,
       status: created.status,
-      notebookId: created.notebookId,
       parentTaskId: created.parentTaskId,
       createdAt: created.createdAt.toISOString(),
       updatedAt: created.updatedAt.toISOString(),
@@ -102,7 +118,10 @@ export class TaskService {
         endTime: data.endTime !== undefined ? data.endTime : undefined,
         deadlineDate: data.deadlineDate !== undefined ? data.deadlineDate : undefined,
         deadlineTime: data.deadlineTime !== undefined ? data.deadlineTime : undefined,
+        startDate: data.startDate !== undefined ? data.startDate : undefined,
+        endDate: data.endDate !== undefined ? data.endDate : undefined,
         tag: data.tag !== undefined ? data.tag : undefined,
+        tags: data.tags !== undefined ? JSON.stringify(data.tags) : undefined,
         priority: data.priority !== undefined ? data.priority : undefined,
         status:
           data.status !== undefined
@@ -112,7 +131,6 @@ export class TaskService {
                 ? "completed"
                 : "todo"
               : undefined,
-        notebookId: data.notebookId !== undefined ? data.notebookId : undefined,
         parentTaskId: data.parentTaskId !== undefined ? data.parentTaskId : undefined,
       },
     });
@@ -128,10 +146,12 @@ export class TaskService {
       endTime: updated.endTime,
       deadlineDate: updated.deadlineDate,
       deadlineTime: updated.deadlineTime,
+      startDate: updated.startDate,
+      endDate: updated.endDate,
       tag: updated.tag,
+      tags: parseTaskTags(updated.tags),
       priority: updated.priority,
       status: updated.status,
-      notebookId: updated.notebookId,
       parentTaskId: updated.parentTaskId,
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString(),

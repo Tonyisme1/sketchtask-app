@@ -1,16 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { NoteItem } from "./NoteTypes";
-import { NotebookDto } from "../../../types";
 import { useAppStore } from "../../../stores/appStore";
 import { useResponsiveLayout } from "../../../shared/hooks";
+import { isNativePlatform } from "../../../services/notificationService";
 import {
   FileText,
   Plus,
   Trash2,
   Clock,
-  Check,
-  BookMarked,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Pin,
@@ -18,7 +15,6 @@ import {
 
 export interface NoteMasterDetailViewProps {
   notes: NoteItem[];
-  notebooks: NotebookDto[];
   newlyCreatedId?: string | null;
   initialNoteId?: string;
   onUpdateNote: (updatedNote: NoteItem) => void;
@@ -36,7 +32,6 @@ const stripHtml = (html: string) => {
 
 export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   notes,
-  notebooks,
   newlyCreatedId,
   initialNoteId,
   onUpdateNote,
@@ -97,22 +92,18 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
 
   // State cho TRÌNH SOẠN THẢO
   const [title, setTitle] = useState(selectedNote?.title || "");
-  const [notebookId, setNotebookId] = useState<string | undefined>(selectedNote?.notebookId);
   const [isSaved, setIsSaved] = useState(true);
-  const [showNotebookMenu, setShowNotebookMenu] = useState(false);
   const [expandedNoteIds, setExpandedNoteIds] = useState<Set<string>>(new Set());
 
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
-  const notebookMenuRef = useRef<HTMLDivElement>(null);
   const isComposingRef = useRef(false);
 
   // Đồng bộ nội dung editor khi đổi note được chọn
   useEffect(() => {
     if (selectedNote) {
       setTitle(selectedNote.title);
-      setNotebookId(selectedNote.notebookId);
       if (editorRef.current && !isComposingRef.current) {
         editorRef.current.setAttribute("autocomplete", "off");
         if (editorRef.current.innerHTML !== selectedNote.content) {
@@ -121,28 +112,12 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
       }
       setIsSaved(true);
     }
-  }, [selectedNote?.id, selectedNote?.title, selectedNote?.content, selectedNote?.notebookId]);
-
-  // Đóng dropdown khi click ngoài
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (notebookMenuRef.current && !notebookMenuRef.current.contains(e.target as Node)) {
-        setShowNotebookMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, []);
+  }, [selectedNote?.id, selectedNote?.title, selectedNote?.content]);
 
   // Tự động lưu ngầm debounce
   const handleTriggerSave = (
     newTitle: string,
-    newContentHtml: string,
-    newNotebookId: string | undefined
+    newContentHtml: string
   ) => {
     if (!selectedNote) return;
     setIsSaved(false);
@@ -151,14 +126,13 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
     }
 
     saveTimeoutRef.current = setTimeout(() => {
-      flushSave(newTitle, newContentHtml, newNotebookId);
+      flushSave(newTitle, newContentHtml);
     }, 400);
   };
 
   const flushSave = (
     currentTitle: string,
-    currentContentHtml: string,
-    currentNotebookId: string | undefined
+    currentContentHtml: string
   ) => {
     if (!selectedNote) return;
     if (saveTimeoutRef.current) {
@@ -182,7 +156,6 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
       ...selectedNote,
       title: currentTitle.trim(),
       content: currentContentHtml,
-      notebookId: currentNotebookId || undefined,
       updatedAt: nowStr,
     };
 
@@ -201,9 +174,8 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
       const currentHtml = editorRef.current
         ? editorRef.current.innerHTML
         : selectedNote.content || "";
-      flushSave(title, currentHtml, notebookId);
+      flushSave(title, currentHtml);
     }
-    setShowNotebookMenu(false);
     setMobileNoteTransition("back");
     setSelectedNoteId(null);
     setIsMobileNoteDetailOpen(false);
@@ -213,31 +185,20 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
     const val = e.target.value;
     setTitle(val);
     const contentHtml = editorRef.current ? editorRef.current.innerHTML : (selectedNote?.content || "");
-    handleTriggerSave(val, contentHtml, notebookId);
+    handleTriggerSave(val, contentHtml);
   };
 
   const handleEditorInput = () => {
     isComposingRef.current = true;
     const contentHtml = editorRef.current ? editorRef.current.innerHTML : "";
-    handleTriggerSave(title, contentHtml, notebookId);
+    handleTriggerSave(title, contentHtml);
   };
 
   const handleBlur = () => {
     isComposingRef.current = false;
     const contentHtml = editorRef.current ? editorRef.current.innerHTML : (selectedNote?.content || "");
-    flushSave(title, contentHtml, notebookId);
+    flushSave(title, contentHtml);
   };
-
-  const handleSelectNotebook = (nbId: string | undefined) => {
-    setNotebookId(nbId);
-    setShowNotebookMenu(false);
-    const contentHtml = editorRef.current ? editorRef.current.innerHTML : (selectedNote?.content || "");
-    handleTriggerSave(title, contentHtml, nbId);
-  };
-
-  const currentNotebook = notebookId
-    ? notebooks.find((n) => n.id === notebookId)
-    : null;
   const contentCharacterCount = stripHtml(selectedNote?.content || "").length;
 
   // =========================================================================
@@ -251,9 +212,6 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
         <div className="space-y-2.5">
           {notes.map((note, index) => {
             const plainContent = stripHtml(note.content || "").replace(/\s+/g, " ").trim();
-            const notebook = note.notebookId
-              ? notebooks.find((item) => item.id === note.notebookId)
-              : null;
             const isPreviewExpanded = expandedNoteIds.has(note.id);
             const hasLongPreview = plainContent.length > 150;
 
@@ -279,10 +237,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
                     <p className={`mt-1 text-[13px] leading-relaxed text-[#78716C] ${isPreviewExpanded ? "" : "line-clamp-3"}`}>
                       {plainContent || "Chưa có nội dung"}
                     </p>
-                    <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-[#78716C]">
-                      <span className="truncate">
-                        {notebook ? `Sổ: ${notebook.name}` : "Chưa gắn sổ"}
-                      </span>
+                    <div className="mt-2 flex items-center justify-end gap-2 text-[11px] text-[#78716C]">
                       <span className="shrink-0">{note.updatedAt || note.createdAt}</span>
                     </div>
                   </button>
@@ -370,13 +325,17 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   return (
     <div className={`w-full min-w-0 select-none ${
       isMobile
-        ? "space-y-3 bg-[#FBF9F4] mobile-panel-enter pt-[max(env(safe-area-inset-top),16px)]"
+        ? "bg-[#FBF9F4] mobile-panel-enter"
         : "space-y-4"
     }`}>
-      {/* 1. Thanh thao tác ghi chú: quay lại, chọn sổ và xóa */}
-      <div className={`flex items-center gap-2 ${
+      {/* 1. Thanh thao tác ghi chú: quay lại, chọn sổ và xóa (Đồng bộ MobileHeader) */}
+      <div className={`flex items-center justify-between gap-2 ${
         isMobile
-          ? "border-b border-[#262626]/20 pb-2"
+          ? `sticky top-0 z-30 bg-[#FBF9F4] border-b border-[#262626]/20 px-3.5 sm:px-5 min-h-[56px] sm:min-h-[60px] ${
+              isNativePlatform()
+                ? "pt-11 pb-2.5"
+                : "pt-[max(env(safe-area-inset-top),10px)] pb-2.5"
+            }`
           : "rounded-[8px] border-[1.5px] border-[#262626] bg-[#FFFDF8] p-2.5 shadow-[2.5px_2.5px_0px_#262626] sm:p-3"
       }`}>
         <button
@@ -384,92 +343,17 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
           onClick={handleCloseNoteEditor}
           className={`inline-flex min-w-0 items-center gap-1.5 text-xs font-bold text-[#1C1917] transition-all cursor-pointer ${
             isMobile
-              ? "h-10 w-10 flex-none justify-center rounded-[4px] border border-transparent bg-transparent px-0 shadow-none active:bg-[#F3EFE6]"
+              ? "h-9 px-2.5 rounded-[4px] border border-[#262626] bg-white shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
               : "h-9 flex-1 rounded-[4px] border-[1.5px] border-[#262626] bg-white px-2.5 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
           }`}
           aria-label="Quay lại danh sách ghi chú"
           title="Quay lại danh sách ghi chú"
         >
-          <ChevronLeft size={isMobile ? 24 : 16} strokeWidth={2.4} />
-          <span className={isMobile ? "sr-only" : "truncate"}>Danh sách ghi chú</span>
+          <ChevronLeft size={16} strokeWidth={2.4} />
+          <span className="truncate">Quay lại</span>
         </button>
 
         <div className="flex items-center gap-2 shrink-0">
-          {/* Dropdown Gắn Vào Sổ Tay */}
-          <div ref={notebookMenuRef} className="relative">
-            <button
-              type="button"
-              onClick={() => setShowNotebookMenu(!showNotebookMenu)}
-              className={`h-9 px-3 rounded-[4px] border-[1.5px] border-[#262626] text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer ${
-                currentNotebook
-                  ? "text-[#1C1917]"
-                  : "bg-[#FAF8F3] text-[#78716C] hover:bg-[#F5F2EA]"
-              }`}
-              style={{
-                backgroundColor: currentNotebook
-                  ? currentNotebook.color || "#BBF7D0"
-                  : undefined,
-              }}
-            >
-              <BookMarked size={14} strokeWidth={2.4} />
-              <span className="max-w-[100px] sm:max-w-[140px] truncate">
-                {currentNotebook ? currentNotebook.name : "Gắn Sổ..."}
-              </span>
-              <ChevronDown size={13} strokeWidth={2.4} />
-            </button>
-
-            {showNotebookMenu && (
-              <div className="absolute left-0 top-full z-50 mt-1.5 w-56 max-w-[calc(100vw-2rem)] space-y-1 rounded-[6px] border-[1.5px] border-[#262626] bg-[#FFFDF8] p-1.5 shadow-[3.5px_3.5px_0px_#262626] sm:left-auto sm:right-0">
-                <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#78716C] font-mono border-b border-[#E7E5E4]">
-                  Chọn Sổ Tay
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleSelectNotebook(undefined)}
-                  className={`w-full text-left px-2.5 py-1.5 rounded-[4px] text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
-                    !notebookId
-                      ? "bg-[#FAF8F3] font-bold border border-[#262626]"
-                      : "hover:bg-[#FAF8F3] text-[#78716C]"
-                  }`}
-                >
-                  <span>(Không thuộc sổ tay)</span>
-                  {!notebookId && <Check size={14} className="text-emerald-800" />}
-                </button>
-
-                {notebooks.map((nb) => (
-                  <button
-                    key={nb.id}
-                    type="button"
-                    onClick={() => handleSelectNotebook(nb.id)}
-                    className={`w-full text-left px-2.5 py-1.5 rounded-[4px] text-xs flex items-center justify-between transition-colors cursor-pointer ${
-                      notebookId === nb.id
-                        ? "font-bold border border-[#262626]"
-                        : "hover:bg-[#FAF8F3] text-[#1C1917]"
-                    }`}
-                    style={{
-                      backgroundColor:
-                        notebookId === nb.id
-                          ? nb.color || "#BBF7D0"
-                          : undefined,
-                    }}
-                  >
-                    <div className="flex items-center gap-2 truncate">
-                      <div
-                        className="w-2.5 h-2.5 rounded-[2px] border border-[#262626] shrink-0"
-                        style={{ backgroundColor: nb.color || "#BBF7D0" }}
-                      />
-                      <span className="truncate">{nb.name}</span>
-                    </div>
-                    {notebookId === nb.id && (
-                      <Check size={14} className="text-emerald-950 shrink-0" />
-                    )}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
           {/* Nút Xóa */}
           <button
             type="button"
@@ -491,11 +375,11 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
         </div>
       </div>
 
-      {/* 2. Thẻ Khung Soạn Thảo (Không gian mở toàn màn hình, thoáng đãng) */}
+      {/* 2. KHUNG SOẠN THẢO */}
       <div
         className={`flex flex-col overflow-hidden ${
           isMobile
-            ? "h-[calc(100dvh-9rem)] min-h-[360px] bg-transparent px-1 pb-4"
+            ? "min-h-[calc(100dvh-70px)] bg-transparent px-3.5 py-4 sm:px-5 sm:py-5 pb-28"
             : "h-[calc(100dvh-8.5rem)] min-h-[420px] max-h-[760px] rounded-[8px] border-[1.5px] border-[#262626] bg-[#FFFDF8] p-4 shadow-[3px_3px_0px_#262626] sm:p-6 md:h-[calc(100dvh-12rem)] md:min-h-[520px] md:max-h-[820px] md:p-8"
         }`}
       >

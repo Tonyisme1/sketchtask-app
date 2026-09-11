@@ -18,13 +18,13 @@ model User {
   avatarBg          String?            @default("#BBF7D0")
   googleId          String?            @unique
   tasks             Task[]
-  notebooks         Notebook[]
   stickyNotes       StickyNote[]
   habits            Habit[]
   dailyMoods        DailyMood[]
   weeklyReflections WeeklyReflection[]
   journalEntries    JournalEntry[]
   tags              Tag[]
+  deletedEntities   DeletedEntity[]
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 }
@@ -37,32 +37,32 @@ model Task {
   description  String?
   completed    Boolean   @default(false)
   dueDate      String?
+  startDate    String?
+  endDate      String?
   timeType     String?   @default("deadline") // "scheduled" | "deadline"
   startTime    String?
   endTime      String?
   deadlineDate String?
   deadlineTime String?
   tag          String?
+  tags         String?
   priority     String?   @default("medium")
   status       String    @default("todo")
-  notebookId   String?
   parentTaskId String?
-  notebook     Notebook? @relation(fields: [notebookId], references: [id], onDelete: SetNull)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 }
 
-model Notebook {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  color       String   @default("yellow")
-  icon        String?  @default("lucide:BookOpen")
-  tasks       Task[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model DeletedEntity {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entityType String
+  entityId   String
+  deletedAt  DateTime @default(now())
+
+  @@unique([userId, entityType, entityId])
+  @@index([userId, deletedAt])
 }
 
 model StickyNote {
@@ -128,7 +128,6 @@ model JournalEntry {
   date         String    // YYYY-MM-DD
   time         String    @default("00:00") // HH:mm
   content      String
-  notebookId   String?
   linkedTaskId String?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt

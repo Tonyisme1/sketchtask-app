@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { TabKey, NavigationTarget } from "../../shared/types";
 import { MobileTasksView } from "./MobileTasksView";
+import { MobileTodayView } from "./MobileTodayView";
 import {
   NotesTab,
   JournalTab,
-  NotebooksTab,
+  AIAssistantTab,
   SettingsTab,
   TaskDetailPage,
 } from "../../features";
 import { useAppStore } from "../../shared/stores";
+import { getLocalTodayStr, getTaskEffectiveDate } from "../../shared/utils";
 
 export interface MobileWorkspaceProps {
   activeTab: TabKey;
@@ -27,8 +29,35 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
   onNavigateRoute,
   previousTab,
 }) => {
-  const { activeDetailTaskId, closeTaskDetail } = useAppStore();
+  const {
+    activeDetailTaskId,
+    closeTaskDetail,
+    activeTaskSubTab,
+    setActiveTaskSubTab,
+    tasks,
+  } = useAppStore();
 
+  const todayStr = getLocalTodayStr(new Date());
+
+  useEffect(() => {
+    if (!navigationTarget?.taskId) return;
+
+    const task = tasks.find((item) => item.id === navigationTarget.taskId);
+    if (!task) {
+      onClearNavigationTarget?.();
+      return;
+    }
+
+    const taskDate = navigationTarget.date || getTaskEffectiveDate(task);
+    if (taskDate === todayStr) {
+      setActiveTaskSubTab("today");
+    } else {
+      setActiveTaskSubTab("planner");
+    }
+    onClearNavigationTarget?.();
+  }, [navigationTarget, tasks, todayStr, setActiveTaskSubTab, onClearNavigationTarget]);
+
+  // Nếu đang mở trang chi tiết task thì hiển thị panel chi tiết
   if (activeDetailTaskId) {
     return (
       <div className="w-full mobile-panel-enter">
@@ -40,15 +69,24 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
     );
   }
 
-  switch (activeTab) {
-    case "tasks":
+  const renderActiveView = () => {
+    // 1. Hôm nay (Nay)
+    if (activeTab === "today" || (activeTab === "tasks" && activeTaskSubTab === "today")) {
+      return <MobileTodayView />;
+    }
+
+    // 2. Công việc (Việc - Kế hoạch & Hạn định)
+    if (activeTab === "tasks" || activeTab === "planner" || activeTab === "deadlines") {
       return (
         <MobileTasksView
           navigationTarget={navigationTarget}
           onClearNavigationTarget={onClearNavigationTarget}
         />
       );
-    case "notes":
+    }
+
+    // 3. Ghi chú (Ghi)
+    if (activeTab === "notes") {
       return (
         <NotesTab
           navigationTarget={navigationTarget}
@@ -56,7 +94,10 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
           onNavigateTab={onNavigateTab}
         />
       );
-    case "journal":
+    }
+
+    // 4. Nhật ký (thuộc nhóm Ghi)
+    if (activeTab === "journal") {
       return (
         <JournalTab
           navigationTarget={navigationTarget}
@@ -64,15 +105,15 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
           onNavigateTab={onNavigateTab}
         />
       );
-    case "notebooks":
-      return (
-        <NotebooksTab
-          navigationTarget={navigationTarget}
-          onClearNavigationTarget={onClearNavigationTarget}
-          onNavigateTab={onNavigateTab}
-        />
-      );
-    case "settings":
+    }
+
+    // 5. Trợ lý AI (AI)
+    if (activeTab === "ai") {
+      return <AIAssistantTab />;
+    }
+
+    // 7. Cài đặt
+    if (activeTab === "settings") {
       return (
         <SettingsTab
           onNavigateTab={onNavigateTab}
@@ -82,12 +123,26 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
           platform="mobile"
         />
       );
-    default:
-      return (
-        <MobileTasksView
-          navigationTarget={navigationTarget}
-          onClearNavigationTarget={onClearNavigationTarget}
-        />
-      );
-  }
+    }
+
+    // Fallback: Mặc định hiển thị Tasks View
+    return (
+      <MobileTasksView
+        navigationTarget={navigationTarget}
+        onClearNavigationTarget={onClearNavigationTarget}
+      />
+    );
+  };
+
+  return (
+    <main
+      className={`w-full min-w-0 select-none animate-in fade-in duration-150 ${
+        activeTab === "ai"
+          ? "px-3 py-2 sm:px-5 pb-16"
+          : "px-3.5 py-3 sm:px-5 pb-28"
+      }`}
+    >
+      {renderActiveView()}
+    </main>
+  );
 };

@@ -129,6 +129,11 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 5173,
     strictPort: true,
+    cors: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Content-Security-Policy': "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval'; style-src * 'unsafe-inline'; img-src * data: blob:;",
+    },
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:5000',

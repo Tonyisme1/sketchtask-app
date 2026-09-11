@@ -32,15 +32,7 @@ const TouchWeekList: React.FC<PlannerWeekViewProps> = ({
   getTasksForDate,
   onSelectDate,
 }) => (
-  <div className="w-full space-y-2.5 select-none mobile-tab-enter">
-    <div className="flex items-center justify-between border-b border-[#262626]/20 pb-2">
-      <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917]">
-        <Clock size={16} strokeWidth={2.2} />
-        <span>7 ngày trong tuần</span>
-      </div>
-      <span className="text-[11px] text-[#78716C]">Chạm ngày để xem</span>
-    </div>
-
+  <div className="w-full space-y-2 select-none mobile-tab-enter">
     <div className="space-y-2">
       {weekDays.map((day) => {
         const dayTasks = getTasksForDate(day.dateStr);

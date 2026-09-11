@@ -4,7 +4,7 @@ import { TabletTasksView } from "./TabletTasksView";
 import {
   NotesTab,
   JournalTab,
-  NotebooksTab,
+  AIAssistantTab,
   SettingsTab,
   TaskDetailPage,
 } from "../../features";
@@ -64,14 +64,8 @@ export const TabletWorkspace: React.FC<TabletWorkspaceProps> = ({
           onNavigateTab={onNavigateTab}
         />
       );
-    case "notebooks":
-      return (
-        <NotebooksTab
-          navigationTarget={navigationTarget}
-          onClearNavigationTarget={onClearNavigationTarget}
-          onNavigateTab={onNavigateTab}
-        />
-      );
+    case "ai":
+      return <AIAssistantTab />;
     case "settings":
       return (
         <SettingsTab

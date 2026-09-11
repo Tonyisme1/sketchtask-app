@@ -8,7 +8,7 @@
   <!-- Bìa Sổ Tay Vàng Nghệ -->
   <rect x="30" y="30" width="128" height="128" rx="12" fill="#FEF08A" stroke="#262626" stroke-width="6" />
   
-  <!-- Dải Gáy Sổ (Notebook Spine) -->
+  <!-- Dải gáy của biểu tượng -->
   <rect x="30" y="30" width="26" height="128" rx="6" fill="#FDE047" stroke="#262626" stroke-width="6" />
   <line x1="56" y1="30" x2="56" y2="158" stroke="#262626" stroke-width="4.5" stroke-linecap="round" />
   

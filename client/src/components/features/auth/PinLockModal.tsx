@@ -191,7 +191,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
                 key={idx}
                 className={`w-4 h-4 rounded-full border-[1.5px] border-[#262626] transition-all duration-150 ${
                   isFilled
-                    ? "bg-[#262626] scale-110 shadow-[1px_1px_0px_#262626]"
+                    ? "bg-[#262626] shadow-[1px_1px_0px_#262626]"
                     : "bg-white"
                 }`}
               />

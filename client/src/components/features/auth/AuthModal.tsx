@@ -14,7 +14,6 @@ import {
   Smartphone,
   Laptop,
   Radio,
-  BookMarked,
   Lightbulb,
   Pencil,
   BookOpen,
@@ -79,7 +78,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     syncStatus,
     lastSyncedAt,
     tasks,
-    notebooks,
     stickyNotes,
     journalEntries,
   } = useAppStore();
@@ -465,7 +463,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 )}
               </div>
 
-              {/* Realtime Sync & Cloud Data Dashboard */}
+              {/* Realtime sync and cloud data summary */}
               <div className="bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-3 shadow-[2px_2px_0px_#262626] space-y-2.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-black uppercase tracking-wider text-[#1C1917] font-mono flex items-center gap-1.5">
@@ -490,16 +488,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <span className="text-[9px] text-[#78716C] font-semibold flex items-center justify-center gap-0.5">
                       <CheckSquare size={10} className="text-amber-700 shrink-0" />
                       <span>Việc</span>
-                    </span>
-                  </div>
-
-                  <div className="p-1.5 bg-white border border-[#262626]/20 rounded-[4px] text-center shadow-[0.5px_0.5px_0px_#262626]">
-                    <span className="block font-mono text-xs font-black text-[#1C1917]">
-                      {notebooks.length}
-                    </span>
-                    <span className="text-[9px] text-[#78716C] font-semibold flex items-center justify-center gap-0.5">
-                      <BookMarked size={10} className="text-indigo-700 shrink-0" />
-                      <span>Sổ tay</span>
                     </span>
                   </div>
 

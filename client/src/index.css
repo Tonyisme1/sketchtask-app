@@ -15,7 +15,7 @@
   --accent-mint: #bbf7d0;
   --accent-sky: #bae6fd;
   --accent-lavender: #ddd6fe;
-  --app-font-scale: 1.10;
+  --app-font-scale: 108%;
   /* One readable sans token for every shell; platform fonts keep the app usable offline. */
   --font-sans: "Inter", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   /* Data keeps aligned numerals without introducing a second visual font. */
@@ -25,15 +25,15 @@
 }
 
 html[data-font-size="normal"] {
-  --app-font-scale: 1.04;
+  --app-font-scale: 104%;
 }
 
 html[data-font-size="large"] {
-  --app-font-scale: 1.10;
+  --app-font-scale: 110%;
 }
 
 html[data-font-size="xlarge"] {
-  --app-font-scale: 1.16;
+  --app-font-scale: 118%;
 }
 
 html[data-font-family="jakarta"] {
@@ -116,8 +116,8 @@ body.paper-grid {
   --bg-canvas: #18181b;
   --bg-surface: #27272a;
   --bg-surface-muted: #3f3f46;
-  --border-ink: #e4e4e7;
-  --border-ink-muted: #52525b;
+  --border-ink: #3f3f46;
+  --border-ink-muted: #27272a;
   --text-main: #e4e4e7;
   --text-strong: #fafafa;
   --text-muted: #a1a1aa;
@@ -295,8 +295,8 @@ html[data-interface-style="ios"] {
   --bg-canvas: #f2f2f7;
   --bg-surface: #ffffff;
   --bg-surface-muted: #e5e5ea;
-  --border-ink: #d1d1d6;
-  --border-ink-muted: #c7c7cc;
+  --border-ink: #e5e5ea;
+  --border-ink-muted: #f2f2f7;
   --text-main: #1c1c1e;
   --text-strong: #000000;
   --text-muted: #8e8e93;
@@ -309,8 +309,8 @@ html.dark[data-interface-style="ios"] {
   --bg-canvas: #000000;
   --bg-surface: #1c1c1e;
   --bg-surface-muted: #2c2c2e;
-  --border-ink: #48484a;
-  --border-ink-muted: #3a3a3c;
+  --border-ink: #2c2c2e;
+  --border-ink-muted: #1c1c1e;
   --text-main: #e5e5ea;
   --text-strong: #f2f2f7;
   --text-muted: #aeaeb2;
@@ -438,9 +438,31 @@ html[data-interface-style="ios"] select:not([class*="rounded-"]) {
   border-radius: 12px !important;
 }
 
+/* Bảo toàn góc phẳng ở đáy Bottom Sheet để dính khít thanh điều hướng Mobile */
+html[data-interface-style="ios"] [class*="rounded-t-"] {
+  border-top-left-radius: 18px !important;
+  border-top-right-radius: 18px !important;
+  border-bottom-left-radius: 0px !important;
+  border-bottom-right-radius: 0px !important;
+}
+
+html[data-interface-style="ios"] [class*="rounded-b-"] {
+  border-bottom-left-radius: 18px !important;
+  border-bottom-right-radius: 18px !important;
+  border-top-left-radius: 0px !important;
+  border-top-right-radius: 0px !important;
+}
+
 html[data-interface-style="ios"] [class*="active:translate-"]:active,
 html[data-interface-style="ios"] [class*="active:scale-"]:active {
   transform: none !important;
+}
+
+/* Phản hồi chạm tinh gọn trên màn hình cảm ứng khi tắt dịch chuyển cơ học */
+html[data-interface-style="ios"] button:active,
+html[data-interface-style="ios"] [role="button"]:active,
+html[data-interface-style="ios"] [class*="cursor-pointer"]:active {
+  opacity: 0.76;
 }
 
 /* Task rows become distinct cards in the minimal skin instead of one long
@@ -580,23 +602,19 @@ body {
   animation: inkStrike 0.25s ease-out forwards;
 }
 
-/* 3. Con dấu mộc Stamp đóng cộp xuống */
+/* 3. Con dấu mộc Stamp đóng dứt khoát trên giấy */
 @keyframes stampPop {
   0% {
-    transform: scale(1.35) rotate(-12deg);
+    transform: scale(1.08) rotate(-1deg);
     opacity: 0;
   }
-  60% {
-    transform: scale(0.95) rotate(-3deg);
-    opacity: 1;
-  }
   100% {
-    transform: scale(1) rotate(-4deg);
+    transform: scale(1) rotate(0deg);
     opacity: 1;
   }
 }
 .animate-stamp {
-  animation: stampPop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: stampPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* 6. Hiệu ứng Rung Lắc Nhẹ khi nhập sai mã PIN (PIN Shake) */
@@ -609,13 +627,35 @@ body {
   animation: shakeError 0.4s ease-in-out;
 }
 
-/* Chuyển cảnh mobile theo hướng, không dùng animation fade/zoom chung */
-@keyframes mobileTabEnter {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 18px, 0);
+/* Chuyển cảnh mobile chuẩn Native Screen Slider (trượt ngang 100% như các tab đặt cạnh nhau trên điện thoại) */
+@keyframes mobileTabSlideLeft {
+  0% {
+    opacity: 1;
+    transform: translate3d(100%, 0, 0);
   }
-  to {
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes mobileTabSlideRight {
+  0% {
+    opacity: 1;
+    transform: translate3d(-100%, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes mobileTabEnter {
+  0% {
+    opacity: 1;
+    transform: translate3d(100%, 0, 0);
+  }
+  100% {
     opacity: 1;
     transform: translate3d(0, 0, 0);
   }
@@ -671,6 +711,8 @@ body {
 }
 
 .mobile-tab-enter,
+.mobile-tab-slide-left,
+.mobile-tab-slide-right,
 .mobile-panel-enter,
 .mobile-panel-exit,
 .mobile-panel-back-enter,
@@ -681,8 +723,24 @@ body {
 
 @media (max-width: 767px) {
   .mobile-tab-enter {
-    animation: mobileTabEnter 220ms cubic-bezier(0.16, 1, 0.3, 1);
-    will-change: transform, opacity;
+    animation: mobileTabEnter 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .mobile-tab-slide-left {
+    animation: mobileTabSlideLeft 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .mobile-tab-slide-right {
+    animation: mobileTabSlideRight 300ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
   }
 
   .mobile-panel-enter {
@@ -715,18 +773,16 @@ body {
   }
 }
 
-/* 7. Hiệu ứng chạy chữ khi rê chuột vào mục dài trong Dropdown (Hover Text Marquee) */
-@keyframes textMarquee {
-  0% { transform: translateX(0%); }
-  40% { transform: translateX(calc(-100% + 200px)); }
-  60% { transform: translateX(calc(-100% + 200px)); }
-  100% { transform: translateX(0%); }
+@media (min-width: 768px) and (max-width: 1024px) {
+  .mobile-tab-enter,
+  .mobile-tab-slide-left,
+  .mobile-tab-slide-right {
+    animation: mobileTabEnter 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, opacity;
+  }
 }
-.group:hover .animate-marquee-hover {
-  display: inline-block;
-  white-space: nowrap;
-  animation: textMarquee 6s ease-in-out infinite;
-}
+
+
 
 /* 8. Hiệu ứng ô xem chi tiết trượt từ ngoài vào trong (Slide In Right) */
 @keyframes detailSlideInRight {
@@ -752,7 +808,17 @@ body {
   display: block;
 }
 
-/* 9. Tuân thủ Cài đặt Giảm Chuyển Động (prefers-reduced-motion) */
+/* 9. Hiệu ứng Fade & Modal Utility nhẹ cho giao diện */
+@keyframes uiFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-in.fade-in {
+  animation: uiFadeIn 150ms ease-out forwards;
+}
+
+/* 10. Tuân thủ Cài đặt Giảm Chuyển Động (prefers-reduced-motion) */
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

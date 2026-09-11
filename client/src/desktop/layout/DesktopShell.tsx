@@ -44,7 +44,6 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
     setSettingsMobileSubView,
     openQuickTaskModal,
     logout,
-    selectedNotebookId,
     isMobileNoteDetailOpen,
     isJournalBookOpen,
   } = useAppStore();
@@ -63,8 +62,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
 
   const isDetailOpen =
     (activeTab === "notes" && Boolean(isMobileNoteDetailOpen)) ||
-    (activeTab === "journal" && Boolean(isJournalBookOpen)) ||
-    (activeTab === "notebooks" && Boolean(selectedNotebookId));
+    (activeTab === "journal" && Boolean(isJournalBookOpen));
 
   // Desktop Global keyboard shortcuts: Ctrl+B (Sidebar), Ctrl+K (Search), N (New Task Modal)
   useEffect(() => {
@@ -182,7 +180,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
           aria-modal="true"
           aria-label="Cài đặt"
           onClick={() => setIsSettingsPopupOpen(false)}
-          className="fixed inset-0 z-[999998] flex items-center justify-center bg-black/60 p-4 lg:p-8 backdrop-blur-[2px] animate-in fade-in duration-150"
+          className="fixed inset-0 z-[999998] flex items-center justify-center bg-black/60 p-4 lg:p-8 animate-in fade-in duration-150"
         >
           <section
             role="document"

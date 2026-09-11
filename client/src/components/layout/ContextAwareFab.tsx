@@ -1,33 +1,23 @@
 import React from "react";
-import { BookMarked, BookOpen, CheckSquare, FileText, Plus, LucideIcon } from "lucide-react";
+import { Plus } from "lucide-react";
 import { TabKey } from "../../types";
-import { useAppStore } from "../../shared/stores";
 
-type CreateAction = "task" | "note" | "journal" | "notebook";
+type CreateAction = "task" | "note" | "journal";
 
 interface ContextAwareFabProps {
   activeTab: TabKey;
   activeTaskSubTab?: "today" | "planner" | "deadlines";
-  onCreateTask: (initialData?: { notebookId?: string }) => void;
+  onCreateTask: () => void;
   showOnDesktop?: boolean;
   showOnTablet?: boolean;
 }
 
 const actionByTab: Partial<Record<TabKey, { type: CreateAction; label: string }>> = {
   tasks: { type: "task", label: "Tạo task mới" },
-  today: { type: "task", label: "Tạo task hôm nay" },
   planner: { type: "task", label: "Tạo task trong kế hoạch" },
   deadlines: { type: "task", label: "Tạo task có hạn" },
   notes: { type: "note", label: "Tạo ghi chú mới" },
   journal: { type: "journal", label: "Viết nhật ký mới" },
-  notebooks: { type: "notebook", label: "Tạo sổ tay mới" },
-};
-
-const iconByAction: Record<CreateAction, LucideIcon> = {
-  task: CheckSquare,
-  note: FileText,
-  journal: BookOpen,
-  notebook: BookMarked,
 };
 
 const dispatchCreateRequest = (type: Exclude<CreateAction, "task">) => {
@@ -45,8 +35,6 @@ export const ContextAwareFab: React.FC<ContextAwareFabProps> = ({
   showOnDesktop = false,
   showOnTablet = false,
 }) => {
-  const { selectedNotebookId } = useAppStore();
-
   let action: { type: CreateAction; label: string } | undefined;
 
   if (activeTab === "tasks") {
@@ -59,11 +47,8 @@ export const ContextAwareFab: React.FC<ContextAwareFabProps> = ({
           ? "Tạo task có hạn"
           : "Tạo task hôm nay",
     };
-  } else if (activeTab === "notebooks" && selectedNotebookId) {
-    action = {
-      type: "task",
-      label: "Tạo task mới trong sổ tay này",
-    };
+  } else if (activeTab === "today") {
+    action = { type: "task", label: "Tạo task hôm nay" };
   } else {
     action = actionByTab[activeTab];
   }
@@ -78,11 +63,7 @@ export const ContextAwareFab: React.FC<ContextAwareFabProps> = ({
 
   const handleClick = () => {
     if (action?.type === "task") {
-      onCreateTask(
-        activeTab === "notebooks" && selectedNotebookId
-          ? { notebookId: selectedNotebookId }
-          : undefined,
-      );
+      onCreateTask();
       return;
     }
     dispatchCreateRequest(action.type);

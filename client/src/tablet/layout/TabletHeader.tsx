@@ -3,7 +3,6 @@ import { ArrowLeft, Bell } from "lucide-react";
 import { TabKey, NavigationTarget } from "../../shared/types";
 import { useAppStore } from "../../shared/stores";
 import { BrandLogo } from "../../shared/ui";
-import { DesktopSearchAutocomplete } from "../../components/layout/DesktopSearchAutocomplete";
 import { AccountMenu } from "../../components/layout/AccountMenu";
 import { getTaskTemporalState, isTaskDueToday } from "../../shared/utils";
 
@@ -102,11 +101,7 @@ export const TabletHeader: React.FC<TabletHeaderProps> = ({
         )}
       </div>
 
-      {activeTab !== "settings" && (
-        <div className="mx-4 flex max-w-sm flex-1">
-          <DesktopSearchAutocomplete onNavigateTab={onTabChange} />
-        </div>
-      )}
+
 
       {activeTab !== "settings" && (
         <div className="flex shrink-0 items-center gap-2.5">

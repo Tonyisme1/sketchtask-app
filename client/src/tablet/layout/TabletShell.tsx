@@ -42,7 +42,6 @@ export const TabletShell: React.FC<TabletShellProps> = ({
     closeAuthModal,
     setSettingsMobileSubView,
     activeDetailTaskId,
-    selectedNotebookId,
     isMobileNoteDetailOpen,
     isJournalBookOpen,
     openQuickTaskModal,
@@ -55,14 +54,53 @@ export const TabletShell: React.FC<TabletShellProps> = ({
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
-  }, [activeTab, activeTaskSubTab, activeDetailTaskId, selectedNotebookId, isMobileNoteDetailOpen, isJournalBookOpen]);
+  }, [activeTab, activeTaskSubTab, activeDetailTaskId, isMobileNoteDetailOpen, isJournalBookOpen]);
 
   const isDetailOpen =
     Boolean(activeDetailTaskId) ||
     (activeTab === "notes" && Boolean(isMobileNoteDetailOpen)) ||
-    (activeTab === "journal" && Boolean(isJournalBookOpen)) ||
-    (activeTab === "notebooks" && Boolean(selectedNotebookId));
+    (activeTab === "journal" && Boolean(isJournalBookOpen));
   const isSettingsView = activeTab === "settings";
+
+  const TAB_POSITION_MAP: Record<string, number> = {
+    today: 0,
+    tasks: 1,
+    notes: 2,
+    journal: 2,
+    settings: 3,
+  };
+
+  const SUBTAB_POSITION_MAP: Record<string, number> = {
+    today: 0,
+    planner: 1,
+    deadlines: 2,
+  };
+
+  const previousTabRef = React.useRef<TabKey>(activeTab);
+  const previousSubTabRef = React.useRef<string>(activeTaskSubTab);
+  const [tabSlideClass, setTabSlideClass] = useState<string>("mobile-tab-slide-left");
+
+  if (activeTab !== previousTabRef.current || activeTaskSubTab !== previousSubTabRef.current) {
+    const prevPos = TAB_POSITION_MAP[previousTabRef.current] ?? 0;
+    const currentPos = TAB_POSITION_MAP[activeTab] ?? 0;
+
+    let nextClass = tabSlideClass;
+    if (currentPos !== prevPos) {
+      nextClass = currentPos > prevPos ? "mobile-tab-slide-left" : "mobile-tab-slide-right";
+    } else if (activeTab === "tasks") {
+      const prevSubPos = SUBTAB_POSITION_MAP[previousSubTabRef.current] ?? 0;
+      const currentSubPos = SUBTAB_POSITION_MAP[activeTaskSubTab] ?? 0;
+      if (currentSubPos !== prevSubPos) {
+        nextClass = currentSubPos > prevSubPos ? "mobile-tab-slide-left" : "mobile-tab-slide-right";
+      }
+    }
+
+    if (nextClass !== tabSlideClass) {
+      setTabSlideClass(nextClass);
+    }
+    previousTabRef.current = activeTab;
+    previousSubTabRef.current = activeTaskSubTab;
+  }
 
   return (
     <div
@@ -95,7 +133,7 @@ export const TabletShell: React.FC<TabletShellProps> = ({
             ? "p-0 pb-6"
             : isSettingsView
               ? "p-5 md:p-6 pb-5"
-              : "p-5 md:p-6 pb-28 mobile-tab-enter motion-reduce:animate-none"
+              : `p-5 md:p-6 pb-28 ${tabSlideClass} motion-reduce:animate-none`
         }`}
       >
         <div className="w-full max-w-4xl mx-auto min-w-0">

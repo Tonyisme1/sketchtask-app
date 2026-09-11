@@ -138,7 +138,10 @@ export const buildTimelineGridLayout = (
       top: (segment.start / 60) * baseRowHeight + 2,
       left: (lane / laneCount) * 100,
       width: (1 / laneCount) * 100,
-      height: Math.max(minLaneHeight, ((segment.end - segment.start) / 60) * baseRowHeight - 4),
+      height: Math.max(
+        minLaneHeight,
+        ((segment.end - segment.start) / 60) * baseRowHeight - 4,
+      ),
       showLabel: segment.showLabel,
     };
   });

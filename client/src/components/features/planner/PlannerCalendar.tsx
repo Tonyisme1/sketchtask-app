@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { CalendarDays, ChevronRight, X } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import { TaskDto } from "../../../types";
 import { formatShortDayMonth } from "../../../utils/date";
 import {
@@ -72,7 +72,7 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
         {WEEKDAYS.map((day) => (
           <div
             key={day.short}
-            className="flex min-w-0 min-h-[36px] items-center justify-center border-r border-[#D4CEBF] px-1 text-center text-[10px] font-bold uppercase tracking-wide text-[#57534E] last:border-r-0 sm:min-h-[44px] sm:text-xs"
+            className="flex min-w-0 min-h-[32px] items-center justify-center border-r border-[#D4CEBF] px-1 text-center text-xs font-semibold text-[#57534E] last:border-r-0 sm:min-h-[40px]"
           >
             <span className="hidden sm:inline">{day.label}</span>
             <span className="sm:hidden">{day.short}</span>

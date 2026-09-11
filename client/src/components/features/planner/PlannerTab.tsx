@@ -9,6 +9,8 @@ import {
   getTaskTemporalState,
   normalizeTaskTimeType,
   isTaskForSpecificDate,
+  getTaskTags,
+  isTaskOccurringOnDate,
 } from "../../../utils/taskSemantics";
 import { PlannerHeader, PlannerViewMode } from "./PlannerHeader";
 import { PlannerCalendar } from "./PlannerCalendar";
@@ -108,7 +110,6 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
   const [timeTypeFilter, setTimeTypeFilter] = useState<"all" | "scheduled" | "deadline">("all");
   const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all");
-  const [notebookFilter, setNotebookFilter] = useState<string>("all");
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
@@ -211,9 +212,9 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
   const currentTitleLabel =
     viewMode === "agenda" ? weekLabel : monthLabel;
 
-  // Lấy các task cho một ngày cụ thể
+  // Lấy các task cho một ngày cụ thể (Hỗ trợ cả task liên ngày & qua đêm)
   const getTasksForDate = (dateStr: string): TaskDto[] => {
-    return tasks.filter((t) => isTaskForSpecificDate(t, dateStr));
+    return tasks.filter((t) => isTaskForSpecificDate(t, dateStr) || isTaskOccurringOnDate(t, dateStr));
   };
 
   // Tính tóm tắt task cho một ngày
@@ -266,8 +267,7 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
   // Danh sách công việc của ngày đang chọn trong DayPlanView
   const selectedDayTasks = useMemo(() => {
     return tasks.filter((t) => {
-      const taskDate = getTaskEffectiveDate(t);
-      return taskDate === selectedDateStr;
+      return isTaskForSpecificDate(t, selectedDateStr) || isTaskOccurringOnDate(t, selectedDateStr);
     });
   }, [tasks, selectedDateStr]);
 
@@ -300,21 +300,14 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
           ? true
           : (task.priority || "medium") === priorityFilter;
 
-      const matchNotebook =
-        notebookFilter === "all"
-          ? true
-          : notebookFilter === "none"
-          ? !task.notebookId
-          : task.notebookId === notebookFilter;
-
       const matchTag =
         tagFilter === "all"
           ? true
           : tagFilter === "none"
-          ? !task.tag
-          : task.tag === tagFilter;
+          ? getTaskTags(task).length === 0
+          : getTaskTags(task).includes(tagFilter);
 
-      return matchStatus && matchTimeType && matchPriority && matchNotebook && matchTag;
+      return matchStatus && matchTimeType && matchPriority && matchTag;
     });
   }, [
     selectedDayTasks,
@@ -322,7 +315,6 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
     statusFilter,
     timeTypeFilter,
     priorityFilter,
-    notebookFilter,
     tagFilter,
   ]);
 
@@ -345,7 +337,6 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
   const activeAdvancedFilterCount =
     (timeTypeFilter !== "all" ? 1 : 0) +
     (priorityFilter !== "all" ? 1 : 0) +
-    (notebookFilter !== "all" ? 1 : 0) +
     (tagFilter !== "all" ? 1 : 0);
 
   return (
@@ -478,15 +469,12 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
               onTimeTypeChange={setTimeTypeFilter}
               priorityFilter={priorityFilter}
               onPriorityChange={setPriorityFilter}
-              notebookFilter={notebookFilter}
-              onNotebookChange={setNotebookFilter}
               tagFilter={tagFilter}
               onTagChange={setTagFilter}
               isDrawerOpen={isFilterDrawerOpen}
               onToggleDrawer={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
               onResetFilters={() => {
                 setPriorityFilter("all");
-                setNotebookFilter("all");
                 setTagFilter("all");
                 setTimeTypeFilter("all");
               }}
@@ -501,12 +489,10 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
                   const normTime = normalizeTaskTimeType(t);
                   return normTime === "scheduled" || (Boolean(t.startTime) && normTime !== "deadline");
                 });
-                const timedDayTasks = filteredTasks.filter((task) => Boolean(getTaskEffectiveTime(task)));
-
                 if (isDesktop) {
                   return (
                     <PlannerDayTimeline
-                      tasks={timedDayTasks}
+                      tasks={filteredTasks}
                       listTasks={filteredTasks}
                       displayMode={dayDisplayMode}
                       onDisplayModeChange={setDayDisplayMode}
@@ -514,6 +500,8 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
                       onToggleTask={toggleTask}
                       onDeleteTask={deleteTask}
                       onMoveTomorrow={moveTaskToNextDay}
+                      dateStr={selectedDateStr}
+                      isToday={selectedDateStr === todayStr}
                     />
                   );
                 }

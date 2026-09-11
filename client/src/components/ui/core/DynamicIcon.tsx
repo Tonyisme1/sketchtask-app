@@ -10,7 +10,6 @@ export interface DynamicIconProps {
   size?: number;
   strokeWidth?: number;
   className?: string;
-  fallback?: string;
 }
 
 export const DynamicIcon: React.FC<DynamicIconProps> = ({
@@ -18,7 +17,6 @@ export const DynamicIcon: React.FC<DynamicIconProps> = ({
   size = 16,
   strokeWidth = 2.2,
   className = "",
-  fallback = "",
 }) => {
   if (!name) {
     const FallbackIcon = (LucideIcons as any).BookMarked;

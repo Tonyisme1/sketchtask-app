@@ -50,8 +50,6 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     setActiveTaskSubTab,
     activeDetailTaskId,
     closeTaskDetail,
-    setSelectedNotebookId,
-    selectedNotebookId,
     setIsMobileNoteDetailOpen,
     isMobileNoteDetailOpen,
     setIsJournalBookOpen,
@@ -95,7 +93,6 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
 
     // Đóng panel task detail & các mục con khi chuyển tab hoặc chuyển không gian
     closeTaskDetail();
-    setSelectedNotebookId(null);
     setIsMobileNoteDetailOpen(false);
     setIsJournalBookOpen(false);
     setSettingsMobileSubView(null);
@@ -108,7 +105,7 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     setNavigationTarget(target);
     setActiveTaskSubTab(nextLocation.taskSubTab);
     setActiveTab(nextLocation.tab);
-  }, [activeTab, activeTaskSubTab, closeTaskDetail, setActiveTaskSubTab, setIsJournalBookOpen, setIsMobileNoteDetailOpen, setSelectedNotebookId, setSettingsMobileSubView]);
+  }, [activeTab, activeTaskSubTab, closeTaskDetail, setActiveTaskSubTab, setIsJournalBookOpen, setIsMobileNoteDetailOpen, setSettingsMobileSubView]);
 
   const handleClearNavigationTarget = () => {
     setNavigationTarget(undefined);
@@ -129,10 +126,6 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     }
     if (isJournalBookOpen) {
       setIsJournalBookOpen(false);
-      return true;
-    }
-    if (selectedNotebookId) {
-      setSelectedNotebookId(null);
       return true;
     }
     const previousLocation = appNavigationStackRef.current.pop();
@@ -167,12 +160,10 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     closeTaskDetail,
     isJournalBookOpen,
     isMobileNoteDetailOpen,
-    selectedNotebookId,
     setActiveTab,
     setActiveTaskSubTab,
     setIsJournalBookOpen,
     setIsMobileNoteDetailOpen,
-    setSelectedNotebookId,
     setSettingsMobileSubView,
     settingsMobileSubView,
   ]);
@@ -289,6 +280,12 @@ function AppRouter() {
       window.clearInterval(intervalId);
     };
   }, []);
+
+  useEffect(() => {
+    if (resolveRoute(pathname).kind === "app") {
+      document.title = "SketchTask";
+    }
+  }, [pathname]);
 
   useEffect(() => {
     const handlePopState = (event: PopStateEvent) => {

@@ -21,36 +21,36 @@ export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
   onNext,
   onToday,
 }) => {
-  const { isMobile, isTablet } = useResponsiveLayout();
+  const { isMobile } = useResponsiveLayout();
 
   return (
-    <div className="flex items-center justify-between gap-2 flex-wrap pb-1.5 border-b border-[#262626] select-none">
+    <div className="flex items-center justify-between gap-1 pb-2 border-b border-[#262626]/15 select-none overflow-x-hidden">
       {/* 1. Bộ điều hướng thời gian */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-1 min-w-0">
         {/* Nút Chuyển Mốc Thời Gian (< Label >) */}
-        <div className="flex items-center gap-1 bg-white border-[1.5px] border-[#262626] rounded-[5px] p-0.5 shadow-[1.5px_1.5px_0px_#262626]">
+        <div className="flex items-center bg-white border-[1.5px] border-[#262626] rounded-[5px] shadow-[1px_1px_0px_#262626] h-7 sm:h-8">
           <button
             type="button"
             onClick={onPrev}
-            className="w-6 h-6 sm:w-7 sm:h-7 bg-[#FCFBF9] hover:bg-[#F3EFE6] rounded-[3px] flex items-center justify-center text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] transition-all"
+            className="w-5 sm:w-7 h-full hover:bg-[#F3EFE6] rounded-l-[3px] flex items-center justify-center text-[#1C1917] active:bg-[#E7E2D5] transition-all cursor-pointer"
             title="Kỳ trước"
             aria-label="Kỳ trước"
           >
-            <ChevronLeft size={14} strokeWidth={2.4} />
+            <ChevronLeft size={13} strokeWidth={2.4} />
           </button>
 
-          <span className="font-bold text-xs sm:text-sm font-mono text-[#1C1917] px-2 min-w-[130px] sm:min-w-[150px] text-center truncate">
+          <span className="font-bold text-[10px] sm:text-xs font-mono text-[#1C1917] px-1 sm:px-2 max-w-[85px] xs:max-w-[120px] sm:max-w-[160px] text-center truncate">
             {titleLabel}
           </span>
 
           <button
             type="button"
             onClick={onNext}
-            className="w-6 h-6 sm:w-7 sm:h-7 bg-[#FCFBF9] hover:bg-[#F3EFE6] rounded-[3px] flex items-center justify-center text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] transition-all"
+            className="w-5 sm:w-7 h-full hover:bg-[#F3EFE6] rounded-r-[3px] flex items-center justify-center text-[#1C1917] active:bg-[#E7E2D5] transition-all cursor-pointer"
             title="Kỳ sau"
             aria-label="Kỳ sau"
           >
-            <ChevronRight size={14} strokeWidth={2.4} />
+            <ChevronRight size={13} strokeWidth={2.4} />
           </button>
         </div>
 
@@ -58,41 +58,42 @@ export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
         <button
           type="button"
           onClick={onToday}
-          className="px-2.5 py-1 text-xs font-semibold bg-[#FAF8F3] hover:bg-[#F3EFE6] border-[1.5px] border-[#262626] rounded-[5px] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all"
+          className="h-7 sm:h-8 px-1.5 sm:px-2 text-[10px] sm:text-xs font-bold bg-[#FAF8F3] hover:bg-[#F3EFE6] border-[1.5px] border-[#262626] rounded-[5px] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer shrink-0"
           title="Nhảy về mốc hiện tại"
         >
-          {viewMode === "agenda" ? "Tuần này" : "Tháng này"}
+          Nay
         </button>
       </div>
 
-      {/* 2. Chuyển giữa lịch trình và lịch tháng */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {/* Chỉ giữ hai cách xem có giá trị sử dụng trong Planner. */}
-        <div className="inline-flex p-0.5 bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626]">
+      {/* 2. Chuyển giữa 7 ngày và Lịch tháng */}
+      <div className="flex items-center shrink-0">
+        <div className="inline-flex h-7 sm:h-8 p-0.5 bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[5px] shadow-[1px_1px_0px_#262626]">
           <button
             type="button"
             onClick={() => onViewModeChange("agenda")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1 px-1.5 sm:px-2 h-full rounded-[3px] text-[10px] sm:text-xs font-bold transition-all cursor-pointer ${
               viewMode === "agenda"
-                ? "bg-[#BBF7D0] text-[#166534] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626]"
-                : "bg-transparent text-[#78716C] hover:text-[#1C1917] border border-transparent"
+                ? "bg-[#1C1917] text-white shadow-[0.5px_0.5px_0px_#262626]"
+                : "bg-transparent text-[#78716C] hover:text-[#1C1917]"
             } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
+            title="Xem 7 ngày"
           >
-            <CalendarDays size={13} strokeWidth={viewMode === "agenda" ? 2.5 : 2} />
-            <span>{isMobile || isTablet ? "7 ngày" : "Lịch trình"}</span>
+            <CalendarDays size={12} strokeWidth={viewMode === "agenda" ? 2.5 : 2} />
+            <span>7 ngày</span>
           </button>
 
           <button
             type="button"
             onClick={() => onViewModeChange("month")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-[4px] text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1 px-1.5 sm:px-2 h-full rounded-[3px] text-[10px] sm:text-xs font-bold transition-all cursor-pointer ${
               viewMode === "month"
-                ? "bg-[#BAE6FD] text-[#1C1917] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626]"
-                : "bg-transparent text-[#78716C] hover:text-[#1C1917] border border-transparent"
+                ? "bg-[#1C1917] text-white shadow-[0.5px_0.5px_0px_#262626]"
+                : "bg-transparent text-[#78716C] hover:text-[#1C1917]"
             } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
+            title="Xem lịch tháng"
           >
-            <Calendar size={13} strokeWidth={viewMode === "month" ? 2.5 : 2} />
-            <span>Lịch tháng</span>
+            <Calendar size={12} strokeWidth={viewMode === "month" ? 2.5 : 2} />
+            <span>{isMobile ? "Tháng" : "Lịch tháng"}</span>
           </button>
         </div>
       </div>

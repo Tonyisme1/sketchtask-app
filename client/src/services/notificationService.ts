@@ -1,6 +1,7 @@
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { Capacitor } from "@capacitor/core";
 import { TaskDto } from "../types";
+import { getTaskEffectiveDate, normalizeTaskTimeType } from "../utils/taskSemantics";
 
 // ==========================================
 // SERVICE: Native Android & Web/PWA Notification Engine
@@ -192,8 +193,8 @@ export const notificationService = {
       let notifBody = task.description || "Đến giờ thực hiện công việc của bạn rồi!";
 
       // 1. Phân loại theo Hạn chót (Deadline)
-      if (task.timeType === "deadline" || task.deadlineDate) {
-        const dateStr = task.deadlineDate || (task.dueDate?.includes("-") ? task.dueDate.split(" ")[0] : null);
+      if (normalizeTaskTimeType(task) === "deadline" || task.deadlineDate) {
+        const dateStr = task.deadlineDate || getTaskEffectiveDate(task) || null;
         const timeStr = task.deadlineTime || (task.dueDate?.includes(":") ? (task.dueDate.includes(" ") ? task.dueDate.split(" ")[1] : task.dueDate) : "17:00");
 
         if (dateStr) {
@@ -203,7 +204,7 @@ export const notificationService = {
         }
       } else {
         // 2. Phân loại theo Lịch làm việc (Scheduled Time Blocking)
-        const dateStr = task.dueDate?.includes("-") ? task.dueDate.split(" ")[0] : null;
+        const dateStr = getTaskEffectiveDate(task) || null;
         const timeStr = task.startTime || (task.dueDate?.includes(":") ? (task.dueDate.includes(" ") ? task.dueDate.split(" ")[1] : task.dueDate) : "09:00");
 
         if (dateStr) {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { TabKey, NavigationTarget } from "../../shared/types";
 import { useAppStore } from "../../shared/stores";
 import { MobileHeader } from "./MobileHeader";
@@ -41,7 +41,6 @@ export const MobileShell: React.FC<MobileShellProps> = ({
     closeAuthModal,
     activeDetailTaskId,
     openTaskDetail,
-    selectedNotebookId,
     isMobileNoteDetailOpen,
     isJournalBookOpen,
     settingsMobileSubView,
@@ -60,7 +59,6 @@ export const MobileShell: React.FC<MobileShellProps> = ({
     activeTab,
     activeTaskSubTab,
     activeDetailTaskId,
-    selectedNotebookId,
     isMobileNoteDetailOpen,
     isJournalBookOpen,
     settingsMobileSubView,
@@ -70,33 +68,8 @@ export const MobileShell: React.FC<MobileShellProps> = ({
   const isDetailOpen =
     Boolean(activeDetailTaskId) ||
     (activeTab === "notes" && Boolean(isMobileNoteDetailOpen)) ||
-    (activeTab === "journal" && Boolean(isJournalBookOpen)) ||
-    (activeTab === "notebooks" && Boolean(selectedNotebookId));
+    (activeTab === "journal" && Boolean(isJournalBookOpen));
   const isSettingsView = activeTab === "settings";
-  const previousDetailOpenRef = useRef(isDetailOpen);
-  const [detailTransitionDirection, setDetailTransitionDirection] = useState<"forward" | "back">("forward");
-
-  useEffect(() => {
-    const wasDetailOpen = previousDetailOpenRef.current;
-    if (!wasDetailOpen && isDetailOpen) {
-      setDetailTransitionDirection("forward");
-    } else if (wasDetailOpen && !isDetailOpen) {
-      setDetailTransitionDirection("back");
-    }
-    previousDetailOpenRef.current = isDetailOpen;
-  }, [isDetailOpen]);
-
-  useEffect(() => {
-    if (!isDetailOpen) {
-      setDetailTransitionDirection("forward");
-    }
-  }, [activeTab, activeTaskSubTab]);
-
-  const workspaceTransitionClass = isDetailOpen
-    ? ""
-    : detailTransitionDirection === "back"
-      ? "mobile-panel-back-enter"
-      : "mobile-tab-enter motion-reduce:animate-none";
 
   return (
     <div
@@ -121,17 +94,8 @@ export const MobileShell: React.FC<MobileShellProps> = ({
         />
       )}
 
-      {/* 2. Main Workspace */}
-      <main
-        key={`mobile-${activeTab}-${activeTaskSubTab}`}
-        className={`flex-1 min-w-0 w-full max-w-none overflow-x-hidden ${
-          isDetailOpen
-            ? "p-0 pb-6"
-            : isSettingsView
-              ? "p-3 sm:p-5 pb-4"
-            : `p-3 sm:p-5 pb-24 ${workspaceTransitionClass}`
-        }`}
-      >
+      {/* 2. Main Workspace (ViewPager Carousel Track bên trong quản lý trượt ngang) */}
+      <main className="flex-1 min-w-0 w-full max-w-none overflow-x-hidden p-0 pb-0">
         {children}
       </main>
 
@@ -166,15 +130,6 @@ export const MobileShell: React.FC<MobileShellProps> = ({
         onClose={() => setIsNotificationOpen(false)}
         onNavigateTab={onTabChange}
       />
-
-      {/* Mobile Action Button (Hidden when viewing task detail) */}
-      {!isDetailOpen && !isSettingsView && (
-      <ContextAwareFab
-        activeTab={activeTab}
-        activeTaskSubTab={activeTaskSubTab}
-        onCreateTask={() => openTaskDetail("new")}
-      />
-      )}
 
       {/* Mobile Bottom Dock (Hidden when viewing task detail) */}
       {!isDetailOpen && !isSettingsView && (

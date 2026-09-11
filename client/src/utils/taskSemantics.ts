@@ -3,7 +3,7 @@ import { getLocalTodayStr } from "./date";
 
 export type NormalizedTaskTimeType = "scheduled" | "deadline" | "none";
 
-export type TaskParentScope = "today" | "planner" | "notebook" | "global";
+export type TaskParentScope = "today" | "planner" | "global";
 
 export type TaskTemporalState =
   | "unscheduled"
@@ -30,6 +30,19 @@ export interface ParentSelectOption {
 export const formatTaskDateTime = (date?: string, time?: string): string | undefined => {
   if (!date) return undefined;
   return `${date}${time ? ` ${time}` : ""}`;
+};
+
+const shiftIsoDate = (date: string, days: number): string => {
+  const [year, month, day] = date.split("-").map(Number);
+  const shifted = new Date(Date.UTC(year, month - 1, day));
+  shifted.setUTCDate(shifted.getUTCDate() + days);
+  return shifted.toISOString().slice(0, 10);
+};
+
+const daysBetweenIsoDates = (startDate: string, endDate: string): number => {
+  const start = Date.parse(`${startDate}T00:00:00Z`);
+  const end = Date.parse(`${endDate}T00:00:00Z`);
+  return Math.max(0, Math.round((end - start) / (24 * 60 * 60 * 1000)));
 };
 
 const LEGACY_TIME_TYPES: Record<string, NormalizedTaskTimeType> = {
@@ -67,13 +80,41 @@ export const getTaskEffectiveDate = (task: TaskDto): string | undefined => {
   const { date: dueDateDate } = getDueDateParts(task.dueDate);
 
   if (type === "scheduled") {
-    return dueDateDate;
+    return dueDateDate || task.startDate;
   }
   if (type === "deadline") {
-    return task.deadlineDate || dueDateDate;
+    return task.deadlineDate || task.startDate || dueDateDate;
   }
-  // type === "none"
-  return dueDateDate;
+  return task.startDate || dueDateDate;
+};
+
+/** Lấy ngày bắt đầu của task (hỗ trợ task liên ngày) */
+export const getTaskStartDate = (task: TaskDto): string | undefined => {
+  return task.startDate || getTaskEffectiveDate(task);
+};
+
+/** Lấy ngày kết thúc của task (hỗ trợ task liên ngày & ca đêm) */
+export const getTaskEndDate = (task: TaskDto): string | undefined => {
+  if (task.endDate) return task.endDate;
+  const effectiveDate = getTaskEffectiveDate(task);
+  if (
+    effectiveDate &&
+    normalizeTaskTimeType(task) === "scheduled" &&
+    task.startTime &&
+    task.endTime
+  ) {
+    const [startH] = task.startTime.split(":").map(Number);
+    const [endH] = task.endTime.split(":").map(Number);
+    if (startH > endH) {
+      return shiftIsoDate(effectiveDate, 1);
+    }
+  }
+  return effectiveDate;
+};
+
+/** Lấy ngày hết hạn thực sự của task (cho tab Deadlines & đếm ngược) */
+export const getTaskDeadlineDate = (task: TaskDto): string | undefined => {
+  return task.endDate || task.deadlineDate || getTaskEffectiveDate(task);
 };
 
 export const getTaskEffectiveTime = (task: TaskDto): string | undefined => {
@@ -86,7 +127,6 @@ export const getTaskEffectiveTime = (task: TaskDto): string | undefined => {
   if (type === "deadline") {
     return task.deadlineTime || dueDateTime;
   }
-  // type === "none"
   return dueDateTime;
 };
 
@@ -100,30 +140,37 @@ export const getTaskTemporalState = (task: TaskDto, now: Date = new Date()): Tas
     return "completed";
   }
 
-  const date = getTaskEffectiveDate(task);
+  const startDate = getTaskStartDate(task);
+  const endDate = getTaskEndDate(task) || startDate;
   const time = getTaskEffectiveTime(task);
 
-  if (!date) {
+  if (!startDate && !endDate) {
     return "unscheduled";
   }
 
   const todayStr = getLocalTodayStr(now);
   const type = normalizeTaskTimeType(task);
 
-  // Ngày quá khứ (< todayStr)
-  if (date < todayStr) {
+  // 1. Nếu ngày hôm nay chưa tới ngày bắt đầu (todayStr < startDate) -> Tương lai (Upcoming)
+  if (startDate && todayStr < startDate) {
+    return type === "none" || !time ? "dateOnly" : "upcoming";
+  }
+
+  // 2. Nếu ngày hôm nay đã qua hẳn ngày kết thúc (todayStr > endDate) -> Đã quá hạn / quá lịch
+  if (endDate && todayStr > endDate) {
     if (type === "scheduled") {
       return "pastScheduled";
     }
     return "overdue";
   }
 
-  // Ngày tương lai (> todayStr)
-  if (date > todayStr) {
+  // 3. Ngày hôm nay nằm trong khoảng [startDate, endDate]
+  // Nếu hôm nay trước ngày kết thúc (todayStr < endDate) -> Đang trong tiến trình, chưa hết hạn
+  if (endDate && todayStr < endDate) {
     return type === "none" || !time ? "dateOnly" : "upcoming";
   }
 
-  // Ngày hôm nay (=== todayStr)
+  // 4. Hôm nay chính là ngày kết thúc (todayStr === endDate)
   if (!time) {
     return "dateOnly";
   }
@@ -154,40 +201,40 @@ export const getTaskTemporalState = (task: TaskDto, now: Date = new Date()): Tas
 
 /** Kiểm tra task có thuộc đúng một ngày cụ thể (YYYY-MM-DD) hay không */
 export const isTaskForSpecificDate = (task: TaskDto, targetDateStr: string): boolean => {
-  return getTaskEffectiveDate(task) === targetDateStr;
+  return isTaskOccurringOnDate(task, targetDateStr);
 };
 
-/** Kiểm tra task có thuộc ngày hôm nay hay không */
+/** Kiểm tra task có đang diễn ra / cần làm trong ngày hôm nay hay không */
 export const isTaskDueToday = (task: TaskDto, referenceDate: Date = new Date()): boolean => {
-  return isTaskForSpecificDate(task, getLocalTodayStr(referenceDate));
+  return isTaskOccurringOnDate(task, getLocalTodayStr(referenceDate));
 };
 
 /** Kiểm tra task chưa có bất kỳ ngày nào (Hộp chờ) */
 export const isTaskUnscheduled = (task: TaskDto): boolean => {
-  return !getTaskEffectiveDate(task);
+  return !getTaskStartDate(task) && !getTaskEndDate(task);
 };
 
 /** Kiểm tra task có ngày nhưng không có giờ */
 export const isTaskDateOnly = (task: TaskDto): boolean => {
-  return Boolean(getTaskEffectiveDate(task)) && !getTaskEffectiveTime(task);
+  return Boolean(getTaskStartDate(task)) && !getTaskEffectiveTime(task);
 };
 
 /** Kiểm tra task deadline hoặc task thông thường bị quá hạn từ ngày trước */
 export const isTaskOverdueFromPast = (task: TaskDto, referenceDate: Date = new Date()): boolean => {
   if (task.completed) return false;
-  const date = getTaskEffectiveDate(task);
+  const endDate = getTaskEndDate(task);
   const todayStr = getLocalTodayStr(referenceDate);
   const type = normalizeTaskTimeType(task);
-  return Boolean(date && date < todayStr && type !== "scheduled");
+  return Boolean(endDate && endDate < todayStr && type !== "scheduled");
 };
 
 /** Kiểm tra task scheduled từ ngày trước chưa hoàn thành (Lịch hẹn đã qua) */
 export const isTaskPastScheduledFromPast = (task: TaskDto, referenceDate: Date = new Date()): boolean => {
   if (task.completed) return false;
-  const date = getTaskEffectiveDate(task);
+  const endDate = getTaskEndDate(task);
   const todayStr = getLocalTodayStr(referenceDate);
   const type = normalizeTaskTimeType(task);
-  return Boolean(date && date < todayStr && type === "scheduled");
+  return Boolean(endDate && endDate < todayStr && type === "scheduled");
 };
 
 /** Kiểm tra task deadline quá giờ trong chính ngày hôm nay */
@@ -241,7 +288,6 @@ export const constrainTaskToParent = (
   const finalUpdates: Partial<TaskDto> = {
     ...updates,
     parentTaskId: parentTask.id,
-    notebookId: parentTask.notebookId,
   };
 
   if (parentType === "none" && childType === "none") {
@@ -285,9 +331,17 @@ export const constrainTaskToParent = (
 export const moveTaskToDate = (task: TaskDto, targetDate: string): Partial<TaskDto> => {
   const type = normalizeTaskTimeType(task);
   const time = getTaskEffectiveTime(task);
+  const hasDateRange = Boolean(task.startDate && task.endDate && task.startDate <= task.endDate);
+  const rangeEndDate = hasDateRange
+    ? shiftIsoDate(targetDate, daysBetweenIsoDates(task.startDate!, task.endDate!))
+    : undefined;
+  const rangeFields = hasDateRange
+    ? { startDate: targetDate, endDate: rangeEndDate }
+    : { startDate: undefined, endDate: undefined };
 
   if (type === "scheduled") {
     return {
+      ...rangeFields,
       dueDate: formatTaskDateTime(targetDate, time),
       timeType: "scheduled",
       startTime: time,
@@ -299,16 +353,18 @@ export const moveTaskToDate = (task: TaskDto, targetDate: string): Partial<TaskD
 
   if (type === "deadline") {
     return {
+      ...rangeFields,
       dueDate: formatTaskDateTime(targetDate, time),
       timeType: "deadline",
       startTime: undefined,
       endTime: undefined,
-      deadlineDate: targetDate,
+      deadlineDate: rangeEndDate || targetDate,
       deadlineTime: time,
     };
   }
 
   return {
+    ...rangeFields,
     dueDate: targetDate,
     timeType: undefined,
     startTime: undefined,
@@ -391,16 +447,12 @@ export const getInheritedParentSchedule = (parentTask: TaskDto): Partial<TaskDto
 export const getTaskParentCandidates = (
   tasks: TaskDto[],
   scope: TaskParentScope,
-  options: { taskId?: string; date?: string; notebookId?: string } = {},
+  options: { taskId?: string; date?: string } = {},
 ): TaskDto[] => {
   return tasks.filter((candidate) => {
     // Không thể chọn chính mình hoặc tạo chu trình vòng lặp
     if (!canAssignTaskParent(options.taskId, candidate.id, tasks)) {
       return false;
-    }
-
-    if (scope === "notebook") {
-      return Boolean(options.notebookId && candidate.notebookId === options.notebookId);
     }
 
     if (scope === "global") {
@@ -484,4 +536,148 @@ export const buildParentSelectOptions = (
   });
 
   return options;
+};
+
+// === PHẦN 7: Xử lý Nhãn (#Tag) & Multi-tags ===
+
+/** Chuẩn hóa tên tag (bỏ # ở đầu, cắt khoảng trắng thừa) */
+export const normalizeTagName = (tag: string): string => {
+  if (!tag) return "";
+  return tag.replace(/^#+/, "").trim();
+};
+
+/** Lấy toàn bộ danh sách tags của một task (tương thích cả `tags: string[]` và `tag: string`) */
+export const getTaskTags = (task: Pick<TaskDto, "tag" | "tags">): string[] => {
+  const result = new Set<string>();
+  if (Array.isArray(task.tags)) {
+    task.tags.forEach((t) => {
+      const clean = normalizeTagName(t);
+      if (clean) result.add(clean);
+    });
+  }
+  if (task.tag) {
+    const clean = normalizeTagName(task.tag);
+    if (clean) result.add(clean);
+  }
+  return Array.from(result);
+};
+
+/** Bóc tách hashtag tự động khi người dùng gõ trong ô tiêu đề */
+export const extractTagsFromTitle = (
+  rawTitle: string,
+): { cleanTitle: string; extractedTags: string[] } => {
+  if (!rawTitle) return { cleanTitle: "", extractedTags: [] };
+
+  const extractedTags: string[] = [];
+  // Tìm các cụm #tag (hỗ trợ chữ cái Unicode tiếng Việt, số, gạch chân)
+  const regex = /(?:^|\s)#([\p{L}\p{N}_-]+)/gu;
+
+  let match;
+  while ((match = regex.exec(rawTitle)) !== null) {
+    const tag = match[1].trim();
+    if (tag && !extractedTags.includes(tag)) {
+      extractedTags.push(tag);
+    }
+  }
+
+  // Tiêu đề sạch sẽ sau khi loại bỏ các hashtag
+  const cleanTitle = rawTitle.replace(/(?:^|\s)#[\p{L}\p{N}_-]+/gu, " ").trim();
+
+  return { cleanTitle: cleanTitle || rawTitle, extractedTags };
+};
+
+/** Kiểm tra xem một task có diễn ra trong ngày dateStr (YYYY-MM-DD) hay không (Hỗ trợ multi-day & overnight) */
+export const isTaskOccurringOnDate = (task: TaskDto, dateStr: string): boolean => {
+  const effectiveDate = getTaskEffectiveDate(task);
+
+  // 1. Task có khoảng ngày rõ ràng (startDate -> endDate)
+  const startDate = task.startDate || effectiveDate;
+  const endDate = task.endDate || (task.deadlineDate && task.timeType !== "deadline" ? task.deadlineDate : undefined);
+
+  if (startDate && endDate && startDate <= endDate) {
+    return dateStr >= startDate && dateStr <= endDate;
+  }
+
+  // 2. Task đơn ngày bình thường
+  if (effectiveDate === dateStr) {
+    return true;
+  }
+
+  // 3. Task qua đêm (startTime > endTime) -> xuất hiện cả ở ngày bắt đầu và ngày hôm sau
+  if (
+    effectiveDate &&
+    normalizeTaskTimeType(task) === "scheduled" &&
+    task.startTime &&
+    task.endTime
+  ) {
+    const [startH] = task.startTime.split(":").map(Number);
+    const [endH] = task.endTime.split(":").map(Number);
+    if (startH > endH) {
+      // Ngày hôm sau của effectiveDate
+      const nextDateStr = shiftIsoDate(effectiveDate, 1);
+      if (dateStr === nextDateStr) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+};
+
+/** Lấy khoảng thời gian (start phút -> end phút) trên lưới 24h của một ngày cụ thể (Hỗ trợ phân khúc task xuyên đêm) */
+export const getTaskTimelineRangeForDate = (
+  task: TaskDto,
+  dateStr: string,
+): { start: number; end: number } | undefined => {
+  const effectiveDate = getTaskEffectiveDate(task);
+  const effectiveTime = getTaskEffectiveTime(task);
+  if (!effectiveDate || !effectiveTime) return undefined;
+
+  const [startH, startM] = effectiveTime.split(":").map(Number);
+  if (isNaN(startH) || isNaN(startM)) return undefined;
+  const startMinutes = startH * 60 + startM;
+
+  const type = normalizeTaskTimeType(task);
+
+  if (type === "scheduled" && task.endTime && /^\d{2}:\d{2}$/.test(task.endTime)) {
+    const [endH, endM] = task.endTime.split(":").map(Number);
+    const endMinutes = endH * 60 + endM;
+
+    // Case 1: Qua đêm (startTime > endTime)
+    if (startMinutes > endMinutes) {
+      // Ngày bắt đầu: từ startMinutes đến 24:00 (1440)
+      if (effectiveDate === dateStr) {
+        return { start: startMinutes, end: 24 * 60 };
+      }
+
+      // Ngày hôm sau: từ 00:00 (0) đến endMinutes
+      const nextDateStr = shiftIsoDate(effectiveDate, 1);
+      if (nextDateStr === dateStr) {
+        return { start: 0, end: Math.max(15, endMinutes) };
+      }
+
+      return undefined;
+    }
+
+    // Case 2: Trong cùng ngày (startTime <= endTime)
+    if (effectiveDate === dateStr) {
+      return {
+        start: startMinutes,
+        end: Math.max(startMinutes + 15, Math.min(24 * 60, endMinutes)),
+      };
+    }
+
+    return undefined;
+  }
+
+  // Deadline hoặc scheduled không có endTime: chỉ nằm ở ngày effectiveDate
+  if (effectiveDate === dateStr) {
+    const duration = type === "scheduled" ? 60 : 45;
+    return {
+      start: startMinutes,
+      end: Math.min(24 * 60, startMinutes + duration),
+    };
+  }
+
+  return undefined;
 };

@@ -141,10 +141,10 @@ export const CustomColorPicker: React.FC<CustomColorPickerProps> = ({
                     setIsOpen(false);
                   }}
                   title={color.name}
-                  className={`h-8 rounded-[3px] border-[1.5px] border-[#262626] transition-all flex items-center justify-center text-[10px] font-bold ${
+                  className={`h-8 rounded-[3px] border-[1.5px] border-[#262626] transition-all flex items-center justify-center text-[10px] font-bold active:translate-y-[0.5px] cursor-pointer ${
                     isSelected
-                      ? "shadow-[2px_2px_0px_#262626] -translate-y-[1px] scale-110 z-10 font-bold"
-                      : "hover:scale-105 active:translate-y-[0.5px]"
+                      ? "shadow-[2px_2px_0px_#262626] -translate-y-[1px] z-10 font-bold ring-1 ring-[#262626]"
+                      : "hover:shadow-[1.5px_1.5px_0px_#262626]"
                   }`}
                   style={{ backgroundColor: color.hex }}
                 >

@@ -19,6 +19,7 @@ import {
   Trash2,
   Layers,
   Plus,
+  Calendar,
 } from "lucide-react";
 
 export interface TaskCardProps {
@@ -30,9 +31,8 @@ export interface TaskCardProps {
   onMoveTomorrow?: (taskId: string) => void;
   onAddSubtask?: (parentTask: TaskDto) => void;
   onClick?: (task: TaskDto) => void;
-  variant?: "today" | "planner" | "notebook" | "overdue";
+  variant?: "today" | "planner" | "overdue";
   hideDate?: boolean;
-  hideNotebookBadge?: boolean;
   baseDateStr?: string;
   moveButtonTitle?: string;
   // Hierarchy
@@ -83,6 +83,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const effectiveTime = getTaskEffectiveTime(task);
   const effectiveDate = getTaskEffectiveDate(task);
 
+  const isDateRange = Boolean(task.startDate && task.endDate && task.startDate !== task.endDate);
+
+  // Nhãn khoảng ngày: LUÔN hiển thị đối với công việc liên ngày để người dùng nắm rõ phạm vi
+  const dateRangeLabel = isDateRange
+    ? `${formatShortDayMonth(task.startDate!)} → ${formatShortDayMonth(task.endDate!)}`
+    : null;
+
+  // Nhãn ngày đơn: hiển thị khi không ẩn ngày và không phải liên ngày
+  const singleDateLabel =
+    !isDateRange && !hideDate && effectiveDate
+      ? effectiveDate === todayStr
+        ? "Hôm nay"
+        : formatShortDayMonth(effectiveDate)
+      : null;
+
   // Nhãn thời gian nằm dưới tiêu đề để phân biệt rõ lịch hẹn và hạn.
   const timeLabel = React.useMemo(() => {
     if (normTime === "scheduled" && effectiveTime) {
@@ -95,11 +110,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     if (effectiveTime) {
       return `Giờ · ${effectiveTime}`;
     }
-    if (!hideDate && effectiveDate) {
-      return `Ngày · ${effectiveDate === todayStr ? "Hôm nay" : formatShortDayMonth(effectiveDate)}`;
-    }
     return null;
-  }, [normTime, effectiveTime, task.endTime, hideDate, effectiveDate, todayStr]);
+  }, [normTime, effectiveTime, task.endTime]);
 
   const timeTone =
     normTime === "scheduled"
@@ -108,19 +120,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       ? "bg-[#FECDD3] text-[#9F1239] border-[#FDA4AF]"
       : "bg-[#FAF8F3] text-[#78716C] border-[#D4CEBF]";
 
-  const dateLabel =
-    !hideDate && effectiveDate && (normTime === "scheduled" || normTime === "deadline")
-      ? formatShortDayMonth(effectiveDate)
-      : null;
-
   const hasChildren = childCount > 0;
   const indentLevel = Math.max(0, hierarchyDepth ?? (isSubtask ? 1 : 0));
   const indentPx = indentLevel * 20;
   const supportsMobileSwipe =
     variant === "today" ||
     variant === "planner" ||
-    variant === "overdue" ||
-    variant === "notebook";
+    variant === "overdue";
   const mobileActionWidth = onMoveTomorrow && !task.completed ? 104 : 56;
 
   const setSwipePosition = (offset: number) => {
@@ -320,7 +326,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <div className="min-w-0 flex-1 flex flex-col justify-center py-0.5">
             <div className="flex items-center gap-1.5 min-w-0">
               <span
-                className={`text-[15px] sm:text-base font-semibold truncate leading-5 ${
+                className={`text-[14.5px] sm:text-base font-semibold line-clamp-2 break-words leading-snug ${
                   task.completed ? "text-[#78716C] opacity-80" : "text-[#1C1917]"
                 }`}
               >
@@ -355,16 +361,22 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               )}
             </div>
 
-            {(timeLabel || dateLabel || (!task.completed && (temporal === "overdue" || temporal === "pastScheduled"))) && (
+            {(dateRangeLabel || singleDateLabel || timeLabel || (!task.completed && (temporal === "overdue" || temporal === "pastScheduled"))) && (
               <div className="flex flex-wrap items-center gap-1.5 mt-1.5 min-w-0">
+                {dateRangeLabel && (
+                  <span className="inline-flex items-center gap-1 rounded-[4px] border border-[#262626] bg-[#FEF08A] px-1.5 py-0.5 font-sans text-[11px] font-semibold text-[#1C1917] leading-tight shadow-[1px_1px_0px_#262626]">
+                    <Calendar size={11} className="shrink-0 text-[#1C1917]" />
+                    <span>{dateRangeLabel}</span>
+                  </span>
+                )}
                 {timeLabel && (
                   <span className={`inline-flex items-center rounded-[4px] border px-1.5 py-0.5 font-sans text-[11px] font-semibold leading-tight ${timeTone}`}>
                     {timeLabel}
                   </span>
                 )}
-                {dateLabel && (
+                {singleDateLabel && (
                   <span className="font-sans text-[11px] text-[#78716C]">
-                    {dateLabel}
+                    {singleDateLabel}
                   </span>
                 )}
                 {!task.completed && (temporal === "overdue" || temporal === "pastScheduled") && (
@@ -375,16 +387,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               </div>
             )}
 
-            {/* Dòng metadata phụ (Tag & Notebook nếu có) */}
-            {(task.tag || task.notebookId) && (
+            {/* Dòng metadata phụ (Tag nếu có) */}
+            {task.tag && (
               <div className="flex items-center gap-1.5 text-[11px] font-normal text-[#78716C] truncate mt-1">
-                {task.tag && (
-                  <span className="font-sans text-[#57534E]">#{task.tag}</span>
-                )}
-                {task.tag && task.notebookId && <span>·</span>}
-                {task.notebookId && (
-                  <span className="truncate">Sổ tay</span>
-                )}
+                <span className="font-sans text-[#57534E]">#{task.tag}</span>
               </div>
             )}
           </div>

@@ -8,7 +8,6 @@ const INITIAL_NOTES: NoteItem[] = [
     title: "Kiến trúc Giao diện Sổ tay Bản thảo",
     content:
       "<p>Đảm bảo toàn bộ layout sử dụng viền nét mực <strong>1.5px</strong>, hard shadow <em>2px 2px 0px #262626</em> và màu sắc trích xuất từ bảng màu token chuẩn.</p><p>Hỗ trợ đầy đủ tương tác xúc giác trên cả Desktop và Mobile.</p>",
-    notebookId: "nb-1",
     createdAt: "09:00, 04/09/2026",
     updatedAt: "09:00, 04/09/2026",
   },
@@ -17,7 +16,6 @@ const INITIAL_NOTES: NoteItem[] = [
     title: "Tối ưu hóa IndexedDB & Delta Sync",
     content:
       "<p>Ghi chép về cơ chế lưu trữ Offline-First:</p><ul><li>Đồng bộ 2 chiều qua WebSocket realtime</li><li>Smart merge dữ liệu khi có xung đột</li><li>Tự động retry khi mạng chập chờn</li></ul>",
-    notebookId: "nb-2",
     createdAt: "10:30, 04/09/2026",
     updatedAt: "10:30, 04/09/2026",
   },
@@ -26,7 +24,6 @@ const INITIAL_NOTES: NoteItem[] = [
     title: "Mục tiêu sức khỏe & Thể lực tuần này",
     content:
       "<p>1. Uống đủ 2L nước mỗi ngày<br/>2. Chạy bộ 3 buổi / tuần (tối thiểu 5km)<br/>3. Ngủ trước 23:00</p>",
-    notebookId: "nb-3",
     createdAt: "08:15, 03/09/2026",
     updatedAt: "08:15, 03/09/2026",
   },

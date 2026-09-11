@@ -20,7 +20,7 @@ const foregroundSvg = Buffer.from(`
     <!-- Bìa Sổ Tay Vàng Nghệ -->
     <rect x="80" y="80" width="340" height="340" rx="32" fill="#FEF08A" stroke="#262626" stroke-width="16" />
     
-    <!-- Dải Gáy Sổ (Notebook Spine) -->
+    <!-- Dải gáy của biểu tượng -->
     <rect x="80" y="80" width="70" height="340" rx="20" fill="#FDE047" stroke="#262626" stroke-width="16" />
     <line x1="150" y1="80" x2="150" y2="420" stroke="#262626" stroke-width="12" stroke-linecap="round" />
     

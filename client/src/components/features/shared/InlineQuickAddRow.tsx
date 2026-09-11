@@ -5,7 +5,6 @@ import { getLocalTodayStr } from "../../../utils/date";
 
 export interface InlineQuickAddRowProps {
   parentTaskId?: string;
-  notebookId?: string;
   defaultDueDate?: string;
   placeholder?: string;
   onCreated?: () => void;
@@ -13,7 +12,6 @@ export interface InlineQuickAddRowProps {
 
 export const InlineQuickAddRow: React.FC<InlineQuickAddRowProps> = ({
   parentTaskId,
-  notebookId,
   defaultDueDate,
   placeholder = "Thêm công việc mới...",
   onCreated,
@@ -35,7 +33,6 @@ export const InlineQuickAddRow: React.FC<InlineQuickAddRowProps> = ({
       title: trimmedTitle,
       dueDate: effectiveDueDate,
       parentTaskId: parentTaskId || undefined,
-      notebookId: notebookId || undefined,
       priority: "medium",
       timeType: "deadline",
     });

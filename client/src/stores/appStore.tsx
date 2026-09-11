@@ -6,7 +6,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { TaskDto, NotebookDto, HabitDto, TaskStatus, TaskPriority, TaskTimeType, JournalEntryDto, SettingsSectionKey } from "../types";
+import { TaskDto, HabitDto, TaskStatus, TaskPriority, TaskTimeType, JournalEntryDto, SettingsSectionKey, DeletedEntityIds, TaskEditorInitialData } from "../types";
 import { api, authStorage } from "../services/api";
 import { syncSocket } from "../services/syncSocket";
 import { smartMergeAppData } from "../utils/syncMerge";
@@ -22,8 +22,9 @@ import {
   moveTaskToDate,
   wouldCreateTaskCycle,
 } from "../utils/taskSemantics";
+import { calculateConsecutiveStreak } from "../utils/habitSemantics";
 
-export type { TaskDto, TaskPriority, NotebookDto, HabitDto, TaskStatus, TaskTimeType, JournalEntryDto, SettingsSectionKey };
+export type { TaskDto, TaskPriority, HabitDto, TaskStatus, TaskTimeType, JournalEntryDto, SettingsSectionKey, DeletedEntityIds, TaskEditorInitialData };
 
 // ==========================================
 // STORE: AppStore (Offline-First + Realtime WebSocket Sync Engine)
@@ -41,6 +42,7 @@ export type ColorTheme = "warm" | "sketch" | "sepia";
 export type InterfaceStyle = "sketch" | "ios";
 export type FontSizePreference = "normal" | "large" | "xlarge";
 export type FontFamilyPreference = "inter" | "jakarta" | "system";
+export type PaperStyle = "blank" | "lined" | "dots" | "grid";
 
 export interface StickyNoteItem {
   id: string;
@@ -59,6 +61,7 @@ export interface StickyNoteItem {
   tilt: "left" | "right" | "none";
   isPinned: boolean;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export type SyncStatus = "idle" | "syncing" | "synced" | "offline" | "error";
@@ -126,8 +129,8 @@ export interface AppContextType {
   setIsSoundEnabled: (enabled: boolean) => void;
   soundVolume: number;
   setSoundVolume: (vol: number) => void;
-  paperStyle: "blank" | "lined" | "dots" | "grid";
-  setPaperStyle: (style: "blank" | "lined" | "dots" | "grid") => void;
+  paperStyle: PaperStyle;
+  setPaperStyle: (style: PaperStyle) => void;
   pinCode: string | null;
   setPinCode: (pin: string | null) => void;
   isPinLocked: boolean;
@@ -144,13 +147,15 @@ export interface AppContextType {
     title: string;
     description?: string;
     dueDate?: string;
+    startDate?: string;
+    endDate?: string;
     timeType?: TaskTimeType;
     startTime?: string;
     endTime?: string;
     deadlineDate?: string;
     deadlineTime?: string;
     tag?: string;
-    notebookId?: string;
+    tags?: string[];
     parentTaskId?: string;
     priority?: TaskPriority;
   }) => TaskDto;
@@ -166,24 +171,12 @@ export interface AppContextType {
   addTag: (tag: string) => void;
   deleteTag: (tag: string) => void;
 
-  // Notebooks
-  notebooks: NotebookDto[];
-  addNotebook: (data: {
-    name: string;
-    description?: string;
-    color: string;
-    icon?: string;
-  }) => NotebookDto;
-  updateNotebook: (id: string, updates: Partial<NotebookDto>) => void;
-  deleteNotebook: (id: string) => void;
-
   // Sticky Notes (Brain Dump)
   stickyNotes: StickyNoteItem[];
   addStickyNote: (content: string, color?: StickyNoteItem["color"]) => void;
   togglePinStickyNote: (id: string) => void;
   deleteStickyNote: (id: string) => void;
   convertNoteToTask: (id: string) => void;
-  convertNoteToNotebookTask: (noteId: string, notebookId: string) => void;
 
   // Habits (Review)
   habits: HabitDto[];
@@ -206,7 +199,6 @@ export interface AppContextType {
     date: string;
     time: string;
     content: string;
-    notebookId?: string;
     linkedTaskId?: string;
   }) => JournalEntryDto;
   updateJournalEntry: (id: string, updates: Partial<JournalEntryDto>) => void;
@@ -225,13 +217,26 @@ export interface AppContextType {
 
   // Active Detail Task (Full page Document Canvas)
   activeDetailTaskId: string | null;
-  openTaskDetail: (taskId?: string) => void;
+  activeTaskDetailInitialData: TaskEditorInitialData | null;
+  openTaskDetail: (taskId?: string, initialData?: TaskEditorInitialData) => void;
   closeTaskDetail: () => void;
 
   // Quick Task Creation Modal
   isQuickTaskModalOpen: boolean;
-  quickTaskInitialData: { dueDate?: string; notebookId?: string; tag?: string } | null;
-  openQuickTaskModal: (initialData?: { dueDate?: string; notebookId?: string; tag?: string }) => void;
+  quickTaskInitialData: {
+    dueDate?: string;
+    tag?: string;
+    timeType?: TaskTimeType;
+    startTime?: string;
+    endTime?: string;
+  } | null;
+  openQuickTaskModal: (initialData?: {
+    dueDate?: string;
+    tag?: string;
+    timeType?: TaskTimeType;
+    startTime?: string;
+    endTime?: string;
+  }) => void;
   closeQuickTaskModal: () => void;
 
   // Active Note SubTab (Ghi chú | Nhật ký)
@@ -241,10 +246,6 @@ export interface AppContextType {
   // Settings Mobile SubView
   settingsMobileSubView: SettingsSectionKey | null;
   setSettingsMobileSubView: (view: SettingsSectionKey | null) => void;
-
-  // Selected Notebook Detail ID (Kệ sổ)
-  selectedNotebookId: string | null;
-  setSelectedNotebookId: (id: string | null) => void;
 
   // Note Detail State (Trình soạn thảo ghi chú chiếm toàn không gian)
   isMobileNoteDetailOpen: boolean;
@@ -257,6 +258,31 @@ export interface AppContextType {
 
 export const APP_STORAGE_KEY = "sketchtask_local_storage_v2";
 const STORAGE_KEY = APP_STORAGE_KEY;
+
+const EMPTY_DELETED_ENTITY_IDS: DeletedEntityIds = {
+  tasks: [],
+  stickyNotes: [],
+  habits: [],
+  journalEntries: [],
+  tags: [],
+};
+
+const readDeletedEntityIds = (): DeletedEntityIds => {
+  try {
+    const saved = localStorage.getItem(`${STORAGE_KEY}_deleted`);
+    if (!saved) return EMPTY_DELETED_ENTITY_IDS;
+    const parsed = JSON.parse(saved) as Partial<DeletedEntityIds>;
+    return {
+      tasks: Array.isArray(parsed.tasks) ? parsed.tasks : [],
+      stickyNotes: Array.isArray(parsed.stickyNotes) ? parsed.stickyNotes : [],
+      habits: Array.isArray(parsed.habits) ? parsed.habits : [],
+      journalEntries: Array.isArray(parsed.journalEntries) ? parsed.journalEntries : [],
+      tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+    };
+  } catch {
+    return EMPTY_DELETED_ENTITY_IDS;
+  }
+};
 
 // Keep an explicit null in sync payloads so clearing a parent is persisted on the server.
 const serializeTasksForSync = (taskList: TaskDto[]) =>
@@ -285,112 +311,9 @@ const INITIAL_USER: UserProfile = {
 // Dữ liệu mẫu phong phú khi người dùng chủ động bấm nạp
 const now = new Date();
 const todayStr = now.toISOString().split("T")[0];
-const tomorrow = new Date(now);
-tomorrow.setDate(now.getDate() + 1);
-const tomorrowStr = tomorrow.toISOString().split("T")[0];
 const yesterday = new Date(now);
 yesterday.setDate(now.getDate() - 1);
 const yesterdayStr = yesterday.toISOString().split("T")[0];
-
-const INITIAL_NOTEBOOKS: NotebookDto[] = [
-  {
-    id: "nb-1",
-    name: "Dự Án Web Task App",
-    description:
-      "Sổ tay thiết kế UI/UX và phát triển kiến trúc Digital Sketchbook với bộ icon Lucide đồng bộ",
-    color: "#FEF08A" as any,
-    icon: "lucide:Rocket",
-    taskCount: 5,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "nb-2",
-    name: "Học Tập & Kiến Trúc Hệ Thống",
-    description:
-      "Ghi chép chuyên sâu về Frontend Architecture, IndexedDB Engine, Service Worker và Delta Sync",
-    color: "#DDD6FE" as any,
-    icon: "lucide:Brain",
-    taskCount: 3,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "nb-3",
-    name: "Sức Khỏe & Thể Thao",
-    description:
-      "Kế hoạch dinh dưỡng, chạy bộ hàng ngày, bài tập thể lực và theo dõi giấc ngủ",
-    color: "#BBF7D0" as any,
-    icon: "lucide:Heart",
-    taskCount: 2,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "nb-4",
-    name: "Tài Chính & Đầu Tư",
-    description:
-      "Theo dõi dòng tiền, phân bổ danh mục tích lũy và quản trị ngân sách cá nhân",
-    color: "#BAE6FD" as any,
-    icon: "lucide:TrendingUp",
-    taskCount: 2,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "nb-5",
-    name: "Đọc Sách & Phát Triển Bản Thân",
-    description:
-      "Đúc kết những trang sách hay, rèn luyện tư duy phản biện và thói quen tích cực",
-    color: "#FECDD3" as any,
-    icon: "lucide:BookOpen",
-    taskCount: 3,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
-const INITIAL_TASKS: TaskDto[] = [
-  {
-    id: "task-1",
-    title:
-      "Nghiên cứu tài liệu Design System và chuẩn bị quy chuẩn viền mực 1.5px chống nhòe",
-    dueDate: `${todayStr} 08:30`,
-    tag: "Học tập" as any,
-    completed: true,
-    status: "completed",
-    priority: "high",
-    notebookId: "nb-2",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "task-2",
-    title:
-      "Rà soát và tối ưu hóa hiệu năng render danh sách công việc khi dữ liệu phình to",
-    dueDate: `${todayStr} 10:15`,
-    tag: "Dự án Web" as any,
-    completed: false,
-    status: "in_progress",
-    priority: "high",
-    notebookId: "nb-1",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "task-3",
-    title:
-      "Uống đủ 2.5 lít nước khoáng và thực hiện bài tập giãn cơ cổ vai gáy",
-    dueDate: `${todayStr} 11:30`,
-    tag: "Cá nhân" as any,
-    completed: false,
-    status: "todo",
-    priority: "medium",
-    notebookId: "nb-3",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
 
 const INITIAL_STICKY_NOTES: StickyNoteItem[] = [
   {
@@ -448,7 +371,6 @@ const INITIAL_JOURNAL: JournalEntryDto[] = [
     date: todayStr,
     time: "08:35",
     content: "Bắt đầu ngày mới với việc hoàn thiện quy chuẩn viền mực 1.5px và hard offset shadow cho hệ thống.",
-    notebookId: "nb-2",
     linkedTaskId: "task-1",
     createdAt: new Date(now.getTime() - 4 * 3600 * 1000).toISOString(),
     updatedAt: new Date(now.getTime() - 4 * 3600 * 1000).toISOString(),
@@ -458,7 +380,6 @@ const INITIAL_JOURNAL: JournalEntryDto[] = [
     date: todayStr,
     time: "10:20",
     content: "Review lại hiệu năng tải component Sổ tay & Nhật ký, mọi thao tác cuộn và lật trang đều mượt mà 60fps.",
-    notebookId: "nb-1",
     linkedTaskId: "task-2",
     createdAt: new Date(now.getTime() - 2 * 3600 * 1000).toISOString(),
     updatedAt: new Date(now.getTime() - 2 * 3600 * 1000).toISOString(),
@@ -468,7 +389,6 @@ const INITIAL_JOURNAL: JournalEntryDto[] = [
     date: todayStr,
     time: "14:15",
     content: "Đã uống đủ nước và thư giãn 15 phút giữa giờ. Cảm thấy tràn đầy năng lượng để tiếp tục công việc buổi chiều!",
-    notebookId: "nb-3",
     linkedTaskId: "task-3",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -486,7 +406,6 @@ const INITIAL_JOURNAL: JournalEntryDto[] = [
     date: yesterdayStr,
     time: "09:00",
     content: "Khởi động tuần mới: Lập danh mục các mục tiêu quan trọng cần hoàn thành trong tháng.",
-    notebookId: "nb-1",
     createdAt: new Date(yesterday.getTime() - 3 * 3600 * 1000).toISOString(),
     updatedAt: new Date(yesterday.getTime() - 3 * 3600 * 1000).toISOString(),
   },
@@ -495,7 +414,6 @@ const INITIAL_JOURNAL: JournalEntryDto[] = [
     date: yesterdayStr,
     time: "16:45",
     content: "Đọc xong chương 3 về Tư duy thiết kế tương tác người dùng. Rút ra nhiều bài học giá trị về Visual Hierarchy.",
-    notebookId: "nb-5",
     createdAt: new Date(yesterday.getTime() + 4 * 3600 * 1000).toISOString(),
     updatedAt: new Date(yesterday.getTime() + 4 * 3600 * 1000).toISOString(),
   },
@@ -504,7 +422,6 @@ const INITIAL_JOURNAL: JournalEntryDto[] = [
     date: yesterdayStr,
     time: "21:30",
     content: "Tổng kết chi tiêu trong tuần và cân đối ngân sách cho các dự án sắp tới.",
-    notebookId: "nb-4",
     createdAt: new Date(yesterday.getTime() + 9 * 3600 * 1000).toISOString(),
     updatedAt: new Date(yesterday.getTime() + 9 * 3600 * 1000).toISOString(),
   },
@@ -547,17 +464,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [settingsMobileSubView, setSettingsMobileSubViewState] = useState<SettingsSectionKey | null>(null);
   const setSettingsMobileSubView = useCallback((view: SettingsSectionKey | null) => {
     setSettingsMobileSubViewState(view);
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    }
-  }, []);
-
-  // --- Selected Notebook Detail ID (Kệ sổ) ---
-  const [selectedNotebookId, setSelectedNotebookIdState] = useState<string | null>(null);
-  const setSelectedNotebookId = useCallback((id: string | null) => {
-    setSelectedNotebookIdState(id);
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
       document.documentElement.scrollTop = 0;
@@ -828,21 +734,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   });
 
+  const [deletedEntityIds, setDeletedEntityIds] = useState<DeletedEntityIds>(readDeletedEntityIds);
+
   const [tags, setTags] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_tags`);
       return saved ? JSON.parse(saved) : INITIAL_TAGS;
     } catch {
       return INITIAL_TAGS;
-    }
-  });
-
-  const [notebooks, setNotebooks] = useState<NotebookDto[]>(() => {
-    try {
-      const saved = localStorage.getItem(`${STORAGE_KEY}_notebooks`);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
     }
   });
 
@@ -995,12 +894,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [tasks]);
 
   useEffect(() => {
-    safeSetItem(`${STORAGE_KEY}_tags`, JSON.stringify(tags));
-  }, [tags]);
+    safeSetItem(`${STORAGE_KEY}_deleted`, JSON.stringify(deletedEntityIds));
+  }, [deletedEntityIds]);
 
   useEffect(() => {
-    safeSetItem(`${STORAGE_KEY}_notebooks`, JSON.stringify(notebooks));
-  }, [notebooks]);
+    safeSetItem(`${STORAGE_KEY}_tags`, JSON.stringify(tags));
+  }, [tags]);
 
   useEffect(() => {
     safeSetItem(`${STORAGE_KEY}_notes`, JSON.stringify(stickyNotes));
@@ -1025,37 +924,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   // Ref lưu dữ liệu mới nhất để push/pull an toàn mà không làm re-trigger hooks
   const appDataRef = useRef({
     tasks,
-    notebooks,
     stickyNotes,
     habits,
     journalEntries,
     dailyMoods,
     weeklyReflection,
     tags,
+    deletedEntityIds,
     isSignedIn: user.isSignedIn,
   });
+  const signedInRef = useRef(user.isSignedIn);
 
   useEffect(() => {
+    signedInRef.current = user.isSignedIn;
     appDataRef.current = {
       tasks,
-      notebooks,
       stickyNotes,
       habits,
       journalEntries,
-      dailyMoods,
-      weeklyReflection,
-      tags,
-      isSignedIn: user.isSignedIn,
+    dailyMoods,
+    weeklyReflection,
+    tags,
+    deletedEntityIds,
+    isSignedIn: user.isSignedIn,
     };
   }, [
     tasks,
-    notebooks,
     stickyNotes,
     habits,
     journalEntries,
     dailyMoods,
     weeklyReflection,
     tags,
+    deletedEntityIds,
     user.isSignedIn,
   ]);
 
@@ -1084,7 +985,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   // --- HÀM ĐỒNG BỘ ĐẨY DỮ LIỆU LÊN SERVER ---
   const pushDataToServer = useCallback(async (overrideData?: any): Promise<boolean> => {
     const token = authStorage.getToken();
-    if (!appDataRef.current.isSignedIn || !token) return false;
+    if (!signedInRef.current || !token) return false;
 
     if (typeof navigator !== "undefined" && !navigator.onLine) {
       setSyncStatus("offline");
@@ -1092,17 +993,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     const current = appDataRef.current;
-    const payload = overrideData || {
-      tasks: serializeTasksForSync(current.tasks),
-      notebooks: current.notebooks,
-      stickyNotes: current.stickyNotes,
-      habits: current.habits,
-      journalEntries: current.journalEntries,
-      dailyMoods: current.dailyMoods,
-      weeklyReflection: current.weeklyReflection,
-      tags: current.tags,
-      updatedAt: new Date().toISOString(),
-    };
+    const payload = overrideData
+      ? {
+          ...overrideData,
+          ...(Array.isArray(overrideData.tasks)
+            ? { tasks: serializeTasksForSync(overrideData.tasks) }
+            : {}),
+          deleted: overrideData.deleted ?? current.deletedEntityIds,
+          updatedAt: overrideData.updatedAt ?? new Date().toISOString(),
+        }
+      : {
+          tasks: serializeTasksForSync(current.tasks),
+          stickyNotes: current.stickyNotes,
+          habits: current.habits,
+          journalEntries: current.journalEntries,
+          dailyMoods: current.dailyMoods,
+          weeklyReflection: current.weeklyReflection,
+          tags: current.tags,
+          deleted: current.deletedEntityIds,
+          updatedAt: new Date().toISOString(),
+        };
 
     setSyncStatus("syncing");
     try {
@@ -1138,7 +1048,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const triggerDebouncedPush = useCallback(
     (partialData?: any) => {
       const token = authStorage.getToken();
-      if (!appDataRef.current.isSignedIn || !token) return;
+      if (!signedInRef.current || !token) return;
 
       if (syncDebounceTimer.current) {
         clearTimeout(syncDebounceTimer.current);
@@ -1148,7 +1058,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         const current = appDataRef.current;
         const fullPayload = {
           tasks: serializeTasksForSync(partialData?.tasks ?? current.tasks),
-          notebooks: partialData?.notebooks ?? current.notebooks,
           stickyNotes: partialData?.stickyNotes ?? current.stickyNotes,
           habits: partialData?.habits ?? current.habits,
           journalEntries: partialData?.journalEntries ?? current.journalEntries,
@@ -1156,6 +1065,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           weeklyReflection:
             partialData?.weeklyReflection ?? current.weeklyReflection,
           tags: partialData?.tags ?? current.tags,
+          deleted: partialData?.deleted ?? current.deletedEntityIds,
           updatedAt: new Date().toISOString(),
         };
         pushDataToServer(fullPayload);
@@ -1163,6 +1073,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     },
     [pushDataToServer],
   );
+
+  const rememberDeletion = (entityType: keyof DeletedEntityIds, entityId: string) => {
+    setDeletedEntityIds((previous) => {
+      if (previous[entityType].includes(entityId)) return previous;
+      return {
+        ...previous,
+        [entityType]: [...previous[entityType], entityId],
+      };
+    });
+  };
+
+  const forgetDeletion = (entityType: keyof DeletedEntityIds, entityId: string) => {
+    setDeletedEntityIds((previous) => {
+      if (!previous[entityType].includes(entityId)) return previous;
+      return {
+        ...previous,
+        [entityType]: previous[entityType].filter((id) => id !== entityId),
+      };
+    });
+  };
 
   // --- HÀM KÉO VÀ HỢP NHẤT DỮ LIỆU TỪ SERVER VỀ CLIENT (SMART MERGE) ---
   const pullDataFromServer = useCallback(async (): Promise<boolean> => {
@@ -1185,25 +1115,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         const merged = smartMergeAppData(
           {
             tasks: currentLocal.tasks,
-            notebooks: currentLocal.notebooks,
             stickyNotes: currentLocal.stickyNotes,
             habits: currentLocal.habits,
             journalEntries: currentLocal.journalEntries,
             dailyMoods: currentLocal.dailyMoods,
             weeklyReflection: currentLocal.weeklyReflection,
             tags: currentLocal.tags,
+            deleted: currentLocal.deletedEntityIds,
           },
           serverData,
         );
 
         setTasks(merged.tasks);
-        setNotebooks(merged.notebooks);
         setStickyNotes(merged.stickyNotes);
         setHabits(merged.habits);
         setJournalEntries(merged.journalEntries || []);
         setDailyMoods(merged.dailyMoods);
         setWeeklyReflection(merged.weeklyReflection);
         setTags(merged.tags);
+        setDeletedEntityIds({
+          tasks: merged.deleted?.tasks || [],
+          stickyNotes: merged.deleted?.stickyNotes || [],
+          habits: merged.deleted?.habits || [],
+          journalEntries: merged.deleted?.journalEntries || [],
+          tags: merged.deleted?.tags || [],
+        });
 
         // Rebuild reminders from the merged server snapshot so a login does
         // not leave the device with the previous account's notification schedule.
@@ -1275,6 +1211,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         .getMe()
         .then((res) => {
           if (res.success && res.data) {
+            signedInRef.current = true;
             setUser({
               name: res.data.name,
               email: res.data.email,
@@ -1298,14 +1235,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     // Lắng nghe sự kiện sync Realtime từ các thiết bị / tab khác
     const unsubscribeSync = syncSocket.onSync((remoteData) => {
       isApplyingRemoteSync.current = true;
-      if (remoteData.tasks) setTasks(remoteData.tasks);
-      if (remoteData.notebooks) setNotebooks(remoteData.notebooks);
-      if (remoteData.stickyNotes) setStickyNotes(remoteData.stickyNotes);
-      if (remoteData.habits) setHabits(remoteData.habits);
-      if (remoteData.dailyMoods) setDailyMoods(remoteData.dailyMoods);
-      if (remoteData.weeklyReflection !== undefined)
-        setWeeklyReflection(remoteData.weeklyReflection);
-      if (remoteData.tags) setTags(remoteData.tags);
+      const currentLocal = appDataRef.current;
+      const merged = smartMergeAppData(
+        {
+          tasks: currentLocal.tasks,
+          stickyNotes: currentLocal.stickyNotes,
+          habits: currentLocal.habits,
+          journalEntries: currentLocal.journalEntries,
+          dailyMoods: currentLocal.dailyMoods,
+          weeklyReflection: currentLocal.weeklyReflection,
+          tags: currentLocal.tags,
+          deleted: currentLocal.deletedEntityIds,
+        },
+        {
+          tasks: remoteData.tasks || [],
+          stickyNotes: remoteData.stickyNotes || [],
+          habits: remoteData.habits || [],
+          journalEntries: remoteData.journalEntries || [],
+          dailyMoods: remoteData.dailyMoods || {},
+          weeklyReflection: remoteData.weeklyReflection || "",
+          tags: remoteData.tags || [],
+          deleted: remoteData.deleted,
+        },
+      );
+
+      setTasks(merged.tasks);
+      setStickyNotes(merged.stickyNotes);
+      setHabits(merged.habits);
+      setJournalEntries(merged.journalEntries || []);
+      setDailyMoods(merged.dailyMoods);
+      setWeeklyReflection(merged.weeklyReflection);
+      setTags(merged.tags);
+      setDeletedEntityIds({
+        tasks: merged.deleted?.tasks || [],
+        stickyNotes: merged.deleted?.stickyNotes || [],
+        habits: merged.deleted?.habits || [],
+        journalEntries: merged.deleted?.journalEntries || [],
+        tags: merged.deleted?.tags || [],
+      });
+      void notificationService.syncAllTasks(merged.tasks);
 
       const nowStr = new Date().toLocaleTimeString("vi-VN", {
         hour: "2-digit",
@@ -1335,6 +1303,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     const res = await api.auth.register(name, email, password);
     if (res.success && res.data) {
       authStorage.setToken(res.data.token);
+      signedInRef.current = true;
+      appDataRef.current.isSignedIn = true;
       setUser({
         name: res.data.user.name,
         email: res.data.user.email,
@@ -1356,6 +1326,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     const res = await api.auth.login(email, password);
     if (res.success && res.data) {
       authStorage.setToken(res.data.token);
+      signedInRef.current = true;
+      appDataRef.current.isSignedIn = true;
       setUser({
         name: res.data.user.name,
         email: res.data.user.email,
@@ -1378,6 +1350,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     const res = await api.auth.google(data);
     if (res.success && res.data) {
       authStorage.setToken(res.data.token);
+      signedInRef.current = true;
+      appDataRef.current.isSignedIn = true;
       setUser({
         name: res.data.user.name,
         email: res.data.user.email,
@@ -1416,6 +1390,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = () => {
     authStorage.removeToken();
+    signedInRef.current = false;
+    appDataRef.current.isSignedIn = false;
     syncSocket.disconnect();
     setUser(INITIAL_USER);
     setSyncStatus("idle");
@@ -1426,7 +1402,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const updateUserProfile = (data: Partial<UserProfile>) => {
     setUser((prev) => {
       const updated = { ...prev, ...data };
-      if (user.isSignedIn) {
+      if (updated.isSignedIn) {
         api.auth.updateProfile({
           name: updated.name,
           avatar: updated.avatar,
@@ -1440,30 +1416,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   // Nạp lại toàn bộ dữ liệu mẫu lớn thử tải với 50 task phong phú
   const loadSampleData = () => {
     const sampleTasks = generateSample50Tasks();
-    const updatedNotebooks = INITIAL_NOTEBOOKS.map((nb) => ({
-      ...nb,
-      taskCount: sampleTasks.filter((t) => t.notebookId === nb.id).length,
-    }));
 
     setTasks(sampleTasks);
-    setNotebooks(updatedNotebooks);
     setStickyNotes(INITIAL_STICKY_NOTES);
     setHabits(INITIAL_HABITS);
     setDailyMoods(INITIAL_MOODS);
     setWeeklyReflection(INITIAL_REFLECTION);
     setTags(INITIAL_TAGS);
     setJournalEntries(INITIAL_JOURNAL);
+    setDeletedEntityIds(EMPTY_DELETED_ENTITY_IDS);
 
     if (user.isSignedIn) {
       pushDataToServer({
         tasks: sampleTasks,
-        notebooks: updatedNotebooks,
         stickyNotes: INITIAL_STICKY_NOTES,
         habits: INITIAL_HABITS,
         dailyMoods: INITIAL_MOODS,
         weeklyReflection: INITIAL_REFLECTION,
         tags: INITIAL_TAGS,
         journalEntries: INITIAL_JOURNAL,
+        deleted: EMPTY_DELETED_ENTITY_IDS,
       });
     }
   };
@@ -1481,22 +1453,39 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     deadlineDate?: string;
     deadlineTime?: string;
     tag?: string;
-    notebookId?: string;
+    tags?: string[];
+    startDate?: string;
+    endDate?: string;
     parentTaskId?: string;
     priority?: TaskPriority;
   }) => {
+    // Thu thập tags đầy đủ
+    const taskTagsList: string[] = [];
+    if (Array.isArray(taskData.tags)) {
+      taskData.tags.forEach((t) => {
+        const clean = t.replace(/^#+/, "").trim();
+        if (clean && !taskTagsList.includes(clean)) taskTagsList.push(clean);
+      });
+    }
+    if (taskData.tag) {
+      const clean = taskData.tag.replace(/^#+/, "").trim();
+      if (clean && !taskTagsList.includes(clean)) taskTagsList.push(clean);
+    }
+
     const newTask: TaskDto = {
       id: `task-${Date.now()}`,
       title: taskData.title,
       description: taskData.description,
       dueDate: taskData.dueDate,
+      startDate: taskData.startDate,
+      endDate: taskData.endDate,
       timeType: taskData.timeType,
       startTime: taskData.startTime,
       endTime: taskData.endTime,
       deadlineDate: taskData.deadlineDate,
       deadlineTime: taskData.deadlineTime,
-      tag: taskData.tag as any,
-      notebookId: taskData.notebookId,
+      tag: taskTagsList[0] || undefined,
+      tags: taskTagsList.length > 0 ? taskTagsList : undefined,
       parentTaskId: taskData.parentTaskId,
       completed: false,
       status: "todo",
@@ -1504,6 +1493,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+    forgetDeletion("tasks", newTask.id);
+
+    // Tự động thêm tag mới vào hệ thống nếu chưa có
+    taskTagsList.forEach((t) => {
+      if (t && !tags.includes(t)) {
+        addTag(t);
+      }
+    });
 
     const parentTask = taskData.parentTaskId
       ? tasks.find((candidate) => candidate.id === taskData.parentTaskId)
@@ -1527,22 +1524,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     // Lên lịch thông báo ngoài màn hình nếu task có ngày giờ hẹn
     if (getTaskEffectiveDate(newTask)) {
       notificationService.scheduleTask(newTask);
-    }
-
-    if (taskData.notebookId) {
-      setNotebooks((prev) => {
-        const next = prev.map((nb) =>
-          nb.id === taskData.notebookId
-            ? {
-                ...nb,
-                taskCount: (nb.taskCount || 0) + 1,
-                updatedAt: new Date().toISOString(),
-              }
-            : nb,
-        );
-        triggerDebouncedPush({ notebooks: next });
-        return next;
-      });
     }
 
     return newTask;
@@ -1582,28 +1563,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!taskToDelete) return;
 
     notificationService.cancelTask(id);
+    rememberDeletion("tasks", id);
 
     setTasks((prev) => {
       const next = prev.filter((t) => t.id !== id);
       triggerDebouncedPush({ tasks: next });
       return next;
     });
-
-    if (taskToDelete?.notebookId) {
-      setNotebooks((prev) => {
-        const next = prev.map((nb) =>
-          nb.id === taskToDelete.notebookId
-            ? {
-                ...nb,
-                taskCount: Math.max(0, (nb.taskCount || 1) - 1),
-                updatedAt: new Date().toISOString(),
-              }
-            : nb,
-        );
-        triggerDebouncedPush({ notebooks: next });
-        return next;
-      });
-    }
 
     dispatchToast({ message: `Đã xóa "${taskToDelete.title}".` });
   };
@@ -1714,91 +1680,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
 
-      // Nếu chuyển đổi notebookId, cập nhật số lượng taskCount của 2 cuốn sổ
-      if (safeUpdates.notebookId !== undefined && oldTask.notebookId !== safeUpdates.notebookId) {
-        setNotebooks((prevNb) =>
-          prevNb.map((nb) => {
-            if (nb.id === oldTask.notebookId) {
-              return { ...nb, taskCount: Math.max(0, (nb.taskCount || 1) - 1), updatedAt: new Date().toISOString() };
-            }
-            if (nb.id === safeUpdates.notebookId) {
-              return { ...nb, taskCount: (nb.taskCount || 0) + 1, updatedAt: new Date().toISOString() };
-            }
-            return nb;
-          }),
-        );
-      }
-
       return next;
     });
   };
 
-  const addTag = (tag: string) => {
-    const trimmed = tag.trim();
-    if (trimmed && !tags.includes(trimmed)) {
-      setTags((prev) => {
-        const next = [...prev, trimmed];
-        triggerDebouncedPush({ tags: next });
-        return next;
-      });
-    }
-  };
-
-  const deleteTag = (tag: string) => {
+  const addTag = (tag: string): string => {
+    const clean = tag.replace(/^#+/, "").trim();
+    if (!clean) return "";
+    forgetDeletion("tags", clean);
     setTags((prev) => {
-      const next = prev.filter((t) => t !== tag);
+      if (prev.includes(clean)) return prev;
+      const next = [...prev, clean];
+      try {
+        localStorage.setItem(`${STORAGE_KEY}_tags`, JSON.stringify(next));
+      } catch {}
       triggerDebouncedPush({ tags: next });
       return next;
     });
+    return clean;
   };
 
-  const addNotebook = (data: {
-    name: string;
-    description?: string;
-    color: string;
-    icon?: string;
-  }) => {
-    const newNb: NotebookDto = {
-      id: `nb-${Date.now()}`,
-      name: data.name,
-      description: data.description,
-      color: data.color as any,
-      icon: data.icon || "lucide:BookOpen",
-      taskCount: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setNotebooks((prev) => {
-      const next = [...prev, newNb];
-      triggerDebouncedPush({ notebooks: next });
-      return next;
-    });
-    return newNb;
-  };
-
-  const updateNotebook = (id: string, updates: Partial<NotebookDto>) => {
-    setNotebooks((prev) => {
-      const next = prev.map((nb) =>
-        nb.id === id
-          ? { ...nb, ...updates, updatedAt: new Date().toISOString() }
-          : nb,
-      );
-      triggerDebouncedPush({ notebooks: next });
-      return next;
-    });
-  };
-
-  const deleteNotebook = (id: string) => {
-    setNotebooks((prev) => {
-      const next = prev.filter((nb) => nb.id !== id);
-      triggerDebouncedPush({ notebooks: next });
-      return next;
-    });
-    setTasks((prev) => {
-      const next = prev.map((t) =>
-        t.notebookId === id ? { ...t, notebookId: undefined } : t,
-      );
-      triggerDebouncedPush({ tasks: next });
+  const deleteTag = (tag: string) => {
+    const clean = tag.replace(/^#+/, "").trim();
+    if (!clean) return;
+    rememberDeletion("tags", clean);
+    setTags((prev) => {
+      const next = prev.filter((t) => t !== clean);
+      try {
+        localStorage.setItem(`${STORAGE_KEY}_tags`, JSON.stringify(next));
+      } catch {}
+      triggerDebouncedPush({ tags: next });
       return next;
     });
   };
@@ -1817,7 +1728,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       tilt: randomTilt,
       isPinned: false,
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
+    forgetDeletion("stickyNotes", newNote.id);
     setStickyNotes((prev) => {
       const next = [newNote, ...prev];
       triggerDebouncedPush({ stickyNotes: next });
@@ -1832,7 +1745,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const togglePinStickyNote = (id: string) => {
     setStickyNotes((prev) => {
       const next = prev.map((n) =>
-        n.id === id ? { ...n, isPinned: !n.isPinned } : n,
+        n.id === id
+          ? { ...n, isPinned: !n.isPinned, updatedAt: new Date().toISOString() }
+          : n,
       );
       triggerDebouncedPush({ stickyNotes: next });
       return next;
@@ -1840,6 +1755,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const deleteStickyNote = (id: string) => {
+    rememberDeletion("stickyNotes", id);
     setStickyNotes((prev) => {
       const next = prev.filter((n) => n.id !== id);
       triggerDebouncedPush({ stickyNotes: next });
@@ -1859,19 +1775,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     deleteStickyNote(id);
   };
 
-  const convertNoteToNotebookTask = (noteId: string, notebookId: string) => {
-    const note = stickyNotes.find((n) => n.id === noteId);
-    if (!note) return;
-
-    addTask({
-      title: note.content,
-      dueDate: todayStr,
-      notebookId,
-      tag: "Ý tưởng",
-    });
-    deleteStickyNote(noteId);
-  };
-
   const addHabit = (name: string, frequency: HabitDto["frequency"] = "daily") => {
     const newHabit: HabitDto = {
       id: `habit-${Date.now()}`,
@@ -1882,6 +1785,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+    forgetDeletion("habits", newHabit.id);
     setHabits((prev) => {
       const next = [...prev, newHabit];
       triggerDebouncedPush({ habits: next });
@@ -1916,7 +1820,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         return {
           ...h,
           completedDates: newDates,
-          streak: newDates.length,
+          streak: calculateConsecutiveStreak(newDates),
           updatedAt: new Date().toISOString(),
         };
       });
@@ -1926,6 +1830,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const deleteHabit = (id: string) => {
+    rememberDeletion("habits", id);
     setHabits((prev) => {
       const next = prev.filter((h) => h.id !== id);
       triggerDebouncedPush({ habits: next });
@@ -1955,7 +1860,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     date: string;
     time: string;
     content: string;
-    notebookId?: string;
     linkedTaskId?: string;
   }): JournalEntryDto => {
     const newEntry: JournalEntryDto = {
@@ -1963,11 +1867,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       date: data.date,
       time: data.time,
       content: data.content,
-      notebookId: data.notebookId,
       linkedTaskId: data.linkedTaskId,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+    forgetDeletion("journalEntries", newEntry.id);
     setJournalEntries((prev) => {
       const next = [...prev, newEntry];
       triggerDebouncedPush({ journalEntries: next });
@@ -1989,6 +1893,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const deleteJournalEntry = (id: string) => {
+    rememberDeletion("journalEntries", id);
     setJournalEntries((prev) => {
       const next = prev.filter((item) => item.id !== id);
       triggerDebouncedPush({ journalEntries: next });
@@ -2030,7 +1935,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // --- Active Detail Task (Full page Document Canvas) ---
   const [activeDetailTaskId, setActiveDetailTaskId] = useState<string | null>(null);
-  const openTaskDetail = useCallback((taskId?: string) => {
+  const [activeTaskDetailInitialData, setActiveTaskDetailInitialData] = useState<TaskEditorInitialData | null>(null);
+  const openTaskDetail = useCallback((taskId?: string, initialData?: TaskEditorInitialData) => {
+    setActiveTaskDetailInitialData(taskId === "new" || !taskId ? initialData || null : null);
     setActiveDetailTaskId(taskId || "new");
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -2040,6 +1947,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
   const closeTaskDetail = useCallback(() => {
     setActiveDetailTaskId(null);
+    setActiveTaskDetailInitialData(null);
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
       document.documentElement.scrollTop = 0;
@@ -2051,12 +1959,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isQuickTaskModalOpen, setIsQuickTaskModalOpen] = useState(false);
   const [quickTaskInitialData, setQuickTaskInitialData] = useState<{
     dueDate?: string;
-    notebookId?: string;
     tag?: string;
+    timeType?: TaskTimeType;
+    startTime?: string;
+    endTime?: string;
   } | null>(null);
 
   const openQuickTaskModal = useCallback(
-    (initialData?: { dueDate?: string; notebookId?: string; tag?: string }) => {
+    (initialData?: {
+      dueDate?: string;
+      tag?: string;
+      timeType?: TaskTimeType;
+      startTime?: string;
+      endTime?: string;
+    }) => {
       setQuickTaskInitialData(initialData || null);
       setIsQuickTaskModalOpen(true);
     },
@@ -2134,16 +2050,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         tags,
         addTag,
         deleteTag,
-        notebooks,
-        addNotebook,
-        updateNotebook,
-        deleteNotebook,
         stickyNotes,
         addStickyNote,
         togglePinStickyNote,
         deleteStickyNote,
         convertNoteToTask,
-        convertNoteToNotebookTask,
         habits,
         addHabit,
         updateHabit,
@@ -2167,6 +2078,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         selectedPlannerDate,
         setSelectedPlannerDate,
         activeDetailTaskId,
+        activeTaskDetailInitialData,
         openTaskDetail,
         closeTaskDetail,
         isQuickTaskModalOpen,
@@ -2177,8 +2089,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setActiveNoteSubTab,
         settingsMobileSubView,
         setSettingsMobileSubView,
-        selectedNotebookId,
-        setSelectedNotebookId,
         isMobileNoteDetailOpen,
         setIsMobileNoteDetailOpen,
         isJournalBookOpen,

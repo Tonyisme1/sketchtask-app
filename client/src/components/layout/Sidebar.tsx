@@ -2,14 +2,14 @@ import React from "react";
 import { TabKey } from "../../types";
 import { useAppStore } from "../../stores/appStore";
 import {
-  BookMarked,
   BookOpen,
   Calendar as CalendarIcon,
   CheckSquare,
   FileText,
   Hourglass,
-  NotebookPen,
+  FilePenLine,
   Plus,
+  Sparkles,
   Sun,
 } from "lucide-react";
 import {
@@ -29,16 +29,12 @@ export interface SidebarProps {
   onOpenSettings?: () => void;
 }
 
-const activeItemClass =
-  "border-[1.5px] border-[#262626] shadow-[2px_2px_0px_#262626] -translate-y-[0.5px]";
-
 const baseItemClass =
   "w-full flex items-center justify-between px-3 py-2.5 rounded-[6px] text-xs font-bold transition-all cursor-pointer active:translate-x-[1px] active:translate-y-[1px] active:shadow-none";
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCreateTask }) => {
   const {
     tasks,
-    notebooks,
     journalEntries,
     activeTaskSubTab,
     setActiveTaskSubTab,
@@ -65,10 +61,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
   const deadlineAlertTotal = overdueCount + dueWithin24hCount;
   const notesCount = loadNotesFromStorage().length;
 
-  const isTodayActive = activeTab === "tasks" && activeTaskSubTab === "today";
+  const isTodayActive = activeTab === "today" || (activeTab === "tasks" && activeTaskSubTab === "today");
   const isTasksActive = activeTab === "tasks" && activeTaskSubTab !== "today";
   const isNotesActive = activeTab === "notes" || activeTab === "journal";
-  const isNotebooksActive = activeTab === "notebooks";
+  const isAiActive = activeTab === "ai";
 
   const goToday = () => {
     setActiveTaskSubTab("today");
@@ -177,21 +173,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
                 : "text-[#57534E] hover:bg-white hover:text-[#1C1917]"
             } active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
           >
-            <NotebookPen size={18} strokeWidth={2.4} />
+            <FilePenLine size={18} strokeWidth={2.4} />
             <span className="text-[10px] leading-none truncate font-bold">Ghi</span>
           </button>
           <button
             type="button"
-            onClick={() => onTabChange("notebooks")}
-            title="Sổ tay"
+            onClick={() => onTabChange("ai")}
+            title="Trợ lý AI"
             className={`w-full py-2.5 px-1 rounded-[6px] flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-              isNotebooksActive
+              isAiActive
                 ? `bg-[#1C1917] text-white border-[1.5px] border-[#1C1917] shadow-[1.5px_1.5px_0px_#262626]`
                 : "text-[#57534E] hover:bg-white hover:text-[#1C1917]"
             } active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
           >
-            <BookMarked size={18} strokeWidth={2.4} />
-            <span className="text-[10px] leading-none truncate font-bold">Sổ</span>
+            <Sparkles size={18} strokeWidth={2.4} />
+            <span className="text-[10px] leading-none truncate font-bold">AI</span>
           </button>
         </nav>
       </aside>
@@ -205,13 +201,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
           <button
             type="button"
             onClick={onCreateTask}
-            className="w-full flex items-center justify-between px-3 py-2.5 mb-1 rounded-[6px] text-xs font-bold bg-[#FEF08A] text-[#1C1917] border-[1.5px] border-[#262626] transition-all cursor-pointer active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mb-1 rounded-[6px] text-xs font-bold bg-[#FEF08A] text-[#1C1917] border-[1.5px] border-[#262626] shadow-[1.5px_1.5px_0px_#262626] hover:bg-[#FDE047] transition-all cursor-pointer active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
           >
-            <span className="flex items-center gap-3">
-              <Plus size={17} strokeWidth={2.8} />
-              <span>Tạo mới</span>
-            </span>
-            <span className="font-mono text-[10px]">⌘N</span>
+            <Plus size={17} strokeWidth={2.8} />
+            <span>Tạo mới</span>
           </button>
         )}
         <p className="text-[10px] font-black uppercase tracking-wider text-[#A8A29E] px-3 py-1.5 font-mono">
@@ -273,7 +266,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
 
         {renderWorkspaceButton(
           "Ghi",
-          <NotebookPen size={17} strokeWidth={2.4} className="shrink-0" />,
+          <FilePenLine size={17} strokeWidth={2.4} className="shrink-0" />,
           isNotesActive,
           () => onTabChange("notes"),
           notesCount + journalEntries.length > 0 ? (
@@ -309,17 +302,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
         )}
 
         {renderWorkspaceButton(
-          "Sổ",
-          <BookMarked size={17} strokeWidth={2.4} className="shrink-0" />,
-          isNotebooksActive,
-          () => onTabChange("notebooks"),
-          notebooks.length > 0 ? (
-            <span className={`font-mono text-[10px] px-2 py-0.5 rounded-[3px] font-bold ${
-              isNotebooksActive ? "bg-white text-[#1C1917]" : "bg-[#FAF8F3] text-[#78716C] border border-[#D4CEBF]"
-            }`}>
-              {notebooks.length}
-            </span>
-          ) : undefined,
+          "Trợ lý AI",
+          <Sparkles size={17} strokeWidth={2.4} className="shrink-0 text-amber-600" />,
+          isAiActive,
+          () => onTabChange("ai"),
         )}
       </nav>
     </aside>

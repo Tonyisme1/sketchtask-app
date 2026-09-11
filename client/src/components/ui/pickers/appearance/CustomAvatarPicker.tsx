@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { DynamicIcon } from "../../core/DynamicIcon";
-import { Palette, Sparkles, X, Check, Edit3 } from "lucide-react";
+import { Sparkles, X, Check, Edit3 } from "lucide-react";
 
 // ==========================================
 // COMPONENT: CustomAvatarPicker (Bộ Chọn Avatar Biểu Tượng & Màu Nền)

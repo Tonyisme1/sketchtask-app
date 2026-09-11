@@ -11,25 +11,18 @@ export interface SyncPayload {
     description?: string | null;
     completed: boolean;
     dueDate?: string | null;
+    startDate?: string | null;
+    endDate?: string | null;
     timeType?: string | null;
     startTime?: string | null;
     endTime?: string | null;
     deadlineDate?: string | null;
     deadlineTime?: string | null;
     tag?: string | null;
+    tags?: string[] | null;
     priority?: string | null;
     status?: string;
-    notebookId?: string | null;
     parentTaskId?: string | null;
-    createdAt?: string;
-    updatedAt?: string;
-  }>;
-  notebooks: Array<{
-    id: string;
-    name: string;
-    description?: string | null;
-    color: string;
-    icon?: string | null;
     createdAt?: string;
     updatedAt?: string;
   }>;
@@ -57,7 +50,6 @@ export interface SyncPayload {
     date: string;
     time?: string;
     content: string;
-    notebookId?: string | null;
     linkedTaskId?: string | null;
     createdAt?: string;
     updatedAt?: string;
@@ -69,23 +61,37 @@ export interface SyncPayload {
     dailyMoodsUpdatedAt?: Record<string, string>;
     weeklyReflectionUpdatedAt?: string;
   };
+  deleted?: {
+    tasks?: string[];
+    stickyNotes?: string[];
+    habits?: string[];
+    journalEntries?: string[];
+    tags?: string[];
+  };
 }
+
+type DeletedEntityType =
+  | "tasks"
+  | "stickyNotes"
+  | "habits"
+  | "journalEntries"
+  | "tags";
 
 export class SyncService {
   /**
    * Lấy toàn bộ dữ liệu hiện có trên máy chủ của User
    */
   static async getUserData(userId: string) {
-    const [tasks, notebooks, stickyNotes, habits, dailyMoods, weeklyReflection, tags, journalEntries] =
+    const [tasks, stickyNotes, habits, dailyMoods, weeklyReflection, tags, journalEntries, deletedEntities] =
       await Promise.all([
         prisma.task.findMany({ where: { userId }, orderBy: { createdAt: "desc" } }),
-        prisma.notebook.findMany({ where: { userId }, orderBy: { createdAt: "asc" } }),
         prisma.stickyNote.findMany({ where: { userId }, orderBy: { createdAt: "desc" } }),
         prisma.habit.findMany({ where: { userId }, orderBy: { createdAt: "asc" } }),
         prisma.dailyMood.findMany({ where: { userId } }),
         prisma.weeklyReflection.findUnique({ where: { userId } }),
         prisma.tag.findMany({ where: { userId }, orderBy: { createdAt: "asc" } }),
         prisma.journalEntry.findMany({ where: { userId }, orderBy: [{ date: "desc" }, { time: "desc" }] }),
+        prisma.deletedEntity.findMany({ where: { userId }, orderBy: { deletedAt: "asc" } }),
       ]);
 
     // Chuyển đổi dailyMoods sang format key-value chuẩn API contract
@@ -109,15 +115,46 @@ export class SyncService {
       };
     });
 
+    const formattedTasks = tasks.map((task) => {
+      let parsedTags: string[] = [];
+      if (task.tags) {
+        try {
+          const value = JSON.parse(task.tags);
+          if (Array.isArray(value)) {
+            parsedTags = value.filter((tag): tag is string => typeof tag === "string");
+          }
+        } catch {
+          parsedTags = [];
+        }
+      }
+      return {
+        ...task,
+        tags: parsedTags,
+      };
+    });
+
+    const deleted: Record<DeletedEntityType, string[]> = {
+      tasks: [],
+      stickyNotes: [],
+      habits: [],
+      journalEntries: [],
+      tags: [],
+    };
+    deletedEntities.forEach((item) => {
+      if (item.entityType in deleted) {
+        deleted[item.entityType as DeletedEntityType].push(item.entityId);
+      }
+    });
+
     return {
-      tasks,
-      notebooks,
+      tasks: formattedTasks,
       stickyNotes,
       habits: formattedHabits,
       journalEntries,
       dailyMoods: moodsMap,
       weeklyReflection: weeklyReflection?.text || "",
       tags: tags.map((t) => t.name),
+      deleted,
     };
   }
 
@@ -130,60 +167,12 @@ export class SyncService {
     const defaultPayloadTime = payloadTimestampStr ? new Date(payloadTimestampStr) : null;
 
     await prisma.$transaction(async (tx) => {
-      // 1. Upsert Notebooks trước (để Tasks có foreign key hợp lệ)
-      if (payload.notebooks && payload.notebooks.length > 0) {
-        for (const nb of payload.notebooks) {
-          const clientUpdatedAt = nb.updatedAt
-            ? new Date(nb.updatedAt)
-            : defaultPayloadTime || new Date();
-          const existing = await tx.notebook.findFirst({
-            where: { id: nb.id, userId },
-          });
-
-          if (!existing) {
-            await tx.notebook.create({
-              data: {
-                id: nb.id,
-                userId,
-                name: nb.name,
-                description: nb.description || null,
-                color: nb.color || "yellow",
-                icon: nb.icon || "lucide:BookOpen",
-                createdAt: nb.createdAt ? new Date(nb.createdAt) : new Date(),
-                updatedAt: clientUpdatedAt,
-              },
-            });
-          } else if (clientUpdatedAt >= existing.updatedAt) {
-            await tx.notebook.update({
-              where: { id: nb.id },
-              data: {
-                name: nb.name,
-                description: nb.description !== undefined ? nb.description : existing.description,
-                color: nb.color || existing.color,
-                icon: nb.icon !== undefined ? nb.icon : existing.icon,
-                updatedAt: clientUpdatedAt,
-              },
-            });
-          }
-        }
-      }
-
-      // 2. Lấy danh sách ID Notebook hợp lệ của user (gồm cả cũ và mới upsert)
-      const userNotebooks = await tx.notebook.findMany({
-        where: { userId },
-        select: { id: true },
-      });
-      const validNotebookIds = new Set(userNotebooks.map((n) => n.id));
-
-      // 3. Upsert Tasks
+      // 1. Upsert Tasks
       if (payload.tasks && payload.tasks.length > 0) {
         for (const t of payload.tasks) {
           const clientUpdatedAt = t.updatedAt
             ? new Date(t.updatedAt)
             : defaultPayloadTime || new Date();
-          const validNotebookId =
-            t.notebookId && validNotebookIds.has(t.notebookId) ? t.notebookId : null;
-
           const existing = await tx.task.findFirst({
             where: { id: t.id, userId },
           });
@@ -197,15 +186,17 @@ export class SyncService {
                 description: t.description || null,
                 completed: t.completed ?? false,
                 dueDate: t.dueDate || null,
+                startDate: t.startDate || null,
+                endDate: t.endDate || null,
                 timeType: t.timeType || "deadline",
                 startTime: t.startTime || null,
                 endTime: t.endTime || null,
                 deadlineDate: t.deadlineDate || null,
                 deadlineTime: t.deadlineTime || null,
                 tag: t.tag || null,
+                tags: Array.isArray(t.tags) ? JSON.stringify(t.tags) : null,
                 priority: t.priority || "medium",
                 status: t.status || (t.completed ? "completed" : "todo"),
-                notebookId: validNotebookId,
                 parentTaskId: t.parentTaskId || null,
                 createdAt: t.createdAt ? new Date(t.createdAt) : new Date(),
                 updatedAt: clientUpdatedAt,
@@ -219,12 +210,15 @@ export class SyncService {
                 description: t.description !== undefined ? t.description : existing.description,
                 completed: t.completed !== undefined ? t.completed : existing.completed,
                 dueDate: t.dueDate !== undefined ? t.dueDate : existing.dueDate,
+                startDate: t.startDate !== undefined ? t.startDate : existing.startDate,
+                endDate: t.endDate !== undefined ? t.endDate : existing.endDate,
                 timeType: t.timeType !== undefined ? t.timeType : existing.timeType,
                 startTime: t.startTime !== undefined ? t.startTime : existing.startTime,
                 endTime: t.endTime !== undefined ? t.endTime : existing.endTime,
                 deadlineDate: t.deadlineDate !== undefined ? t.deadlineDate : existing.deadlineDate,
                 deadlineTime: t.deadlineTime !== undefined ? t.deadlineTime : existing.deadlineTime,
                 tag: t.tag !== undefined ? t.tag : existing.tag,
+                tags: t.tags !== undefined ? JSON.stringify(t.tags || []) : existing.tags,
                 priority: t.priority !== undefined ? t.priority : existing.priority,
                 status:
                   t.status !== undefined
@@ -234,7 +228,6 @@ export class SyncService {
                         ? "completed"
                         : "todo"
                       : existing.status,
-                notebookId: t.notebookId !== undefined ? validNotebookId : existing.notebookId,
                 parentTaskId: t.parentTaskId !== undefined ? t.parentTaskId : existing.parentTaskId,
                 updatedAt: clientUpdatedAt,
               },
@@ -486,9 +479,6 @@ export class SyncService {
           const clientUpdatedAt = j.updatedAt
             ? new Date(j.updatedAt)
             : defaultPayloadTime || new Date();
-          const validNotebookId =
-            j.notebookId && validNotebookIds.has(j.notebookId) ? j.notebookId : null;
-
           const existing = await tx.journalEntry.findFirst({
             where: { id: j.id, userId },
           });
@@ -501,7 +491,6 @@ export class SyncService {
                 date: j.date,
                 time: j.time || "00:00",
                 content: j.content || "",
-                notebookId: validNotebookId,
                 linkedTaskId: j.linkedTaskId || null,
                 createdAt: j.createdAt ? new Date(j.createdAt) : new Date(),
                 updatedAt: clientUpdatedAt,
@@ -514,12 +503,64 @@ export class SyncService {
                 date: j.date,
                 time: j.time !== undefined ? j.time : existing.time,
                 content: j.content !== undefined ? j.content : existing.content,
-                notebookId: j.notebookId !== undefined ? validNotebookId : existing.notebookId,
                 linkedTaskId: j.linkedTaskId !== undefined ? j.linkedTaskId : existing.linkedTaskId,
                 updatedAt: clientUpdatedAt,
               },
             });
           }
+        }
+      }
+
+      // 10. Áp dụng tombstone sau upsert để thao tác xóa luôn thắng dữ liệu cũ
+      // từ một thiết bị đang offline. Bản ghi tombstone giúp thiết bị khác
+      // không merge ngược entity đã xóa trở lại server.
+      if (payload.deleted) {
+        const deletionDate = defaultPayloadTime || new Date();
+        const deleted = payload.deleted;
+
+        const recordDeletions = async (entityType: DeletedEntityType, ids: string[]) => {
+          const uniqueIds = Array.from(new Set(ids.filter((id) => typeof id === "string" && id.trim())));
+          if (uniqueIds.length === 0) return;
+
+          for (const entityId of uniqueIds) {
+            await tx.deletedEntity.upsert({
+              where: {
+                userId_entityType_entityId: {
+                  userId,
+                  entityType,
+                  entityId,
+                },
+              },
+              create: { userId, entityType, entityId, deletedAt: deletionDate },
+              update: { deletedAt: deletionDate },
+            });
+          }
+
+          switch (entityType) {
+            case "tasks":
+              await tx.task.updateMany({
+                where: { userId, parentTaskId: { in: uniqueIds } },
+                data: { parentTaskId: null },
+              });
+              await tx.task.deleteMany({ where: { userId, id: { in: uniqueIds } } });
+              break;
+            case "stickyNotes":
+              await tx.stickyNote.deleteMany({ where: { userId, id: { in: uniqueIds } } });
+              break;
+            case "habits":
+              await tx.habit.deleteMany({ where: { userId, id: { in: uniqueIds } } });
+              break;
+            case "journalEntries":
+              await tx.journalEntry.deleteMany({ where: { userId, id: { in: uniqueIds } } });
+              break;
+            case "tags":
+              await tx.tag.deleteMany({ where: { userId, name: { in: uniqueIds } } });
+              break;
+          }
+        };
+
+        for (const [entityType, ids] of Object.entries(deleted) as Array<[DeletedEntityType, string[] | undefined]>) {
+          if (ids) await recordDeletions(entityType, ids);
         }
       }
     });
