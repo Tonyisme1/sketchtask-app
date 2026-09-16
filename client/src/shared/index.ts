@@ -14,6 +14,7 @@ export {
   CustomAvatarPicker,
   CustomEmojiPicker,
   ConfirmModal,
+  RescheduleDateModal,
   UpdateModal,
   GlobalSearchModal,
   NotificationDrawer,

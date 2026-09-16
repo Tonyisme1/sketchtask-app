@@ -20,6 +20,7 @@ export * from "./pickers/time/DatePickerPopover";
 
 // Overlays
 export * from "./overlays/ConfirmModal";
+export * from "./overlays/RescheduleDateModal";
 export * from "./overlays/UpdateModal";
 export * from "./overlays/GlobalSearchModal";
 export * from "./overlays/NotificationDrawer";

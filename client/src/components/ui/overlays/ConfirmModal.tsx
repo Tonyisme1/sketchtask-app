@@ -54,14 +54,14 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-label={title}
-      className="bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-4 sm:p-6 select-none touch-none animate-in fade-in duration-150"
+      className="bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 select-none touch-none animate-in fade-in duration-150"
       onClick={(e) => {
         e.stopPropagation();
       }}
     >
       {/* Box Xác Nhận */}
       <div
-        className="w-full max-w-sm bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-t-[24px] sm:rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 relative z-[1000000]"
+        className="w-full max-w-sm bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 relative z-[1000000]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3">

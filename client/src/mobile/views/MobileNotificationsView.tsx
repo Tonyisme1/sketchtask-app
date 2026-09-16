@@ -23,6 +23,8 @@ import {
   getTaskTemporalState,
   isTaskDueToday,
 } from "../../shared/utils";
+import { formatDisplayDate } from "../../components/ui/pickers/time/DatePickerPopover";
+import { RescheduleDateModal } from "../../components/ui/overlays/RescheduleDateModal";
 
 export interface MobileNotificationsViewProps {
   onNavigateTab?: (tab: TabKey | string, target?: NavigationTarget) => void;
@@ -36,7 +38,12 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
   const { tasks, toggleTask, updateTask, openTaskDetail } = useAppStore();
   const [now, setNow] = useState(() => Date.now());
   const [activeFilter, setActiveFilter] = useState<NotificationFilterTab>("all");
-  const [rescheduleToast, setRescheduleToast] = useState(false);
+  const [rescheduleToastText, setRescheduleToastText] = useState<string | null>(null);
+  const [rescheduleModalState, setRescheduleModalState] = useState<{
+    isOpen: boolean;
+    taskIds: string[];
+    taskTitle?: string;
+  } | null>(null);
 
   const todayStr = getLocalTodayStr(new Date());
 
@@ -99,31 +106,47 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
 
   const totalActiveAlerts = overdueTasks.length + todayDueTasks.length;
 
-  // Xử lý dời toàn bộ việc quá hạn sang hôm nay
-  const handleRescheduleAllOverdueToToday = () => {
+  // Mở modal dời toàn bộ việc quá hạn
+  const handleOpenRescheduleAll = () => {
     if (overdueTasks.length === 0) return;
-    for (const task of overdueTasks) {
-      if (task.dueDate) {
-        updateTask(task.id, { dueDate: todayStr });
-      } else if (task.deadlineDate) {
-        updateTask(task.id, { deadlineDate: todayStr });
-      } else {
-        updateTask(task.id, { dueDate: todayStr });
-      }
-    }
-    setRescheduleToast(true);
-    setTimeout(() => setRescheduleToast(false), 3000);
+    setRescheduleModalState({
+      isOpen: true,
+      taskIds: overdueTasks.map((t) => t.id),
+    });
   };
 
-  // Xử lý dời 1 việc sang hôm nay
-  const handleRescheduleSingleToToday = (task: TaskDto) => {
-    if (task.dueDate) {
-      updateTask(task.id, { dueDate: todayStr });
-    } else if (task.deadlineDate) {
-      updateTask(task.id, { deadlineDate: todayStr });
-    } else {
-      updateTask(task.id, { dueDate: todayStr });
+  // Mở modal dời 1 việc cụ thể
+  const handleOpenRescheduleSingle = (task: TaskDto) => {
+    setRescheduleModalState({
+      isOpen: true,
+      taskIds: [task.id],
+      taskTitle: task.title,
+    });
+  };
+
+  // Xác nhận dời ngày sang targetDate
+  const handleConfirmReschedule = (targetDate: string) => {
+    if (!rescheduleModalState || rescheduleModalState.taskIds.length === 0) return;
+    const { taskIds } = rescheduleModalState;
+    for (const id of taskIds) {
+      const task = tasks.find((t) => t.id === id);
+      if (!task) continue;
+      if (task.dueDate) {
+        updateTask(id, { dueDate: targetDate });
+      } else if (task.deadlineDate) {
+        updateTask(id, { deadlineDate: targetDate });
+      } else {
+        updateTask(id, { dueDate: targetDate });
+      }
     }
+    const formatted = formatDisplayDate(targetDate);
+    const msg =
+      taskIds.length === 1
+        ? `Đã dời công việc sang ${formatted}`
+        : `Đã dời ${taskIds.length} việc quá hạn sang ${formatted}`;
+    setRescheduleToastText(msg);
+    setTimeout(() => setRescheduleToastText(null), 3000);
+    setRescheduleModalState(null);
   };
 
   const handleOpenTask = (task: TaskDto) => {
@@ -133,10 +156,10 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
   return (
     <div className="w-full space-y-3.5 pb-28 select-none">
       {/* Toast thông báo dời ngày thành công */}
-      {rescheduleToast && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] px-4 py-2 rounded-2xl shadow-xl text-xs font-bold flex items-center gap-2">
-          <CheckCircle2 size={15} className="text-emerald-400 dark:text-emerald-600" />
-          <span>Đã dời tất cả công việc quá hạn sang Hôm nay!</span>
+      {rescheduleToastText && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] px-4 py-2 rounded-2xl shadow-xl text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 size={15} className="text-emerald-400 dark:text-emerald-600 shrink-0" />
+          <span>{rescheduleToastText}</span>
         </div>
       )}
 
@@ -152,17 +175,17 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
                 {overdueTasks.length} việc quá hạn cần xử lý
               </p>
               <p className="text-[10px] text-[#8E8E93] dark:text-[#aeaeb2] mt-0.5">
-                Dời sang hôm nay để không bỏ sót
+                Chọn ngày dời lại để không bỏ sót
               </p>
             </div>
           </div>
 
           <button
             type="button"
-            onClick={handleRescheduleAllOverdueToToday}
+            onClick={handleOpenRescheduleAll}
             className="px-3 py-1.5 rounded-xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] text-xs font-bold shrink-0 transition-all active:scale-95 shadow-xs cursor-pointer"
           >
-            Dời tất cả
+            Dời ngày
           </button>
         </div>
       )}
@@ -305,9 +328,9 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
                     <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
-                        onClick={() => handleRescheduleSingleToToday(task)}
+                        onClick={() => handleOpenRescheduleSingle(task)}
                         className="px-2.5 py-1.5 rounded-xl border border-[#E5E5EA] dark:border-[#3A3A3C] bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] transition-all active:scale-95 flex items-center gap-1 cursor-pointer"
-                        title="Dời sang hôm nay"
+                        title="Dời ngày"
                       >
                         <CalendarPlus size={12} strokeWidth={2.4} />
                         <span>Dời</span>
@@ -466,6 +489,17 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
           <ChevronRight size={15} strokeWidth={2.4} className="text-[#8E8E93]" />
         </button>
       </div>
+
+      {/* Reschedule Date Modal */}
+      {rescheduleModalState && (
+        <RescheduleDateModal
+          isOpen={rescheduleModalState.isOpen}
+          taskCount={rescheduleModalState.taskIds.length}
+          taskTitle={rescheduleModalState.taskTitle}
+          onClose={() => setRescheduleModalState(null)}
+          onConfirm={handleConfirmReschedule}
+        />
+      )}
     </div>
   );
 };

@@ -31,15 +31,6 @@ type PanelPosition = {
 const clamp = (value: number, min: number, max: number) =>
   Math.min(Math.max(value, min), max);
 
-const PRESETS = [
-  { label: "08:00", h: "08", m: "00" },
-  { label: "09:30", h: "09", m: "30" },
-  { label: "12:00", h: "12", m: "00" },
-  { label: "14:30", h: "14", m: "30" },
-  { label: "18:00", h: "18", m: "00" },
-  { label: "21:00", h: "21", m: "00" },
-];
-
 type DrumWheelColumnProps = {
   label: string;
   items: string[];
@@ -288,11 +279,6 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
     });
   };
 
-  const handleApplyPreset = (h: string, m: string) => {
-    commitTime(h, m);
-    window.requestAnimationFrame(syncListsToSelection);
-  };
-
   const handleClear = () => {
     onChange("");
     setIsOpen(false);
@@ -346,27 +332,6 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
           >
             <X size={14} strokeWidth={2.4} />
           </button>
-        </div>
-
-        {/* Quick Presets */}
-        <div className="px-3 py-1.5 bg-white/70 dark:bg-[#1C1C1E] border-b border-[#262626]/10 dark:border-white/10 flex items-center justify-between gap-1 overflow-x-auto no-scrollbar">
-          {PRESETS.map((p) => {
-            const isMatch = selectedHour === p.h && selectedMinute === p.m;
-            return (
-              <button
-                key={p.label}
-                type="button"
-                onClick={() => handleApplyPreset(p.h, p.m)}
-                className={`px-1.5 py-0.5 rounded-[3px] text-[10px] font-mono font-bold border transition-all cursor-pointer whitespace-nowrap active:translate-y-[0.5px] ${
-                  isMatch
-                    ? "bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] border-[#1C1917] dark:border-white shadow-[1px_1px_0px_#262626]"
-                    : "bg-[#FAF8F3] dark:bg-[#2C2C2E] text-[#57534E] dark:text-[#8E8E93] border-[#D4CEBF] dark:border-[#3A3A3C] hover:bg-[#FEF08A] dark:hover:bg-white/10 hover:text-[#1C1917] dark:hover:text-white hover:border-[#262626]"
-                }`}
-              >
-                {p.label}
-              </button>
-            );
-          })}
         </div>
 
         {/* 2 Cột Drum Wheel (H và M) */}

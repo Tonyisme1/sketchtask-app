@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   ArrowRight,
   BellRing,
+  CalendarPlus,
   CheckCheck,
   ChevronDown,
   ChevronUp,
@@ -17,6 +18,8 @@ import { TaskDto } from "../../../types";
 import { formatFullDate, getLocalTodayStr, getLocalTomorrowStr } from "../../../utils/date";
 import { SketchTabs } from "../../layout/SketchTabs";
 import { ConfirmModal } from "../../ui/overlays/ConfirmModal";
+import { RescheduleDateModal } from "../../ui/overlays/RescheduleDateModal";
+import { formatDisplayDate } from "../../ui/pickers/time/DatePickerPopover";
 import { dispatchToast } from "../../../utils/toast";
 import {
   getTaskDeadlineDate,
@@ -33,7 +36,7 @@ export interface DeadlinesTabProps {
 }
 
 type DeadlineView = "overdue" | "upcoming";
-type BulkActionKind = "complete" | "reschedule" | "delete";
+type BulkActionKind = "complete" | "delete";
 
 interface PendingBulkAction {
   kind: BulkActionKind;
@@ -77,13 +80,18 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
   onNavigateToTaskDate,
 }) => {
   const { isMobile } = useResponsiveLayout();
-  const { tasks, toggleTask, deleteTask, moveTaskToTomorrow } = useAppStore();
+  const { tasks, toggleTask, deleteTask, updateTask } = useAppStore();
   const todayStr = getLocalTodayStr(new Date());
   const tomorrowStr = getLocalTomorrowStr();
   const [view, setView] = useState<DeadlineView>("overdue");
   const [searchQuery, setSearchQuery] = useState("");
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [pendingBulkAction, setPendingBulkAction] = useState<PendingBulkAction | null>(null);
+  const [rescheduleModalState, setRescheduleModalState] = useState<{
+    isOpen: boolean;
+    tasks: TaskDto[];
+    taskTitle?: string;
+  } | null>(null);
 
   const filterBySearch = (list: TaskDto[]) => {
     if (!searchQuery.trim()) return list;
@@ -139,22 +147,33 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
   const handleSmartReschedule = (taskId: string) => {
     const task = tasks.find((item) => item.id === taskId);
     if (!task) return;
+    setRescheduleModalState({
+      isOpen: true,
+      tasks: [task],
+      taskTitle: task.title,
+    });
+  };
 
-    const date = getTaskEffectiveDate(task);
-    if (!date) return;
-
-    const [year, month, day] = date.split("-").map(Number);
-    const taskDate = new Date(year, month - 1, day);
-    const [todayYear, todayMonth, todayDay] = todayStr.split("-").map(Number);
-    const today = new Date(todayYear, todayMonth - 1, todayDay);
-    const diffDays = Math.round((today.getTime() - taskDate.getTime()) / 86400000);
-
-    if (diffDays <= 1 || !onNavigateToTaskDate) {
-      moveTaskToTomorrow(taskId);
-      return;
+  const handleConfirmReschedule = (targetDate: string) => {
+    if (!rescheduleModalState || rescheduleModalState.tasks.length === 0) return;
+    const { tasks: selectedTasks } = rescheduleModalState;
+    for (const task of selectedTasks) {
+      if (task.dueDate) {
+        updateTask(task.id, { dueDate: targetDate });
+      } else if (task.deadlineDate) {
+        updateTask(task.id, { deadlineDate: targetDate });
+      } else {
+        updateTask(task.id, { dueDate: targetDate });
+      }
     }
-
-    onNavigateToTaskDate(date, task.id);
+    const formatted = formatDisplayDate(targetDate);
+    dispatchToast({
+      message:
+        selectedTasks.length === 1
+          ? `Đã dời công việc sang ${formatted}`
+          : `Đã dời ${selectedTasks.length} việc sang ${formatted}`,
+    });
+    setRescheduleModalState(null);
   };
 
   const handleTaskClick = (task: TaskDto) => {
@@ -176,10 +195,6 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
     if (kind === "complete") {
       selectedTasks.filter((task) => !task.completed).forEach((task) => toggleTask(task.id));
       dispatchToast({ message: `Đã hoàn thành ${selectedTasks.length} việc.` });
-    }
-    if (kind === "reschedule") {
-      selectedTasks.forEach((task) => moveTaskToTomorrow(task.id));
-      dispatchToast({ message: `Đã dời ${selectedTasks.length} việc sang ngày mai.` });
     }
     if (kind === "delete") {
       selectedTasks.forEach((task) => deleteTask(task.id));
@@ -372,11 +387,16 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
             {isOverdueView && (
               <button
                 type="button"
-                onClick={() => requestBulkAction("reschedule", activeTasks)}
+                onClick={() =>
+                  setRescheduleModalState({
+                    isOpen: true,
+                    tasks: activeTasks,
+                  })
+                }
                 className="min-h-[36px] flex-1 rounded-xl bg-black/[0.05] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-[#1C1C1E] dark:text-[#F2F2F7] px-3 py-1.5 text-xs font-semibold active:scale-[0.98] transition-all sm:flex-none cursor-pointer"
               >
-                <ArrowRight size={14} className="mr-1.5 inline-block" />
-                Dời ngày mai
+                <CalendarPlus size={14} className="mr-1.5 inline-block" />
+                Dời ngày
               </button>
             )}
             {junkTasks.length > 0 && (
@@ -405,25 +425,30 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
         title={
           pendingBulkAction?.kind === "complete"
             ? "Hoàn thành nhiều việc?"
-            : pendingBulkAction?.kind === "reschedule"
-              ? "Dời nhiều việc sang ngày mai?"
-              : "Xóa task rác?"
+            : "Xóa task rác?"
         }
         message={
           pendingBulkAction?.kind === "complete"
             ? `Thao tác này sẽ đánh dấu ${pendingBulkAction?.tasks.length || 0} việc là đã xong.`
-            : pendingBulkAction?.kind === "reschedule"
-              ? `Thao tác này sẽ đưa ${pendingBulkAction?.tasks.length || 0} việc sang ngày mai.`
-              : `Chỉ ${pendingBulkAction?.tasks.length || 0} task có tiêu đề lặp kiểu test đã được nhận diện. Bạn có chắc muốn xóa chúng?`
+            : `Chỉ ${pendingBulkAction?.tasks.length || 0} task có tiêu đề lặp kiểu test đã được nhận diện. Bạn có chắc muốn xóa chúng?`
         }
         confirmText={
           pendingBulkAction?.kind === "complete"
             ? "Hoàn thành"
-            : pendingBulkAction?.kind === "reschedule"
-              ? "Dời ngày"
-              : "Xóa task rác"
+            : "Xóa task rác"
         }
       />
+
+      {/* Reschedule Date Modal */}
+      {rescheduleModalState && (
+        <RescheduleDateModal
+          isOpen={rescheduleModalState.isOpen}
+          taskCount={rescheduleModalState.tasks.length}
+          taskTitle={rescheduleModalState.taskTitle}
+          onClose={() => setRescheduleModalState(null)}
+          onConfirm={handleConfirmReschedule}
+        />
+      )}
     </div>
   );
 };
