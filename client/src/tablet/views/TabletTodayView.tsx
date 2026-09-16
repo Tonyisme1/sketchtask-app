@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { ListTodo, Search, X } from "lucide-react";
+import { CheckCircle2, ListTodo, Search, X } from "lucide-react";
 import { useAppStore } from "../../shared/stores";
 import { getLocalTodayStr, isTaskDueToday, normalizeTaskTimeType, getTaskTags } from "../../shared/utils";
 import { TodayScheduleNotes } from "../../components/features/today/TodayScheduleNotes";
@@ -77,17 +77,23 @@ export const TabletTodayView: React.FC<TabletTodayViewProps> = ({
     hideCompletedTasks,
   ]);
 
-  const scheduledTasks = useMemo(() => {
+  const activeScheduledTasks = useMemo(() => {
     return filteredTodayTasks.filter((task) => {
       if (task.parentTaskId) return false;
+      if (task.completed) return false;
       return normalizeTaskTimeType(task) === "scheduled";
     });
   }, [filteredTodayTasks]);
 
-  const taskListItems = useMemo(() => {
+  const activeTaskListItems = useMemo(() => {
     return filteredTodayTasks.filter((task) => {
+      if (task.completed) return false;
       return normalizeTaskTimeType(task) !== "scheduled";
     });
+  }, [filteredTodayTasks]);
+
+  const completedTodayTasks = useMemo(() => {
+    return filteredTodayTasks.filter((task) => task.completed);
   }, [filteredTodayTasks]);
 
   const activeFilterCount = useMemo(() => {
@@ -115,13 +121,13 @@ export const TabletTodayView: React.FC<TabletTodayViewProps> = ({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Tìm kiếm công việc hôm nay..."
-          className="w-full pl-10 pr-9 py-2.5 bg-white border-[1.5px] border-[#262626] rounded-none shadow-[1.5px_1.5px_0px_#262626] text-sm text-[#1C1917] placeholder:text-[#A8A29E] font-sans focus:outline-none focus:ring-1 focus:ring-[#262626] transition-all"
+          className="w-full pl-10 pr-9 py-2.5 bg-white dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] rounded-none shadow-[1.5px_1.5px_0px_#262626] text-sm text-[#1C1917] dark:text-[#F2F2F7] placeholder:text-[#A8A29E] font-sans focus:outline-none focus:ring-1 focus:ring-[#262626] transition-all"
         />
         {searchQuery && (
           <button
             type="button"
             onClick={() => setSearchQuery("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#78716C] hover:text-[#1C1917] p-1 rounded-full cursor-pointer"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#78716C] hover:text-[#1C1917] dark:hover:text-white p-1 rounded-full cursor-pointer"
             title="Xóa tìm kiếm"
           >
             <X size={14} strokeWidth={2.4} />
@@ -157,11 +163,12 @@ export const TabletTodayView: React.FC<TabletTodayViewProps> = ({
         activeFilterCount={activeFilterCount}
       />
 
-      {/* 3. Tablet View: một danh sách dọc, không chia đôi màn hình */}
+      {/* 4. Tablet View: một danh sách dọc */}
       <div className="space-y-4 w-full">
-        {scheduledTasks.length > 0 && (
+        {/* Lịch hẹn chưa xong */}
+        {statusFilter !== "completed" && activeScheduledTasks.length > 0 && (
           <TodayScheduleNotes
-            scheduledTasks={scheduledTasks}
+            scheduledTasks={activeScheduledTasks}
             onToggle={toggleTask}
             onEdit={(task) => openTaskDetail(task.id)}
             onDelete={deleteTask}
@@ -172,25 +179,51 @@ export const TabletTodayView: React.FC<TabletTodayViewProps> = ({
           />
         )}
 
-        <section className="min-w-0 space-y-2">
-          <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917]">
-              <ListTodo size={16} className="text-[#57534E]" strokeWidth={2.2} />
-              <span>Công việc cần làm ({taskListItems.length})</span>
+        {/* Công việc cần làm (Chưa xong) */}
+        {statusFilter !== "completed" && (
+          <section className="min-w-0 space-y-2">
+            <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20 dark:border-white/10">
+              <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917] dark:text-[#F2F2F7]">
+                <ListTodo size={16} className="text-[#57534E] dark:text-[#aeaeb2]" strokeWidth={2.2} />
+                <span>Công việc cần làm ({activeTaskListItems.length})</span>
+              </div>
             </div>
-          </div>
 
-          <TodayTaskList
-            tasks={taskListItems}
-            onToggle={toggleTask}
-            onEdit={(task) => openTaskDetail(task.id)}
-            onDelete={deleteTask}
-            onMoveTomorrow={moveTaskToTomorrow}
-            onClick={(task) => openTaskDetail(task.id)}
-            activeTaskId={targetTaskId}
-            showQuickAdd={false}
-          />
-        </section>
+            <TodayTaskList
+              tasks={activeTaskListItems}
+              onToggle={toggleTask}
+              onEdit={(task) => openTaskDetail(task.id)}
+              onDelete={deleteTask}
+              onMoveTomorrow={moveTaskToTomorrow}
+              onClick={(task) => openTaskDetail(task.id)}
+              activeTaskId={targetTaskId}
+              showQuickAdd={false}
+            />
+          </section>
+        )}
+
+        {/* MỘT KHU VỰC DUY NHẤT CHO TOÀN BỘ CÔNG VIỆC ĐÃ HOÀN THÀNH */}
+        {statusFilter !== "active" && completedTodayTasks.length > 0 && (
+          <div className="mt-6 pt-4 border-t border-[#E5E5EA] dark:border-[#2C2C2E] space-y-2.5">
+            <div className="flex items-center justify-between pb-2 border-b border-[#262626]/15 dark:border-white/10">
+              <div className="flex items-center gap-2 text-sm font-semibold text-[#8E8E93] dark:text-[#aeaeb2]">
+                <CheckCircle2 size={16} strokeWidth={2.2} className="text-emerald-500 shrink-0" />
+                <span>Đã hoàn thành ({completedTodayTasks.length})</span>
+              </div>
+            </div>
+
+            <TodayTaskList
+              tasks={completedTodayTasks}
+              onToggle={toggleTask}
+              onEdit={(task) => openTaskDetail(task.id)}
+              onDelete={deleteTask}
+              onMoveTomorrow={moveTaskToTomorrow}
+              onClick={(task) => openTaskDetail(task.id)}
+              activeTaskId={targetTaskId}
+              showQuickAdd={false}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

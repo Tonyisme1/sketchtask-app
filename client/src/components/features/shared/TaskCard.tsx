@@ -141,6 +141,42 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     }
   };
 
+  // Trạng thái chờ hoàn thành có hiệu ứng tích và trượt mượt mà
+  const [isPendingComplete, setIsPendingComplete] = useState(false);
+  const pendingTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setIsPendingComplete(false);
+    return () => {
+      if (pendingTimerRef.current !== null) {
+        window.clearTimeout(pendingTimerRef.current);
+      }
+    };
+  }, [task.completed]);
+
+  const handleToggleCheckbox = () => {
+    if (task.completed) {
+      // Khi bỏ tích thì hoàn tác ngay lập tức
+      setIsPendingComplete(false);
+      onToggle(task.id);
+    } else {
+      // Khi nhấn tích hoàn thành: Hiện dấu tích ngay lập tức, gạch ngang tiêu đề, rồi trượt xuống sau 380ms
+      if (isPendingComplete) {
+        if (pendingTimerRef.current !== null) {
+          window.clearTimeout(pendingTimerRef.current);
+        }
+        setIsPendingComplete(false);
+        return;
+      }
+      setIsPendingComplete(true);
+      pendingTimerRef.current = window.setTimeout(() => {
+        onToggle(task.id);
+      }, 380);
+    }
+  };
+
+  const isEffectivelyCompleted = task.completed || isPendingComplete;
+
   useEffect(() => clearLongPressTimer, []);
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -235,25 +271,25 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         marginLeft: indentPx > 0 ? `${indentPx}px` : undefined,
         width: indentPx > 0 ? `calc(100% - ${indentPx}px)` : undefined,
       }}
-      className={`task-card-shell relative overflow-hidden transition-all duration-150 rounded-none border-b border-[#D4CEBF] ${
-        indentLevel > 0 ? "bg-[#FAF8F3]/70" : "bg-white"
+      className={`task-card-shell relative overflow-hidden transition-all duration-300 rounded-none border-b border-[#D4CEBF] dark:border-[#2C2C2E] ${
+        indentLevel > 0 ? "bg-[#FAF8F3]/70 dark:bg-[#1C1C1E]/70" : "bg-white dark:bg-[#1C1C1E]"
       } ${
         isSelected
-          ? "bg-[#FAF8F3] border-b-[#1C1917]"
-          : task.completed
-          ? "border-[#D4CEBF] opacity-60 bg-[#FAF8F3]/50 shadow-none"
-          : "border-[#D4CEBF] hover:bg-[#FAF8F3]"
+          ? "bg-[#FAF8F3] dark:bg-[#2C2C2E] border-b-[#1C1917] dark:border-b-white"
+          : isEffectivelyCompleted
+          ? "border-[#D4CEBF] dark:border-[#2C2C2E] opacity-60 bg-[#FAF8F3]/50 dark:bg-[#121214]/50 shadow-none translate-y-[0.5px]"
+          : "border-[#D4CEBF] dark:border-[#2C2C2E] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E]"
       }`}
     >
       {supportsMobileSwipe && (
         <div
-          className={`absolute inset-y-0 right-0 z-0 flex items-center justify-end gap-1 bg-[#F3EFE6] px-2 lg:hidden ${
+          className={`absolute inset-y-0 right-0 z-0 flex items-center justify-end gap-1 bg-[#F3EFE6] dark:bg-[#2C2C2E] px-2 lg:hidden ${
             swipeOffset === 0 ? "pointer-events-none" : "pointer-events-auto"
           }`}
           style={{ width: mobileActionWidth }}
           aria-hidden={swipeOffset === 0}
         >
-          {onMoveTomorrow && !task.completed && (
+          {onMoveTomorrow && !isEffectivelyCompleted && (
             <button
               type="button"
               onClick={(event) => {
@@ -261,7 +297,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 closeMobileActions();
                 onMoveTomorrow(task.id);
               }}
-              className="flex h-9 w-9 items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] bg-white text-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+              className="flex h-9 w-9 items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] bg-white dark:bg-[#1C1C1E] text-[#1C1917] dark:text-[#F2F2F7] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
               title="Dời sang ngày mai"
               aria-label="Dời sang ngày mai"
             >
@@ -275,7 +311,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               closeMobileActions();
               onDelete(task.id);
             }}
-            className="flex h-9 w-9 items-center justify-center rounded-[4px] border-[1.5px] border-[#BE123C] bg-[#FFE4E6] text-[#BE123C] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+            className="flex h-9 w-9 items-center justify-center rounded-[4px] border-[1.5px] border-[#BE123C] bg-[#FFE4E6] dark:bg-rose-950/40 text-[#BE123C] dark:text-rose-400 shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
             title="Xóa công việc"
             aria-label="Xóa công việc"
           >
@@ -304,21 +340,25 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           transform: swipeOffset ? `translateX(${swipeOffset}px)` : undefined,
           transition: isSwipeDragging ? "none" : "transform 180ms ease-out",
         }}
-        className={`relative z-10 flex items-center justify-between gap-3 px-3.5 py-3 min-h-[54px] cursor-pointer select-none ${
-          isSelected ? "bg-[#FAF8F3]" : "bg-white"
+        className={`relative z-10 flex items-center justify-between gap-3 px-3.5 py-3 min-h-[54px] cursor-pointer select-none transition-colors duration-200 ${
+          isSelected
+            ? "bg-[#FAF8F3] dark:bg-[#2C2C2E]"
+            : isEffectivelyCompleted
+            ? "bg-[#FAF8F3]/60 dark:bg-[#1C1C1E]/60"
+            : "bg-white dark:bg-[#1C1C1E]"
         }`}
       >
         {/* KHỐI TRÁI: Checkbox sát tiêu đề, thời gian nằm ngay bên dưới */}
         <div className="flex items-start gap-3 min-w-0 flex-1">
           {isSubtask && (
-            <CornerDownRight size={13} className="text-[#78716C] shrink-0" strokeWidth={2.4} />
+            <CornerDownRight size={13} className="text-[#78716C] dark:text-[#8E8E93] shrink-0" strokeWidth={2.4} />
           )}
 
           {/* Checkbox Tròn (Min touch target) */}
           <div className="shrink-0 flex items-center justify-center min-w-[26px] min-h-[26px]" onClick={(e) => e.stopPropagation()}>
             <HandDrawnCheckbox
-              checked={task.completed}
-              onChange={() => onToggle(task.id)}
+              checked={isEffectivelyCompleted}
+              onChange={handleToggleCheckbox}
             />
           </div>
 
@@ -326,15 +366,17 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           <div className="min-w-0 flex-1 flex flex-col justify-center py-0.5">
             <div className="flex items-center gap-1.5 min-w-0">
               <span
-                className={`text-[14.5px] sm:text-base font-semibold line-clamp-2 break-words leading-snug ${
-                  task.completed ? "text-[#78716C] opacity-80" : "text-[#1C1917]"
+                className={`text-[14.5px] sm:text-base font-semibold line-clamp-2 break-words leading-snug transition-all duration-300 ${
+                  isEffectivelyCompleted
+                    ? "text-[#78716C] dark:text-[#8E8E93] line-through opacity-70"
+                    : "text-[#1C1917] dark:text-[#F2F2F7]"
                 }`}
               >
                 {task.title}
               </span>
 
               {/* Điểm ưu tiên gấp (chỉ hiện khi gấp ●) */}
-              {task.priority === "high" && !task.completed && (
+              {task.priority === "high" && !isEffectivelyCompleted && (
                 <span
                   className="w-1.5 h-1.5 rounded-full bg-[#1C1917] dark:bg-[#FAFAFA] shrink-0"
                   title="Ưu tiên gấp"

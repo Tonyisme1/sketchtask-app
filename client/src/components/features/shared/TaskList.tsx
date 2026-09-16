@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { CheckCircle2 } from "lucide-react";
 import { TaskDto } from "../../../types";
 import { useAppStore } from "../../../stores/appStore";
 import { TaskCard } from "./TaskCard";
@@ -177,13 +178,17 @@ export const TaskList: React.FC<TaskListProps> = ({
           {emptySubMessage && <p className="text-[11px] text-[#A8A29E] mt-0.5">{emptySubMessage}</p>}
         </div>
       ) : (
-        <div className="border-t border-[#D4CEBF]">
+        <div className="border-t border-[#D4CEBF] dark:border-[#2C2C2E]">
           {orderedRootNodes.map((node, index) => (
             <React.Fragment key={node.task.id}>
               {node.task.completed &&
-                (index === 0 || !orderedRootNodes[index - 1].task.completed) && (
-                  <div className="border-t-2 border-[#262626]/20 pt-2 pb-0.5 px-2 text-[10px] font-mono font-bold uppercase tracking-wider text-[#78716C] bg-[#FAF8F3]/40">
-                    Đã hoàn thành
+                index > 0 &&
+                !orderedRootNodes[index - 1].task.completed && (
+                  <div className="mt-5 mb-2.5 pt-3 pb-2 px-3 border-t border-[#E5E5EA] dark:border-[#2C2C2E] flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-[#8E8E93] dark:text-[#aeaeb2] bg-[#F2F2F7]/50 dark:bg-[#1C1C1E]/50 rounded-xl">
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 size={13} strokeWidth={2.4} className="text-emerald-500 shrink-0" />
+                      <span>Đã hoàn thành ({orderedRootNodes.filter((n) => n.task.completed).length})</span>
+                    </span>
                   </div>
                 )}
               <TaskTreeNodeItem

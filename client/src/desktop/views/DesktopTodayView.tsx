@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { ListTodo } from "lucide-react";
+import { CheckCircle2, ListTodo } from "lucide-react";
 import { useAppStore } from "../../shared/stores";
 import { getLocalTodayStr } from "../../shared/utils";
 import { isTaskDueToday, normalizeTaskTimeType, getTaskTags } from "../../shared/utils";
@@ -81,19 +81,26 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
     hideCompletedTasks,
   ]);
 
-  // Lịch hẹn hôm nay
-  const scheduledTasks = useMemo(() => {
+  // Lịch hẹn hôm nay (Chưa hoàn thành)
+  const activeScheduledTasks = useMemo(() => {
     return filteredTodayTasks.filter((task) => {
       if (task.parentTaskId) return false;
+      if (task.completed) return false;
       return normalizeTaskTimeType(task) === "scheduled";
     });
   }, [filteredTodayTasks]);
 
-  // Task cần làm hôm nay
-  const taskListItems = useMemo(() => {
+  // Task cần làm hôm nay (Chưa hoàn thành)
+  const activeTaskListItems = useMemo(() => {
     return filteredTodayTasks.filter((task) => {
+      if (task.completed) return false;
       return normalizeTaskTimeType(task) !== "scheduled";
     });
+  }, [filteredTodayTasks]);
+
+  // Toàn bộ công việc đã hoàn thành hôm nay
+  const completedTodayTasks = useMemo(() => {
+    return filteredTodayTasks.filter((task) => task.completed);
   }, [filteredTodayTasks]);
 
   const activeFilterCount = useMemo(() => {
@@ -114,8 +121,6 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
     ).length;
   }, [todayList]);
 
-
-
   return (
     <div className="w-full min-w-0 space-y-6 select-none animate-in fade-in duration-150">
       {/* 1. Header Thoáng Đãng: Tiêu Đề + Bộ Lọc Chuẩn TaskNotes */}
@@ -133,10 +138,9 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
               )}
             </div>
             <p className="text-xs font-mono text-[#78716C] mt-1 font-medium">
-              Thứ {now.getDay() === 0 ? "Chủ Nhật" : now.getDay() + 1}, {now.getDate()} thg {now.getMonth() + 1}, {now.getFullYear()} · {scheduledTasks.length} lịch hẹn, {deadlineCount} hạn chót
+              Thứ {now.getDay() === 0 ? "Chủ Nhật" : now.getDay() + 1}, {now.getDate()} thg {now.getMonth() + 1}, {now.getFullYear()} · {activeScheduledTasks.length} lịch hẹn, {deadlineCount} hạn chót
             </p>
           </div>
-
         </div>
 
         <TodayProgressBar
@@ -169,11 +173,11 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
         />
       </div>
 
-      {/* 3. Phần Lịch Hẹn Theo Khung Giờ (Scheduled Tasks) */}
-      {scheduledTasks.length > 0 && (
+      {/* 3. Phần Lịch Hẹn Theo Khung Giờ (Chưa hoàn thành) */}
+      {statusFilter !== "completed" && activeScheduledTasks.length > 0 && (
         <div className="space-y-3">
           <TodayScheduleNotes
-            scheduledTasks={scheduledTasks}
+            scheduledTasks={activeScheduledTasks}
             onToggle={toggleTask}
             onEdit={(task) => openTaskDetail(task.id)}
             onDelete={deleteTask}
@@ -184,28 +188,52 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
         </div>
       )}
 
-      {/* 4. Phần Danh Sách Công Việc Hôm Nay (Today Task List) */}
+      {/* 4. Phần Danh Sách Công Việc Cần Làm (Chưa hoàn thành) */}
+      {statusFilter !== "completed" && (
         <div className="space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20">
-          <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917]">
-            <ListTodo size={16} className="text-[#1C1917]" />
-            <span>Công việc cần làm ({taskListItems.filter(t => !t.completed).length})</span>
+          <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917]">
+              <ListTodo size={16} className="text-[#1C1917]" />
+              <span>Công việc cần làm ({activeTaskListItems.length})</span>
+            </div>
           </div>
+
+          <TodayTaskList
+            tasks={activeTaskListItems}
+            onToggle={toggleTask}
+            onEdit={(task) => openTaskDetail(task.id)}
+            onDelete={deleteTask}
+            onMoveTomorrow={moveTaskToTomorrow}
+            onClick={(task) => openTaskDetail(task.id)}
+            activeTaskId={targetTaskId}
+            showQuickAdd={false}
+            onEmptyAction={() => openQuickTaskModal({ dueDate: todayStr })}
+          />
         </div>
+      )}
 
-        <TodayTaskList
-          tasks={taskListItems}
-          onToggle={toggleTask}
-          onEdit={(task) => openTaskDetail(task.id)}
-          onDelete={deleteTask}
-          onMoveTomorrow={moveTaskToTomorrow}
-          onClick={(task) => openTaskDetail(task.id)}
-          activeTaskId={targetTaskId}
-          showQuickAdd={false}
-          onEmptyAction={() => openQuickTaskModal({ dueDate: todayStr })}
-        />
-      </div>
+      {/* 5. MỘT KHU VỰC DUY NHẤT CHO TOÀN BỘ CÔNG VIỆC ĐÃ HOÀN THÀNH */}
+      {statusFilter !== "active" && completedTodayTasks.length > 0 && (
+        <div className="mt-8 pt-5 border-t border-[#E5E5EA] dark:border-[#2C2C2E] space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-[#262626]/15 dark:border-white/10">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#8E8E93] dark:text-[#aeaeb2]">
+              <CheckCircle2 size={16} strokeWidth={2.2} className="text-emerald-500 shrink-0" />
+              <span>Đã hoàn thành ({completedTodayTasks.length})</span>
+            </div>
+          </div>
 
+          <TodayTaskList
+            tasks={completedTodayTasks}
+            onToggle={toggleTask}
+            onEdit={(task) => openTaskDetail(task.id)}
+            onDelete={deleteTask}
+            onMoveTomorrow={moveTaskToTomorrow}
+            onClick={(task) => openTaskDetail(task.id)}
+            activeTaskId={targetTaskId}
+            showQuickAdd={false}
+          />
+        </div>
+      )}
     </div>
   );
 };
