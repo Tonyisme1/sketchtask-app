@@ -168,6 +168,9 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
     if (activeTab === "ai") {
       return "Trợ lý AI";
     }
+    if (activeTab === "notifications") {
+      return "Thông báo";
+    }
     if (activeTab === "settings") {
       return settingsMobileSubView ? SETTINGS_SECTION_TITLES[settingsMobileSubView] || "Cài đặt" : "Cá nhân";
     }
@@ -399,6 +402,16 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
           >
             <span className="font-black text-[20px] sm:text-[22px] text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight leading-none">
               Trợ lý AI
+            </span>
+          </button>
+        ) : activeTab === "notifications" ? (
+          <button
+            type="button"
+            onClick={() => isScrolled && window.scrollTo({ top: 0, behavior: "smooth" })}
+            className={`flex items-center gap-1.5 py-1 ${isScrolled ? "cursor-pointer" : "cursor-default"}`}
+          >
+            <span className="font-black text-[20px] sm:text-[22px] text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight leading-none">
+              Thông báo
             </span>
           </button>
         ) : isSettings ? (

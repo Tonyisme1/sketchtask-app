@@ -271,20 +271,20 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             </button>
           </div>
 
-          {/* Nút 4: Thông báo (Có huy hiệu cảnh báo) */}
+          {/* Nút 4: Thông báo (Có huy hiệu cảnh báo thời gian thực) */}
           <button
             type="button"
-            onClick={() => onOpenNotifications?.()}
+            onClick={() => onTabChange("notifications")}
             aria-label="Thông báo"
             title="Thông báo"
             className={`relative min-h-[46px] flex flex-col items-center justify-center gap-0.5 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
-              isNotificationOpen
+              isNavItemActive(activeTab, "notifications")
                 ? "text-[#1C1C1E] dark:text-white font-bold bg-black/[0.05] dark:bg-white/[0.08]"
                 : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
             } active:scale-95`}
           >
             <div className="relative">
-              <Bell size={19} strokeWidth={isNotificationOpen ? 2.4 : 1.9} />
+              <Bell size={19} strokeWidth={isNavItemActive(activeTab, "notifications") ? 2.4 : 1.9} />
               {alertCount > 0 && (
                 <span className="absolute -top-1 -right-1.5 min-w-[15px] h-3.5 px-0.5 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold flex items-center justify-center border border-white dark:border-[#1C1C1E]">
                   {alertCount > 9 ? "9+" : alertCount}

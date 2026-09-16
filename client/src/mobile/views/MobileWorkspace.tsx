@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { TabKey, NavigationTarget } from "../../shared/types";
 import { MobileTasksView } from "./MobileTasksView";
 import { MobileTodayView } from "./MobileTodayView";
+import { MobileNotificationsView } from "./MobileNotificationsView";
 import {
   NotesTab,
   JournalTab,
@@ -121,6 +122,11 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
           isStandalone
         />
       );
+    }
+
+    // 6. Thông báo (Notifications Full Page)
+    if (activeTab === "notifications") {
+      return <MobileNotificationsView onNavigateTab={onNavigateTab} />;
     }
 
     // 7. Cài đặt

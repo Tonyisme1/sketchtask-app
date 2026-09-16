@@ -95,7 +95,8 @@ export type TabKey =
   | "deadlines"
   | "journal"
   | "ai"
-  | "settings";
+  | "settings"
+  | "notifications";
 
 export interface NavigationTarget {
   taskId?: string;
