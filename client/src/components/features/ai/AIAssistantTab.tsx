@@ -11,19 +11,26 @@ import {
   TrendingUp,
   AlertTriangle,
   Clock,
-  Tag as TagIcon,
   ListPlus,
   Check,
+  Settings,
+  X,
+  Key,
+  ShieldCheck,
 } from "lucide-react";
 import { useAppStore } from "../../../stores/appStore";
 import { TaskPriority } from "../../../types";
 import {
-  processUserQueryWithAgent,
   generateDynamicPromptChips,
   AIQueryResult,
   GoalPlanBreakdown,
   ParsedTaskIntent,
 } from "../../../services/aiAgentService";
+import { askGeminiAIAssistant } from "../../../services/geminiAiService";
+import {
+  getEffectiveGeminiApiKey,
+  setEffectiveGeminiApiKey,
+} from "../../../config/aiConfig";
 
 // ==========================================
 // CHAT MESSAGE TYPES & LOCAL STORAGE KEY
@@ -48,7 +55,7 @@ const getTimeLabel = () =>
 const DEFAULT_WELCOME_MESSAGE: StoredChatMessage = {
   id: "welcome",
   sender: "ai",
-  text: "Chào bạn! Mình là Trợ lý công việc SketchTask. Mình có thể hỗ trợ bạn:\n\n• **Tạo việc nhanh** (ví dụ: *\"Họp team 14:30 chiều mai #CongViec gấp\"*)\n• **Tạo nhiều việc cùng lúc** hoặc **Chia nhỏ kế hoạch**\n• **Tóm tắt hôm nay** & **Phân tích tiến độ công việc**",
+  text: "Chào bạn! Mình là Trợ lý công việc SketchTask. Mình có thể hỗ trợ bạn:\n\n• **Tạo việc & Lên lịch thông minh** (ví dụ: *\"Họp team 14:30 chiều mai #CongViec gấp\"*)\n• **Chia nhỏ BẤT KỲ kế hoạch nào** thành các bước hành động cụ thể\n• **Tư vấn & Phân tích tiến độ công việc**",
   time: getTimeLabel(),
 };
 
@@ -76,6 +83,10 @@ export const AIAssistantTab: React.FC = () => {
   const [inputVal, setInputVal] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [addedBreakdownGoals, setAddedBreakdownGoals] = useState<{ [goalTitle: string]: boolean }>({});
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [tempApiKey, setTempApiKey] = useState("");
+  const [keySavedToast, setKeySavedToast] = useState(false);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -99,7 +110,7 @@ export const AIAssistantTab: React.FC = () => {
   }, [messages, isTyping]);
 
   // Handle Send Message
-  const handleSend = (textToSend?: string) => {
+  const handleSend = async (textToSend?: string) => {
     const text = (textToSend || inputVal).trim();
     if (!text || isTyping) return;
 
@@ -110,13 +121,15 @@ export const AIAssistantTab: React.FC = () => {
       time: getTimeLabel(),
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const nextMessages = [...messages, userMsg];
+    setMessages(nextMessages);
     setInputVal("");
     setIsTyping(true);
 
-    setTimeout(() => {
-      const result = processUserQueryWithAgent(
+    try {
+      const result = await askGeminiAIAssistant(
         text,
+        nextMessages.map((m) => ({ sender: m.sender, text: m.text })),
         {
           tasks,
           addTask,
@@ -135,8 +148,11 @@ export const AIAssistantTab: React.FC = () => {
           queryResult: result,
         },
       ]);
+    } catch (err) {
+      console.error("AI processing error:", err);
+    } finally {
       setIsTyping(false);
-    }, 320);
+    }
   };
 
   // Clear Chat History
@@ -161,7 +177,6 @@ export const AIAssistantTab: React.FC = () => {
 
     setAddedBreakdownGoals((prev) => ({ ...prev, [plan.goalTitle]: true }));
 
-    // Gửi phản hồi thông báo đã thêm
     setTimeout(() => {
       setMessages((prev) => [
         ...prev,
@@ -172,7 +187,7 @@ export const AIAssistantTab: React.FC = () => {
           time: getTimeLabel(),
         },
       ]);
-    }, 200);
+    }, 150);
   };
 
   // Handle Add Individual Subtask
@@ -188,7 +203,24 @@ export const AIAssistantTab: React.FC = () => {
           time: getTimeLabel(),
         },
       ]);
-    }, 150);
+    }, 120);
+  };
+
+  // Open config modal
+  const handleOpenConfig = () => {
+    setTempApiKey(getEffectiveGeminiApiKey());
+    setIsConfigOpen(true);
+    setKeySavedToast(false);
+  };
+
+  // Save API Key
+  const handleSaveApiKey = () => {
+    setEffectiveGeminiApiKey(tempApiKey.trim());
+    setKeySavedToast(true);
+    setTimeout(() => {
+      setIsConfigOpen(false);
+      setKeySavedToast(false);
+    }, 600);
   };
 
   // Render Priority Badge
@@ -229,7 +261,7 @@ export const AIAssistantTab: React.FC = () => {
                 Trợ lý SketchTask
               </h2>
               <span className="px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                Offline Copilot
+                AI Copilot
               </span>
             </div>
             <p className="text-[11px] text-[#8E8E93]">
@@ -238,14 +270,24 @@ export const AIAssistantTab: React.FC = () => {
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleClear}
-          title="Làm mới cuộc trò chuyện"
-          className="p-2 text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-xl transition-all cursor-pointer"
-        >
-          <RotateCcw size={15} strokeWidth={2.2} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={handleOpenConfig}
+            title="Cấu hình API Key"
+            className="p-2 text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-xl transition-all cursor-pointer"
+          >
+            <Settings size={15} strokeWidth={2.2} />
+          </button>
+          <button
+            type="button"
+            onClick={handleClear}
+            title="Làm mới cuộc trò chuyện"
+            className="p-2 text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-xl transition-all cursor-pointer"
+          >
+            <RotateCcw size={15} strokeWidth={2.2} />
+          </button>
+        </div>
       </div>
 
       {/* 2. KHUNG TIN NHẮN (MESSAGE STREAM) */}
@@ -489,7 +531,7 @@ export const AIAssistantTab: React.FC = () => {
         {isTyping && (
           <div className="flex items-center gap-2 text-xs text-[#8E8E93] font-medium pl-9 animate-pulse">
             <Bot size={14} className="text-[#007AFF]" />
-            <span>Trợ lý đang xử lý và phân tích...</span>
+            <span>Trợ lý AI đang suy nghĩ và phân tích...</span>
           </div>
         )}
         <div ref={chatEndRef} />
@@ -540,6 +582,75 @@ export const AIAssistantTab: React.FC = () => {
           <Send size={15} strokeWidth={2.4} />
         </button>
       </form>
+
+      {/* 5. MODAL CẤU HÌNH API KEY (DÀNH CHO DEVELOPER / QUẢN TRỊ VIÊN) */}
+      {isConfigOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
+          <div
+            className="w-full max-w-md bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-2xl p-5 space-y-4 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-[#007AFF]/10 text-[#007AFF] flex items-center justify-center">
+                  <Key size={15} />
+                </div>
+                <h3 className="font-bold text-sm text-[#1C1C1E] dark:text-[#F2F2F7]">
+                  Cấu hình Google Gemini API Key
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsConfigOpen(false)}
+                className="p-1 rounded-lg text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#8E8E93] leading-relaxed">
+              Dán API Key Google Gemini vào đây để kích hoạt trí tuệ nhân tạo nâng cao. Key được lưu an toàn trực tiếp trên thiết bị của bạn.
+            </p>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                Gemini API Key:
+              </label>
+              <input
+                type="password"
+                value={tempApiKey}
+                onChange={(e) => setTempApiKey(e.target.value)}
+                placeholder="AIzaSy..."
+                className="w-full px-3.5 py-2 text-xs font-mono bg-[#F2F2F7] dark:bg-[#2C2C2E] border border-[#E5E5EA] dark:border-[#3A3A3C] rounded-none focus:outline-none focus:border-[#007AFF]"
+              />
+            </div>
+
+            {keySavedToast && (
+              <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-1.5">
+                <ShieldCheck size={14} />
+                <span>Đã lưu API Key thành công!</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E5E5EA] dark:border-[#2C2C2E]">
+              <button
+                type="button"
+                onClick={() => setIsConfigOpen(false)}
+                className="px-3.5 py-1.5 rounded-xl border border-[#E5E5EA] dark:border-[#2C2C2E] text-xs font-semibold text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
+              >
+                Đóng
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveApiKey}
+                className="px-4 py-1.5 rounded-xl bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] text-xs font-bold hover:opacity-90 active:scale-95 shadow-xs"
+              >
+                Lưu cấu hình
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
