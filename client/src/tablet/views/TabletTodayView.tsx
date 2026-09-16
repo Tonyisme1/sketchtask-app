@@ -115,7 +115,7 @@ export const TabletTodayView: React.FC<TabletTodayViewProps> = ({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Tìm kiếm công việc hôm nay..."
-          className="w-full pl-10 pr-9 py-2.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] text-sm text-[#1C1917] placeholder:text-[#A8A29E] font-sans focus:outline-none focus:ring-1 focus:ring-[#262626] transition-all"
+          className="w-full pl-10 pr-9 py-2.5 bg-white border-[1.5px] border-[#262626] rounded-none shadow-[1.5px_1.5px_0px_#262626] text-sm text-[#1C1917] placeholder:text-[#A8A29E] font-sans focus:outline-none focus:ring-1 focus:ring-[#262626] transition-all"
         />
         {searchQuery && (
           <button

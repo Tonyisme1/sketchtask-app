@@ -110,7 +110,7 @@ export const JournalTaskLinkPopover: React.FC<JournalTaskLinkPopoverProps> = ({
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Tìm task theo tên hoặc #tag..."
           autoFocus
-          className="w-full h-7 pl-6 pr-2 bg-white border border-[#262626] rounded-[4px] text-xs text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:bg-[#FEF08A]/30 font-medium"
+          className="w-full h-7 pl-6 pr-2 bg-white border border-[#262626] rounded-none text-xs text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:bg-[#FEF08A]/30 font-medium"
         />
       </div>
 

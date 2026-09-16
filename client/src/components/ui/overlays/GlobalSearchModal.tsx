@@ -140,7 +140,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Tìm kiếm mọi thứ..."
-              className="w-full pl-9 pr-9 py-2 bg-white border-[1.5px] border-[#262626] rounded-[6px] text-sm font-medium text-[#1C1917] placeholder:text-[#A8A29E] shadow-[1.5px_1.5px_0px_#262626] focus:outline-none focus:bg-[#FFFDF8]"
+              className="w-full pl-9 pr-9 py-2 bg-white border-[1.5px] border-[#262626] rounded-none text-sm font-medium text-[#1C1917] placeholder:text-[#A8A29E] shadow-[1.5px_1.5px_0px_#262626] focus:outline-none focus:bg-[#FFFDF8]"
             />
             {query && (
               <button

@@ -90,7 +90,7 @@ export const AutoResizeTextarea = React.forwardRef<
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         rows={minRows}
-        className={`w-full bg-[#FCFBF9] text-[#1C1917] placeholder-[#A8A29E] border-[1.5px] border-[#262626] rounded-[5px] px-3 py-2 text-xs sm:text-sm font-sans focus:outline-none focus:bg-white focus:shadow-[2px_2px_0px_#262626] transition-all resize-none leading-relaxed ${className}`}
+        className={`w-full bg-[#FCFBF9] text-[#1C1917] placeholder-[#A8A29E] border-[1.5px] border-[#262626] rounded-none px-3 py-2 text-xs sm:text-sm font-sans focus:outline-none focus:bg-white focus:shadow-[2px_2px_0px_#262626] transition-all resize-none leading-relaxed ${className}`}
         {...props}
       />
     );

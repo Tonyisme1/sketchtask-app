@@ -598,7 +598,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                           value={editNameValue}
                           onChange={(e) => setEditNameValue(e.target.value)}
                           onKeyDown={(e) => e.key === "Enter" && handleSaveName()}
-                          className="px-2.5 py-1 bg-white dark:bg-[#2C2C2E] border border-[#262626] rounded text-xs font-bold w-full max-w-[160px] text-[#1C1917] dark:text-white"
+                          className="px-2.5 py-1 bg-white dark:bg-[#2C2C2E] border border-[#262626] rounded-none text-xs font-bold w-full max-w-[160px] text-[#1C1917] dark:text-white"
                           autoFocus
                         />
                         <button

@@ -335,7 +335,7 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
         />
 
         {/* Thanh tìm kiếm trong hạn định */}
-        <div className="flex items-center gap-2 h-10 px-3 bg-black/[0.04] dark:bg-white/[0.08] rounded-xl border border-transparent focus-within:ring-2 focus-within:ring-[#007AFF] focus-within:bg-white dark:focus-within:bg-[#2C2C2E] transition-all w-full">
+        <div className="flex items-center gap-2 h-10 px-3 bg-black/[0.04] dark:bg-white/[0.08] rounded-none border border-transparent focus-within:ring-2 focus-within:ring-[#007AFF] focus-within:bg-white dark:focus-within:bg-[#2C2C2E] transition-all w-full">
           <Search size={15} strokeWidth={2.2} className="text-[#8E8E93] shrink-0" />
           <input
             type="text"

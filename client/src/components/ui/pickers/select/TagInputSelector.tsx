@@ -96,7 +96,7 @@ export const TagInputSelector: React.FC<TagInputSelectorProps> = ({
       {/* 2. Ô Nhập Để Tạo Tag Mới & Nút Thêm (Inline Input) */}
       <div className="flex items-center gap-1.5">
         <div
-          className={`flex flex-1 items-center gap-1.5 rounded-[4px] border-[1.5px] bg-white px-2.5 py-1.5 shadow-[1px_1px_0px_#262626] transition-all ${
+          className={`flex flex-1 items-center gap-1.5 rounded-none border-[1.5px] bg-white px-2.5 py-1.5 shadow-[1px_1px_0px_#262626] transition-all ${
             isInputFocused ? "border-[#1C1917] ring-1 ring-[#1C1917]" : "border-[#262626]"
           }`}
         >

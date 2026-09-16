@@ -56,7 +56,7 @@ export const InlineQuickAddRow: React.FC<InlineQuickAddRowProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`flex items-center gap-2.5 px-3 py-2 rounded-[5px] border-[1.5px] transition-all duration-150 ${
+      className={`flex items-center gap-2.5 px-3 py-2 rounded-none border-[1.5px] transition-all duration-150 ${
         isFocused
           ? "bg-white border-[#1C1917] shadow-[2px_2px_0px_#1C1917]"
           : "bg-[#FAF8F3]/60 border-dashed border-[#262626]/40 hover:bg-white hover:border-[#262626]"

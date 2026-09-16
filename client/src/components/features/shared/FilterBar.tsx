@@ -83,7 +83,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         <div className="flex items-center gap-1 shrink-0">
           {onSearchChange && (
             isSearchOpen || Boolean(searchQuery) ? (
-              <div className="flex items-center gap-1 h-7 px-1.5 bg-[#FAF8F3] border border-[#262626] rounded-[3px] text-xs">
+              <div className="flex items-center gap-1 h-7 px-1.5 bg-[#FAF8F3] border border-[#262626] rounded-none text-xs">
                 <Search size={11} className="text-[#78716C] shrink-0" strokeWidth={2.4} />
                 <input
                   type="text"

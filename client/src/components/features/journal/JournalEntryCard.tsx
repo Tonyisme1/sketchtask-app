@@ -206,7 +206,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
               onBlur={handleTimeBlur}
               onKeyDown={(e) => e.key === "Enter" && handleTimeBlur()}
               autoFocus
-              className="w-11 font-mono text-xs font-bold text-center bg-white border border-[#262626] rounded px-0.5 py-0 focus:outline-none focus:bg-[#FAF8F3]"
+              className="w-11 font-mono text-xs font-bold text-center bg-white border border-[#262626] rounded-none px-0.5 py-0 focus:outline-none focus:bg-[#FAF8F3]"
             />
           ) : showTime ? (
             <button

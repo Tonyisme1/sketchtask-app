@@ -699,7 +699,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               markDraftChanged();
             }}
             placeholder="Thêm ghi chú chi tiết..."
-            className="w-full p-2.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] text-sm font-medium text-[#1C1917] placeholder:text-[#57534E] focus:outline-none resize-none"
+            className="w-full p-2.5 bg-white border-[1.5px] border-[#262626] rounded-none shadow-[1.5px_1.5px_0px_#262626] text-sm font-medium text-[#1C1917] placeholder:text-[#57534E] focus:outline-none resize-none"
           />
         </CollapsibleTaskSection>
 
@@ -750,7 +750,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               value={newSubtaskTitle}
               onChange={(e) => setNewSubtaskTitle(e.target.value)}
               placeholder="+ Thêm việc con..."
-              className="flex-1 px-3 py-1.5 rounded-[4px] border-[1.5px] border-dashed border-[#262626] bg-white text-sm font-medium focus:outline-none focus:border-solid focus:border-[#1C1917]"
+              className="flex-1 px-3 py-1.5 rounded-none border-[1.5px] border-dashed border-[#262626] bg-white text-sm font-medium focus:outline-none focus:border-solid focus:border-[#1C1917]"
             />
             <button
               type="submit"

@@ -406,7 +406,7 @@ export const AIAssistantTab: React.FC = () => {
         }}
         className="p-2 bg-white border-t border-[#262626]/20 flex items-center gap-1.5"
       >
-        <div className="flex-1 flex items-center bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] px-3 py-1.5 focus-within:bg-white">
+        <div className="flex-1 flex items-center bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-none shadow-[1.5px_1.5px_0px_#262626] px-3 py-1.5 focus-within:bg-white">
           <input
             ref={inputRef}
             type="text"

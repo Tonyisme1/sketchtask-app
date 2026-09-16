@@ -132,7 +132,7 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
     <div ref={containerRef} className="relative w-full max-w-md lg:max-w-lg mx-3 select-none">
       {/* Search Input Box */}
       <div
-        className={`flex items-center justify-between px-3 py-2 bg-black/[0.04] dark:bg-white/[0.08] border border-transparent rounded-xl transition-all ${
+        className={`flex items-center justify-between px-3 py-2 bg-black/[0.04] dark:bg-white/[0.08] border border-transparent rounded-none transition-all ${
           isOpen
             ? "ring-2 ring-[#007AFF] bg-white dark:bg-[#2C2C2E] shadow-sm"
             : "hover:bg-black/[0.06] dark:hover:bg-white/[0.12]"

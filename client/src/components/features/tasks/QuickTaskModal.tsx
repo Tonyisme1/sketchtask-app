@@ -564,7 +564,7 @@ export const QuickTaskModal: React.FC = () => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Thêm ghi chú chi tiết..."
-                  className="w-full p-2.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] text-sm font-medium text-[#1C1917] placeholder:text-[#57534E] focus:outline-none resize-none"
+                  className="w-full p-2.5 bg-white border-[1.5px] border-[#262626] rounded-none shadow-[1.5px_1.5px_0px_#262626] text-sm font-medium text-[#1C1917] placeholder:text-[#57534E] focus:outline-none resize-none"
                 />
               </QuickTaskAccordion>
             </div>
