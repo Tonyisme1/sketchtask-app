@@ -84,7 +84,7 @@ export const InlineQuickAddRow: React.FC<InlineQuickAddRowProps> = ({
         onBlur={() => setIsFocused(false)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="flex-1 bg-transparent text-xs sm:text-sm font-bold text-[#1C1917] placeholder:text-[#78716C]/70 focus:outline-none min-w-0"
+        className="flex-1 bg-transparent px-1.5 text-xs sm:text-sm font-bold text-[#1C1917] placeholder:text-[#78716C]/70 focus:outline-none min-w-0 rounded-none"
       />
 
       {/* Phím gợi ý Enter */}

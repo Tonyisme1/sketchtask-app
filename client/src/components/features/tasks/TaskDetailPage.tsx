@@ -346,7 +346,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               markDraftChanged();
             }}
             placeholder="Tên công việc..."
-            className="w-full bg-transparent text-lg sm:text-xl font-bold text-[#1C1917] placeholder:text-[#57534E] focus:outline-none tracking-tight leading-snug"
+            className="w-full bg-transparent px-1.5 py-1 text-lg sm:text-xl font-bold text-[#1C1917] placeholder:text-[#57534E] focus:outline-none tracking-tight leading-snug rounded-none"
           />
         </div>
 

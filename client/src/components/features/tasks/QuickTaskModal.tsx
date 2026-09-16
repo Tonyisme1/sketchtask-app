@@ -265,7 +265,7 @@ export const QuickTaskModal: React.FC = () => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Bạn cần làm gì?..."
-              className="flex-1 min-w-0 bg-transparent text-sm sm:text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus:outline-none tracking-tight rounded-none"
+              className="flex-1 min-w-0 bg-transparent px-1.5 text-sm sm:text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus:outline-none tracking-tight rounded-none"
             />
             <button
               type="submit"
