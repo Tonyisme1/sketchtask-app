@@ -293,37 +293,29 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
           <span>Quay lại</span>
         </button>
 
-        {/* Trạng thái đã lưu & Xóa */}
-        <div className="flex items-center gap-2.5">
-          <span className="text-xs font-mono font-bold text-[#8E8E93] dark:text-[#aeaeb2] flex items-center gap-1">
-            {saveStatus === "saving" ? (
-              <span>Đang lưu...</span>
-            ) : saveStatus === "unsaved" ? (
-              <span className="text-amber-600 dark:text-amber-400">Chưa lưu</span>
-            ) : (
-              <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold">
-                <Check size={13} strokeWidth={3} />
-                Đã lưu
-              </span>
-            )}
-          </span>
-
-          {saveStatus === "unsaved" && (
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={!title.trim()}
-              className="px-3.5 py-1.5 rounded-xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all shadow-sm cursor-pointer"
-            >
-              Lưu
-            </button>
-          )}
+        {/* Nút Dấu Tích Lưu & Nút Xóa */}
+        <div className="flex items-center gap-2">
+          {/* Nút Dấu Tích Lưu (mờ khi đã lưu, rõ khi chưa lưu, màu đen/trắng theo theme) */}
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saveStatus === "saved" || !title.trim()}
+            title={saveStatus === "saved" ? "Đã lưu" : "Lưu"}
+            aria-label="Lưu"
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 text-[#1C1917] dark:text-white ${
+              saveStatus === "saved"
+                ? "opacity-25 cursor-default"
+                : "opacity-100 hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 cursor-pointer shadow-xs bg-black/[0.04] dark:bg-white/[0.08]"
+            }`}
+          >
+            <Check size={19} strokeWidth={2.8} />
+          </button>
 
           {currentTaskId && (
             <button
               type="button"
               onClick={handleDeleteSelf}
-              className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 border border-rose-200 dark:border-rose-900/40 shadow-sm active:scale-95 cursor-pointer transition-all"
+              className="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 border border-rose-200 dark:border-rose-900/40 shadow-sm active:scale-95 cursor-pointer transition-all flex items-center justify-center"
               title="Xóa công việc này"
             >
               <Trash2 size={15} strokeWidth={2.2} />

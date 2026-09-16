@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Pin,
+  Check,
 } from "lucide-react";
 
 export interface NoteMasterDetailViewProps {
@@ -350,7 +351,26 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
           <span className="truncate">Quay lại</span>
         </button>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Nút Dấu Tích Lưu (mờ khi đã lưu, rõ khi chưa lưu, màu đen/trắng theo theme) */}
+          <button
+            type="button"
+            onClick={() => {
+              const currentHtml = editorRef.current ? editorRef.current.innerHTML : (selectedNote?.content || "");
+              flushSave(title, currentHtml);
+            }}
+            disabled={isSaved}
+            title={isSaved ? "Đã lưu" : "Lưu"}
+            aria-label="Lưu"
+            className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 text-[#1C1917] dark:text-white ${
+              isSaved
+                ? "opacity-25 cursor-default"
+                : "opacity-100 hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 cursor-pointer shadow-xs bg-black/[0.04] dark:bg-white/[0.08]"
+            }`}
+          >
+            <Check size={19} strokeWidth={2.8} />
+          </button>
+
           {/* Nút Xóa */}
           <button
             type="button"
@@ -359,11 +379,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
               setSelectedNoteId(null);
               setIsMobileNoteDetailOpen(false);
             }}
-            className={`h-9 w-9 rounded-[4px] flex items-center justify-center transition-colors cursor-pointer ${
-              isMobile
-                ? "border border-transparent bg-transparent text-[#78716C] shadow-none hover:bg-rose-50 hover:text-rose-600"
-                : "border-[1.5px] border-[#262626] bg-white text-[#78716C] shadow-[1.5px_1.5px_0px_#262626] hover:bg-rose-50 hover:text-rose-600 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
-            }`}
+            className="w-9 h-9 rounded-xl flex items-center justify-center text-[#78716C] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer active:scale-95"
             title="Xóa trang ghi chú này"
             aria-label="Xóa trang ghi chú này"
           >
