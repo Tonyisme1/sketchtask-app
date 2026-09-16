@@ -291,13 +291,13 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#262626]/20 pb-2">
           <div className="flex items-center gap-2 text-sm font-bold text-[#1C1917]">
             <ListTodo size={16} strokeWidth={2.4} />
-            <span className="text-sm font-bold">Danh sách công việc ({displayListTasks.length})</span>
+            <span className="text-sm font-bold">Công việc ({displayListTasks.length})</span>
           </div>
 
           <div
             className="inline-flex items-center gap-1 rounded-[5px] border-2 border-[#262626] bg-[#FAF8F3] p-0.5 shadow-[1.5px_1.5px_0px_#262626]"
             role="tablist"
-            aria-label="Kiểu hiển thị chi tiết ngày"
+            aria-label="Kiểu hiển thị"
           >
             <button
               type="button"
@@ -321,8 +321,7 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
 
         <TaskList
           tasks={displayListTasks}
-          emptyMessage="Chưa có công việc trong ngày này"
-          emptySubMessage="Các task của ngày sẽ hiển thị ở đây."
+          emptyMessage="Chưa có công việc"
           onToggle={onToggleTask}
           onEdit={onSelectTask}
           onDelete={onDeleteTask}
@@ -341,9 +340,9 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-[#262626]/20 pb-2.5">
         <div className="flex items-center gap-2.5 text-sm font-bold text-[#1C1917]">
           <Clock size={18} strokeWidth={2.4} />
-          <span className="text-sm font-black">Biểu đồ trong ngày (24 giờ)</span>
+          <span className="text-sm font-black">Biểu đồ 24h</span>
           <span className="font-mono text-xs font-bold text-[#78716C]">
-            {timedTasks.length} việc có giờ
+            {timedTasks.length} việc
           </span>
         </div>
 

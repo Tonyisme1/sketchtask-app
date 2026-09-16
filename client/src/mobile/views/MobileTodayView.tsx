@@ -110,7 +110,7 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
           type="text"
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
-          placeholder="Tìm việc hôm nay..."
+          placeholder="Tìm kiếm..."
           className="w-full bg-transparent py-2 text-xs text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none sm:text-sm"
         />
         {searchQuery && (
@@ -170,7 +170,7 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
           <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20">
             <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917]">
               <ListTodo size={16} className="text-[#1C1917]" strokeWidth={2.2} />
-              <span>Công việc hôm nay ({taskListItems.length})</span>
+              <span>Công việc ({taskListItems.length})</span>
             </div>
           </div>
 

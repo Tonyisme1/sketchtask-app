@@ -197,15 +197,15 @@ export const QuickTaskModal: React.FC = () => {
     setOpenSections((current) => ({ ...current, [section]: !current[section] }));
   };
 
-  // Xác định tên ngữ cảnh hiện tại (Chữ thường in đậm, không viết hoa toàn bộ)
+  // Xác định tên ngữ cảnh hiện tại
   const contextName =
     activeTaskSubTab === "today"
-      ? "Hôm nay (Today)"
+      ? "Hôm nay"
       : activeTaskSubTab === "planner"
-      ? "Kế hoạch (Planner)"
+      ? "Kế hoạch"
       : activeTaskSubTab === "deadlines"
-      ? "Hạn định (Deadlines)"
-      : "Công việc mới";
+      ? "Hạn định"
+      : "Công việc";
 
   return (
     <div className="fixed inset-0 z-[999999] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150 select-none overflow-y-auto">
@@ -228,7 +228,7 @@ export const QuickTaskModal: React.FC = () => {
               {contextName}
             </span>
             <h2 className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight">
-              Thêm công việc mới
+              Tạo công việc
             </h2>
           </div>
 
@@ -264,7 +264,7 @@ export const QuickTaskModal: React.FC = () => {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Bạn cần làm gì?..."
+              placeholder="Nhập tên việc..."
               className="flex-1 min-w-0 bg-transparent px-1.5 text-sm sm:text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus:outline-none tracking-tight rounded-none"
             />
             <button
@@ -276,25 +276,17 @@ export const QuickTaskModal: React.FC = () => {
             </button>
           </div>
 
-          {/* Sub Row: Plain task & Add details toggle */}
-          <div className="flex items-center justify-between text-xs text-[#8E8E93]">
-            <span>{showDetails ? "Chi tiết mở rộng" : "Công việc cơ bản"}</span>
+          {/* Sub Row: Add details toggle */}
+          <div className="flex items-center justify-end text-xs">
             <button
               type="button"
               onClick={() => setShowDetails(!showDetails)}
               className="font-medium text-[#007AFF] dark:text-[#0A84FF] hover:underline flex items-center gap-1 cursor-pointer"
             >
-              <span>{showDetails ? "Ẩn bớt chi tiết" : "+ Thêm chi tiết"}</span>
+              <span>{showDetails ? "Thu gọn" : "+ Thêm chi tiết"}</span>
               {showDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
           </div>
-
-          {/* Gợi ý khi chưa nhập */}
-          {!showDetails && !title && (
-            <p className="text-[11px] text-[#8E8E93] italic">
-              💡 Gợi ý: Nhập tên công việc rồi bấm Thêm để tạo nhanh.
-            </p>
-          )}
 
           {/* Expandable Detailed Sections */}
           {showDetails && (

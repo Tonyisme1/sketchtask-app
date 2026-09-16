@@ -185,29 +185,23 @@ export const MobileNav: React.FC<MobileNavProps> = ({
               <button
                 type="button"
                 onClick={handleCreateTask}
-                className="flex flex-col items-center justify-center gap-2.5 p-4 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] rounded-2xl border border-transparent transition-all cursor-pointer group text-left active:scale-[0.98]"
+                className="flex flex-col items-center justify-center gap-2 p-3.5 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] rounded-2xl border border-transparent transition-all cursor-pointer group text-left active:scale-[0.98]"
               >
-                <div className="w-11 h-11 rounded-xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                  <CheckSquare size={20} strokeWidth={2.2} />
+                <div className="w-10 h-10 rounded-xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                  <CheckSquare size={18} strokeWidth={2.2} />
                 </div>
-                <div className="text-center">
-                  <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Công việc</p>
-                  <p className="text-[11px] text-[#8E8E93] dark:text-[#aeaeb2] mt-0.5">Lịch & Hạn chót</p>
-                </div>
+                <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Công việc</p>
               </button>
 
               <button
                 type="button"
                 onClick={handleCreateNote}
-                className="flex flex-col items-center justify-center gap-2.5 p-4 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] rounded-2xl border border-transparent transition-all cursor-pointer group text-left active:scale-[0.98]"
+                className="flex flex-col items-center justify-center gap-2 p-3.5 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] rounded-2xl border border-transparent transition-all cursor-pointer group text-left active:scale-[0.98]"
               >
-                <div className="w-11 h-11 rounded-xl bg-white dark:bg-[#3A3A3C] text-[#1C1C1E] dark:text-white border border-[#E5E5EA] dark:border-[#48484A] flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                  <FileText size={20} strokeWidth={2.2} />
+                <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#3A3A3C] text-[#1C1C1E] dark:text-white border border-[#E5E5EA] dark:border-[#48484A] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
+                  <FileText size={18} strokeWidth={2.2} />
                 </div>
-                <div className="text-center">
-                  <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Ghi chú</p>
-                  <p className="text-[11px] text-[#8E8E93] dark:text-[#aeaeb2] mt-0.5">Ý tưởng & Bản thảo</p>
-                </div>
+                <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Ghi chú</p>
               </button>
             </div>
           </div>

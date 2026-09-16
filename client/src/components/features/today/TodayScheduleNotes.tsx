@@ -27,7 +27,7 @@ export const TodayScheduleNotes: React.FC<TodayScheduleNotesProps> = ({
   onAddSubtask,
   onClick,
   activeTaskId,
-  title = "Lịch hẹn theo giờ",
+  title = "Lịch hẹn",
   hideHeader = false,
 }) => {
   const { isMobile } = useResponsiveLayout();

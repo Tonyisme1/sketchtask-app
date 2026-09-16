@@ -29,13 +29,13 @@ export interface SettingsMenuItem {
 }
 
 export const SETTINGS_MENU_ITEMS: SettingsMenuItem[] = [
-  { key: "account", label: "Tài khoản & Đồng bộ", compactLabel: "Tài khoản", icon: UserCheck, iconTone: "bg-white text-[#1C1917]" },
-  { key: "general", label: "Giao diện & Trải nghiệm", compactLabel: "Giao diện", icon: Sliders, iconTone: "bg-white text-[#1C1917]" },
-  { key: "notifications", label: "Thông báo & Âm thanh", compactLabel: "Thông báo", icon: Bell, iconTone: "bg-white text-[#1C1917]" },
-  { key: "data", label: "Dữ liệu & Bộ nhớ", compactLabel: "Dữ liệu", icon: Database, iconTone: "bg-white text-[#1C1917]" },
+  { key: "account", label: "Tài khoản", compactLabel: "Tài khoản", icon: UserCheck, iconTone: "bg-white text-[#1C1917]" },
+  { key: "general", label: "Giao diện", compactLabel: "Giao diện", icon: Sliders, iconTone: "bg-white text-[#1C1917]" },
+  { key: "notifications", label: "Thông báo", compactLabel: "Thông báo", icon: Bell, iconTone: "bg-white text-[#1C1917]" },
+  { key: "data", label: "Dữ liệu", compactLabel: "Dữ liệu", icon: Database, iconTone: "bg-white text-[#1C1917]" },
   { key: "security", label: "Bảo mật", icon: Lock, iconTone: "bg-white text-[#1C1917]" },
-  { key: "shortcuts", label: "Phím tắt bàn phím", compactLabel: "Phím tắt", icon: Keyboard, iconTone: "bg-white text-[#1C1917]" },
-  { key: "about", label: "Trợ giúp & Giới thiệu", compactLabel: "Giới thiệu", icon: Info, iconTone: "bg-white text-[#1C1917]" },
+  { key: "shortcuts", label: "Phím tắt", compactLabel: "Phím tắt", icon: Keyboard, iconTone: "bg-white text-[#1C1917]" },
+  { key: "about", label: "Giới thiệu", compactLabel: "Giới thiệu", icon: Info, iconTone: "bg-white text-[#1C1917]" },
 ];
 
 const SETTINGS_GROUPS: Array<{ label: string; keys: SettingsSectionKey[] }> = [

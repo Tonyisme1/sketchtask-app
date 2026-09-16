@@ -24,13 +24,13 @@ import {
 } from "../../shared/utils";
 
 const SETTINGS_SECTION_TITLES: Record<string, string> = {
-  account: "Tài khoản & Cá nhân",
-  general: "Giao diện & Trải nghiệm",
-  notifications: "Thông báo & Âm thanh",
-  data: "Dữ liệu & Bộ nhớ",
+  account: "Tài khoản",
+  general: "Giao diện",
+  notifications: "Thông báo",
+  data: "Dữ liệu",
   security: "Bảo mật",
   shortcuts: "Phím tắt",
-  about: "Trợ giúp & Giới thiệu",
+  about: "Giới thiệu",
 };
 
 export interface MobileHeaderProps {

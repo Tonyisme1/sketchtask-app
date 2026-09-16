@@ -232,10 +232,10 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
                     className="min-w-0 flex-1 text-left active:translate-x-[0.5px] active:translate-y-[0.5px]"
                   >
                     <h3 className="truncate text-[15px] font-semibold text-[#1C1917]">
-                      {note.title || "Ghi chú không tiêu đề"}
+                      {note.title || "Không tiêu đề"}
                     </h3>
                     <p className={`mt-1 text-[13px] leading-relaxed text-[#78716C] ${isPreviewExpanded ? "" : "line-clamp-3"}`}>
-                      {plainContent || "Chưa có nội dung"}
+                      {plainContent || "Trống"}
                     </p>
                     <div className="mt-2 flex items-center justify-end gap-2 text-[11px] text-[#78716C]">
                       <span className="shrink-0">{note.updatedAt || note.createdAt}</span>
@@ -246,8 +246,8 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
                       type="button"
                       onClick={() => onTogglePinNote(note.id)}
                       aria-pressed={Boolean(note.isPinned)}
-                      aria-label={note.isPinned ? "Bỏ ghim ghi chú" : "Ghim ghi chú"}
-                      title={note.isPinned ? "Bỏ ghim ghi chú" : "Ghim ghi chú"}
+                      aria-label={note.isPinned ? "Bỏ ghim" : "Ghim"}
+                      title={note.isPinned ? "Bỏ ghim" : "Ghim"}
                       className={`flex h-9 w-9 items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
                         note.isPinned ? "bg-[#FEF08A] text-[#1C1917]" : "bg-white text-[#78716C]"
                       }`}
@@ -277,7 +277,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
                     }}
                     className="w-full border-t border-[#D4CEBF] px-3 py-2 text-left text-[11px] font-semibold text-[#57534E] hover:bg-[#FAF8F3] hover:text-[#1C1917]"
                   >
-                    {isPreviewExpanded ? "Thu gọn nội dung" : "Xem thêm nội dung"}
+                    {isPreviewExpanded ? "Thu gọn" : "Xem thêm"}
                   </button>
                 )}
               </article>
@@ -294,25 +294,22 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   if (!selectedNote || notes.length === 0) {
     return (
       <div className="w-full min-w-0 select-none">
-        <div className="bg-[#FFFDF8] border-[1.5px] border-dashed border-[#262626] rounded-[8px] p-8 sm:p-14 text-center shadow-[3px_3px_0px_#262626] space-y-3.5">
-          <div className="w-14 h-14 rounded-[8px] bg-[#FEF08A] border-[1.5px] border-[#262626] flex items-center justify-center mx-auto shadow-[2px_2px_0px_#262626]">
-            <FileText size={26} className="text-[#1C1917]" />
+        <div className="bg-[#FFFDF8] dark:bg-[#1C1C1E] border border-dashed border-[#D1D1D6] dark:border-[#3A3A3C] rounded-2xl p-8 sm:p-12 text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-[#FEF08A] dark:bg-[#3A3A3C] flex items-center justify-center mx-auto shadow-xs">
+            <FileText size={22} className="text-[#1C1917] dark:text-white" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-lg font-bold text-[#1C1917]">
-              Chưa có trang ghi chú nào
+            <h3 className="text-base font-bold text-[#1C1917] dark:text-[#F2F2F7]">
+              Chưa có ghi chú
             </h3>
-            <p className="text-xs sm:text-sm text-[#78716C] max-w-sm mx-auto">
-              Hãy mở trang ghi chú đầu tiên để bắt đầu lưu trữ ý tưởng, tài liệu và kế hoạch!
-            </p>
           </div>
           <button
             type="button"
             onClick={onCreateClick}
-            className="px-5 py-2.5 bg-[#1C1917] hover:bg-black text-white border-[1.5px] border-[#262626] rounded-[6px] text-sm font-bold shadow-[2px_2px_0px_#262626] active:translate-y-[0.5px] transition-all cursor-pointer inline-flex items-center gap-2"
+            className="px-4 py-2 bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] rounded-xl text-xs font-bold active:scale-95 transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
           >
-            <Plus size={17} strokeWidth={2.6} />
-            <span>Mở trang ghi chú mới</span>
+            <Plus size={15} strokeWidth={2.4} />
+            <span>Tạo ghi chú</span>
           </button>
         </div>
       </div>

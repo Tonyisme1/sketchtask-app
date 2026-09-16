@@ -65,8 +65,8 @@ const TouchWeekList: React.FC<PlannerWeekViewProps> = ({
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[15px] font-semibold text-[#1C1917]">
-                    {day.dayName}, ngày {day.dayNum}
+                  <span className="text-[15px] font-semibold text-[#1C1917] dark:text-[#F2F2F7]">
+                    {day.dayName}, {day.dayNum}
                   </span>
                   {day.isToday && (
                     <span className="shrink-0 rounded-[3px] border border-[#262626] bg-[#FEF08A] px-1.5 py-0.5 text-[10px] font-semibold text-[#1C1917]">
@@ -97,7 +97,7 @@ const TouchWeekList: React.FC<PlannerWeekViewProps> = ({
                 </div>
                 <div
                   role="progressbar"
-                  aria-label={`Tiến độ ${day.dayName}, ngày ${day.dayNum}`}
+                  aria-label={`Tiến độ ${day.dayName}, ${day.dayNum}`}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={progressPercent}
@@ -111,7 +111,7 @@ const TouchWeekList: React.FC<PlannerWeekViewProps> = ({
               </div>
             ) : (
               <div className="mt-3 border-t border-[#262626]/20 pt-2.5 text-xs text-[#78716C]">
-                Chưa có công việc
+                Trống
               </div>
             )}
           </button>

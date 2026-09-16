@@ -133,12 +133,12 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
   };
 
   const getTitle = () => {
-    if (mode === "unlock") return "Nhập mã PIN để mở khóa";
-    if (mode === "disable") return "Nhập mã PIN để tắt bảo vệ";
+    if (mode === "unlock") return "Nhập mã PIN";
+    if (mode === "disable") return "Tắt mã PIN";
     if (step === "enter_old") return "Nhập mã PIN hiện tại";
-    if (step === "enter_new") return "Thiết lập mã PIN mới (4 số)";
-    if (step === "confirm_new") return "Nhập lại mã PIN để xác nhận";
-    return "Khóa bảo vệ";
+    if (step === "enter_new") return "Thiết lập mã PIN (4 số)";
+    if (step === "confirm_new") return "Xác nhận mã PIN";
+    return "Mã PIN";
   };
 
   return createPortal(
@@ -178,9 +178,8 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
         </div>
 
         {/* Title */}
-        <div className="text-center space-y-1">
+        <div className="text-center">
           <h3 className="font-bold text-base text-[#1C1C1E] dark:text-[#F2F2F7]">{getTitle()}</h3>
-          <p className="text-xs text-[#8E8E93] dark:text-[#aeaeb2]">Bảo vệ sổ tay & ghi chú cá nhân</p>
         </div>
 
         {/* 4 Dots Indicator */}

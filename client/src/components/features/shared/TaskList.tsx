@@ -129,8 +129,8 @@ const TaskTreeNodeItem: React.FC<{
 
 export const TaskList: React.FC<TaskListProps> = ({
   tasks,
-  emptyMessage = "Không có công việc nào",
-  emptySubMessage = "Gõ tên việc bên dưới để bắt đầu ngày mới!",
+  emptyMessage = "Chưa có công việc",
+  emptySubMessage = "",
   onToggle,
   onEdit,
   onDelete,
@@ -166,15 +166,15 @@ export const TaskList: React.FC<TaskListProps> = ({
       {showQuickAdd && (
         <InlineQuickAddRow
           defaultDueDate={baseDateStr}
-          placeholder="Thêm công việc mới... (Nhấn Enter để lưu)"
+          placeholder="Thêm việc..."
         />
       )}
 
       {/* 2. Danh Sách Task */}
       {orderedRootNodes.length === 0 ? (
-        <div className="py-6 text-center text-xs font-medium text-[#78716C]">
+        <div className="py-6 text-center text-xs font-medium text-[#78716C] dark:text-[#8E8E93]">
           <p>{emptyMessage}</p>
-          <p className="text-[11px] text-[#A8A29E] mt-0.5">{emptySubMessage}</p>
+          {emptySubMessage && <p className="text-[11px] text-[#A8A29E] mt-0.5">{emptySubMessage}</p>}
         </div>
       ) : (
         <div className="border-t border-[#D4CEBF]">

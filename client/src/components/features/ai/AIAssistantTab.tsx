@@ -55,7 +55,7 @@ const getTimeLabel = () =>
 const DEFAULT_WELCOME_MESSAGE: StoredChatMessage = {
   id: "welcome",
   sender: "ai",
-  text: "Chào bạn! Mình là Trợ lý công việc SketchTask. Mình có thể hỗ trợ bạn:\n\n• **Tạo việc & Lên lịch thông minh** (ví dụ: *\"Họp team 14:30 chiều mai #CongViec gấp\"*)\n• **Chia nhỏ BẤT KỲ kế hoạch nào** thành các bước hành động cụ thể\n• **Tư vấn & Phân tích tiến độ công việc**",
+  text: "Chào bạn! Mình có thể giúp bạn lên lịch, phân tích tiến độ hoặc chia nhỏ mục tiêu công việc.",
   time: getTimeLabel(),
 };
 
