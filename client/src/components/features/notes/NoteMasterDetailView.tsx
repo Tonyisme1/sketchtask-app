@@ -219,50 +219,58 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
             return (
               <article
                 key={note.id}
-                className={`w-full border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] transition-colors ${
-                  note.isPinned ? "bg-[#FEF08A]/45" : "bg-[#FFFDF8]"
+                className={`w-full border-[1.5px] border-[#262626] dark:border-[#3A3A3C] rounded-[6px] shadow-[2px_2px_0px_#262626] transition-colors ${
+                  note.isPinned
+                    ? "bg-[#FEF08A]/45 dark:bg-amber-950/20"
+                    : "bg-[#FFFDF8] dark:bg-[#1C1C1E]"
                 }`}
               >
                 <div className="flex items-start gap-3 p-3">
-                  <span className="pt-0.5 text-[11px] text-[#78716C] shrink-0">
+                  <span className="pt-0.5 text-[11px] text-[#78716C] dark:text-[#8E8E93] shrink-0 font-mono">
                     #{index + 1}
                   </span>
                   <button
                     type="button"
                     onClick={() => handleOpenNote(note.id)}
-                    className="min-w-0 flex-1 text-left active:translate-x-[0.5px] active:translate-y-[0.5px]"
+                    className="min-w-0 flex-1 text-left active:translate-x-[0.5px] active:translate-y-[0.5px] cursor-pointer"
                   >
-                    <h3 className="truncate text-[15px] font-semibold text-[#1C1917]">
+                    <h3 className="truncate text-[15px] font-semibold text-[#1C1917] dark:text-[#F2F2F7]">
                       {note.title || "Không tiêu đề"}
                     </h3>
-                    <p className={`mt-1 text-[13px] leading-relaxed text-[#78716C] ${isPreviewExpanded ? "" : "line-clamp-3"}`}>
+                    <p className={`mt-1 text-[13px] leading-relaxed text-[#78716C] dark:text-[#8E8E93] ${isPreviewExpanded ? "" : "line-clamp-3"}`}>
                       {plainContent || "Trống"}
                     </p>
-                    <div className="mt-2 flex items-center justify-end gap-2 text-[11px] text-[#78716C]">
-                      <span className="shrink-0">{note.updatedAt || note.createdAt}</span>
-                    </div>
                   </button>
-                  <div className="flex shrink-0 items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => onTogglePinNote(note.id)}
-                      aria-pressed={Boolean(note.isPinned)}
-                      aria-label={note.isPinned ? "Bỏ ghim" : "Ghim"}
-                      title={note.isPinned ? "Bỏ ghim" : "Ghim"}
-                      className={`flex h-9 w-9 items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
-                        note.isPinned ? "bg-[#FEF08A] text-[#1C1917]" : "bg-white text-[#78716C]"
-                      }`}
-                    >
-                      <Pin size={15} strokeWidth={2.2} fill={note.isPinned ? "currentColor" : "none"} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenNote(note.id)}
-                      aria-label="Mở ghi chú"
-                      className="flex h-9 w-7 items-center justify-center text-[#78716C]"
-                    >
-                      <ChevronRight size={17} strokeWidth={2.2} />
-                    </button>
+
+                  <div className="flex flex-col items-end justify-between shrink-0 self-stretch min-h-[58px]">
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => onTogglePinNote(note.id)}
+                        aria-pressed={Boolean(note.isPinned)}
+                        aria-label={note.isPinned ? "Bỏ ghim" : "Ghim"}
+                        title={note.isPinned ? "Bỏ ghim" : "Ghim"}
+                        className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer ${
+                          note.isPinned
+                            ? "bg-[#FEF08A] dark:bg-amber-400 text-[#1C1917]"
+                            : "bg-white dark:bg-[#2C2C2E] text-[#78716C] dark:text-[#8E8E93]"
+                        }`}
+                      >
+                        <Pin size={15} strokeWidth={2.2} fill={note.isPinned ? "currentColor" : "none"} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenNote(note.id)}
+                        aria-label="Mở ghi chú"
+                        className="flex h-8 w-6 sm:h-9 sm:w-7 items-center justify-center text-[#78716C] dark:text-[#8E8E93] hover:text-[#1C1917] dark:hover:text-white cursor-pointer"
+                      >
+                        <ChevronRight size={17} strokeWidth={2.2} />
+                      </button>
+                    </div>
+
+                    <span className="text-[10px] sm:text-[11px] font-mono text-[#8E8E93] dark:text-[#8E8E93] pt-2 text-right whitespace-nowrap">
+                      {note.updatedAt || note.createdAt}
+                    </span>
                   </div>
                 </div>
                 {hasLongPreview && (
@@ -276,7 +284,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
                         return next;
                       });
                     }}
-                    className="w-full border-t border-[#D4CEBF] px-3 py-2 text-left text-[11px] font-semibold text-[#57534E] hover:bg-[#FAF8F3] hover:text-[#1C1917]"
+                    className="w-full border-t border-[#D4CEBF] dark:border-[#2C2C2E] px-3 py-2 text-left text-[11px] font-semibold text-[#57534E] dark:text-[#8E8E93] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E] hover:text-[#1C1917] dark:hover:text-[#F2F2F7] cursor-pointer"
                   >
                     {isPreviewExpanded ? "Thu gọn" : "Xem thêm"}
                   </button>
