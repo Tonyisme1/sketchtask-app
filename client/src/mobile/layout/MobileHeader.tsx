@@ -187,14 +187,20 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
       <div className="relative flex items-center justify-between min-h-[40px] w-full">
         {/* 1. KHU VỰC NHÃN TAB: CĂN THẲNG HÀNG CHUẨN XÁC VỚI CÁC NÚT BÊN PHẢI */}
         <div className="flex items-center gap-2 min-w-0 z-10">
-          {/* Nút Quay lại CHỈ KHI đang ở màn hình con của Cài đặt */}
-          {isSettings && settingsMobileSubView && (
+          {/* Nút Quay lại khi đang ở màn hình con của Cài đặt hoặc tab AI */}
+          {((isSettings && settingsMobileSubView) || activeTab === "ai") && (
             <button
               type="button"
-              onClick={() => setSettingsMobileSubView(null)}
+              onClick={() => {
+                if (activeTab === "ai") {
+                  onTabChange(previousTab || "tasks");
+                } else {
+                  setSettingsMobileSubView(null);
+                }
+              }}
               className="w-9 h-9 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] rounded-xl flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7] active:scale-95 transition-all cursor-pointer shrink-0"
-              title="Quay lại cài đặt"
-              aria-label="Quay lại cài đặt"
+              title="Quay lại"
+              aria-label="Quay lại"
             >
               <ArrowLeft size={18} strokeWidth={2.4} />
             </button>
@@ -419,7 +425,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
           </div>
         </div>
 
-        {/* 2. GÓC PHẢI: THÔNG BÁO & TÀI KHOẢN (Mờ dần và trượt ẩn đi khi cuộn xuống) */}
+        {/* 2. GÓC PHẢI: TÀI KHOẢN (Mờ dần và trượt ẩn đi khi cuộn xuống) */}
         {!settingsMobileSubView && (
           <div
             className={`flex items-center gap-2 shrink-0 ml-auto z-10 transition-all duration-250 ease-out ${
@@ -428,22 +434,6 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                 : "opacity-100 translate-x-0 pointer-events-auto scale-100"
             }`}
           >
-            {/* Chuông Thông Báo */}
-          <button
-            type="button"
-            onClick={onOpenNotifications}
-            title="Thông báo & Nhắc việc"
-            aria-label="Thông báo & Nhắc việc"
-            className="relative w-9 h-9 border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-xl flex items-center justify-center text-[#1C1C1E] dark:text-white bg-white dark:bg-[#2C2C2E] hover:bg-[#F2F2F7] dark:hover:bg-[#3A3A3C] shadow-sm transition-all select-none cursor-pointer active:scale-95"
-          >
-            <Bell size={17} strokeWidth={2.2} />
-            {alertCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[17px] h-4.5 px-1 rounded-full bg-rose-500 text-white font-mono text-[10px] font-bold flex items-center justify-center border border-white dark:border-[#1C1C1E]">
-                {alertCount > 9 ? "9+" : alertCount}
-              </span>
-            )}
-          </button>
-
           {/* Tài khoản Dropdown */}
           <div ref={accountDropdownRef} className="relative shrink-0">
             <button

@@ -1,22 +1,27 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import {
   CheckSquare,
   FilePenLine,
-  Sparkles,
+  Bell,
   UserRound,
   Plus,
   FileText,
-  CheckCircle2,
   X,
   LucideIcon,
 } from "lucide-react";
 import { TabKey } from "../../types";
 import { useAppStore } from "../../stores/appStore";
+import {
+  getTaskTemporalState,
+  isTaskDueToday,
+} from "../../utils/taskSemantics";
 
 export interface MobileNavProps {
   activeTab: TabKey;
   activeTaskSubTab: "today" | "planner" | "deadlines";
   onTabChange: (tab: TabKey) => void;
+  onOpenNotifications?: () => void;
+  isNotificationOpen?: boolean;
 }
 
 interface NavTabItem {
@@ -31,11 +36,6 @@ const leftNavItems: NavTabItem[] = [
   { key: "notes", label: "Ghi chép", shortLabel: "Ghi", icon: FilePenLine },
 ];
 
-const rightNavItems: NavTabItem[] = [
-  { key: "ai", label: "Trợ lý AI", shortLabel: "AI", icon: Sparkles },
-  { key: "settings", label: "Cá nhân", shortLabel: "Cá nhân", icon: UserRound },
-];
-
 const isNavItemActive = (
   activeTab: TabKey,
   key: TabKey,
@@ -44,7 +44,6 @@ const isNavItemActive = (
     return activeTab === "tasks" || activeTab === "today" || activeTab === "planner" || activeTab === "deadlines";
   }
   if (key === "notes") return activeTab === "notes" || activeTab === "journal";
-  if (key === "ai") return activeTab === "ai";
   if (key === "settings") return activeTab === "settings" || activeTab === "review";
   return activeTab === key;
 };
@@ -52,12 +51,31 @@ const isNavItemActive = (
 export const MobileNav: React.FC<MobileNavProps> = ({
   activeTab,
   onTabChange,
+  onOpenNotifications,
+  isNotificationOpen = false,
 }) => {
-  const { openTaskDetail, openQuickTaskModal } = useAppStore();
+  const { tasks, openTaskDetail } = useAppStore();
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isScrollingDown, setIsScrollingDown] = useState(false);
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
   const createSheetRef = useRef<HTMLDivElement>(null);
+
+  const alertCount = useMemo(() => {
+    const overdue = tasks.filter((t) => {
+      if (t.completed) return false;
+      const state = getTaskTemporalState(t);
+      return state === "overdue" || state === "pastScheduled";
+    }).length;
+
+    const todayDue = tasks.filter((t) => {
+      if (t.completed) return false;
+      if (!isTaskDueToday(t)) return false;
+      const state = getTaskTemporalState(t);
+      return state !== "overdue" && state !== "pastScheduled";
+    }).length;
+
+    return overdue + todayDue;
+  }, [tasks]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
@@ -253,29 +271,48 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             </button>
           </div>
 
-          {/* Nút 4: AI & Nút 5: Cá nhân */}
-          {rightNavItems.map(({ key, label, shortLabel, icon: Icon }) => {
-            const isActive = isNavItemActive(activeTab, key);
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => onTabChange(key)}
-                aria-label={label}
-                title={label}
-                className={`relative min-h-[46px] flex flex-col items-center justify-center gap-0.5 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
-                  isActive
-                    ? "text-[#1C1C1E] dark:text-white font-bold bg-black/[0.05] dark:bg-white/[0.08]"
-                    : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
-                } active:scale-95`}
-              >
-                <Icon size={19} strokeWidth={isActive ? 2.4 : 1.9} />
-                <span className="text-[11px] leading-tight whitespace-nowrap">
-                  {shortLabel}
+          {/* Nút 4: Thông báo (Có huy hiệu cảnh báo) */}
+          <button
+            type="button"
+            onClick={() => onOpenNotifications?.()}
+            aria-label="Thông báo"
+            title="Thông báo"
+            className={`relative min-h-[46px] flex flex-col items-center justify-center gap-0.5 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
+              isNotificationOpen
+                ? "text-[#1C1C1E] dark:text-white font-bold bg-black/[0.05] dark:bg-white/[0.08]"
+                : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
+            } active:scale-95`}
+          >
+            <div className="relative">
+              <Bell size={19} strokeWidth={isNotificationOpen ? 2.4 : 1.9} />
+              {alertCount > 0 && (
+                <span className="absolute -top-1 -right-1.5 min-w-[15px] h-3.5 px-0.5 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold flex items-center justify-center border border-white dark:border-[#1C1C1E]">
+                  {alertCount > 9 ? "9+" : alertCount}
                 </span>
-              </button>
-            );
-          })}
+              )}
+            </div>
+            <span className="text-[11px] leading-tight whitespace-nowrap">
+              Báo
+            </span>
+          </button>
+
+          {/* Nút 5: Cá nhân */}
+          <button
+            type="button"
+            onClick={() => onTabChange("settings")}
+            aria-label="Cá nhân"
+            title="Cá nhân"
+            className={`relative min-h-[46px] flex flex-col items-center justify-center gap-0.5 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
+              isNavItemActive(activeTab, "settings")
+                ? "text-[#1C1C1E] dark:text-white font-bold bg-black/[0.05] dark:bg-white/[0.08]"
+                : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
+            } active:scale-95`}
+          >
+            <UserRound size={19} strokeWidth={isNavItemActive(activeTab, "settings") ? 2.4 : 1.9} />
+            <span className="text-[11px] leading-tight whitespace-nowrap">
+              Cá nhân
+            </span>
+          </button>
         </div>
       </nav>
     </>
