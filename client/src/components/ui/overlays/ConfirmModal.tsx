@@ -50,45 +50,50 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         height: "100dvh",
         minHeight: "100vh",
         zIndex: 999999,
-        backgroundColor: "rgba(0, 0, 0, 0.82)",
       }}
       role="dialog"
       aria-modal="true"
       aria-label={title}
-      className="flex items-center justify-center p-4 select-none touch-none mobile-scrim-enter"
+      className="bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-4 sm:p-6 select-none touch-none animate-in fade-in duration-150"
       onClick={(e) => {
         e.stopPropagation();
       }}
     >
       {/* Box Xác Nhận */}
       <div
-        className="w-full max-w-sm bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[8px] shadow-[6px_6px_0px_#262626] p-5 mobile-bottom-sheet-enter relative z-[1000000]"
+        className="w-full max-w-sm bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-t-[24px] sm:rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 relative z-[1000000]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2.5 mb-2.5">
-          <div className="w-8 h-8 bg-[#1C1917] border-[1.5px] border-[#262626] rounded-[4px] flex items-center justify-center shadow-[1px_1px_0px_#262626]">
-            <Trash2 size={16} strokeWidth={2.4} className="text-white" />
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center shrink-0">
+            <Trash2 size={18} strokeWidth={2.4} />
           </div>
-          <h3 className="font-bold text-sm sm:text-base text-[#1C1917]">
-            {title}
-          </h3>
+          <div>
+            <h3 className="font-bold text-sm sm:text-base text-[#1C1C1E] dark:text-[#F2F2F7]">
+              {title}
+            </h3>
+          </div>
         </div>
 
-        <p className="text-xs sm:text-sm text-[#78716C] leading-relaxed mb-5">
+        <p className="text-xs sm:text-sm text-[#8E8E93] dark:text-[#aeaeb2] leading-relaxed">
           {message}
         </p>
 
-        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#D4CEBF]">
+        <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-[#E5E5EA] dark:border-[#2C2C2E]">
           <button
             type="button"
             onClick={onCancel}
-            className="px-3.5 py-1.5 text-xs text-[#1C1917] hover:bg-[#F3EFE6] border border-[#D4CEBF] rounded-[4px] font-bold transition-all"
+            className="px-4 py-2 text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] rounded-xl transition-all active:scale-95 cursor-pointer"
           >
             {cancelText}
           </button>
-          <Button onClick={onConfirm} variant="danger" size="md">
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer"
+          >
             {confirmText}
-          </Button>
+          </button>
         </div>
       </div>
     </div>,

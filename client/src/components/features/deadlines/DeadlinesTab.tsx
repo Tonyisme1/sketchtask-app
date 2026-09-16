@@ -230,7 +230,7 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
 
             return (
               <section key={group.dateStr} className="space-y-2">
-                <div className="flex items-center gap-2 border-b border-[#262626]/20 pb-2">
+                <div className="flex items-center gap-2 border-b border-[#E5E5EA] dark:border-[#2C2C2E] pb-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -241,17 +241,17 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
                     }}
                     aria-expanded={!isCollapsed}
                     aria-label={`${isCollapsed ? "Mở" : "Thu gọn"} nhóm ${formatFullDate(group.dateStr)}`}
-                    className="flex min-h-[44px] min-w-0 flex-1 items-center gap-2 text-left active:translate-x-[0.5px] active:translate-y-[0.5px]"
+                    className="flex min-h-[40px] min-w-0 flex-1 items-center gap-2 text-left active:scale-[0.98] transition-all cursor-pointer"
                   >
                     {isCollapsed ? <ChevronDown size={16} strokeWidth={2.4} /> : <ChevronUp size={16} strokeWidth={2.4} />}
-                    <span className="h-2 w-2 shrink-0 rounded-full bg-[#1C1917]" />
-                    <span className="min-w-0 truncate text-sm font-semibold text-[#1C1917]">
+                    <span className="h-2 w-2 shrink-0 rounded-full bg-[#1C1C1E] dark:bg-white" />
+                    <span className="min-w-0 truncate text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
                       {formatFullDate(group.dateStr)}
                     </span>
                   </button>
 
-                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-x-2 gap-y-0.5 text-[11px] text-[#78716C]">
-                    <span className="font-semibold text-[#1C1917]">{group.tasks.length} việc</span>
+                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-x-2 gap-y-0.5 text-[11px] text-[#8E8E93] dark:text-[#aeaeb2]">
+                    <span className="font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{group.tasks.length} việc</span>
                     <span>{completedCount} xong</span>
                     {scheduledCount > 0 && <span>{scheduledCount} hẹn</span>}
                     {deadlineCount > 0 && <span>{deadlineCount} hạn</span>}
@@ -264,7 +264,7 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
                     onClick={() => {
                       setCollapsedGroups((previous) => ({ ...previous, [groupKey]: false }));
                     }}
-                    className="w-full border border-dashed border-[#D4CEBF] bg-[#FAF8F3] px-3 py-2 text-left text-xs text-[#78716C] hover:border-[#262626] hover:text-[#1C1917]"
+                    className="w-full rounded-xl border border-dashed border-[#E5E5EA] dark:border-[#2C2C2E] bg-black/[0.02] dark:bg-white/[0.04] px-3.5 py-2.5 text-left text-xs text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7] cursor-pointer transition-colors"
                   >
                     Nhóm đang thu gọn. Chạm để xem {group.tasks.length} việc.
                   </button>

@@ -42,31 +42,31 @@ const CollapsibleTaskSection: React.FC<CollapsibleTaskSectionProps> = ({
   trailing,
   children,
 }) => (
-  <section className="bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] overflow-hidden transition-all">
+  <section className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-xs overflow-hidden transition-all">
     <button
       type="button"
       onClick={onToggle}
       aria-expanded={open}
-      className={`w-full min-h-[42px] px-3.5 py-2.5 flex items-center justify-between gap-2 text-left cursor-pointer transition-colors ${
+      className={`w-full min-h-[44px] px-4 py-3 flex items-center justify-between gap-2 text-left cursor-pointer transition-colors ${
         open
-          ? "bg-[#F3EFE6] border-b-[1.5px] border-[#262626] text-[#1C1917]"
-          : "bg-white hover:bg-[#FAF8F3] text-[#1C1917]"
-      } focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#1C1917]`}
+          ? "bg-[#F2F2F7] dark:bg-[#2C2C2E]/60 border-b border-[#E5E5EA] dark:border-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+          : "bg-white dark:bg-[#1C1C1E] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+      } focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-[#1C1C1E] dark:focus-visible:ring-white`}
     >
-      <span className="task-detail-section-title text-sm sm:text-[15px] font-bold text-[#1C1917] flex items-center gap-2.5">
-        <span className="w-6 h-6 rounded-[4px] bg-white border border-[#262626] text-[#1C1917] shadow-[0.5px_0.5px_0px_#262626] flex items-center justify-center shrink-0">
+      <span className="task-detail-section-title text-sm sm:text-[15px] font-bold text-[#1C1C1E] dark:text-[#F2F2F7] flex items-center gap-2.5">
+        <span className="w-6 h-6 rounded-lg bg-black/5 dark:bg-white/10 text-[#1C1C1E] dark:text-[#F2F2F7] flex items-center justify-center shrink-0">
           {icon}
         </span>
         <span>{title}</span>
       </span>
       <span className="flex items-center gap-2 shrink-0">
         {trailing}
-        <span className="text-[#57534E] flex items-center justify-center">
+        <span className="text-[#8E8E93] dark:text-[#aeaeb2] flex items-center justify-center">
           {open ? <ChevronUp size={16} strokeWidth={2.4} /> : <ChevronDown size={16} strokeWidth={2.4} />}
         </span>
       </span>
     </button>
-    {open && <div className="p-3.5 space-y-3.5 bg-white">{children}</div>}
+    {open && <div className="p-4 space-y-4 bg-white dark:bg-[#1C1C1E]">{children}</div>}
   </section>
 );
 
@@ -274,9 +274,9 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   };
 
   return (
-    <div className="task-detail-editor w-full h-full bg-[#FBF9F4] text-[#1C1917] select-none flex flex-col overflow-y-auto">
+    <div className="task-detail-editor w-full h-full bg-[#FBF9F4] dark:bg-[#121214] text-[#1C1C1E] dark:text-[#F2F2F7] select-none flex flex-col overflow-y-auto">
       {/* 1. TOPBAR CỦA PANEL: Nút Quay Lại + Trạng Thái Lưu + Nút Xóa (Đồng bộ MobileHeader) */}
-      <div className={`shrink-0 z-30 sticky top-0 bg-[#FBF9F4] border-b border-[#262626]/20 px-3.5 sm:px-5 flex items-center justify-between min-h-[56px] sm:min-h-[60px] ${
+      <div className={`shrink-0 z-30 sticky top-0 bg-white/92 dark:bg-[#1C1C1E]/92 backdrop-blur-xl border-b border-[#E5E5EA] dark:border-[#2C2C2E] px-3.5 sm:px-5 flex items-center justify-between min-h-[56px] sm:min-h-[60px] ${
         isMobile || isTablet
           ? isNativePlatform()
             ? "pt-11 pb-2.5"
@@ -287,22 +287,22 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
         <button
           type="button"
           onClick={onBack}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-[4px] bg-white hover:bg-[#FAF8F3] border border-[#262626] shadow-[1px_1px_0px_#262626] text-sm font-bold active:translate-y-[0.5px] cursor-pointer transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-[#2C2C2E] hover:bg-[#F2F2F7] dark:hover:bg-[#3A3A3C] border border-[#E5E5EA] dark:border-[#2C2C2E] text-xs sm:text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] shadow-sm active:scale-95 cursor-pointer transition-all"
         >
-          <ArrowLeft size={14} strokeWidth={2.4} />
+          <ArrowLeft size={16} strokeWidth={2.4} />
           <span>Quay lại</span>
         </button>
 
         {/* Trạng thái đã lưu & Xóa */}
         <div className="flex items-center gap-2.5">
-          <span className="text-xs font-mono font-bold text-[#57534E] flex items-center gap-1">
+          <span className="text-xs font-mono font-bold text-[#8E8E93] dark:text-[#aeaeb2] flex items-center gap-1">
             {saveStatus === "saving" ? (
               <span>Đang lưu...</span>
             ) : saveStatus === "unsaved" ? (
-              <span className="text-amber-700">Chưa lưu</span>
+              <span className="text-amber-600 dark:text-amber-400">Chưa lưu</span>
             ) : (
-              <span className="text-emerald-700 flex items-center gap-1 font-medium">
-                <Check size={12} strokeWidth={3} />
+              <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold">
+                <Check size={13} strokeWidth={3} />
                 Đã lưu
               </span>
             )}
@@ -313,7 +313,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               type="button"
               onClick={handleSave}
               disabled={!title.trim()}
-              className="px-2.5 py-1 rounded-[4px] bg-[#FEF08A] hover:bg-[#FDE047] border border-[#262626] shadow-[1px_1px_0px_#262626] text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+              className="px-3.5 py-1.5 rounded-xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 transition-all shadow-sm cursor-pointer"
             >
               Lưu
             </button>
@@ -323,10 +323,10 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             <button
               type="button"
               onClick={handleDeleteSelf}
-              className="p-1 rounded-[4px] bg-white hover:bg-rose-50 border border-[#262626] text-rose-700 hover:text-rose-900 shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer transition-all"
+              className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 border border-rose-200 dark:border-rose-900/40 shadow-sm active:scale-95 cursor-pointer transition-all"
               title="Xóa công việc này"
             >
-              <Trash2 size={13} strokeWidth={2.2} />
+              <Trash2 size={15} strokeWidth={2.2} />
             </button>
           )}
         </div>
@@ -335,7 +335,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
       {/* 2. NỘI DUNG CHÍNH (FORM GỌN GÀNG, ĐỒNG BỘ POPUP THÊM NHANH) */}
       <div className="flex-1 w-full px-3.5 py-4 sm:px-5 sm:py-5 pb-28 space-y-4">
         {/* TIÊU ĐỀ CÔNG VIỆC */}
-        <div className="space-y-1 pb-2 border-b border-[#262626]/15">
+        <div className="space-y-1 pb-2 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
           <input
             ref={titleInputRef}
             type="text"
@@ -346,7 +346,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               markDraftChanged();
             }}
             placeholder="Tên công việc..."
-            className="w-full bg-transparent px-1.5 py-1 text-lg sm:text-xl font-bold text-[#1C1917] placeholder:text-[#57534E] focus:outline-none tracking-tight leading-snug rounded-none"
+            className="w-full bg-transparent px-1.5 py-1 text-lg sm:text-xl font-bold text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus:outline-none tracking-tight leading-snug rounded-none"
           />
         </div>
 
@@ -364,13 +364,13 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                 onClick={() => {
                   if (completed) handleToggleComplete();
                 }}
-                className={`flex-1 py-1.5 px-3 rounded-[4px] border-[1.5px] text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                className={`flex-1 py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
                   !completed
-                    ? "bg-[#1C1917] text-white border-[#1C1917] shadow-[1.5px_1.5px_0px_#262626]"
-                    : "bg-white text-[#78716C] border-[#D4CEBF] hover:bg-[#FAF8F3]"
+                    ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] border-transparent shadow-sm"
+                    : "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#8E8E93] dark:text-[#aeaeb2] border-transparent hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]"
                 }`}
               >
-                <Circle size={13} strokeWidth={2.4} />
+                <Circle size={14} strokeWidth={2.4} />
                 <span>Cần làm</span>
               </button>
               <button
@@ -378,13 +378,13 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                 onClick={() => {
                   if (!completed) handleToggleComplete();
                 }}
-                className={`flex-1 py-1.5 px-3 rounded-[4px] border-[1.5px] text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                className={`flex-1 py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 ${
                   completed
-                    ? "bg-[#1C1917] text-white border-[#1C1917] shadow-[1.5px_1.5px_0px_#262626]"
-                    : "bg-white text-[#78716C] border-[#D4CEBF] hover:bg-[#FAF8F3]"
+                    ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] border-transparent shadow-sm"
+                    : "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#8E8E93] dark:text-[#aeaeb2] border-transparent hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]"
                 }`}
               >
-                <CheckCircle2 size={13} strokeWidth={2.4} />
+                <CheckCircle2 size={14} strokeWidth={2.4} />
                 <span>Đã xong</span>
               </button>
             </div>
@@ -399,12 +399,12 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
           onToggle={() => toggleSection("timing")}
         >
           {/* Kiểu ngày: Trong ngày vs Khoảng ngày (Từ - Đến) */}
-          <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]/10 text-xs">
-            <span className="font-medium text-[#57534E] flex items-center gap-1">
-              <Calendar size={12} />
+          <div className="flex items-center justify-between pb-2 border-b border-[#E5E5EA] dark:border-[#2C2C2E] text-xs">
+            <span className="font-medium text-[#8E8E93] dark:text-[#aeaeb2] flex items-center gap-1">
+              <Calendar size={13} />
               <span>Kiểu ngày:</span>
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 bg-[#F2F2F7] dark:bg-[#2C2C2E] p-0.5 rounded-xl">
               <button
                 type="button"
                 onClick={() => {
@@ -412,10 +412,10 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                   setEndDate("");
                   markDraftChanged();
                 }}
-                className={`px-2 py-0.5 rounded-[3px] border font-medium text-xs transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-lg font-semibold text-xs transition-all cursor-pointer active:scale-95 ${
                   !isDateRange
-                    ? "bg-[#1C1917] text-white border-[#1C1917]"
-                    : "bg-[#FAF8F3] text-[#78716C] border-[#D4CEBF] hover:bg-white"
+                    ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-white shadow-xs"
+                    : "text-[#8E8E93] dark:text-[#aeaeb2] hover:text-[#1C1C1E] dark:hover:text-white"
                 }`}
               >
                 Trong ngày
@@ -433,10 +433,10 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                   }
                   markDraftChanged();
                 }}
-                className={`px-2 py-0.5 rounded-[3px] border font-medium text-xs transition-all cursor-pointer ${
+                className={`px-3 py-1 rounded-lg font-semibold text-xs transition-all cursor-pointer active:scale-95 ${
                   isDateRange
-                    ? "bg-[#1C1917] text-white border-[#1C1917]"
-                    : "bg-[#FAF8F3] text-[#78716C] border-[#D4CEBF] hover:bg-white"
+                    ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-white shadow-xs"
+                    : "text-[#8E8E93] dark:text-[#aeaeb2] hover:text-[#1C1C1E] dark:hover:text-white"
                 }`}
               >
                 Khoảng ngày (Từ – Đến)
@@ -445,11 +445,11 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
           </div>
 
           {!isDateRange ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               {/* Ngày thực hiện / Hạn chót */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-[#57534E] flex items-center gap-1">
-                  <Calendar size={12} />
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-[#8E8E93] dark:text-[#aeaeb2] flex items-center gap-1">
+                  <Calendar size={13} />
                   <span>Ngày:</span>
                 </label>
                 <DatePickerPopover
@@ -464,13 +464,13 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               </div>
 
               {/* Giờ hạn chót hoặc khung giờ */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-[#57534E] flex items-center gap-1">
-                  <Clock size={12} />
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-[#8E8E93] dark:text-[#aeaeb2] flex items-center gap-1">
+                  <Clock size={13} />
                   <span>Giờ / Khung giờ:</span>
                 </label>
                 {timeType === "scheduled" ? (
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     <TimePickerPopover
                       value={startTime}
                       onChange={(val) => {
@@ -480,7 +480,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                       placeholder="Bắt đầu"
                       className="flex-1 min-w-0"
                     />
-                    <span className="text-xs font-mono font-medium text-[#78716C]">-</span>
+                    <span className="text-xs font-mono font-medium text-[#8E8E93]">-</span>
                     <TimePickerPopover
                       value={endTime}
                       onChange={(val) => {
@@ -507,12 +507,12 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               </div>
             </div>
           ) : (
-            <div className="space-y-2 text-sm">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="space-y-3 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {/* Từ ngày */}
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-[#57534E] flex items-center gap-1">
-                    <Calendar size={12} />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-[#8E8E93] dark:text-[#aeaeb2] flex items-center gap-1">
+                    <Calendar size={13} />
                     <span>Từ ngày:</span>
                   </label>
                   <DatePickerPopover
@@ -528,9 +528,9 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                 </div>
 
                 {/* Đến ngày */}
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-[#57534E] flex items-center gap-1">
-                    <Calendar size={12} />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-[#8E8E93] dark:text-[#aeaeb2] flex items-center gap-1">
+                    <Calendar size={13} />
                     <span>Đến ngày:</span>
                   </label>
                   <DatePickerPopover
@@ -546,13 +546,13 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               </div>
 
               {/* Giờ chót hoặc khung giờ trong khoảng ngày */}
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-[#57534E] flex items-center gap-1">
-                  <Clock size={12} />
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-[#8E8E93] dark:text-[#aeaeb2] flex items-center gap-1">
+                  <Clock size={13} />
                   <span>{timeType === "deadline" ? "Giờ chót (ngày kết thúc):" : "Khung giờ diễn ra:"}</span>
                 </label>
                 {timeType === "scheduled" ? (
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     <TimePickerPopover
                       value={startTime}
                       onChange={(val) => {
@@ -562,7 +562,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                       placeholder="Bắt đầu"
                       className="flex-1 min-w-0"
                     />
-                    <span className="text-xs font-mono font-medium text-[#78716C]">-</span>
+                    <span className="text-xs font-mono font-medium text-[#8E8E93]">-</span>
                     <TimePickerPopover
                       value={endTime}
                       onChange={(val) => {
@@ -591,36 +591,38 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
           )}
 
           {/* Chế độ thời gian */}
-          <div className="flex items-center gap-2 pt-1 border-t border-[#262626]/10 text-sm">
-            <span className="text-xs font-medium text-[#57534E]">Loại:</span>
-            <button
-              type="button"
-              onClick={() => {
-                setTimeType("deadline");
-                markDraftChanged();
-              }}
-              className={`px-2 py-0.5 rounded-[3px] border font-medium text-xs cursor-pointer ${
-                timeType === "deadline"
-                  ? "bg-[#1C1917] text-white border-[#1C1917]"
-                  : "bg-[#FAF8F3] text-[#78716C] border-[#D4CEBF]"
-              }`}
-            >
-              Hạn chót
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setTimeType("scheduled");
-                markDraftChanged();
-              }}
-              className={`px-2 py-0.5 rounded-[3px] border font-medium text-xs cursor-pointer ${
-                timeType === "scheduled"
-                  ? "bg-[#1C1917] text-white border-[#1C1917]"
-                  : "bg-[#FAF8F3] text-[#78716C] border-[#D4CEBF]"
-              }`}
-            >
-              Lịch hẹn
-            </button>
+          <div className="flex items-center gap-2 pt-2 border-t border-[#E5E5EA] dark:border-[#2C2C2E] text-sm">
+            <span className="text-xs font-medium text-[#8E8E93] dark:text-[#aeaeb2]">Loại:</span>
+            <div className="flex items-center gap-1 bg-[#F2F2F7] dark:bg-[#2C2C2E] p-0.5 rounded-xl">
+              <button
+                type="button"
+                onClick={() => {
+                  setTimeType("deadline");
+                  markDraftChanged();
+                }}
+                className={`px-3 py-1 rounded-lg font-semibold text-xs cursor-pointer active:scale-95 transition-all ${
+                  timeType === "deadline"
+                    ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-white shadow-xs"
+                    : "text-[#8E8E93] dark:text-[#aeaeb2] hover:text-[#1C1C1E] dark:hover:text-white"
+                }`}
+              >
+                Hạn chót
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setTimeType("scheduled");
+                  markDraftChanged();
+                }}
+                className={`px-3 py-1 rounded-lg font-semibold text-xs cursor-pointer active:scale-95 transition-all ${
+                  timeType === "scheduled"
+                    ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-white shadow-xs"
+                    : "text-[#8E8E93] dark:text-[#aeaeb2] hover:text-[#1C1C1E] dark:hover:text-white"
+                }`}
+              >
+                Lịch hẹn
+              </button>
+            </div>
           </div>
         </CollapsibleTaskSection>
 
@@ -631,11 +633,11 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
           open={openSections.organize}
           onToggle={() => toggleSection("organize")}
         >
-          <div className="space-y-2.5 text-sm">
+          <div className="space-y-3 text-sm">
             {/* Mức độ ưu tiên */}
             <div className="flex items-center justify-between gap-2">
-              <span className="font-medium text-xs text-[#57534E] flex items-center gap-1 shrink-0">
-                <Sparkles size={12} />
+              <span className="font-medium text-xs text-[#8E8E93] dark:text-[#aeaeb2] flex items-center gap-1 shrink-0">
+                <Sparkles size={13} />
                 <span>Ưu tiên:</span>
               </span>
               <div className="flex items-center gap-1.5">
@@ -652,10 +654,10 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                       setPriority(nextP);
                       markDraftChanged();
                     }}
-                    className={`px-2.5 py-0.5 rounded-[3px] border font-medium text-xs flex items-center gap-1 cursor-pointer transition-all ${
+                    className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1 cursor-pointer transition-all active:scale-95 ${
                       priority === p.key
-                        ? "bg-[#1C1917] text-white border-[#1C1917]"
-                        : "bg-[#FAF8F3] text-[#78716C] border-[#D4CEBF] hover:bg-white"
+                        ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] border-transparent shadow-xs"
+                        : "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#8E8E93] dark:text-[#aeaeb2] border-transparent hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]"
                     }`}
                   >
                     <span className="font-mono text-[10px]">{p.sym}</span>
@@ -666,9 +668,9 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             </div>
 
             {/* Nhãn Tag (#Tag) Đa Năng */}
-            <div className="pt-1 border-t border-[#262626]/10 space-y-1.5">
-              <span className="font-medium text-xs text-[#57534E] flex items-center gap-1">
-                <TagIcon size={12} />
+            <div className="pt-2 border-t border-[#E5E5EA] dark:border-[#2C2C2E] space-y-1.5">
+              <span className="font-medium text-xs text-[#8E8E93] dark:text-[#aeaeb2] flex items-center gap-1">
+                <TagIcon size={13} />
                 <span>Nhãn (#Tag):</span>
               </span>
               <TagInputSelector
@@ -699,14 +701,14 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               markDraftChanged();
             }}
             placeholder="Thêm ghi chú chi tiết..."
-            className="w-full p-2.5 bg-white border-[1.5px] border-[#262626] rounded-none shadow-[1.5px_1.5px_0px_#262626] text-sm font-medium text-[#1C1917] placeholder:text-[#57534E] focus:outline-none resize-none"
+            className="w-full p-3 bg-[#F2F2F7]/50 dark:bg-[#2C2C2E]/50 border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-xl text-sm font-normal text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus:outline-none focus:border-[#1C1C1E] dark:focus:border-white focus:bg-white dark:focus:bg-[#1C1C1E] resize-none transition-all"
           />
         </CollapsibleTaskSection>
 
         {/* MỤC 6: DANH SÁCH VIỆC CON (SUBTASKS / CHECKLIST) */}
         <CollapsibleTaskSection
           title={`Việc con (${childSubtasks.filter((c) => c.completed).length}/${childSubtasks.length})`}
-          icon={<CheckCircle2 size={12} />}
+          icon={<CheckCircle2 size={13} />}
           open={openSections.subtasks}
           onToggle={() => toggleSection("subtasks")}
         >
@@ -716,16 +718,16 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             {childSubtasks.map((child) => (
               <div
                 key={child.id}
-                className="flex items-center justify-between gap-2 px-3 py-1.5 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626]"
+                className="flex items-center justify-between gap-2 px-3 py-2 bg-[#F2F2F7] dark:bg-[#2C2C2E] rounded-xl border border-transparent"
               >
-                <div className="flex items-center gap-2 min-w-0 flex-1">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <HandDrawnCheckbox
                     checked={child.completed}
                     onChange={() => toggleTask(child.id)}
                   />
                   <span
                     className={`text-sm font-medium truncate ${
-                      child.completed ? "line-through text-[#78716C] opacity-70" : "text-[#1C1917]"
+                      child.completed ? "line-through text-[#8E8E93] dark:text-[#aeaeb2] opacity-70" : "text-[#1C1C1E] dark:text-[#F2F2F7]"
                     }`}
                   >
                     {child.title}
@@ -734,10 +736,10 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                 <button
                   type="button"
                   onClick={() => deleteTask(child.id)}
-                  className="p-1 text-[#78716C] hover:text-rose-600 rounded cursor-pointer"
+                  className="p-1 text-[#8E8E93] hover:text-rose-600 rounded-lg cursor-pointer transition-colors"
                   title="Xóa việc con"
                 >
-                  <Trash2 size={12} />
+                  <Trash2 size={14} />
                 </button>
               </div>
             ))}
@@ -750,11 +752,11 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               value={newSubtaskTitle}
               onChange={(e) => setNewSubtaskTitle(e.target.value)}
               placeholder="+ Thêm việc con..."
-              className="flex-1 px-3 py-1.5 rounded-none border-[1.5px] border-dashed border-[#262626] bg-white text-sm font-medium focus:outline-none focus:border-solid focus:border-[#1C1917]"
+              className="flex-1 px-3.5 py-2 rounded-xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] text-sm font-medium focus:outline-none focus:border-[#1C1C1E] dark:focus:border-white transition-colors"
             />
             <button
               type="submit"
-              className="px-3 py-1.5 bg-[#1C1917] text-white border-[1.5px] border-[#1C1917] rounded-[4px] text-xs font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
+              className="px-4 py-2 bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] rounded-xl text-xs font-bold active:scale-95 transition-all shadow-xs cursor-pointer"
             >
               Thêm
             </button>

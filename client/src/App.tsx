@@ -74,7 +74,7 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     } else if (tab === "tasks") {
       nextLocation = {
         tab: "tasks",
-        taskSubTab: activeTaskSubTab === "today" ? "planner" : activeTaskSubTab,
+        taskSubTab: "today",
       };
     } else {
       nextLocation = { tab: tab as TabKey, taskSubTab: activeTaskSubTab };

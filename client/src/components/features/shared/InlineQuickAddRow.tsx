@@ -56,19 +56,19 @@ export const InlineQuickAddRow: React.FC<InlineQuickAddRowProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`flex items-center gap-2.5 px-3 py-2 rounded-none border-[1.5px] transition-all duration-150 ${
+      className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border transition-all duration-150 ${
         isFocused
-          ? "bg-white border-[#1C1917] shadow-[2px_2px_0px_#1C1917]"
-          : "bg-[#FAF8F3]/60 border-dashed border-[#262626]/40 hover:bg-white hover:border-[#262626]"
+          ? "bg-white dark:bg-[#1C1C1E] border-[#1C1C1E] dark:border-white shadow-xs ring-1 ring-black/5 dark:ring-white/10"
+          : "bg-black/[0.02] dark:bg-white/[0.04] border-dashed border-[#D1D1D6] dark:border-[#3A3A3C] hover:bg-white dark:hover:bg-[#1C1C1E] hover:border-[#8E8E93]"
       }`}
     >
       {/* Vòng tròn dấu cộng */}
       <div
         onClick={() => inputRef.current?.focus()}
-        className={`w-5 h-5 rounded-full border-[1.5px] flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
+        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
           isFocused
-            ? "border-[#1C1917] bg-[#1C1917] text-white"
-            : "border-dashed border-[#262626] text-[#78716C] bg-white"
+            ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]"
+            : "border border-dashed border-[#8E8E93] text-[#8E8E93] bg-transparent"
         }`}
       >
         <Plus size={12} strokeWidth={2.6} />
@@ -84,17 +84,17 @@ export const InlineQuickAddRow: React.FC<InlineQuickAddRowProps> = ({
         onBlur={() => setIsFocused(false)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="flex-1 bg-transparent px-1.5 text-xs sm:text-sm font-bold text-[#1C1917] placeholder:text-[#78716C]/70 focus:outline-none min-w-0 rounded-none"
+        className="flex-1 bg-transparent px-1 text-xs sm:text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus:outline-none min-w-0 rounded-none"
       />
 
       {/* Phím gợi ý Enter */}
       {title.trim().length > 0 && (
         <button
           type="submit"
-          className="flex items-center gap-1 px-2 py-0.5 rounded-[3px] bg-[#1C1917] text-white text-[11px] font-bold shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer shrink-0 animate-in fade-in"
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] text-xs font-semibold shadow-xs active:scale-95 cursor-pointer shrink-0 animate-in fade-in transition-all"
         >
           <span>Lưu</span>
-          <CornerDownLeft size={11} strokeWidth={2.4} />
+          <CornerDownLeft size={12} strokeWidth={2.4} />
         </button>
       )}
     </form>

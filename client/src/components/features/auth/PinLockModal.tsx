@@ -147,16 +147,15 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
         position: "fixed",
         inset: 0,
         zIndex: 1000002,
-        backgroundColor: "rgba(28, 25, 23, 0.95)",
         touchAction: "none",
       }}
       role="dialog"
       aria-modal="true"
       aria-label={getTitle()}
-      className="flex items-center justify-center p-4 select-none mobile-scrim-enter"
+      className="bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-4 sm:p-6 select-none animate-in fade-in duration-150"
     >
       <div
-        className={`relative w-full max-w-xs bg-[#FBF9F4] border-[2px] border-[#262626] rounded-[10px] shadow-[6px_6px_0px_#262626] p-5 flex flex-col items-center space-y-4 ${
+        className={`relative w-full max-w-xs bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-t-[24px] sm:rounded-2xl shadow-2xl p-6 flex flex-col items-center space-y-4 animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 ${
           isShaking ? "animate-shake" : ""
         }`}
       >
@@ -165,34 +164,36 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
           <button
             type="button"
             onClick={onCancel}
-            className="absolute top-3 right-3 text-[#78716C] hover:text-[#1C1917] p-1 bg-white border border-[#D4CEBF] rounded-[4px]"
+            className="absolute top-4 right-4 w-7 h-7 rounded-full flex items-center justify-center text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white bg-[#F2F2F7] dark:bg-[#2C2C2E] transition-colors cursor-pointer"
+            title="Đóng"
+            aria-label="Đóng"
           >
-            <X size={14} />
+            <X size={15} strokeWidth={2.4} />
           </button>
         )}
 
         {/* Lock Icon */}
-        <div className="w-12 h-12 bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-full flex items-center justify-center shadow-[2px_2px_0px_#262626] -mt-1">
-          <Lock size={20} className="text-[#1C1917]" strokeWidth={2.5} />
+        <div className="w-12 h-12 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center -mt-1 shadow-sm">
+          <Lock size={22} strokeWidth={2.4} />
         </div>
 
         {/* Title */}
         <div className="text-center space-y-1">
-          <h3 className="font-bold text-sm text-[#1C1917]">{getTitle()}</h3>
-          <p className="text-[11px] text-[#78716C]">Bảo vệ sổ tay & ghi chú cá nhân</p>
+          <h3 className="font-bold text-base text-[#1C1C1E] dark:text-[#F2F2F7]">{getTitle()}</h3>
+          <p className="text-xs text-[#8E8E93] dark:text-[#aeaeb2]">Bảo vệ sổ tay & ghi chú cá nhân</p>
         </div>
 
         {/* 4 Dots Indicator */}
-        <div className="flex items-center justify-center gap-3 py-1">
+        <div className="flex items-center justify-center gap-3.5 py-1">
           {[0, 1, 2, 3].map((idx) => {
             const isFilled = pin.length > idx;
             return (
               <div
                 key={idx}
-                className={`w-4 h-4 rounded-full border-[1.5px] border-[#262626] transition-all duration-150 ${
+                className={`w-3.5 h-3.5 rounded-full transition-all duration-150 ${
                   isFilled
-                    ? "bg-[#262626] shadow-[1px_1px_0px_#262626]"
-                    : "bg-white"
+                    ? "bg-[#1C1C1E] dark:bg-white scale-110"
+                    : "bg-[#E5E5EA] dark:bg-[#3A3A3C]"
                 }`}
               />
             );
@@ -201,20 +202,20 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
 
         {/* Error Message */}
         {errorMsg && (
-          <p className="flex items-center gap-1.5 text-xs font-bold text-[#1C1917]">
-            <AlertCircle size={13} strokeWidth={2.4} />
+          <p className="flex items-center gap-1.5 text-xs font-bold text-rose-600 dark:text-rose-400 animate-in fade-in">
+            <AlertCircle size={14} strokeWidth={2.4} />
             <span>{errorMsg}</span>
           </p>
         )}
 
         {/* Number Keypad 0-9 */}
-        <div className="grid grid-cols-3 gap-2 w-full pt-2">
+        <div className="grid grid-cols-3 gap-2 w-full pt-1">
           {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((num) => (
             <button
               key={num}
               type="button"
               onClick={() => handleKeyPress(num)}
-              className="h-11 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[6px] text-base font-mono font-bold text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center cursor-pointer"
+              className="h-12 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] rounded-xl text-lg font-bold font-mono text-[#1C1C1E] dark:text-[#F2F2F7] active:scale-95 transition-all flex items-center justify-center cursor-pointer"
             >
               {num}
             </button>
@@ -225,7 +226,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
           <button
             type="button"
             onClick={() => handleKeyPress("0")}
-            className="h-11 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[6px] text-base font-mono font-bold text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center cursor-pointer"
+            className="h-12 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] rounded-xl text-lg font-bold font-mono text-[#1C1C1E] dark:text-[#F2F2F7] active:scale-95 transition-all flex items-center justify-center cursor-pointer"
           >
             0
           </button>
@@ -234,9 +235,9 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
             type="button"
             onClick={handleDelete}
             title="Xóa số"
-            className="h-11 bg-[#F3EFE6] hover:bg-white border-[1.5px] border-[#262626] rounded-[6px] text-[#78716C] hover:text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all flex items-center justify-center"
+            className="h-12 bg-transparent hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] rounded-xl text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white active:scale-95 transition-all flex items-center justify-center cursor-pointer"
           >
-            <Delete size={18} strokeWidth={2.2} />
+            <Delete size={20} strokeWidth={2.2} />
           </button>
         </div>
       </div>
