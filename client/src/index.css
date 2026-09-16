@@ -553,43 +553,7 @@ body {
   animation: drawCheck 0.22s cubic-bezier(0.65, 0, 0.45, 1) forwards;
 }
 
-/* 2. Nét gạch mực ngang xoẹt qua chữ khi xong việc */
-@keyframes inkStrike {
-  0% {
-    width: 0%;
-  }
-  100% {
-    width: 100%;
-  }
-}
-.animate-ink-strike {
-  animation: inkStrike 0.25s ease-out forwards;
-}
 
-/* 3. Con dấu mộc Stamp đóng dứt khoát trên giấy */
-@keyframes stampPop {
-  0% {
-    transform: scale(1.08) rotate(-1deg);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 1;
-  }
-}
-.animate-stamp {
-  animation: stampPop 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* 6. Hiệu ứng Rung Lắc Nhẹ khi nhập sai mã PIN (PIN Shake) */
-@keyframes shakeError {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-6px); }
-  40%, 80% { transform: translateX(6px); }
-}
-.animate-shake {
-  animation: shakeError 0.4s ease-in-out;
-}
 
 /* Chuyển cảnh Tab mượt mà & tinh tế (loại bỏ trượt 100vw giật cục) */
 @keyframes mobileTabSlideLeft {
@@ -658,30 +622,12 @@ body {
   }
 }
 
-@keyframes mobileBottomSheetEnter {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 20px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes mobileScrimEnter {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
 .mobile-tab-enter,
 .mobile-tab-slide-left,
 .mobile-tab-slide-right,
 .mobile-panel-enter,
 .mobile-panel-exit,
 .mobile-panel-back-enter,
-.mobile-bottom-sheet-enter,
-.mobile-scrim-enter,
 .mobile-toast-enter {
   animation-fill-mode: both;
 }
@@ -716,15 +662,6 @@ body {
   .mobile-panel-back-enter {
     animation: mobilePanelBackEnter 200ms cubic-bezier(0.16, 1, 0.3, 1);
     will-change: transform, opacity;
-  }
-
-  .mobile-bottom-sheet-enter {
-    animation: mobileBottomSheetEnter 220ms cubic-bezier(0.16, 1, 0.3, 1);
-    will-change: transform, opacity;
-  }
-
-  .mobile-scrim-enter {
-    animation: mobileScrimEnter 180ms ease-out;
   }
 
   .mobile-toast-enter {

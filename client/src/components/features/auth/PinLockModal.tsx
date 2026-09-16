@@ -27,14 +27,12 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
   const [confirmPin, setConfirmPin] = useState("");
   const [step, setStep] = useState<"enter_old" | "enter_new" | "confirm_new">("enter_new");
   const [errorMsg, setErrorMsg] = useState("");
-  const [isShaking, setIsShaking] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setPin("");
       setConfirmPin("");
       setErrorMsg("");
-      setIsShaking(false);
       if (mode === "unlock" || mode === "disable") {
         setStep("enter_old");
       } else if (mode === "change") {
@@ -49,11 +47,9 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
 
   const triggerError = (msg: string) => {
     setErrorMsg(msg);
-    setIsShaking(true);
     setTimeout(() => {
-      setIsShaking(false);
       setPin("");
-    }, 500);
+    }, 400);
   };
 
   const handleKeyPress = (num: string) => {
@@ -155,9 +151,7 @@ export const PinLockModal: React.FC<PinLockModalProps> = ({
       className="bg-black/50 backdrop-blur-md flex items-end sm:items-center justify-center p-4 sm:p-6 select-none animate-in fade-in duration-150"
     >
       <div
-        className={`relative w-full max-w-xs bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-t-[24px] sm:rounded-2xl shadow-2xl p-6 flex flex-col items-center space-y-4 animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 ${
-          isShaking ? "animate-shake" : ""
-        }`}
+        className="relative w-full max-w-xs bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-t-[24px] sm:rounded-2xl shadow-2xl p-6 flex flex-col items-center space-y-4"
       >
         {/* Nút Hủy nếu có */}
         {onCancel && mode !== "unlock" && (

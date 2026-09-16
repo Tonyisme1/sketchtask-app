@@ -61,7 +61,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
     >
       {/* Box Xác Nhận */}
       <div
-        className="w-full max-w-sm bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-t-[24px] sm:rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 animate-in slide-in-from-bottom-6 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 relative z-[1000000]"
+        className="w-full max-w-sm bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-t-[24px] sm:rounded-2xl shadow-2xl p-5 sm:p-6 space-y-4 relative z-[1000000]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3">

@@ -111,7 +111,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-stretch sm:items-start justify-center p-0 sm:p-6 bg-black/50 mobile-scrim-enter select-none"
+      className="fixed inset-0 z-50 flex items-stretch sm:items-start justify-center p-0 sm:p-6 bg-black/50 select-none"
       onClick={onClose}
     >
       <div

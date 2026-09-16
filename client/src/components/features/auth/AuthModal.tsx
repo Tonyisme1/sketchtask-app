@@ -282,7 +282,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         zIndex: 999999,
         backgroundColor: "rgba(0, 0, 0, 0.75)",
       }}
-      className="flex items-stretch sm:items-center justify-center p-0 sm:p-4 select-none mobile-scrim-enter pointer-events-auto"
+      className="flex items-stretch sm:items-center justify-center p-0 sm:p-4 select-none pointer-events-auto"
     >
       {/* Modal Box: Fullscreen on mobile, Centered dialog on Desktop */}
       <div

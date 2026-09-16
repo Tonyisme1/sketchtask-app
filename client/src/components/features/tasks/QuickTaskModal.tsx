@@ -218,7 +218,7 @@ export const QuickTaskModal: React.FC = () => {
 
       {/* Modal Box: Desktop/Tablet bo tròn 4 góc (md:rounded-2xl), Mobile không bo 4 góc (rounded-none) */}
       <div
-        className="relative z-[1000000] w-full max-w-lg bg-white dark:bg-[#1C1C1E] border-t md:border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-none md:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] md:max-h-[82vh] my-0 md:my-auto animate-in slide-in-from-bottom-4 md:zoom-in-95 duration-200"
+        className="relative z-[1000000] w-full max-w-lg bg-white dark:bg-[#1C1C1E] border-t md:border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-none md:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] md:max-h-[82vh] my-0 md:my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

@@ -74,11 +74,11 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-label="Cập nhật ứng dụng"
-      className="flex items-center justify-center p-4 select-none mobile-scrim-enter pointer-events-auto"
+      className="flex items-center justify-center p-4 select-none pointer-events-auto"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-sm bg-[#FBF9F4] dark:bg-[#262626] border-[2px] border-[#262626] dark:border-[#57534E] rounded-[8px] shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col space-y-3.5 mobile-bottom-sheet-enter"
+        className="relative w-full max-w-sm bg-[#FBF9F4] dark:bg-[#262626] border-[2px] border-[#262626] dark:border-[#57534E] rounded-[8px] shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col space-y-3.5"
       >
         {/* Paper Tape Effect */}
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-28 h-5 bg-[#FAF8F3] border-x border-[#262626]/40 rotate-1 shadow-[1px_1px_0px_#262626] pointer-events-none" />
