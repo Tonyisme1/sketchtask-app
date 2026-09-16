@@ -506,9 +506,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isTiltEnabled, setIsTiltEnabled] = useState<boolean>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_tilt`);
-      return saved !== null ? JSON.parse(saved) : true;
+      return saved !== null ? JSON.parse(saved) : false;
     } catch {
-      return true;
+      return false;
     }
   });
 
@@ -810,19 +810,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const [theme, setTheme] = useState<ColorTheme>("warm");
 
-  const [interfaceStyle, setInterfaceStyleState] = useState<InterfaceStyle>(() => {
-    try {
-      return localStorage.getItem(`${STORAGE_KEY}_interface_style`) === "ios"
-        ? "ios"
-        : "sketch";
-    } catch {
-      return "sketch";
-    }
-  });
+  const [interfaceStyle, setInterfaceStyleState] = useState<InterfaceStyle>("ios");
 
-  const setInterfaceStyle = useCallback((style: InterfaceStyle) => {
-    setInterfaceStyleState(style);
-    localStorage.setItem(`${STORAGE_KEY}_interface_style`, style);
+  const setInterfaceStyle = useCallback((_style: InterfaceStyle) => {
+    setInterfaceStyleState("ios");
+    localStorage.setItem(`${STORAGE_KEY}_interface_style`, "ios");
   }, []);
 
   // Typography preferences are local to this device and applied at the root

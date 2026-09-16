@@ -397,7 +397,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
       : SETTINGS_MENU_ITEMS.filter((item) => item.key !== "shortcuts");
   const settingsSubtitles: Partial<Record<SettingsSectionKey, string>> = {
     account: user.isSignedIn ? user.email || "Đã đăng nhập" : "Lưu cục bộ · Chưa đăng nhập",
-    general: `${interfaceStyle === "ios" ? "Hiện đại & Tối giản" : "SketchTask nguyên bản"} · ${isDarkMode ? "Tối" : "Sáng"} · ${fontSize === "normal" ? "Cỡ chữ chuẩn" : fontSize === "large" ? "Cỡ chữ lớn" : "Cỡ chữ rất lớn"}`,
+    general: `Hiện đại & Tối giản · ${isDarkMode ? "Tối" : "Sáng"} · ${fontSize === "normal" ? "Cỡ chữ chuẩn" : fontSize === "large" ? "Cỡ chữ lớn" : "Cỡ chữ rất lớn"}`,
     notifications: isNotificationsEnabled ? "Đang bật" : "Đang tắt",
     data: `${tasks.length} việc · ${journalEntries.length} nhật ký`,
     security: pinCode ? "Đã bật mã PIN" : "Chưa bật mã PIN",
@@ -844,56 +844,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
             {/* Nhóm: Phong cách & Chủ đề */}
             <SettingsGroup title="Phong cách & Màu sắc" icon={Sliders}>
               <SettingsRow
-                title="Phong cách giao diện"
-                description="Chọn phong cách phẳng tối giản hoặc phác thảo viền mực"
-              >
-                <SettingsSelect
-                  value={interfaceStyle}
-                  onChange={(val) => {
-                    setInterfaceStyle(val as InterfaceStyle);
-                    showToast(val === "ios" ? "Đã bật Hiện đại & Tối giản" : "Đã bật SketchTask nguyên bản");
-                  }}
-                  options={[
-                    {
-                      value: "sketch",
-                      label: "SketchTask nguyên bản",
-                      description: "Viền mực đậm, bóng đổ cứng & chất liệu sổ tay",
-                    },
-                    {
-                      value: "ios",
-                      label: "Hiện đại & Tối giản",
-                      description: "Giao diện phẳng, thẻ bo mềm mại, tối ưu chạm",
-                    },
-                  ]}
-                />
-              </SettingsRow>
-
-              <SettingsRow
-                title="Chất liệu nền giấy"
-                description={
-                  interfaceStyle === "ios"
-                    ? "Chỉ áp dụng khi chọn phong cách SketchTask nguyên bản"
-                    : "Họa tiết kẻ ngang, chấm bi hoặc ô ly trên trang giấy"
-                }
-                disabled={interfaceStyle === "ios"}
-              >
-                <SettingsSelect
-                  value={paperStyle}
-                  disabled={interfaceStyle === "ios"}
-                  onChange={(val) => {
-                    setPaperStyle(val as PaperStyle);
-                    showToast(`Đã chọn nền ${val}`);
-                  }}
-                  options={[
-                    { value: "blank", label: "Giấy trơn" },
-                    { value: "lined", label: "Kẻ ngang" },
-                    { value: "dots", label: "Chấm bi" },
-                    { value: "grid", label: "Ô ly" },
-                  ]}
-                />
-              </SettingsRow>
-
-              <SettingsRow
                 title="Chế độ ban đêm (Dark Mode)"
                 description="Giao diện tối dịu mắt, tiết kiệm pin cho màn hình OLED"
               >
@@ -937,22 +887,6 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                 />
               </SettingsRow>
             </SettingsGroup>
-
-            {/* Nhóm: Hiệu ứng (Desktop only) */}
-            {platform === "desktop" && (
-              <SettingsGroup title="Hiệu ứng không gian" icon={Sparkles}>
-                <SettingsRow
-                  title="Hiệu ứng nghiêng 3D khi rê chuột"
-                  description="Tạo góc nghiêng phác thảo nhẹ theo con trỏ chuột"
-                >
-                  <SettingsSwitch
-                    checked={isTiltEnabled}
-                    label="Hiệu ứng nghiêng 3D"
-                    onChange={() => setIsTiltEnabled(!isTiltEnabled)}
-                  />
-                </SettingsRow>
-              </SettingsGroup>
-            )}
           </div>
         );
 
