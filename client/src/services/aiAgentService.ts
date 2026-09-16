@@ -393,8 +393,8 @@ export function breakdownGoalPlan(topic: string, now: Date = new Date()): GoalPl
   const todayStr = getLocalTodayStr(now);
   const tomorrowStr = getNextDayStr(todayStr);
 
-  // Mẫu kế hoạch phân rã thông minh theo ngữ cảnh
-  if (lower.includes("dọn nhà") || lower.includes("dọn dẹp") || lower.includes("phòng")) {
+  // 1. Dọn dẹp & Nhà cửa
+  if (lower.includes("dọn nhà") || lower.includes("dọn dẹp") || lower.includes("phòng") || lower.includes("nhà cửa")) {
     return {
       goalTitle: cleanTopic || "Dọn dẹp nhà cửa",
       subtasks: [
@@ -433,12 +433,13 @@ export function breakdownGoalPlan(topic: string, now: Date = new Date()): GoalPl
     };
   }
 
-  if (lower.includes("học") || lower.includes("thi") || lower.includes("tiếng anh") || lower.includes("ielts")) {
+  // 2. Học tập & Ôn thi
+  if (lower.includes("học") || lower.includes("thi") || lower.includes("tiếng anh") || lower.includes("ielts") || lower.includes("ôn tập")) {
     return {
       goalTitle: cleanTopic || "Kế hoạch học tập",
       subtasks: [
         {
-          title: `Tổng hợp tài liệu và đề cương mục tiêu: ${cleanTopic}`,
+          title: `Tổng hợp tài liệu và lập đề cương cho: ${cleanTopic}`,
           dueDate: todayStr,
           timeType: "scheduled",
           startTime: "08:30",
@@ -472,7 +473,120 @@ export function breakdownGoalPlan(topic: string, now: Date = new Date()): GoalPl
     };
   }
 
-  if (lower.includes("thuyết trình") || lower.includes("báo cáo") || lower.includes("presentation")) {
+  // 3. Du lịch & Dã ngoại
+  if (lower.includes("du lịch") || lower.includes("đi chơi") || lower.includes("dã ngoại") || lower.includes("phượt") || lower.includes("nghỉ mát")) {
+    return {
+      goalTitle: cleanTopic || "Kế hoạch du lịch",
+      subtasks: [
+        {
+          title: `Lên danh sách địa điểm tham quan & đặt vé/phòng cho: ${cleanTopic}`,
+          dueDate: todayStr,
+          timeType: "scheduled",
+          startTime: "10:00",
+          priority: "high",
+          tag: "DuLich",
+        },
+        {
+          title: "Chuẩn bị hành lý, quần áo, giấy tờ tùy thân & sạc dự phòng",
+          dueDate: todayStr,
+          timeType: "deadline",
+          deadlineTime: "19:00",
+          priority: "high",
+          tag: "DuLich",
+        },
+        {
+          title: "Kiểm tra phương tiện di chuyển & dự trù ngân sách chi tiêu",
+          dueDate: tomorrowStr,
+          timeType: "scheduled",
+          startTime: "08:00",
+          priority: "medium",
+          tag: "DuLich",
+        },
+      ],
+    };
+  }
+
+  // 4. Sức khỏe & Tập luyện / Gym
+  if (lower.includes("gym") || lower.includes("tập") || lower.includes("chạy bộ") || lower.includes("giảm cân") || lower.includes("sức khỏe")) {
+    return {
+      goalTitle: cleanTopic || "Kế hoạch rèn luyện sức khỏe",
+      subtasks: [
+        {
+          title: "Khởi động làm nóng cơ thể và khớp (10 phút)",
+          dueDate: todayStr,
+          timeType: "scheduled",
+          startTime: "06:30",
+          priority: "medium",
+          tag: "SucKhoe",
+        },
+        {
+          title: `Thực hiện bài tập chính: ${cleanTopic} (45-60 phút)`,
+          dueDate: todayStr,
+          timeType: "scheduled",
+          startTime: "06:45",
+          priority: "high",
+          tag: "SucKhoe",
+        },
+        {
+          title: "Giãn cơ hồi phục và uống đủ 2 lít nước trong ngày",
+          dueDate: todayStr,
+          timeType: "task",
+          priority: "low",
+          tag: "SucKhoe",
+        },
+        {
+          title: "Theo dõi chỉ số cơ thể & ghi chép nhật ký dinh dưỡng",
+          dueDate: tomorrowStr,
+          timeType: "task",
+          priority: "low",
+          tag: "SucKhoe",
+        },
+      ],
+    };
+  }
+
+  // 5. Dự án phần mềm / Website / Công nghệ
+  if (lower.includes("website") || lower.includes("app") || lower.includes("code") || lower.includes("phần mềm") || lower.includes("dự án")) {
+    return {
+      goalTitle: cleanTopic || "Kế hoạch phát triển dự án",
+      subtasks: [
+        {
+          title: `Phân tích yêu cầu và phác thảo giao diện cho: ${cleanTopic}`,
+          dueDate: todayStr,
+          timeType: "scheduled",
+          startTime: "09:00",
+          priority: "high",
+          tag: "DuAn",
+        },
+        {
+          title: "Triển khai viết mã nguồn các tính năng cốt lõi",
+          dueDate: todayStr,
+          timeType: "deadline",
+          deadlineTime: "17:00",
+          priority: "high",
+          tag: "DuAn",
+        },
+        {
+          title: "Kiểm thử tự động, rà soát lỗi và tối ưu hiệu năng",
+          dueDate: tomorrowStr,
+          timeType: "scheduled",
+          startTime: "10:00",
+          priority: "medium",
+          tag: "DuAn",
+        },
+        {
+          title: "Đóng gói bản phát hành và cập nhật tài liệu hướng dẫn",
+          dueDate: tomorrowStr,
+          timeType: "task",
+          priority: "low",
+          tag: "DuAn",
+        },
+      ],
+    };
+  }
+
+  // 6. Thuyết trình & Báo cáo
+  if (lower.includes("thuyết trình") || lower.includes("báo cáo") || lower.includes("presentation") || lower.includes("slide")) {
     return {
       goalTitle: cleanTopic || "Chuẩn bị bài thuyết trình",
       subtasks: [
@@ -512,12 +626,12 @@ export function breakdownGoalPlan(topic: string, now: Date = new Date()): GoalPl
     };
   }
 
-  // Phân rã mục tiêu đa năng
+  // 7. Phân rã mục tiêu linh hoạt cho MỌI chủ đề bất kỳ người dùng nhập
   return {
     goalTitle: cleanTopic || "Kế hoạch thực hiện",
     subtasks: [
       {
-        title: `Nghiên cứu & Lập danh sách chuẩn bị cho: ${cleanTopic}`,
+        title: `Giai đoạn 1: Chuẩn bị tài liệu & nguồn lực cho "${cleanTopic}"`,
         dueDate: todayStr,
         timeType: "scheduled",
         startTime: "09:00",
@@ -525,22 +639,23 @@ export function breakdownGoalPlan(topic: string, now: Date = new Date()): GoalPl
         tag: "KeHoach",
       },
       {
-        title: `Bắt tay triển khai giai đoạn 1: ${cleanTopic}`,
+        title: `Giai đoạn 2: Bắt tay triển khai hành động chính của "${cleanTopic}"`,
         dueDate: todayStr,
         timeType: "deadline",
-        deadlineTime: "16:00",
-        priority: "medium",
+        deadlineTime: "16:30",
+        priority: "high",
         tag: "KeHoach",
       },
       {
-        title: "Kiểm tra tiến độ, đánh giá kết quả & sửa đổi",
+        title: `Giai đoạn 3: Kiểm tra tiến độ & khắc phục các phát sinh`,
         dueDate: tomorrowStr,
-        timeType: "task",
+        timeType: "scheduled",
+        startTime: "10:00",
         priority: "medium",
         tag: "KeHoach",
       },
       {
-        title: "Hoàn tất và lưu trữ tài liệu tổng kết",
+        title: `Giai đoạn 4: Hoàn tất, đánh giá kết quả và tổng kết`,
         dueDate: tomorrowStr,
         timeType: "task",
         priority: "low",
