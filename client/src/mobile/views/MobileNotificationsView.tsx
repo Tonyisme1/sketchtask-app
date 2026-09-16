@@ -131,108 +131,48 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
   };
 
   return (
-    <div className="w-full space-y-4 pb-28 select-none animate-in fade-in duration-200">
+    <div className="w-full space-y-3.5 pb-28 select-none">
       {/* Toast thông báo dời ngày thành công */}
       {rescheduleToast && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] px-4 py-2 rounded-2xl shadow-xl text-xs font-bold flex items-center gap-2 animate-in fade-in slide-in-from-top-4 duration-200">
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] px-4 py-2 rounded-2xl shadow-xl text-xs font-bold flex items-center gap-2">
           <CheckCircle2 size={15} className="text-emerald-400 dark:text-emerald-600" />
           <span>Đã dời tất cả công việc quá hạn sang Hôm nay!</span>
         </div>
       )}
 
-      {/* 1. THẺ THỐNG KÊ TỔNG QUAN (METRIC SUMMARY CARDS) */}
-      <div className="grid grid-cols-3 gap-2">
-        {/* Card Quá Hạn */}
-        <button
-          type="button"
-          onClick={() => setActiveFilter("overdue")}
-          className={`p-3 rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between active:scale-[0.98] ${
-            activeFilter === "overdue"
-              ? "bg-[#F2F2F7] dark:bg-[#2C2C2E] border-[#1C1C1E] dark:border-white shadow-xs"
-              : "bg-white dark:bg-[#1C1C1E] border-[#E5E5EA] dark:border-[#2C2C2E] hover:bg-[#F2F2F7]/50"
-          }`}
-        >
-          <div className="flex items-center justify-between w-full">
-            <span className="w-7 h-7 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 flex items-center justify-center">
-              <AlertTriangle size={14} strokeWidth={2.4} />
+      {/* 1. SMART BATCH BANNER (Hiển thị khi có việc quá hạn) */}
+      {overdueTasks.length > 0 && (activeFilter === "all" || activeFilter === "overdue") && (
+        <div className="bg-rose-500/10 border border-rose-500/20 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="w-8 h-8 rounded-xl bg-rose-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+              <AlertTriangle size={16} strokeWidth={2.4} />
             </span>
-            <span className="font-mono text-base font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-              {overdueTasks.length}
-            </span>
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-rose-600 dark:text-rose-400 leading-tight">
+                {overdueTasks.length} việc quá hạn cần xử lý
+              </p>
+              <p className="text-[10px] text-[#8E8E93] dark:text-[#aeaeb2] mt-0.5">
+                Dời sang hôm nay để không bỏ sót
+              </p>
+            </div>
           </div>
-          <div className="mt-2">
-            <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-              Quá hạn
-            </p>
-            <p className="text-[10px] text-[#8E8E93] dark:text-[#aeaeb2] mt-0.5">
-              Cần xử lý
-            </p>
-          </div>
-        </button>
 
-        {/* Card Hôm Nay */}
-        <button
-          type="button"
-          onClick={() => setActiveFilter("today")}
-          className={`p-3 rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between active:scale-[0.98] ${
-            activeFilter === "today"
-              ? "bg-[#F2F2F7] dark:bg-[#2C2C2E] border-[#1C1C1E] dark:border-white shadow-xs"
-              : "bg-white dark:bg-[#1C1C1E] border-[#E5E5EA] dark:border-[#2C2C2E] hover:bg-[#F2F2F7]/50"
-          }`}
-        >
-          <div className="flex items-center justify-between w-full">
-            <span className="w-7 h-7 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-              <Clock size={14} strokeWidth={2.4} />
-            </span>
-            <span className="font-mono text-base font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-              {todayDueTasks.length}
-            </span>
-          </div>
-          <div className="mt-2">
-            <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-              Hôm nay
-            </p>
-            <p className="text-[10px] text-[#8E8E93] dark:text-[#aeaeb2] mt-0.5">
-              Đến hạn
-            </p>
-          </div>
-        </button>
+          <button
+            type="button"
+            onClick={handleRescheduleAllOverdueToToday}
+            className="px-3 py-1.5 rounded-xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] text-xs font-bold shrink-0 transition-all active:scale-95 shadow-xs cursor-pointer"
+          >
+            Dời tất cả
+          </button>
+        </div>
+      )}
 
-        {/* Card Đã Xong */}
-        <button
-          type="button"
-          onClick={() => setActiveFilter("completed")}
-          className={`p-3 rounded-2xl border transition-all cursor-pointer text-left flex flex-col justify-between active:scale-[0.98] ${
-            activeFilter === "completed"
-              ? "bg-[#F2F2F7] dark:bg-[#2C2C2E] border-[#1C1C1E] dark:border-white shadow-xs"
-              : "bg-white dark:bg-[#1C1C1E] border-[#E5E5EA] dark:border-[#2C2C2E] hover:bg-[#F2F2F7]/50"
-          }`}
-        >
-          <div className="flex items-center justify-between w-full">
-            <span className="w-7 h-7 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-              <CheckCircle2 size={14} strokeWidth={2.4} />
-            </span>
-            <span className="font-mono text-base font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-              {completedTodayTasks.length}
-            </span>
-          </div>
-          <div className="mt-2">
-            <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-              Đã xong
-            </p>
-            <p className="text-[10px] text-[#8E8E93] dark:text-[#aeaeb2] mt-0.5">
-              Hôm nay
-            </p>
-          </div>
-        </button>
-      </div>
-
-      {/* 2. THANH BỘ LỌC PHÂN TẦNG (SEGMENTED FILTER TABS) */}
+      {/* 2. THANH BỘ LỌC PHÂN TẦNG ĐƠN NHẤT (UNIFIED SEGMENTED TABS) */}
       <div className="bg-[#F2F2F7] dark:bg-[#2C2C2E] p-1 rounded-2xl flex items-center gap-1">
         <button
           type="button"
           onClick={() => setActiveFilter("all")}
-          className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
+          className={`flex-1 py-2 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
             activeFilter === "all"
               ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs font-bold"
               : "text-[#8E8E93] dark:text-[#aeaeb2] hover:text-[#1C1C1E] dark:hover:text-white"
@@ -247,7 +187,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
         <button
           type="button"
           onClick={() => setActiveFilter("overdue")}
-          className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
+          className={`flex-1 py-2 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
             activeFilter === "overdue"
               ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs font-bold"
               : "text-[#8E8E93] dark:text-[#aeaeb2] hover:text-[#1C1C1E] dark:hover:text-white"
@@ -262,7 +202,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
         <button
           type="button"
           onClick={() => setActiveFilter("today")}
-          className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
+          className={`flex-1 py-2 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
             activeFilter === "today"
               ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs font-bold"
               : "text-[#8E8E93] dark:text-[#aeaeb2] hover:text-[#1C1C1E] dark:hover:text-white"
@@ -277,7 +217,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
         <button
           type="button"
           onClick={() => setActiveFilter("completed")}
-          className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
+          className={`flex-1 py-2 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 ${
             activeFilter === "completed"
               ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs font-bold"
               : "text-[#8E8E93] dark:text-[#aeaeb2] hover:text-[#1C1C1E] dark:hover:text-white"
@@ -290,28 +230,8 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
         </button>
       </div>
 
-      {/* 3. BATCH ACTIONS TOOLBAR (Khi có việc quá hạn) */}
-      {overdueTasks.length > 0 && (activeFilter === "all" || activeFilter === "overdue") && (
-        <div className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-3 flex items-center justify-between gap-3 shadow-xs">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-rose-500" />
-            <span className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
-              {overdueTasks.length} việc quá hạn
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleRescheduleAllOverdueToToday}
-            className="px-3.5 py-1.5 rounded-xl bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] text-xs font-bold transition-all active:scale-95 shadow-xs cursor-pointer"
-          >
-            <span>Dời sang Hôm nay</span>
-          </button>
-        </div>
-      )}
-
-      {/* 4. NỘI DUNG DANH SÁCH THÔNG BÁO */}
-      <div className="space-y-4">
+      {/* 3. NỘI DUNG DANH SÁCH THÔNG BÁO */}
+      <div className="space-y-3.5">
         {/* Trường hợp: Không có bất kỳ thông báo nào */}
         {totalActiveAlerts === 0 && activeFilter !== "completed" && (
           <div className="text-center py-14 px-4 bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-xs space-y-3">
@@ -331,7 +251,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
 
         {/* SECTION 1: VIỆC QUÁ HẠN */}
         {(activeFilter === "all" || activeFilter === "overdue") && overdueGroups.length > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             <div className="flex items-center justify-between px-1 text-xs font-bold text-rose-600 dark:text-rose-400">
               <span className="flex items-center gap-1.5">
                 <AlertTriangle size={13} strokeWidth={2.4} />
