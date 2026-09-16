@@ -109,13 +109,13 @@ export const TabletNav: React.FC<TabletNavProps> = ({
 
   return (
     <nav
-      className={`fixed bottom-0 left-0 right-0 z-40 bg-[#FBF9F4] border-t-[1.5px] border-[#262626]/25 px-4 py-2 pb-[max(env(safe-area-inset-bottom),8px)] select-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform shadow-[0px_-2px_0px_#262626] ${
-        shouldHideNav ? "translate-y-full pointer-events-none" : "translate-y-0"
+      className={`fixed bottom-4 left-0 right-0 z-40 flex justify-center px-4 select-none pointer-events-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform ${
+        shouldHideNav ? "translate-y-24" : "translate-y-0"
       }`}
       aria-label="Điều hướng chính Tablet"
     >
-      <div className="grid grid-cols-4 gap-2 max-w-lg mx-auto items-center">
-        {navItems.map(({ key, label, shortLabel, icon: Icon, activeClass }) => {
+      <div className="pointer-events-auto bg-white/92 dark:bg-[#1C1C1E]/92 backdrop-blur-2xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-full p-1.5 shadow-2xl shadow-black/10 flex items-center gap-1">
+        {navItems.map(({ key, label, shortLabel, icon: Icon }) => {
           const isActive = isNavItemActive(activeTab, activeTaskSubTab, key);
           return (
             <button
@@ -124,15 +124,15 @@ export const TabletNav: React.FC<TabletNavProps> = ({
               onClick={() => onTabChange(key)}
               aria-label={label}
               title={label}
-              className={`relative min-h-[52px] flex flex-col items-center justify-center gap-1 px-2 rounded-[6px] border transition-all duration-150 cursor-pointer ${
+              className={`relative min-h-[44px] flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-150 cursor-pointer ${
                 isActive
-                  ? `${activeClass} border-[#262626] shadow-[2px_2px_0px_#262626] -translate-y-[1px]`
-                  : "bg-transparent border-transparent text-[#78716C] hover:text-[#1C1917] hover:bg-white/70"
-              } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
+                  ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] shadow-sm font-bold"
+                  : "bg-transparent text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 font-semibold"
+              } active:scale-95`}
             >
-              <Icon size={20} strokeWidth={isActive ? 2.4 : 2} />
-              <span className={`text-xs leading-tight whitespace-nowrap ${isActive ? "font-black text-white" : "font-bold"}`}>
-                {shortLabel}
+              <Icon size={18} strokeWidth={isActive ? 2.4 : 2} />
+              <span className="text-xs leading-tight whitespace-nowrap">
+                {label}
               </span>
             </button>
           );

@@ -16,7 +16,7 @@ export interface SketchTabsProps<TKey extends string> {
   className?: string;
 }
 
-// === PHẦN 1: Thanh tab nét mực dùng chung cho các workspace ===
+// === PHẦN 1: Thanh tab Segmented Control tối giản dùng chung ===
 export function SketchTabs<TKey extends string>({
   value,
   items,
@@ -26,12 +26,12 @@ export function SketchTabs<TKey extends string>({
   className = "",
 }: SketchTabsProps<TKey>) {
   const itemSize =
-    size === "md" ? "px-3.5 py-2 text-[13px]" : "px-3 py-1.5 text-xs";
+    size === "md" ? "px-4 py-2 text-[13px]" : "px-3 py-1.5 text-xs";
 
   return (
     <nav
       aria-label={ariaLabel}
-      className={`flex min-w-0 items-center gap-1 overflow-x-auto border-b-[1.5px] border-[#262626] pb-2 no-scrollbar ${className}`}
+      className={`inline-flex min-w-0 items-center gap-1 p-1 bg-black/[0.05] dark:bg-white/[0.08] rounded-xl overflow-x-auto no-scrollbar select-none ${className}`}
     >
       {items.map((item) => {
         const isActive = item.key === value;
@@ -43,10 +43,10 @@ export function SketchTabs<TKey extends string>({
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(item.key)}
-            className={`inline-flex shrink-0 items-center gap-1.5 border-[1.5px] border-[#262626] font-bold transition-all active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${itemSize} ${
+            className={`inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg font-semibold transition-all cursor-pointer active:scale-[0.98] ${itemSize} ${
               isActive
-                ? "bg-[#1C1917] text-white shadow-none"
-                : "bg-white text-[#57534E] shadow-[1.5px_1.5px_0px_#262626] hover:bg-[#FAF8F3] hover:text-[#1C1917]"
+                ? "bg-white dark:bg-[#3A3A3C] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs"
+                : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
             }`}
           >
             {item.icon}

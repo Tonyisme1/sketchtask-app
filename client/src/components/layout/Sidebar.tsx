@@ -30,7 +30,7 @@ export interface SidebarProps {
 }
 
 const baseItemClass =
-  "w-full flex items-center justify-between px-3 py-2.5 rounded-[6px] text-xs font-bold transition-all cursor-pointer active:translate-x-[1px] active:translate-y-[1px] active:shadow-none";
+  "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer select-none active:scale-[0.98]";
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCreateTask }) => {
   const {
@@ -85,12 +85,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
       onClick={onClick}
       className={`${baseItemClass} ${
         isActive
-          ? `bg-[#1C1917] text-white border-[1.5px] border-[#1C1917] shadow-[2px_2px_0px_#262626]`
-          : "bg-transparent text-[#57534E] hover:bg-white hover:text-[#1C1917]"
+          ? "bg-black/[0.08] dark:bg-white/[0.12] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold shadow-xs"
+          : "bg-transparent text-[#8E8E93] dark:text-[#8E8E93] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
       }`}
     >
       <span className="flex items-center gap-3 min-w-0">
-        {icon}
+        <span className={isActive ? "text-[#007AFF] dark:text-[#0A84FF]" : "text-[#8E8E93] dark:text-[#8E8E93]"}>
+          {icon}
+        </span>
         <span className="tracking-tight truncate">{label}</span>
       </span>
       {trailing}
@@ -107,14 +109,16 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
     <button
       type="button"
       onClick={onClick}
-      className={`w-full flex items-center justify-between pl-10 pr-3 py-2 rounded-[5px] text-xs font-bold transition-all cursor-pointer active:translate-x-[1px] active:translate-y-[1px] active:shadow-none ${
+      className={`w-full flex items-center justify-between pl-9 pr-3 py-2 rounded-lg text-xs transition-all cursor-pointer select-none active:scale-[0.98] ${
         isActive
-          ? "bg-[#1C1917] text-white border border-[#1C1917]"
-          : "text-[#78716C] hover:bg-white hover:text-[#1C1917]"
+          ? "bg-black/[0.06] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold"
+          : "text-[#8E8E93] dark:text-[#8E8E93] hover:bg-black/[0.03] dark:hover:bg-white/[0.04] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
       }`}
     >
       <span className="flex items-center gap-2 min-w-0">
-        {icon}
+        <span className={isActive ? "text-[#007AFF] dark:text-[#0A84FF]" : "text-[#8E8E93] dark:text-[#8E8E93]"}>
+          {icon}
+        </span>
         <span className="truncate">{label}</span>
       </span>
       {trailing}
@@ -123,17 +127,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
 
   if (!isSidebarOpen) {
     return (
-      <aside className="hidden md:flex flex-col items-center h-[calc(100vh-56px)] sticky top-14 bg-[#FBF9F4] border-r-[1.5px] border-[#262626]/20 select-none z-20 shrink-0 w-[72px] py-3 px-1 transition-[width] duration-200">
+      <aside className="hidden md:flex flex-col items-center h-[calc(100vh-60px)] sticky top-[60px] bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-r border-[#E5E5EA] dark:border-[#2C2C2E] select-none z-20 shrink-0 w-[72px] py-3 px-2 transition-[width] duration-200">
         {onCreateTask && (
           <button
             type="button"
             onClick={onCreateTask}
             title="Tạo công việc mới"
             aria-label="Tạo công việc mới"
-            className="w-full py-2.5 px-1 mb-1 rounded-[6px] flex flex-col items-center justify-center gap-1 bg-[#FEF08A] text-[#1C1917] border-[1.5px] border-[#262626] transition-all cursor-pointer active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+            className="w-full py-2.5 px-1 mb-2 rounded-xl flex flex-col items-center justify-center gap-1 bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] shadow-sm hover:opacity-90 transition-all cursor-pointer active:scale-95"
           >
-            <Plus size={18} strokeWidth={2.8} />
-            <span className="text-[10px] leading-none truncate font-bold">Tạo mới</span>
+            <Plus size={18} strokeWidth={2.4} />
+            <span className="text-[10px] leading-none truncate font-semibold">Tạo mới</span>
           </button>
         )}
         <nav className="flex flex-col items-center gap-1 w-full" aria-label="Không gian chính">
@@ -141,53 +145,53 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
             type="button"
             onClick={goToday}
             title="Hôm nay"
-            className={`w-full py-2.5 px-1 rounded-[6px] flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+            className={`w-full py-2.5 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
               isTodayActive
-                ? `bg-[#1C1917] text-white border-[1.5px] border-[#1C1917] shadow-[1.5px_1.5px_0px_#262626]`
-                : "text-[#57534E] hover:bg-white hover:text-[#1C1917]"
-            } active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
+                ? "bg-black/[0.08] dark:bg-white/[0.12] text-[#007AFF] dark:text-[#0A84FF] font-semibold"
+                : "text-[#8E8E93] dark:text-[#8E8E93] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-[#1C1C1E] dark:hover:text-white"
+            } active:scale-95`}
           >
-            <Sun size={18} strokeWidth={2.4} />
-            <span className="text-[10px] leading-none truncate font-bold">Nay</span>
+            <Sun size={18} strokeWidth={2.2} />
+            <span className="text-[10px] leading-none truncate font-medium">Nay</span>
           </button>
           <button
             type="button"
             onClick={goTasks}
             title="Công việc"
-            className={`w-full py-2.5 px-1 rounded-[6px] flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+            className={`w-full py-2.5 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
               isTasksActive
-                ? `bg-[#1C1917] text-white border-[1.5px] border-[#1C1917] shadow-[1.5px_1.5px_0px_#262626]`
-                : "text-[#57534E] hover:bg-white hover:text-[#1C1917]"
-            } active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
+                ? "bg-black/[0.08] dark:bg-white/[0.12] text-[#007AFF] dark:text-[#0A84FF] font-semibold"
+                : "text-[#8E8E93] dark:text-[#8E8E93] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-[#1C1C1E] dark:hover:text-white"
+            } active:scale-95`}
           >
-            <CheckSquare size={18} strokeWidth={2.4} />
-            <span className="text-[10px] leading-none truncate font-bold">Việc</span>
+            <CheckSquare size={18} strokeWidth={2.2} />
+            <span className="text-[10px] leading-none truncate font-medium">Việc</span>
           </button>
           <button
             type="button"
             onClick={() => onTabChange("notes")}
             title="Ghi chép"
-            className={`w-full py-2.5 px-1 rounded-[6px] flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+            className={`w-full py-2.5 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
               isNotesActive
-                ? `bg-[#1C1917] text-white border-[1.5px] border-[#1C1917] shadow-[1.5px_1.5px_0px_#262626]`
-                : "text-[#57534E] hover:bg-white hover:text-[#1C1917]"
-            } active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
+                ? "bg-black/[0.08] dark:bg-white/[0.12] text-[#007AFF] dark:text-[#0A84FF] font-semibold"
+                : "text-[#8E8E93] dark:text-[#8E8E93] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-[#1C1C1E] dark:hover:text-white"
+            } active:scale-95`}
           >
-            <FilePenLine size={18} strokeWidth={2.4} />
-            <span className="text-[10px] leading-none truncate font-bold">Ghi</span>
+            <FilePenLine size={18} strokeWidth={2.2} />
+            <span className="text-[10px] leading-none truncate font-medium">Ghi</span>
           </button>
           <button
             type="button"
             onClick={() => onTabChange("ai")}
             title="Trợ lý AI"
-            className={`w-full py-2.5 px-1 rounded-[6px] flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
+            className={`w-full py-2.5 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
               isAiActive
-                ? `bg-[#1C1917] text-white border-[1.5px] border-[#1C1917] shadow-[1.5px_1.5px_0px_#262626]`
-                : "text-[#57534E] hover:bg-white hover:text-[#1C1917]"
-            } active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
+                ? "bg-black/[0.08] dark:bg-white/[0.12] text-[#007AFF] dark:text-[#0A84FF] font-semibold"
+                : "text-[#8E8E93] dark:text-[#8E8E93] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-[#1C1C1E] dark:hover:text-white"
+            } active:scale-95`}
           >
-            <Sparkles size={18} strokeWidth={2.4} />
-            <span className="text-[10px] leading-none truncate font-bold">AI</span>
+            <Sparkles size={18} strokeWidth={2.2} />
+            <span className="text-[10px] leading-none truncate font-medium">AI</span>
           </button>
         </nav>
       </aside>
@@ -195,30 +199,32 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
   }
 
   return (
-    <aside className="hidden md:flex flex-col h-[calc(100vh-56px)] sticky top-14 bg-[#FBF9F4] border-r-[1.5px] border-[#262626]/20 select-none z-20 shrink-0 w-60 p-3 transition-[width] duration-200">
+    <aside className="hidden md:flex flex-col h-[calc(100vh-60px)] sticky top-[60px] bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-r border-[#E5E5EA] dark:border-[#2C2C2E] select-none z-20 shrink-0 w-60 p-3 transition-[width] duration-200">
       <nav className="flex flex-col gap-1 overflow-y-auto no-scrollbar" aria-label="Không gian chính">
         {onCreateTask && (
           <button
             type="button"
             onClick={onCreateTask}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mb-1 rounded-[6px] text-xs font-bold bg-[#FEF08A] text-[#1C1917] border-[1.5px] border-[#262626] shadow-[1.5px_1.5px_0px_#262626] hover:bg-[#FDE047] transition-all cursor-pointer active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mb-2 rounded-xl text-xs font-semibold bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] shadow-sm hover:opacity-90 transition-all cursor-pointer active:scale-[0.98]"
           >
-            <Plus size={17} strokeWidth={2.8} />
+            <Plus size={16} strokeWidth={2.4} />
             <span>Tạo mới</span>
           </button>
         )}
-        <p className="text-[10px] font-black uppercase tracking-wider text-[#A8A29E] px-3 py-1.5 font-mono">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-[#8E8E93] px-3 py-1.5 font-mono">
           Không gian
         </p>
 
         {renderWorkspaceButton(
           "Nay",
-          <Sun size={17} strokeWidth={2.4} className="shrink-0" />,
+          <Sun size={17} strokeWidth={2.2} className="shrink-0" />,
           isTodayActive,
           goToday,
           pendingTodayCount > 0 ? (
-            <span className={`font-mono text-[10px] px-2 py-0.5 rounded-[3px] font-bold ${
-              isTodayActive ? "bg-white text-[#1C1917]" : "bg-[#FAF8F3] text-[#1C1917] border border-[#262626]"
+            <span className={`font-mono text-[10px] px-2 py-0.5 rounded-md font-semibold ${
+              isTodayActive
+                ? "bg-[#007AFF] text-white"
+                : "bg-black/[0.05] dark:bg-white/[0.1] text-[#8E8E93]"
             }`}>
               {pendingTodayCount}
             </span>
@@ -227,7 +233,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
 
         {renderWorkspaceButton(
           "Việc",
-          <CheckSquare size={17} strokeWidth={2.4} className="shrink-0" />,
+          <CheckSquare size={17} strokeWidth={2.2} className="shrink-0" />,
           isTasksActive,
           goTasks,
         )}
@@ -236,7 +242,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
           <div className="space-y-0.5 pb-1" aria-label="Chế độ Công việc">
             {renderSubButton(
               "Kế hoạch",
-              <CalendarIcon size={14} strokeWidth={2.4} />,
+              <CalendarIcon size={14} strokeWidth={2.2} />,
               activeTaskSubTab === "planner",
               () => {
                 setActiveTaskSubTab("planner");
@@ -245,17 +251,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
             )}
             {renderSubButton(
               "Hạn định",
-              <Hourglass size={14} strokeWidth={2.4} />,
+              <Hourglass size={14} strokeWidth={2.2} />,
               activeTaskSubTab === "deadlines",
               () => {
                 setActiveTaskSubTab("deadlines");
                 onTabChange("tasks");
               },
               deadlineAlertTotal > 0 ? (
-                <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded-[3px] font-bold ${
+                <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
                   activeTaskSubTab === "deadlines"
-                    ? "bg-white text-[#1C1917]"
-                    : "bg-[#1C1917] text-white border border-[#1C1917]"
+                    ? "bg-[#FF3B30] text-white"
+                    : "bg-[#FF3B30]/10 text-[#FF3B30]"
                 }`}>
                   {deadlineAlertTotal}
                 </span>
@@ -266,12 +272,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
 
         {renderWorkspaceButton(
           "Ghi",
-          <FilePenLine size={17} strokeWidth={2.4} className="shrink-0" />,
+          <FilePenLine size={17} strokeWidth={2.2} className="shrink-0" />,
           isNotesActive,
           () => onTabChange("notes"),
           notesCount + journalEntries.length > 0 ? (
-            <span className={`font-mono text-[10px] px-2 py-0.5 rounded-[3px] font-bold ${
-              isNotesActive ? "bg-white text-[#1C1917]" : "bg-[#FAF8F3] text-[#78716C] border border-[#D4CEBF]"
+            <span className={`font-mono text-[10px] px-2 py-0.5 rounded-md font-semibold ${
+              isNotesActive
+                ? "bg-[#007AFF] text-white"
+                : "bg-black/[0.05] dark:bg-white/[0.1] text-[#8E8E93]"
             }`}>
               {notesCount + journalEntries.length}
             </span>
@@ -282,20 +290,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
           <div className="space-y-0.5 pb-1" aria-label="Chế độ Ghi chép">
             {renderSubButton(
               "Ghi chú",
-              <FileText size={14} strokeWidth={2.4} />,
+              <FileText size={14} strokeWidth={2.2} />,
               activeTab === "notes",
               () => onTabChange("notes"),
               notesCount > 0 ? (
-                <span className="font-mono text-[10px] text-[#78716C]">{notesCount}</span>
+                <span className="font-mono text-[10px] text-[#8E8E93]">{notesCount}</span>
               ) : undefined,
             )}
             {renderSubButton(
               "Nhật ký",
-              <BookOpen size={14} strokeWidth={2.4} />,
+              <BookOpen size={14} strokeWidth={2.2} />,
               activeTab === "journal",
               () => onTabChange("journal"),
               journalEntries.length > 0 ? (
-                <span className="font-mono text-[10px] text-[#78716C]">{journalEntries.length}</span>
+                <span className="font-mono text-[10px] text-[#8E8E93]">{journalEntries.length}</span>
               ) : undefined,
             )}
           </div>
@@ -303,7 +311,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
 
         {renderWorkspaceButton(
           "Trợ lý AI",
-          <Sparkles size={17} strokeWidth={2.4} className="shrink-0 text-amber-600" />,
+          <Sparkles size={17} strokeWidth={2.2} className="shrink-0 text-amber-500" />,
           isAiActive,
           () => onTabChange("ai"),
         )}

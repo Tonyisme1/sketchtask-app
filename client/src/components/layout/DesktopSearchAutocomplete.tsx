@@ -132,12 +132,14 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
     <div ref={containerRef} className="relative w-full max-w-md lg:max-w-lg mx-3 select-none">
       {/* Search Input Box */}
       <div
-        className={`flex items-center justify-between px-3 py-1.5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[2px_2px_0px_#262626] transition-all ${
-          isOpen ? "ring-2 ring-[#1C1917] bg-[#FFFDF8]" : "hover:bg-[#FFFDF8]"
+        className={`flex items-center justify-between px-3 py-2 bg-black/[0.04] dark:bg-white/[0.08] border border-transparent rounded-xl transition-all ${
+          isOpen
+            ? "ring-2 ring-[#007AFF] bg-white dark:bg-[#2C2C2E] shadow-sm"
+            : "hover:bg-black/[0.06] dark:hover:bg-white/[0.12]"
         }`}
       >
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
-          <Search size={15} strokeWidth={2.4} className="shrink-0 text-[#1C1917]" />
+          <Search size={15} strokeWidth={2.2} className="shrink-0 text-[#8E8E93]" />
           <input
             ref={inputRef}
             type="text"
@@ -148,7 +150,7 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
             }}
             onFocus={() => setIsOpen(true)}
             placeholder="Tìm kiếm việc, ghi chú, nhật ký... (Ctrl + K)"
-            className="w-full bg-transparent text-xs font-semibold text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none"
+            className="w-full bg-transparent text-xs font-medium text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus:outline-none"
           />
         </div>
 
@@ -159,141 +161,147 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
               setQuery("");
               inputRef.current?.focus();
             }}
-            className="p-1 text-[#78716C] hover:text-[#1C1917] cursor-pointer shrink-0"
+            className="p-1 text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7] cursor-pointer shrink-0 rounded-md hover:bg-black/[0.05] dark:hover:bg-white/[0.1]"
             title="Xóa"
           >
-            <X size={14} strokeWidth={2.4} />
+            <X size={14} strokeWidth={2.2} />
           </button>
         ) : (
-          <kbd className="font-mono text-[10px] font-bold text-[#78716C] bg-[#FAF8F3] px-1.5 py-0.5 rounded border border-[#D4CEBF] shrink-0 ml-1">
+          <kbd className="font-mono text-[10px] font-semibold text-[#8E8E93] bg-black/[0.05] dark:bg-white/[0.1] px-1.5 py-0.5 rounded-md shrink-0 ml-1">
             Ctrl + K
           </kbd>
         )}
       </div>
 
-      {/* DROPDOWN MENU SỔ XUỐNG DƯỚI THANH TÌM KIẾM (Chuẩn ảnh YouTube) */}
+      {/* DROPDOWN MENU SỔ XUỐNG DƯỚI THANH TÌM KIẾM */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1.5 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] shadow-[4px_4px_0px_#262626] py-2 z-50 max-h-[380px] overflow-y-auto no-scrollbar animate-in fade-in slide-in-from-top-1 duration-150 divide-y divide-[#E7E5E4]">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-2xl py-2.5 z-50 max-h-[380px] overflow-y-auto no-scrollbar animate-in fade-in slide-in-from-top-1 duration-150">
           {/* Header gợi ý */}
-          <div className="px-3 pb-1.5 flex items-center justify-between text-[10px] font-mono font-bold uppercase tracking-wider text-[#78716C]">
+          <div className="px-3 pb-2 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-wider text-[#8E8E93] border-b border-[#E5E5EA] dark:border-[#2C2C2E] mb-1">
             <span>{searchResults.isSuggestion ? "Gợi ý gần đây" : `Kết quả (${totalResults})`}</span>
-            <span className="text-[#A8A29E]">ESC để đóng</span>
+            <span className="text-[#8E8E93]/70">ESC để đóng</span>
           </div>
 
           {totalResults === 0 ? (
-            <div className="py-6 text-center text-xs text-[#78716C] font-mono">
+            <div className="py-8 text-center text-xs text-[#8E8E93] font-mono">
               Không tìm thấy kết quả nào cho &quot;{query}&quot;
             </div>
           ) : (
-            <div className="py-1 space-y-0.5">
+            <div className="px-1.5 py-0.5 space-y-2">
               {/* 1. Công việc (Tasks) */}
               {searchResults.tasks.length > 0 && (
                 <div>
-                  <div className="px-3 py-1 text-[10px] font-bold font-mono text-[#78716C] uppercase flex items-center gap-1">
-                    <CheckSquare size={11} className="text-[#1C1917]" />
+                  <div className="px-2.5 py-1 text-[10px] font-semibold font-mono text-[#8E8E93] uppercase flex items-center gap-1.5">
+                    <CheckSquare size={11} className="text-[#007AFF]" />
                     <span>Việc cần làm</span>
                   </div>
-                  {searchResults.tasks.map((task) => {
-                    const effectiveDate = getTaskEffectiveDate(task);
-                    const effectiveTime = getTaskEffectiveTime(task);
-                    return (
-                      <button
-                        key={task.id}
-                        type="button"
-                        onClick={() => handleSelectTask(task.id, effectiveDate)}
-                        className="w-full px-3 py-2 text-left flex items-center justify-between gap-2 hover:bg-[#FAF8F3] transition-colors cursor-pointer group"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          {searchResults.isSuggestion ? (
-                            <Clock size={13} className="text-[#A8A29E] shrink-0" />
-                          ) : (
-                            <CheckSquare size={13} className="text-[#1C1917] shrink-0" />
-                          )}
-                          <div className="min-w-0">
-                            <p className="text-xs font-bold text-[#1C1917] truncate leading-tight">
-                              {task.title}
-                            </p>
-                            {(effectiveDate || effectiveTime) && (
-                              <p className="text-[10px] text-[#78716C] font-mono truncate flex items-center gap-1 mt-0.5">
-                                {effectiveDate && (
-                                  <span className="flex items-center gap-0.5">
-                                    <Calendar size={9} /> {effectiveDate}
-                                  </span>
-                                )}
-                                {effectiveTime && <span>• {effectiveTime}</span>}
-                              </p>
+                  <div className="space-y-0.5 mt-0.5">
+                    {searchResults.tasks.map((task) => {
+                      const effectiveDate = getTaskEffectiveDate(task);
+                      const effectiveTime = getTaskEffectiveTime(task);
+                      return (
+                        <button
+                          key={task.id}
+                          type="button"
+                          onClick={() => handleSelectTask(task.id, effectiveDate)}
+                          className="w-full px-2.5 py-2 rounded-xl text-left flex items-center justify-between gap-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer group"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            {searchResults.isSuggestion ? (
+                              <Clock size={13} className="text-[#8E8E93] shrink-0" />
+                            ) : (
+                              <CheckSquare size={13} className="text-[#007AFF] shrink-0" />
                             )}
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate leading-tight">
+                                {task.title}
+                              </p>
+                              {(effectiveDate || effectiveTime) && (
+                                <p className="text-[10px] text-[#8E8E93] font-mono truncate flex items-center gap-1 mt-0.5">
+                                  {effectiveDate && (
+                                    <span className="flex items-center gap-0.5">
+                                      <Calendar size={9} /> {effectiveDate}
+                                    </span>
+                                  )}
+                                  {effectiveTime && <span>• {effectiveTime}</span>}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                        </div>
 
-                        <ArrowRight size={12} className="text-[#A8A29E] group-hover:text-[#1C1917] shrink-0" />
-                      </button>
-                    );
-                  })}
+                          <ArrowRight size={12} className="text-[#8E8E93] group-hover:text-[#007AFF] shrink-0 transition-colors" />
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
 
               {/* 2. Ghi chú (Notes) */}
               {searchResults.notes.length > 0 && (
                 <div className="pt-1">
-                  <div className="px-3 py-1 text-[10px] font-bold font-mono text-[#78716C] uppercase flex items-center gap-1">
-                    <FileText size={11} className="text-[#1C1917]" />
+                  <div className="px-2.5 py-1 text-[10px] font-semibold font-mono text-[#8E8E93] uppercase flex items-center gap-1.5">
+                    <FileText size={11} className="text-[#FF9500]" />
                     <span>Ghi chú</span>
                   </div>
-                  {searchResults.notes.map((note) => (
-                    <button
-                      key={note.id}
-                      type="button"
-                      onClick={() => handleSelectNote(note.id)}
-                      className="w-full px-3 py-2 text-left flex items-center justify-between gap-2 hover:bg-[#FAF8F3] transition-colors cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <FileText size={13} className="text-[#1C1917] shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-[#1C1917] truncate leading-tight">
-                            {note.title || "Ghi chú không tên"}
-                          </p>
-                          <p className="text-[10px] text-[#78716C] truncate mt-0.5">
-                            {stripHtmlText(note.content)}
-                          </p>
+                  <div className="space-y-0.5 mt-0.5">
+                    {searchResults.notes.map((note) => (
+                      <button
+                        key={note.id}
+                        type="button"
+                        onClick={() => handleSelectNote(note.id)}
+                        className="w-full px-2.5 py-2 rounded-xl text-left flex items-center justify-between gap-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer group"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <FileText size={13} className="text-[#FF9500] shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate leading-tight">
+                              {note.title || "Ghi chú không tên"}
+                            </p>
+                            <p className="text-[10px] text-[#8E8E93] truncate mt-0.5">
+                              {stripHtmlText(note.content)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
 
-                      <ArrowRight size={12} className="text-[#A8A29E] group-hover:text-[#1C1917] shrink-0" />
-                    </button>
-                  ))}
+                        <ArrowRight size={12} className="text-[#8E8E93] group-hover:text-[#FF9500] shrink-0 transition-colors" />
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
               {/* 3. Nhật ký (Journal) */}
               {searchResults.journal.length > 0 && (
                 <div className="pt-1">
-                  <div className="px-3 py-1 text-[10px] font-bold font-mono text-[#78716C] uppercase flex items-center gap-1">
-                    <BookOpen size={11} className="text-[#1C1917]" />
+                  <div className="px-2.5 py-1 text-[10px] font-semibold font-mono text-[#8E8E93] uppercase flex items-center gap-1.5">
+                    <BookOpen size={11} className="text-[#AF52DE]" />
                     <span>Nhật ký</span>
                   </div>
-                  {searchResults.journal.map((journal) => (
-                    <button
-                      key={journal.id}
-                      type="button"
-                      onClick={() => handleSelectJournal(journal.id)}
-                      className="w-full px-3 py-2 text-left flex items-center justify-between gap-2 hover:bg-[#FAF8F3] transition-colors cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <BookOpen size={13} className="text-[#1C1917] shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-xs font-bold text-[#1C1917] truncate leading-tight">
-                            Nhật ký ngày {journal.date}
-                          </p>
-                          <p className="text-[10px] text-[#78716C] truncate mt-0.5">
-                            {stripHtmlText(journal.content)}
-                          </p>
+                  <div className="space-y-0.5 mt-0.5">
+                    {searchResults.journal.map((journal) => (
+                      <button
+                        key={journal.id}
+                        type="button"
+                        onClick={() => handleSelectJournal(journal.id)}
+                        className="w-full px-2.5 py-2 rounded-xl text-left flex items-center justify-between gap-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer group"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <BookOpen size={13} className="text-[#AF52DE] shrink-0" />
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate leading-tight">
+                              Nhật ký ngày {journal.date}
+                            </p>
+                            <p className="text-[10px] text-[#8E8E93] truncate mt-0.5">
+                              {stripHtmlText(journal.content)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
 
-                      <ArrowRight size={12} className="text-[#A8A29E] group-hover:text-[#1C1917] shrink-0" />
-                    </button>
-                  ))}
+                        <ArrowRight size={12} className="text-[#8E8E93] group-hover:text-[#AF52DE] shrink-0 transition-colors" />
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 

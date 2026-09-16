@@ -178,10 +178,10 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
 
   return (
     <header
-      className={`sticky top-0 z-30 bg-[#FBF9F4]/95 backdrop-blur-md px-3.5 sm:px-5 ${
+      className={`sticky top-0 z-30 bg-white/92 dark:bg-[#1C1C1E]/92 backdrop-blur-xl border-b border-[#E5E5EA] dark:border-[#2C2C2E] px-3.5 sm:px-5 ${
         isNativePlatform()
-          ? "pt-11 pb-2"
-          : "pt-[max(env(safe-area-inset-top),12px)] pb-2"
+          ? "pt-11 pb-2.5"
+          : "pt-[max(env(safe-area-inset-top),12px)] pb-2.5"
       } transition-colors duration-200 select-none`}
     >
       <div className="relative flex items-center justify-between min-h-[40px] w-full">
@@ -192,8 +192,9 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             <button
               type="button"
               onClick={() => setSettingsMobileSubView(null)}
-              className="w-9 h-9 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] active:translate-y-[0.5px] cursor-pointer shrink-0"
+              className="w-9 h-9 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] rounded-xl flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7] active:scale-95 transition-all cursor-pointer shrink-0"
               title="Quay lại cài đặt"
+              aria-label="Quay lại cài đặt"
             >
               <ArrowLeft size={18} strokeWidth={2.4} />
             </button>
@@ -218,15 +219,15 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                   setIsTaskDropdownOpen(!isTaskDropdownOpen);
                 }
               }}
-              className="flex items-center gap-1.5 px-1.5 py-1 rounded-[6px] hover:bg-black/5 active:translate-y-[0.5px] transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-2 py-1 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
             >
-              <span className="font-black text-[20px] sm:text-[22px] text-[#1C1917] tracking-tight leading-none">
+              <span className="font-black text-[20px] sm:text-[22px] text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight leading-none">
                 {activeTaskSubTab === "today" ? "Hôm nay" : activeTaskSubTab === "deadlines" ? "Hạn định" : "Kế hoạch"}
               </span>
               <ChevronDown
                 size={18}
                 strokeWidth={2.6}
-                className={`text-[#78716C] transition-all duration-200 ${
+                className={`text-[#8E8E93] transition-all duration-200 ${
                   isScrolled
                     ? "opacity-0 w-0 -mr-1 scale-0 pointer-events-none"
                     : `opacity-100 w-4.5 ${isTaskDropdownOpen ? "rotate-180" : ""}`
@@ -235,7 +236,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             </button>
 
             {!isScrolled && isTaskDropdownOpen && (
-              <div className="absolute left-0 top-full mt-2 w-52 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-1.5 shadow-[3.5px_3.5px_0px_#262626] z-50 space-y-1">
+              <div className="absolute left-0 top-full mt-2 w-52 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in zoom-in-95 duration-150">
                 {/* 1. Hôm nay */}
                 <button
                   type="button"
@@ -244,14 +245,14 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                     setActiveTaskSubTab("today");
                     setIsTaskDropdownOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[5px] text-sm font-bold transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                     activeTaskSubTab === "today"
-                      ? "bg-[#1C1917] text-white"
-                      : "hover:bg-[#FAF8F3] text-[#57534E]"
+                      ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]"
+                      : "hover:bg-black/5 dark:hover:bg-white/10 text-[#57534E] dark:text-[#aeaeb2]"
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <Sun size={16} strokeWidth={2.4} />
+                  <div className="flex items-center gap-2.5">
+                    <Sun size={16} strokeWidth={2.2} />
                     <span>Hôm nay</span>
                   </div>
                   {activeTaskSubTab === "today" && <Check size={15} strokeWidth={2.6} />}
@@ -265,14 +266,14 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                     setActiveTaskSubTab("planner");
                     setIsTaskDropdownOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[5px] text-sm font-bold transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                     activeTaskSubTab === "planner"
-                      ? "bg-[#1C1917] text-white"
-                      : "hover:bg-[#FAF8F3] text-[#57534E]"
+                      ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]"
+                      : "hover:bg-black/5 dark:hover:bg-white/10 text-[#57534E] dark:text-[#aeaeb2]"
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <CalendarIcon size={16} strokeWidth={2.4} />
+                  <div className="flex items-center gap-2.5">
+                    <CalendarIcon size={16} strokeWidth={2.2} />
                     <span>Kế hoạch</span>
                   </div>
                   {activeTaskSubTab === "planner" && <Check size={15} strokeWidth={2.6} />}
@@ -286,14 +287,14 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                     setActiveTaskSubTab("deadlines");
                     setIsTaskDropdownOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[5px] text-sm font-bold transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                     activeTaskSubTab === "deadlines"
-                      ? "bg-[#1C1917] text-white"
-                      : "hover:bg-[#FAF8F3] text-[#57534E]"
+                      ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]"
+                      : "hover:bg-black/5 dark:hover:bg-white/10 text-[#57534E] dark:text-[#aeaeb2]"
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <Hourglass size={16} strokeWidth={2.4} />
+                  <div className="flex items-center gap-2.5">
+                    <Hourglass size={16} strokeWidth={2.2} />
                     <span>Hạn định</span>
                   </div>
                   <div className="flex items-center gap-1.5">
@@ -301,8 +302,8 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                       <span
                         className={`font-mono text-xs px-2 py-0.5 rounded-full font-bold ${
                           activeTaskSubTab === "deadlines"
-                            ? "bg-white text-[#1C1917]"
-                            : "bg-[#1C1917] text-white"
+                            ? "bg-white text-[#1C1C1E]"
+                            : "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]"
                         }`}
                       >
                         {deadlineCount}
@@ -326,15 +327,15 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                   setIsNoteDropdownOpen(!isNoteDropdownOpen);
                 }
               }}
-              className="flex items-center gap-1.5 px-1.5 py-1 rounded-[6px] hover:bg-black/5 active:translate-y-[0.5px] transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-2 py-1 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
             >
-              <span className="font-black text-[20px] sm:text-[22px] text-[#1C1917] tracking-tight leading-none">
+              <span className="font-black text-[20px] sm:text-[22px] text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight leading-none">
                 {activeTab === "journal" ? "Nhật ký" : "Ghi chú"}
               </span>
               <ChevronDown
                 size={18}
                 strokeWidth={2.6}
-                className={`text-[#78716C] transition-all duration-200 ${
+                className={`text-[#8E8E93] transition-all duration-200 ${
                   isScrolled
                     ? "opacity-0 w-0 -mr-1 scale-0 pointer-events-none"
                     : `opacity-100 w-4.5 ${isNoteDropdownOpen ? "rotate-180" : ""}`
@@ -343,21 +344,21 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             </button>
 
             {!isScrolled && isNoteDropdownOpen && (
-              <div className="absolute left-0 top-full mt-2 w-48 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[8px] p-1.5 shadow-[3.5px_3.5px_0px_#262626] z-50 space-y-1">
+              <div className="absolute left-0 top-full mt-2 w-48 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in zoom-in-95 duration-150">
                 <button
                   type="button"
                   onClick={() => {
                     onTabChange("notes");
                     setIsNoteDropdownOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[5px] text-sm font-bold transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                     activeTab === "notes"
-                      ? "bg-[#1C1917] text-white"
-                      : "hover:bg-[#FAF8F3] text-[#57534E]"
+                      ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]"
+                      : "hover:bg-black/5 dark:hover:bg-white/10 text-[#57534E] dark:text-[#aeaeb2]"
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <FileText size={16} strokeWidth={2.4} />
+                  <div className="flex items-center gap-2.5">
+                    <FileText size={16} strokeWidth={2.2} />
                     <span>Ghi chú</span>
                   </div>
                   {activeTab === "notes" && <Check size={15} strokeWidth={2.6} />}
@@ -369,14 +370,14 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                     onTabChange("journal");
                     setIsNoteDropdownOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-[5px] text-sm font-bold transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                     activeTab === "journal"
-                      ? "bg-[#1C1917] text-white"
-                      : "hover:bg-[#FAF8F3] text-[#57534E]"
+                      ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]"
+                      : "hover:bg-black/5 dark:hover:bg-white/10 text-[#57534E] dark:text-[#aeaeb2]"
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <BookOpen size={16} strokeWidth={2.4} />
+                  <div className="flex items-center gap-2.5">
+                    <BookOpen size={16} strokeWidth={2.2} />
                     <span>Nhật ký</span>
                   </div>
                   {activeTab === "journal" && <Check size={15} strokeWidth={2.6} />}
@@ -390,7 +391,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             onClick={() => isScrolled && window.scrollTo({ top: 0, behavior: "smooth" })}
             className={`flex items-center gap-1.5 py-1 ${isScrolled ? "cursor-pointer" : "cursor-default"}`}
           >
-            <span className="font-black text-[20px] sm:text-[22px] text-[#1C1917] tracking-tight leading-none">
+            <span className="font-black text-[20px] sm:text-[22px] text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight leading-none">
               Trợ lý AI
             </span>
           </button>
@@ -400,7 +401,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             onClick={() => isScrolled && window.scrollTo({ top: 0, behavior: "smooth" })}
             className={`flex items-center gap-1.5 py-1 min-w-0 ${isScrolled ? "cursor-pointer" : "cursor-default"}`}
           >
-            <span className="font-black text-[20px] sm:text-[22px] text-[#1C1917] tracking-tight truncate leading-none">
+            <span className="font-black text-[20px] sm:text-[22px] text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight truncate leading-none">
               {currentTitle}
             </span>
           </button>
@@ -410,7 +411,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             onClick={() => isScrolled && window.scrollTo({ top: 0, behavior: "smooth" })}
             className={`flex items-center gap-1.5 py-1 ${isScrolled ? "cursor-pointer" : "cursor-default"}`}
           >
-            <span className="font-black text-[20px] sm:text-[22px] text-[#1C1917] tracking-tight leading-none">
+            <span className="font-black text-[20px] sm:text-[22px] text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight leading-none">
               Công việc
             </span>
           </button>
@@ -432,11 +433,12 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             type="button"
             onClick={onOpenNotifications}
             title="Thông báo & Nhắc việc"
-            className="relative w-9 h-9 border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] bg-white hover:bg-[#FAF8F3] transition-all select-none cursor-pointer active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+            aria-label="Thông báo & Nhắc việc"
+            className="relative w-9 h-9 border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-xl flex items-center justify-center text-[#1C1C1E] dark:text-white bg-white dark:bg-[#2C2C2E] hover:bg-[#F2F2F7] dark:hover:bg-[#3A3A3C] shadow-sm transition-all select-none cursor-pointer active:scale-95"
           >
-            <Bell size={17} strokeWidth={2.3} />
+            <Bell size={17} strokeWidth={2.2} />
             {alertCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[17px] h-4.5 px-1 rounded-full bg-rose-500 text-white font-mono text-[10px] font-bold flex items-center justify-center border border-[#262626] shadow-[0.5px_0.5px_0px_#262626]">
+              <span className="absolute -top-1 -right-1 min-w-[17px] h-4.5 px-1 rounded-full bg-rose-500 text-white font-mono text-[10px] font-bold flex items-center justify-center border border-white dark:border-[#1C1C1E]">
                 {alertCount > 9 ? "9+" : alertCount}
               </span>
             )}
@@ -447,15 +449,12 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             <button
               type="button"
               onClick={() => setIsAccountDropdownOpen((prev) => !prev)}
-              className={`w-9 h-9 rounded-[4px] border-[1.5px] border-[#262626] flex items-center justify-center text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer ${
-                isAccountDropdownOpen
-                  ? "bg-[#FEF08A] shadow-none translate-x-[0.5px] translate-y-[0.5px]"
-                  : "bg-white hover:bg-[#FAF8F3] shadow-[1.5px_1.5px_0px_#262626]"
-              }`}
+              className="w-9 h-9 rounded-xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#2C2C2E] flex items-center justify-center text-[#1C1C1E] dark:text-white shadow-sm active:scale-95 transition-all cursor-pointer"
               title="Tài khoản & Cài đặt"
+              aria-label="Tài khoản & Cài đặt"
             >
               <div
-                className="w-6 h-6 rounded-[2px] border border-[#262626] flex items-center justify-center text-[#1C1917]"
+                className="w-6.5 h-6.5 rounded-lg flex items-center justify-center text-[#1C1C1E]"
                 style={{ backgroundColor: user.avatarBg || "#FEF08A" }}
               >
                 <DynamicIcon
@@ -467,20 +466,20 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             </button>
 
             {isAccountDropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] p-1.5 shadow-[3.5px_3.5px_0px_#262626] z-50 space-y-1">
+              <div className="absolute right-0 top-full mt-2 w-52 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in zoom-in-95 duration-150">
                 <button
                   type="button"
                   onClick={() => {
                     setIsAccountDropdownOpen(false);
                     onOpenSettings();
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[4px] text-sm font-bold text-[#1C1917] hover:bg-[#FAF8F3] active:translate-y-[0.5px] transition-colors cursor-pointer text-left"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-black/5 dark:hover:bg-white/10 active:scale-[0.98] transition-colors cursor-pointer text-left"
                 >
-                  <Settings size={16} strokeWidth={2.2} className="text-[#57534E]" />
+                  <Settings size={16} strokeWidth={2.2} className="text-[#8E8E93]" />
                   <span>Cài đặt</span>
                 </button>
 
-                <div className="border-t border-[#E7E5E4] my-1" />
+                <div className="border-t border-[#E5E5EA] dark:border-[#2C2C2E] my-1" />
 
                 <button
                   type="button"
@@ -489,13 +488,13 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                     if (user.isSignedIn) onLogout();
                     else onOpenLogin();
                   }}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[4px] text-sm font-bold text-[#1C1917] hover:bg-[#FAF8F3] active:translate-y-[0.5px] transition-colors cursor-pointer text-left"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-black/5 dark:hover:bg-white/10 active:scale-[0.98] transition-colors cursor-pointer text-left"
                 >
                   <DynamicIcon
                     name={user.isSignedIn ? (user.avatar || "lucide:UserCheck") : "lucide:User"}
                     size={16}
                     strokeWidth={2.2}
-                    className={user.isSignedIn ? "text-emerald-700" : "text-[#57534E]"}
+                    className={user.isSignedIn ? "text-emerald-500" : "text-[#8E8E93]"}
                   />
                   <span className="truncate">
                     {user.isSignedIn ? "Đăng xuất" : "Đăng nhập / Đăng ký"}

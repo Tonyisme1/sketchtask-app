@@ -48,18 +48,18 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
   };
 
   return (
-    <div ref={menuRef} className="relative shrink-0">
+    <div ref={menuRef} className="relative shrink-0 select-none">
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className={`${buttonSize} relative flex items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] bg-white text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] transition-all hover:bg-[#FAF8F3] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
+        className={`${buttonSize} relative flex items-center justify-center rounded-xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs transition-all hover:bg-[#F2F2F7] dark:hover:bg-[#3A3A3C] active:scale-95 cursor-pointer`}
         title={user.isSignedIn ? `Tài khoản: ${user.name}` : "Đăng nhập"}
         aria-label={user.isSignedIn ? `Tài khoản: ${user.name}` : "Đăng nhập"}
         aria-haspopup="menu"
         aria-expanded={isOpen}
       >
         <span
-          className={`${avatarSize} flex items-center justify-center rounded-[2px] border border-[#262626] text-[#1C1917]`}
+          className={`${avatarSize} flex items-center justify-center rounded-lg text-[#1C1C1E] font-medium shadow-xs`}
           style={{ backgroundColor: user.avatarBg || "#FEF08A" }}
         >
           <DynamicIcon
@@ -74,16 +74,25 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
         <div
           role="menu"
           aria-label="Menu tài khoản"
-          className="absolute right-0 top-full z-[80] mt-2 w-56 rounded-[6px] border-[1.5px] border-[#262626] bg-[#FFFDF8] p-1.5 text-[#1C1917] shadow-[3px_3px_0px_#262626] animate-in fade-in slide-in-from-top-1 duration-100"
+          className="absolute right-0 top-full z-[80] mt-2 w-60 rounded-2xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl p-1.5 text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xl animate-in fade-in slide-in-from-top-1 duration-150"
         >
-          <div className="border-b border-[#D4CEBF] px-2.5 py-2">
-            <div className="flex items-center gap-2">
-              <User size={14} strokeWidth={2.3} />
+          <div className="border-b border-[#E5E5EA] dark:border-[#2C2C2E] px-3 py-2.5 mb-1">
+            <div className="flex items-center gap-2.5">
+              <span
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-[#1C1C1E] text-xs font-semibold shrink-0 shadow-xs"
+                style={{ backgroundColor: user.avatarBg || "#FEF08A" }}
+              >
+                <DynamicIcon
+                  name={user.avatar || (user.isSignedIn ? "lucide:UserCheck" : "lucide:User")}
+                  size={14}
+                  strokeWidth={2.2}
+                />
+              </span>
               <div className="min-w-0">
-                <p className="truncate text-xs font-bold">
+                <p className="truncate text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
                   {user.isSignedIn ? user.name : "Khách"}
                 </p>
-                <p className="truncate font-mono text-[10px] text-[#78716C]">
+                <p className="truncate font-mono text-[10px] text-[#8E8E93]">
                   {user.isSignedIn ? user.email : "Chưa đăng nhập"}
                 </p>
               </div>
@@ -94,9 +103,9 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
             type="button"
             role="menuitem"
             onClick={() => runMenuAction(onOpenSettings)}
-            className="flex min-h-9 w-full items-center gap-2 rounded-[4px] px-2.5 text-left text-xs font-bold transition-colors hover:bg-[#FEF08A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#262626]"
+            className="flex min-h-9 w-full items-center gap-2 rounded-xl px-3 text-left text-xs font-medium text-[#1C1C1E] dark:text-[#F2F2F7] transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.08] cursor-pointer"
           >
-            <Settings size={14} strokeWidth={2.3} />
+            <Settings size={15} strokeWidth={2.2} className="text-[#8E8E93]" />
             <span>Cài đặt</span>
           </button>
 
@@ -105,9 +114,9 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
               type="button"
               role="menuitem"
               onClick={() => runMenuAction(onLogout)}
-              className="flex min-h-9 w-full items-center gap-2 rounded-[4px] px-2.5 text-left text-xs font-bold text-[#BE123C] transition-colors hover:bg-[#FFE4E6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#262626]"
+              className="flex min-h-9 w-full items-center gap-2 rounded-xl px-3 text-left text-xs font-medium text-[#FF3B30] transition-colors hover:bg-[#FF3B30]/10 cursor-pointer"
             >
-              <LogOut size={14} strokeWidth={2.3} />
+              <LogOut size={15} strokeWidth={2.2} />
               <span>Đăng xuất</span>
             </button>
           ) : (
@@ -115,9 +124,9 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
               type="button"
               role="menuitem"
               onClick={() => runMenuAction(onOpenLogin)}
-              className="flex min-h-9 w-full items-center gap-2 rounded-[4px] px-2.5 text-left text-xs font-bold transition-colors hover:bg-[#BBF7D0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#262626]"
+              className="flex min-h-9 w-full items-center gap-2 rounded-xl px-3 text-left text-xs font-medium text-[#34C759] dark:text-[#30D158] transition-colors hover:bg-[#34C759]/10 cursor-pointer"
             >
-              <LogIn size={14} strokeWidth={2.3} />
+              <LogIn size={15} strokeWidth={2.2} />
               <span>Đăng nhập / Đăng ký</span>
             </button>
           )}

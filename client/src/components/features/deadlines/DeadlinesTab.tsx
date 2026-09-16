@@ -305,17 +305,17 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
         <SketchTabs
           ariaLabel="Chuyển loại hạn định"
           size="md"
-          className="w-full border-b-0 rounded-[6px] border-[1.5px] border-[#262626] bg-[#FAF8F3] p-1 pb-1 shadow-[2px_2px_0px_#262626] [&>button]:min-h-[44px] [&>button]:flex-1 [&>button]:justify-center"
+          className="w-full flex justify-center [&>button]:min-h-[40px] [&>button]:flex-1"
           value={view}
           onChange={setView}
           items={[
             {
               key: "overdue",
               label: "Quá hạn",
-              icon: <AlertTriangle size={13} strokeWidth={2.4} />,
+              icon: <AlertTriangle size={13} strokeWidth={2.2} />,
               badge:
                 overdueTasks.length > 0 ? (
-                  <span className="min-w-[18px] border-[1px] border-[#FDA4AF] bg-[#FFE4E6] px-1 py-0.5 text-center font-mono text-[10px] leading-none text-[#BE123C]">
+                  <span className="min-w-[18px] rounded-md bg-[#FF3B30] text-white px-1.5 py-0.5 text-center font-mono text-[10px] leading-none font-semibold">
                     {overdueTasks.length}
                   </span>
                 ) : undefined,
@@ -323,10 +323,10 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
             {
               key: "upcoming",
               label: "Sắp đến",
-              icon: <BellRing size={13} strokeWidth={2.4} />,
+              icon: <BellRing size={13} strokeWidth={2.2} />,
               badge:
                 upcomingTasks.length > 0 ? (
-                  <span className="min-w-[18px] border-[1px] border-[#7DD3FC] bg-[#E0F2FE] px-1 py-0.5 text-center font-mono text-[10px] leading-none text-[#0369A1]">
+                  <span className="min-w-[18px] rounded-md bg-[#007AFF] text-white px-1.5 py-0.5 text-center font-mono text-[10px] leading-none font-semibold">
                     {upcomingTasks.length}
                   </span>
                 ) : undefined,
@@ -335,54 +335,54 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
         />
 
         {/* Thanh tìm kiếm trong hạn định */}
-        <div className="flex items-center gap-1.5 h-9 px-2.5 bg-white border-[1.5px] border-[#262626] rounded-[5px] shadow-[1.5px_1.5px_0px_#262626] w-full">
-          <Search size={14} strokeWidth={2.4} className="text-[#78716C] shrink-0" />
+        <div className="flex items-center gap-2 h-10 px-3 bg-black/[0.04] dark:bg-white/[0.08] rounded-xl border border-transparent focus-within:ring-2 focus-within:ring-[#007AFF] focus-within:bg-white dark:focus-within:bg-[#2C2C2E] transition-all w-full">
+          <Search size={15} strokeWidth={2.2} className="text-[#8E8E93] shrink-0" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={`Tìm việc ${isOverdueView ? "quá hạn" : "sắp đến"}...`}
-            className="bg-transparent text-xs sm:text-sm text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none w-full font-sans"
+            className="bg-transparent text-xs sm:text-sm text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus:outline-none w-full font-sans"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => setSearchQuery("")}
-              className="text-[#78716C] hover:text-[#1C1917] cursor-pointer shrink-0"
+              className="text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7] cursor-pointer shrink-0 rounded-md p-0.5"
               title="Xóa tìm kiếm"
             >
-              <X size={13} strokeWidth={2.4} />
+              <X size={14} strokeWidth={2.2} />
             </button>
           )}
         </div>
       </div>
 
       {/* 2. Tiêu Đề Khu Vực (Đồng Bộ PlannerWeekView) */}
-      <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20 flex-wrap gap-2 pt-1">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-[4px] bg-[#1C1917] border-[1.5px] border-[#262626] flex items-center justify-center text-white shadow-[1px_1px_0px_#262626]">
+      <div className="flex items-center justify-between pb-2 border-b border-[#E5E5EA] dark:border-[#2C2C2E] flex-wrap gap-2 pt-1">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] flex items-center justify-center shadow-xs">
             {isOverdueView ? (
-              <AlertTriangle size={14} strokeWidth={2.4} className="text-red-400" />
+              <AlertTriangle size={15} strokeWidth={2.2} className="text-red-400 dark:text-red-500" />
             ) : (
-              <Hourglass size={14} strokeWidth={2.4} className="text-sky-300" />
+              <Hourglass size={15} strokeWidth={2.2} className="text-sky-400 dark:text-sky-500" />
             )}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-sm sm:text-base text-[#1C1917]">
+              <h3 className="font-semibold text-sm sm:text-base text-[#1C1C1E] dark:text-[#F2F2F7]">
                 {isOverdueView ? "Danh sách quá hạn" : "Hạn định sắp tới"}
               </h3>
               <span
-                className={`text-[10px] font-bold px-2 py-0.2 rounded-full border ${
+                className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                   isOverdueView
-                    ? "bg-red-50 text-red-700 border-red-300"
-                    : "bg-sky-50 text-sky-700 border-sky-300"
+                    ? "bg-red-500/10 text-red-600 dark:text-red-400"
+                    : "bg-sky-500/10 text-sky-600 dark:text-sky-400"
                 }`}
               >
                 {isOverdueView ? "Cần xử lý" : "Hôm nay & Ngày mai"}
               </span>
             </div>
-            <p className="text-xs text-[#78716C]">
+            <p className="text-xs text-[#8E8E93]">
               {isOverdueView
                 ? `Có ${activeCount} công việc đã quá hạn hoàn thành hoặc lịch hẹn cũ`
                 : `Có ${activeCount} công việc có hạn hoàn thành`}
@@ -393,16 +393,16 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
 
       {/* 3. Batch actions chỉ tác động lên danh sách đang xem và luôn có xác nhận. */}
       {activeTasks.length > 0 && (
-        <section className="space-y-3 rounded-[6px] border-[1.5px] border-[#D4CEBF] bg-[#FAF8F3] p-3">
+        <section className="space-y-3 rounded-2xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white/70 dark:bg-[#1C1C1E]/70 p-3.5 shadow-xs">
           <div>
-            <h4 className="text-sm font-semibold text-[#1C1917]">Thao tác nhanh</h4>
-            <p className="mt-0.5 text-[11px] text-[#78716C]">Áp dụng cho {activeCount} việc trong tab {isOverdueView ? "Quá hạn" : "Sắp đến"}.</p>
+            <h4 className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">Thao tác nhanh</h4>
+            <p className="mt-0.5 text-[11px] text-[#8E8E93]">Áp dụng cho {activeCount} việc trong tab {isOverdueView ? "Quá hạn" : "Sắp đến"}.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => requestBulkAction("complete", activeTasks)}
-              className="min-h-[40px] flex-1 border-[1.5px] border-[#262626] bg-[#BBF7D0] px-3 py-2 text-xs font-semibold text-[#14532D] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none sm:flex-none"
+              className="min-h-[38px] flex-1 rounded-xl bg-[#34C759]/15 hover:bg-[#34C759]/25 text-[#34C759] dark:text-[#30D158] px-3.5 py-2 text-xs font-semibold active:scale-[0.98] transition-all sm:flex-none cursor-pointer"
             >
               <CheckCheck size={14} className="mr-1.5 inline-block" />
               Hoàn thành tất cả
@@ -411,7 +411,7 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
               <button
                 type="button"
                 onClick={() => requestBulkAction("reschedule", activeTasks)}
-                className="min-h-[40px] flex-1 border-[1.5px] border-[#262626] bg-white px-3 py-2 text-xs font-semibold text-[#1C1917] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none sm:flex-none"
+                className="min-h-[38px] flex-1 rounded-xl bg-black/[0.05] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-[#1C1C1E] dark:text-[#F2F2F7] px-3.5 py-2 text-xs font-semibold active:scale-[0.98] transition-all sm:flex-none cursor-pointer"
               >
                 <ArrowRight size={14} className="mr-1.5 inline-block" />
                 Dời sang ngày mai
@@ -421,7 +421,7 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
               <button
                 type="button"
                 onClick={() => requestBulkAction("delete", junkTasks)}
-                className="min-h-[40px] flex-1 border-[1.5px] border-[#BE123C] bg-[#FFE4E6] px-3 py-2 text-xs font-semibold text-[#9F1239] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none sm:flex-none"
+                className="min-h-[38px] flex-1 rounded-xl bg-[#FF3B30]/15 hover:bg-[#FF3B30]/25 text-[#FF3B30] px-3.5 py-2 text-xs font-semibold active:scale-[0.98] transition-all sm:flex-none cursor-pointer"
               >
                 <Trash2 size={14} className="mr-1.5 inline-block" />
                 Dọn task rác ({junkTasks.length})

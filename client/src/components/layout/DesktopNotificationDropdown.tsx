@@ -116,16 +116,16 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 top-full mt-2 w-[380px] max-w-[calc(100vw-32px)] bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[8px] shadow-[4px_4px_0px_#262626] z-50 overflow-hidden select-none flex flex-col max-h-[520px] animate-in fade-in slide-in-from-top-2 duration-150"
+      className="absolute right-0 top-full mt-2 w-[380px] max-w-[calc(100vw-32px)] bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-2xl z-50 overflow-hidden select-none flex flex-col max-h-[520px] animate-in fade-in slide-in-from-top-2 duration-150"
     >
       {/* 1. Header Bar: Tiêu đề + Nút Cài Đặt */}
-      <div className="flex items-center justify-between px-4 py-3 border-b-[1.5px] border-[#262626] bg-[#FFFDF8]">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-black text-[#1C1917] tracking-tight">
+          <h3 className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight">
             Thông báo
           </h3>
           {totalAlerts > 0 && (
-            <span className="font-mono text-[10px] font-bold px-1.5 py-0.2 rounded-[3px] bg-[#1C1917] text-white border border-[#262626]">
+            <span className="font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-[#FF3B30] text-white">
               {totalAlerts}
             </span>
           )}
@@ -137,26 +137,26 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
             onClose();
             onNavigateTab("settings");
           }}
-          className="p-1 rounded-[4px] hover:bg-[#FAF8F3] border border-transparent hover:border-[#262626] text-[#57534E] hover:text-[#1C1917] transition-all cursor-pointer"
+          className="p-1.5 rounded-lg text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] transition-all cursor-pointer"
           title="Cài đặt thông báo"
           aria-label="Cài đặt thông báo"
         >
-          <Settings size={16} strokeWidth={2.2} />
+          <Settings size={15} strokeWidth={2.2} />
         </button>
       </div>
 
       {/* 2. Nội dung danh sách thông báo hoặc Empty State */}
-      <div className="flex-1 overflow-y-auto max-h-[440px] divide-y divide-[#262626]/10">
+      <div className="flex-1 overflow-y-auto max-h-[440px] divide-y divide-[#E5E5EA] dark:divide-[#2C2C2E]/60">
         {totalAlerts === 0 ? (
           /* Empty State */
           <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-[#FAF8F3] border-[1.5px] border-[#262626]/20 flex items-center justify-center mb-4 text-[#A8A29E]">
-              <Bell size={32} strokeWidth={1.6} />
+            <div className="w-14 h-14 rounded-full bg-black/[0.04] dark:bg-white/[0.06] flex items-center justify-center mb-3 text-[#8E8E93]">
+              <Bell size={28} strokeWidth={1.8} />
             </div>
-            <h4 className="text-sm font-bold text-[#1C1917] mb-1">
-              Thông báo của bạn hiển thị ở đây
+            <h4 className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] mb-1">
+              Không có thông báo mới
             </h4>
-            <p className="text-xs text-[#78716C] leading-relaxed max-w-[250px]">
+            <p className="text-xs text-[#8E8E93] leading-relaxed max-w-[250px]">
               Nhắc nhở công việc và hạn định sẽ xuất hiện tại đây.
             </p>
           </div>
@@ -165,48 +165,45 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
             {/* Việc quá hạn */}
             {overdueGroups.length > 0 && (
               <div className="space-y-1">
-                <div className="flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono font-black uppercase text-[#1C1917]">
-                  <AlertTriangle size={12} className="text-[#1C1917]" />
+                <div className="flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono font-semibold uppercase text-[#FF3B30]">
+                  <AlertTriangle size={12} className="text-[#FF3B30]" />
                   <span>Quá hạn ({overdueTasks.length})</span>
                 </div>
                 {overdueGroups.map((group) => (
                   <div key={group.dateStr} className="space-y-1">
-                    <div className="flex items-center justify-between px-2 py-0.5 text-[10px] font-mono font-bold text-[#78716C]">
+                    <div className="flex items-center justify-between px-2 py-0.5 text-[10px] font-mono text-[#8E8E93]">
                       <span>{formatFullDate(group.dateStr)}</span>
                       <span>{group.tasks.length} việc</span>
                     </div>
                     {group.tasks.map((task) => (
-                  <div
-                    key={task.id}
-                    onClick={() => {
-                      if (onSelectTask) onSelectTask(task);
-                      onNavigateTab("today", { taskId: task.id, date: getTaskEffectiveDate(task) });
-                      onClose();
-                    }}
-                    className="p-2.5 rounded-[6px] bg-[#FAF8F3] hover:bg-[#F5F5F4] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2 cursor-pointer transition-all"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-[#1C1917] truncate">{task.title}</p>
-                      <p className="text-[10px] text-[#78716C] font-mono mt-0.5">
-                        {getTaskTemporalState(task) === "pastScheduled" ? "Lịch hẹn đã qua" : "Hạn quá hạn"}
-                        {getTaskEffectiveTime(task) ? ` · ${getTaskEffectiveTime(task)}` : ""}
-                      </p>
-                      <p className="hidden text-[10px] text-[#78716C] font-mono mt-0.5">
-                        Hạn: {getTaskEffectiveDate(task) || "Trước đó"}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleTask(task.id);
-                      }}
-                      className="w-6 h-6 rounded-[3px] bg-white hover:bg-[#FAF8F3] border border-[#262626] flex items-center justify-center text-[#1C1917] shrink-0"
-                      title="Đánh dấu hoàn thành"
-                    >
-                      <Check size={12} strokeWidth={2.4} />
-                    </button>
-                  </div>
+                      <div
+                        key={task.id}
+                        onClick={() => {
+                          if (onSelectTask) onSelectTask(task);
+                          onNavigateTab("today", { taskId: task.id, date: getTaskEffectiveDate(task) });
+                          onClose();
+                        }}
+                        className="p-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] dark:hover:bg-white/[0.09] flex items-center justify-between gap-2 cursor-pointer transition-all"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{task.title}</p>
+                          <p className="text-[10px] text-[#8E8E93] font-mono mt-0.5">
+                            {getTaskTemporalState(task) === "pastScheduled" ? "Lịch hẹn đã qua" : "Hạn quá hạn"}
+                            {getTaskEffectiveTime(task) ? ` · ${getTaskEffectiveTime(task)}` : ""}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleTask(task.id);
+                          }}
+                          className="w-7 h-7 rounded-lg bg-white dark:bg-[#2C2C2E] shadow-xs hover:bg-[#34C759] hover:text-white dark:hover:bg-[#34C759] flex items-center justify-center text-[#8E8E93] transition-colors shrink-0"
+                          title="Đánh dấu hoàn thành"
+                        >
+                          <Check size={13} strokeWidth={2.4} />
+                        </button>
+                      </div>
                     ))}
                   </div>
                 ))}
@@ -216,8 +213,8 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
             {/* Việc hôm nay */}
             {todayDueTasks.length > 0 && (
               <div className="space-y-1">
-                <div className="flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono font-black uppercase text-[#1C1917]">
-                  <Clock size={12} className="text-[#1C1917]" />
+                <div className="flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-mono font-semibold uppercase text-[#007AFF]">
+                  <Clock size={12} className="text-[#007AFF]" />
                   <span>Cần làm hôm nay ({todayDueTasks.length})</span>
                 </div>
                 {todayDueTasks.slice(0, 5).map((task) => (
@@ -228,11 +225,11 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
                       onNavigateTab("today", { taskId: task.id, date: getTaskEffectiveDate(task) });
                       onClose();
                     }}
-                    className="p-2.5 rounded-[6px] bg-white hover:bg-[#FAF8F3] border border-[#262626] shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2 cursor-pointer transition-all"
+                    className="p-2.5 rounded-xl bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] dark:hover:bg-white/[0.09] flex items-center justify-between gap-2 cursor-pointer transition-all"
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-[#1C1917] truncate">{task.title}</p>
-                      <p className="text-[10px] text-[#78716C] font-mono mt-0.5">
+                      <p className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">{task.title}</p>
+                      <p className="text-[10px] text-[#8E8E93] font-mono mt-0.5">
                         {getTaskEffectiveTime(task) || "Trong ngày hôm nay"}
                       </p>
                     </div>
@@ -242,10 +239,10 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
                         e.stopPropagation();
                         toggleTask(task.id);
                       }}
-                      className="w-6 h-6 rounded-[3px] bg-white hover:bg-[#FAF8F3] border border-[#262626] flex items-center justify-center text-[#1C1917] shrink-0"
+                      className="w-7 h-7 rounded-lg bg-white dark:bg-[#2C2C2E] shadow-xs hover:bg-[#34C759] hover:text-white dark:hover:bg-[#34C759] flex items-center justify-center text-[#8E8E93] transition-colors shrink-0"
                       title="Đánh dấu hoàn thành"
                     >
-                      <Check size={12} strokeWidth={2.4} />
+                      <Check size={13} strokeWidth={2.4} />
                     </button>
                   </div>
                 ))}
@@ -258,14 +255,14 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
 
       {/* 3. Footer: Xem tất cả */}
       {totalAlerts > 0 && (
-        <div className="p-2 border-t border-[#262626]/20 bg-[#FAF8F3] text-center">
+        <div className="p-2 border-t border-[#E5E5EA] dark:border-[#2C2C2E] text-center">
           <button
             type="button"
             onClick={() => {
               onClose();
               onNavigateTab("today");
             }}
-            className="w-full py-1.5 text-xs font-bold text-[#1C1917] hover:bg-white rounded-[4px] transition-all border border-[#262626]/30"
+            className="w-full py-2 text-xs font-semibold text-[#007AFF] dark:text-[#0A84FF] hover:bg-[#007AFF]/10 rounded-xl transition-all"
           >
             Mở bảng công việc hôm nay ➔
           </button>

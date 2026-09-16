@@ -38,10 +38,10 @@ export const TaskSubTabSwitcher: React.FC<TaskSubTabSwitcherProps> = ({
           badge:
             deadlineAlertTotal > 0 ? (
               <span
-                className={`min-w-[18px] border-[1px] px-1 py-0.5 text-center font-mono text-[10px] leading-none ${
+                className={`min-w-[18px] px-1.5 py-0.5 rounded-md text-center font-mono text-[10px] leading-none font-semibold ${
                   value === "deadlines"
-                    ? "border-white bg-white text-[#1C1917]"
-                    : "border-[#FDA4AF] bg-[#FFE4E6] text-[#BE123C]"
+                    ? "bg-[#FF3B30] text-white"
+                    : "bg-[#FF3B30]/10 text-[#FF3B30]"
                 }`}
               >
                 {deadlineAlertTotal}

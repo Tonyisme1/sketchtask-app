@@ -94,7 +94,7 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
       {isTaskDetailOpen && (
         <aside
           key={activeDetailTaskId}
-          className="fixed right-0 top-[54px] bottom-0 w-[380px] lg:w-[410px] xl:w-[430px] z-20 bg-[#FBF9F4] border-l-[1.5px] border-[#262626] flex flex-col overflow-hidden animate-detail-slide-in shadow-[-2px_0px_0px_#262626]"
+          className="fixed right-0 top-[60px] bottom-0 w-[380px] lg:w-[410px] xl:w-[430px] z-20 bg-white dark:bg-[#1C1C1E] border-l border-[#E5E5EA] dark:border-[#2C2C2E] flex flex-col overflow-hidden animate-detail-slide-in shadow-2xl"
         >
           <TaskDetailPage
             taskId={activeDetailTaskId!}

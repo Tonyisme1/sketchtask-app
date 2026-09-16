@@ -71,7 +71,7 @@ export const TabletHeader: React.FC<TabletHeaderProps> = ({
                   : "Cài đặt";
 
   return (
-    <header className="sticky top-0 z-30 flex min-h-[58px] items-center justify-between border-b border-[#262626]/20 bg-[#FBF9F4] px-4 pb-2.5 pt-[max(env(safe-area-inset-top),10px)] md:px-6">
+    <header className="sticky top-0 z-30 flex min-h-[58px] items-center justify-between border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white/92 dark:bg-[#1C1C1E]/92 backdrop-blur-xl px-4 pb-2.5 pt-[max(env(safe-area-inset-top),10px)] md:px-6 select-none">
       <div className="flex min-w-0 shrink-0 items-center gap-3">
         {activeTab === "settings" ? (
           <div className="flex min-w-0 items-center gap-2.5">
@@ -81,13 +81,13 @@ export const TabletHeader: React.FC<TabletHeaderProps> = ({
                 if (settingsMobileSubView) setSettingsMobileSubView(null);
                 else onTabChange(previousTab || "today");
               }}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] bg-white text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] transition-all hover:bg-[#FAF8F3] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] text-[#1C1C1E] dark:text-[#F2F2F7] transition-all active:scale-95 cursor-pointer"
               title="Quay lại"
               aria-label="Quay lại"
             >
               <ArrowLeft size={18} strokeWidth={2.4} />
             </button>
-            <span className="truncate text-lg font-black tracking-tight text-[#1C1917]">{settingsTitle}</span>
+            <span className="truncate text-lg font-bold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">{settingsTitle}</span>
           </div>
         ) : (
           <button
@@ -101,8 +101,6 @@ export const TabletHeader: React.FC<TabletHeaderProps> = ({
         )}
       </div>
 
-
-
       {activeTab !== "settings" && (
         <div className="flex shrink-0 items-center gap-2.5">
           <div className="relative">
@@ -111,11 +109,11 @@ export const TabletHeader: React.FC<TabletHeaderProps> = ({
               onClick={onOpenNotifications}
               title="Thông báo & Nhắc việc"
               aria-label="Thông báo & Nhắc việc"
-              className="flex h-10 w-10 items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] transition-all cursor-pointer bg-white text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] hover:bg-[#FAF8F3] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-white shadow-sm hover:bg-[#F2F2F7] dark:hover:bg-[#3A3A3C] transition-all cursor-pointer active:scale-95"
             >
-              <Bell size={18} strokeWidth={2.3} />
+              <Bell size={18} strokeWidth={2.2} />
               {alertCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4.5 min-w-[17px] items-center justify-center rounded-full border border-[#262626] bg-rose-500 px-1 font-mono text-[10px] font-bold text-white shadow-[0.5px_0.5px_0px_#262626]">
+                <span className="absolute -right-1 -top-1 flex h-4.5 min-w-[17px] items-center justify-center rounded-full bg-rose-500 px-1 font-mono text-[10px] font-bold text-white border border-white dark:border-[#1C1C1E]">
                   {alertCount > 9 ? "9+" : alertCount}
                 </span>
               )}
