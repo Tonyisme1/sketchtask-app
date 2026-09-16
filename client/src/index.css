@@ -72,19 +72,19 @@ body.paper-grid,
 }
 
 /* ========================================== */
-/* DARK MODE (NỀN TỐI TỐI GIẢN OLED)         */
+/* DARK MODE (NỀN TỐI TỐI GIẢN GRAPHITE / OLED) */
 /* ========================================== */
 .dark {
-  --bg-canvas: #000000;
+  --bg-canvas: #121214;
   --bg-surface: #1c1c1e;
   --bg-surface-muted: #2c2c2e;
-  --border-ink: #2c2c2e;
-  --border-ink-muted: #1c1c1e;
-  --text-main: #e5e5ea;
-  --text-strong: #f2f2f7;
-  --text-muted: #aeaeb2;
-  --text-subtle: #8e8e93;
-  --accent-yellow: #ffcc00;
+  --border-ink: #3a3a3c;
+  --border-ink-muted: #2c2c2e;
+  --text-main: #f2f2f7;
+  --text-strong: #ffffff;
+  --text-muted: #8e8e93;
+  --text-subtle: #636366;
+  --accent-yellow: #ffd60a;
   --accent-blue: #0a84ff;
   color-scheme: dark;
 }
@@ -94,12 +94,11 @@ body.paper-grid,
   color: var(--text-main) !important;
 }
 
-/* Common paper colors are still used in legacy Tailwind classes. Keep them
-   readable in dark mode without changing the light theme or accent colors. */
+/* Common paper & surface colors used across Tailwind classes */
 .dark header,
 .dark nav {
-  background-color: var(--bg-canvas) !important;
-  border-color: var(--border-ink-muted) !important;
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border-ink) !important;
 }
 
 .dark .bg-white,
@@ -113,34 +112,41 @@ body.paper-grid,
   background-color: var(--bg-canvas) !important;
 }
 
+.dark .bg-\[\#F2F2F7\],
+.dark .bg-\[\#E5E5EA\],
 .dark .bg-\[\#FAF8F3\],
 .dark .bg-\[\#F5F5F4\],
 .dark .bg-\[\#F5F3EF\],
 .dark .bg-\[\#F5F2EA\],
 .dark .bg-\[\#F3EFE6\],
 .dark .bg-\[\#F0ECE1\],
-.dark .bg-\[\#E7E5E4\] {
+.dark .bg-\[\#E7E5E4\],
+.dark .bg-\[\#D4CEBF\] {
   background-color: var(--bg-surface-muted) !important;
 }
 
 .dark .text-\[\#1C1917\],
-.dark .text-\[\#262626\] {
+.dark .text-\[\#1C1C1E\],
+.dark .text-\[\#262626\],
+.dark .text-\[\#000000\],
+.dark .text-black {
   color: var(--text-main) !important;
 }
 
 .dark .text-\[\#57534E\],
 .dark .text-\[\#78716C\],
+.dark .text-\[\#8E8E93\],
 .dark .text-\[\#A8A29E\],
 .dark .text-\[\#44403C\],
 .dark .text-\[\#D4CEBF\] {
   color: var(--text-muted) !important;
 }
 
-/* Context hierarchy: regular content is softer than headings and controls,
-   while helper metadata stays deliberately quiet. */
+/* Context hierarchy: regular content is softer than headings and controls */
 .dark h1,
 .dark h2,
-.dark h3 {
+.dark h3,
+.dark h4 {
   color: var(--text-strong);
 }
 
@@ -150,7 +156,9 @@ body.paper-grid,
 }
 
 .dark .border-\[\#262626\],
-.dark .border-\[\#1C1917\] {
+.dark .border-\[\#1C1917\],
+.dark .border-\[\#E5E5EA\],
+.dark .border-\[\#D1D1D6\] {
   border-color: var(--border-ink) !important;
 }
 
@@ -158,37 +166,46 @@ body.paper-grid,
 .dark .border-\[\#E7E5E4\],
 .dark .border-\[\#D6D3D1\],
 .dark .border-\[\#A8A29E\],
-.dark .border-\[\#44403C\] {
+.dark .border-\[\#44403C\],
+.dark .border-\[\#2C2C2E\] {
   border-color: var(--border-ink-muted) !important;
 }
 
-/* Opacity variants are common on dividers and should not disappear on the
-   dark canvas. */
-.dark [class*="border-[#262626]/"] {
-  border-color: color-mix(in srgb, var(--border-ink) 28%, transparent) !important;
+/* Opacity variants on dividers & backgrounds */
+.dark [class*="border-[#262626]/"],
+.dark [class*="border-[#1C1917]/"] {
+  border-color: color-mix(in srgb, var(--border-ink) 45%, transparent) !important;
 }
 
 .dark [class*="border-[#D4CEBF]/"],
-.dark [class*="border-[#E7E5E4]/"] {
-  border-color: color-mix(in srgb, var(--border-ink-muted) 70%, transparent) !important;
+.dark [class*="border-[#E7E5E4]/"],
+.dark [class*="border-[#E5E5EA]/"] {
+  border-color: color-mix(in srgb, var(--border-ink-muted) 80%, transparent) !important;
 }
 
 .dark [class*="bg-[#FAF8F3]/"],
-.dark [class*="bg-[#F5F2EA]/"] {
-  background-color: color-mix(in srgb, var(--bg-surface-muted) 72%, transparent) !important;
+.dark [class*="bg-[#F5F2EA]/"],
+.dark [class*="bg-[#F2F2F7]/"] {
+  background-color: color-mix(in srgb, var(--bg-surface-muted) 75%, transparent) !important;
 }
 
-.dark [class*="text-[#262626]/"] {
-  color: color-mix(in srgb, var(--text-main) 88%, transparent) !important;
+.dark [class*="text-[#262626]/"],
+.dark [class*="text-[#1C1917]/"],
+.dark [class*="text-[#1C1C1E]/"] {
+  color: color-mix(in srgb, var(--text-main) 90%, transparent) !important;
 }
 
-.dark [class*="text-[#78716C]/"] {
-  color: color-mix(in srgb, var(--text-muted) 88%, transparent) !important;
+.dark [class*="text-[#78716C]/"],
+.dark [class*="text-[#8E8E93]/"] {
+  color: color-mix(in srgb, var(--text-muted) 90%, transparent) !important;
 }
 
 .dark [class*="hover:bg-white"]:hover,
 .dark [class*="hover:bg-[#FFFDF8]"]:hover,
 .dark [class*="hover:bg-[#FAF8F3]"]:hover,
+.dark [class*="hover:bg-[#F2F2F7]"]:hover,
+.dark [class*="hover:bg-[#E5E5EA]"]:hover,
+.dark [class*="hover:bg-slate-100"]:hover,
 .dark [class*="focus:bg-[#FFFDF8]"]:focus {
   background-color: var(--bg-surface-muted) !important;
 }
@@ -217,17 +234,12 @@ body.paper-grid,
 
 .dark ::selection {
   background-color: var(--accent-yellow);
-  color: #18181b;
-}
-
-/* Dark surfaces need their own quiet hierarchy instead of paper colors. */
-.dark .bg-\[\#F3EFE6\] {
-  background-color: var(--bg-surface-muted) !important;
+  color: #121214;
 }
 
 .dark ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 .dark ::-webkit-scrollbar-track {
@@ -235,9 +247,13 @@ body.paper-grid,
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: var(--border-ink-muted);
+  background: var(--border-ink);
   border: 2px solid var(--bg-canvas);
-  border-radius: 8px;
+  border-radius: 6px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 .dark :focus-visible {
@@ -248,8 +264,13 @@ body.paper-grid,
 .dark .shadow-\[2px_2px_0px_\#262626\],
 .dark .shadow-\[1\.5px_1\.5px_0px_\#262626\],
 .dark .shadow-\[1px_1px_0px_\#262626\],
+.dark .shadow-\[0\.5px_0\.5px_0px_\#262626\],
+.dark .shadow-\[2\.5px_2\.5px_0px_\#262626\],
+.dark .shadow-\[3px_3px_0px_\#262626\],
+.dark .shadow-\[3\.5px_3\.5px_0px_\#262626\],
+.dark .shadow-\[4px_4px_0px_\#262626\],
 .dark .shadow-\[6px_6px_0px_\#262626\] {
-  box-shadow: 2px 2px 0px #09090b !important;
+  box-shadow: 2px 2px 0px #000000 !important;
 }
 
 /* ========================================== */
@@ -270,16 +291,16 @@ html[data-interface-style="ios"] {
 }
 
 html.dark[data-interface-style="ios"] {
-  --bg-canvas: #000000;
+  --bg-canvas: #121214;
   --bg-surface: #1c1c1e;
   --bg-surface-muted: #2c2c2e;
-  --border-ink: #2c2c2e;
-  --border-ink-muted: #1c1c1e;
-  --text-main: #e5e5ea;
-  --text-strong: #f2f2f7;
-  --text-muted: #aeaeb2;
-  --text-subtle: #8e8e93;
-  --accent-yellow: #ffcc00;
+  --border-ink: #3a3a3c;
+  --border-ink-muted: #2c2c2e;
+  --text-main: #f2f2f7;
+  --text-strong: #ffffff;
+  --text-muted: #8e8e93;
+  --text-subtle: #636366;
+  --accent-yellow: #ffd60a;
   --accent-blue: #0a84ff;
 }
 

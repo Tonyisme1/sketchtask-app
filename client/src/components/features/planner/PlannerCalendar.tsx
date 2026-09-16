@@ -137,30 +137,30 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
           // Visual Background & Border Classes
           let bgClass = "";
           if (!isCurrentMonth) {
-            bgClass = "bg-[#FAF8F3] opacity-60";
+            bgClass = "bg-[#FAF8F3] dark:bg-[#121214] opacity-40";
           } else if (isSelected) {
-            if (isToday) bgClass = "bg-[#BBF7D0] ring-2 ring-inset ring-[#262626]";
-            else if (isPast) bgClass = "bg-[#FECDD3] ring-2 ring-inset ring-[#262626]";
-            else bgClass = "bg-[#BAE6FD] ring-2 ring-inset ring-[#262626]";
+            if (isToday) bgClass = "bg-[#BBF7D0] dark:bg-emerald-950/70 ring-2 ring-inset ring-[#262626] dark:ring-white";
+            else if (isPast) bgClass = "bg-[#FECDD3] dark:bg-rose-950/70 ring-2 ring-inset ring-[#262626] dark:ring-white";
+            else bgClass = "bg-[#BAE6FD] dark:bg-sky-950/70 ring-2 ring-inset ring-[#262626] dark:ring-white";
           } else if (isToday) {
-            bgClass = "bg-[#BBF7D0]/40 hover:bg-[#BBF7D0]/60";
+            bgClass = "bg-[#BBF7D0]/40 dark:bg-emerald-950/30 hover:bg-[#BBF7D0]/60 dark:hover:bg-emerald-950/50";
           } else if (isPast) {
-            bgClass = "bg-[#FECDD3]/15 hover:bg-[#FECDD3]/30";
+            bgClass = "bg-[#FECDD3]/15 dark:bg-rose-950/20 hover:bg-[#FECDD3]/30 dark:hover:bg-rose-950/40";
           } else {
-            bgClass = "bg-[#BAE6FD]/20 hover:bg-[#BAE6FD]/35";
+            bgClass = "bg-white dark:bg-[#1C1C1E] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E]";
           }
 
           let dayNumColor = "";
           if (!isCurrentMonth) {
-            dayNumColor = "text-[#A8A29E]";
+            dayNumColor = "text-[#A8A29E] dark:text-[#636366]";
           } else if (isSelected) {
-            dayNumColor = "text-[#1C1917] font-extrabold";
+            dayNumColor = "text-[#1C1917] dark:text-white font-extrabold";
           } else if (isToday) {
-            dayNumColor = "text-emerald-950 font-bold";
+            dayNumColor = "text-emerald-950 dark:text-emerald-300 font-bold";
           } else if (isPast) {
-            dayNumColor = "text-rose-900 font-bold";
+            dayNumColor = "text-rose-900 dark:text-rose-300 font-bold";
           } else {
-            dayNumColor = "text-[#1C1917] font-bold";
+            dayNumColor = "text-[#1C1917] dark:text-[#F2F2F7] font-bold";
           }
 
           return (

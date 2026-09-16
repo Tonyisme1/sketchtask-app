@@ -587,7 +587,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       if (metaThemeColor) {
         metaThemeColor.setAttribute(
           "content",
-          isDarkMode ? "#18181B" : "#FBF9F4",
+          isDarkMode ? "#121214" : "#FBF9F4",
         );
       }
     }

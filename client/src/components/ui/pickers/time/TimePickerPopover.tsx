@@ -69,7 +69,7 @@ const DrumWheelColumn: React.FC<DrumWheelColumnProps> = ({
       <div className="relative w-full overflow-hidden">
         {/* Vạch kẻ khung chọn tiêu điểm ở giữa */}
         <div
-          className="pointer-events-none absolute inset-x-1 top-1/2 z-10 h-[42px] -translate-y-1/2 rounded-[6px] border-[1.5px] border-[#262626] bg-[#FEF08A]/15 shadow-[0.5px_0.5px_0px_#262626]"
+          className="pointer-events-none absolute inset-x-1 top-1/2 z-10 h-[42px] -translate-y-1/2 rounded-[6px] border-[1.5px] border-[#262626] dark:border-white/40 bg-[#FEF08A]/15 dark:bg-white/10 shadow-[0.5px_0.5px_0px_#262626]"
           aria-hidden="true"
         />
 
@@ -90,13 +90,13 @@ const DrumWheelColumn: React.FC<DrumWheelColumnProps> = ({
             const distance = Math.abs(idx - selectedIndex);
             const isSelected = idx === selectedIndex;
 
-            let fontClass = "text-sm text-[#A8A29E]/30 font-semibold";
+            let fontClass = "text-sm text-[#A8A29E]/30 dark:text-[#636366]/40 font-semibold";
             if (distance === 0) {
-              fontClass = "text-2xl sm:text-3xl font-black text-[#1C1917]";
+              fontClass = "text-2xl sm:text-3xl font-black text-[#1C1917] dark:text-white";
             } else if (distance === 1) {
-              fontClass = "text-lg font-bold text-[#78716C]/60";
+              fontClass = "text-lg font-bold text-[#78716C]/60 dark:text-[#8E8E93]/60";
             } else if (distance === 2) {
-              fontClass = "text-sm font-semibold text-[#A8A29E]/40";
+              fontClass = "text-sm font-semibold text-[#A8A29E]/40 dark:text-[#636366]/40";
             }
 
             return (
@@ -349,7 +349,7 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
         </div>
 
         {/* Quick Presets */}
-        <div className="px-3 py-1.5 bg-white/70 border-b border-[#262626]/10 flex items-center justify-between gap-1 overflow-x-auto no-scrollbar">
+        <div className="px-3 py-1.5 bg-white/70 dark:bg-[#1C1C1E] border-b border-[#262626]/10 dark:border-white/10 flex items-center justify-between gap-1 overflow-x-auto no-scrollbar">
           {PRESETS.map((p) => {
             const isMatch = selectedHour === p.h && selectedMinute === p.m;
             return (
@@ -359,8 +359,8 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
                 onClick={() => handleApplyPreset(p.h, p.m)}
                 className={`px-1.5 py-0.5 rounded-[3px] text-[10px] font-mono font-bold border transition-all cursor-pointer whitespace-nowrap active:translate-y-[0.5px] ${
                   isMatch
-                    ? "bg-[#1C1917] text-white border-[#1C1917] shadow-[1px_1px_0px_#262626]"
-                    : "bg-[#FAF8F3] text-[#57534E] border-[#D4CEBF] hover:bg-[#FEF08A] hover:text-[#1C1917] hover:border-[#262626]"
+                    ? "bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] border-[#1C1917] dark:border-white shadow-[1px_1px_0px_#262626]"
+                    : "bg-[#FAF8F3] dark:bg-[#2C2C2E] text-[#57534E] dark:text-[#8E8E93] border-[#D4CEBF] dark:border-[#3A3A3C] hover:bg-[#FEF08A] dark:hover:bg-white/10 hover:text-[#1C1917] dark:hover:text-white hover:border-[#262626]"
                 }`}
               >
                 {p.label}
@@ -370,7 +370,7 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
         </div>
 
         {/* 2 Cột Drum Wheel (H và M) */}
-        <div className="flex px-4 py-3 gap-4 bg-[#FBF9F4] justify-center items-center">
+        <div className="flex px-4 py-3 gap-4 bg-[#FBF9F4] dark:bg-[#121214] justify-center items-center">
           <DrumWheelColumn
             label="H"
             items={HOURS}
@@ -379,7 +379,7 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
             onSelect={handleSelectHour}
             onScroll={handleHourScroll}
           />
-          <span className="font-mono text-xl font-black text-[#262626] pb-1">:</span>
+          <span className="font-mono text-xl font-black text-[#262626] dark:text-[#F2F2F7] pb-1">:</span>
           <DrumWheelColumn
             label="M"
             items={MINUTES}
@@ -391,18 +391,18 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
         </div>
 
         {/* Bottom Actions */}
-        <div className="px-3.5 py-2.5 bg-[#FAF8F3] border-t border-[#262626]/15 flex items-center justify-between gap-2">
+        <div className="px-3.5 py-2.5 bg-[#FAF8F3] dark:bg-[#1C1C1E] border-t border-[#262626]/15 dark:border-white/10 flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={handleClear}
-            className="flex-1 py-1.5 px-2 rounded-[6px] bg-white hover:bg-slate-100 border-[1.5px] border-[#262626] text-xs font-bold text-[#57534E] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer transition-all"
+            className="flex-1 py-1.5 px-2 rounded-[6px] bg-white dark:bg-[#2C2C2E] hover:bg-slate-100 dark:hover:bg-[#3A3A3C] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] text-xs font-bold text-[#57534E] dark:text-[#8E8E93] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer transition-all"
           >
             Xóa giờ
           </button>
           <button
             type="button"
             onClick={handleDone}
-            className="flex-1 py-1.5 px-3 rounded-[6px] bg-[#1C1917] hover:bg-[#262626] text-white border-[1.5px] border-[#1C1917] text-xs font-bold shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer flex items-center justify-center gap-1.5 transition-all"
+            className="flex-1 py-1.5 px-3 rounded-[6px] bg-[#1C1917] dark:bg-white hover:bg-[#262626] dark:hover:bg-[#F2F2F7] text-white dark:text-[#1C1917] border-[1.5px] border-[#1C1917] dark:border-white text-xs font-bold shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer flex items-center justify-center gap-1.5 transition-all"
           >
             <Check size={13} strokeWidth={3} />
             <span>Hoàn tất</span>
