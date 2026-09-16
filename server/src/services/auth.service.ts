@@ -17,7 +17,7 @@ export class AuthService {
         email,
         passwordHash,
         avatar: "lucide:User",
-        avatarBg: "#BBF7D0",
+        avatarBg: "#FEF08A",
       },
     });
 
@@ -30,7 +30,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         avatar: user.avatar || "lucide:User",
-        avatarBg: user.avatarBg || "#BBF7D0",
+        avatarBg: user.avatarBg || "#FEF08A",
       },
     };
   }
@@ -60,7 +60,7 @@ export class AuthService {
         name: user.name,
         email: user.email,
         avatar: user.avatar || "lucide:User",
-        avatarBg: user.avatarBg || "#BBF7D0",
+        avatarBg: user.avatarBg || "#FEF08A",
       },
     };
   }

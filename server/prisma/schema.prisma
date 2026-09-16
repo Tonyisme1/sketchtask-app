@@ -15,7 +15,7 @@ model User {
   passwordHash      String?
   name              String
   avatar            String?            @default("lucide:User")
-  avatarBg          String?            @default("#BBF7D0")
+  avatarBg          String?            @default("#FEF08A")
   googleId          String?            @unique
   tasks             Task[]
   stickyNotes       StickyNote[]
