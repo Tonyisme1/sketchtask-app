@@ -1,22 +1,28 @@
 // ==========================================
 // CẤU HÌNH API KEY TRỢ LÝ AI (GOOGLE GEMINI)
-// Bạn có thể dán API Key trực tiếp vào DEFAULT_GEMINI_API_KEY bên dưới
-// hoặc cấu hình trong file .env với biến VITE_GEMINI_API_KEY
+// Tích hợp ngầm key sẵn cho toàn bộ người dùng
 // ==========================================
 
 export const AI_CONFIG = {
-  // Dán Google Gemini API Key vào đây (hoặc lấy từ import.meta.env):
-  DEFAULT_GEMINI_API_KEY: import.meta.env.VITE_GEMINI_API_KEY || "",
+  // Key mặc định tích hợp sẵn
+  DEFAULT_GEMINI_API_KEY:
+    import.meta.env.VITE_GEMINI_API_KEY ||
+    "",
 
-  // Model khuyến nghị: gemini-1.5-flash (tốc độ cao, miễn phí, tiếng Việt chuẩn)
-  DEFAULT_MODEL: "gemini-1.5-flash",
+  // Danh sách các model tốc độ cao hoạt động ổn định nhất
+  FALLBACK_MODELS: [
+    "gemini-3-flash-preview",
+    "gemini-3.6-flash",
+    "gemini-3.1-flash-lite-preview",
+  ],
+
+  DEFAULT_MODEL: "gemini-3-flash-preview",
 
   // Base API URL của Google Gemini
   BASE_URL: "https://generativelanguage.googleapis.com/v1beta",
 };
 
 export function getEffectiveGeminiApiKey(): string {
-  // 1. Ưu tiên key lưu trong LocalStorage nếu có
   try {
     const localKey = localStorage.getItem("sketchtask_gemini_api_key");
     if (localKey && localKey.trim()) {
@@ -26,7 +32,6 @@ export function getEffectiveGeminiApiKey(): string {
     // ignore
   }
 
-  // 2. Key từ cấu hình hoặc file .env
   return (AI_CONFIG.DEFAULT_GEMINI_API_KEY || "").trim();
 }
 

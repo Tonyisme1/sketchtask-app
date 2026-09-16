@@ -168,154 +168,158 @@ LƯU Ý QUAN TRỌNG:
     parts: [{ text: h.text }],
   }));
 
-  try {
-    const url = `${AI_CONFIG.BASE_URL}/models/${AI_CONFIG.DEFAULT_MODEL}:generateContent?key=${apiKey}`;
+  const modelsToTry = AI_CONFIG.FALLBACK_MODELS || ["gemini-3-flash-preview", "gemini-3.6-flash"];
 
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        system_instruction: {
-          parts: [{ text: systemInstruction }],
+  for (const model of modelsToTry) {
+    try {
+      const url = `${AI_CONFIG.BASE_URL}/models/${model}:generateContent?key=${apiKey}`;
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        contents: [
-          ...recentHistory,
-          {
-            role: "user",
-            parts: [{ text: userQuery }],
+        body: JSON.stringify({
+          system_instruction: {
+            parts: [{ text: systemInstruction }],
           },
-        ],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 1200,
-        },
-      }),
-    });
+          contents: [
+            ...recentHistory,
+            {
+              role: "user",
+              parts: [{ text: userQuery }],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.8,
+            maxOutputTokens: 2048,
+          },
+        }),
+      });
 
-    if (!response.ok) {
-      console.warn("Gemini API request returned status:", response.status);
-      // Fallback sang local engine nếu key hết hạn hoặc lỗi mạng
-      return processUserQueryWithAgent(userQuery, context, now);
-    }
-
-    const data = await response.json();
-    const rawAnswer =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-
-    if (!rawAnswer.trim()) {
-      return processUserQueryWithAgent(userQuery, context, now);
-    }
-
-    // Bóc tách JSON Action block nếu có
-    let cleanText = rawAnswer;
-    let actionPayload: GeminiActionPayload | null = null;
-
-    const jsonMatch = rawAnswer.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (jsonMatch) {
-      try {
-        actionPayload = JSON.parse(jsonMatch[1]);
-        // Loại bỏ khối JSON khỏi văn bản hiển thị cho người dùng
-        cleanText = rawAnswer.replace(/```(?:json)?\s*[\s\S]*?\s*```/, "").trim();
-      } catch {
-        // Parse JSON thất bại, giữ nguyên rawAnswer
+      if (!response.ok) {
+        continue;
       }
-    }
 
-    // XỬ LÝ ACTION TỪ GEMINI
-    if (actionPayload) {
-      // 1. Tạo tasks
-      if (
-        actionPayload.action === "create_tasks" &&
-        actionPayload.tasks &&
-        actionPayload.tasks.length > 0
-      ) {
-        const createdList = [];
-        for (const t of actionPayload.tasks) {
-          const newTask = addTask({
-            title: t.title || "Công việc mới",
-            dueDate: t.dueDate || todayStr,
-            timeType: (t.timeType as TaskTimeType) || "task",
-            startTime: t.startTime,
-            deadlineTime: t.deadlineTime,
-            priority: (t.priority as TaskPriority) || "medium",
-            tag: t.tag,
-          });
+      const data = await response.json();
+      const rawAnswer =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-          const timeLabel = t.startTime
-            ? `⏰ ${t.startTime}`
-            : t.deadlineTime
-            ? `⏳ Hạn ${t.deadlineTime}`
-            : undefined;
+      if (!rawAnswer.trim()) {
+        continue;
+      }
 
-          createdList.push({
-            id: newTask.id,
-            title: t.title || "Công việc mới",
-            priority: (t.priority as TaskPriority) || "medium",
-            timeLabel,
-            tag: t.tag,
-            dueDate: t.dueDate || todayStr,
-          });
+      // Bóc tách JSON Action block nếu có
+      let cleanText = rawAnswer;
+      let actionPayload: GeminiActionPayload | null = null;
+
+      const jsonMatch = rawAnswer.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        try {
+          actionPayload = JSON.parse(jsonMatch[1]);
+          // Loại bỏ khối JSON khỏi văn bản hiển thị cho người dùng
+          cleanText = rawAnswer.replace(/```(?:json)?\s*[\s\S]*?\s*```/, "").trim();
+        } catch {
+          // Parse JSON thất bại, giữ nguyên rawAnswer
+        }
+      }
+
+      // XỬ LÝ ACTION TỪ GEMINI
+      if (actionPayload) {
+        // 1. Tạo tasks
+        if (
+          actionPayload.action === "create_tasks" &&
+          actionPayload.tasks &&
+          actionPayload.tasks.length > 0
+        ) {
+          const createdList = [];
+          for (const t of actionPayload.tasks) {
+            const newTask = addTask({
+              title: t.title || "Công việc mới",
+              dueDate: t.dueDate || todayStr,
+              timeType: (t.timeType as TaskTimeType) || "task",
+              startTime: t.startTime,
+              deadlineTime: t.deadlineTime,
+              priority: (t.priority as TaskPriority) || "medium",
+              tag: t.tag,
+            });
+
+            const timeLabel = t.startTime
+              ? `⏰ ${t.startTime}`
+              : t.deadlineTime
+              ? `⏳ Hạn ${t.deadlineTime}`
+              : undefined;
+
+            createdList.push({
+              id: newTask.id,
+              title: t.title || "Công việc mới",
+              priority: (t.priority as TaskPriority) || "medium",
+              timeLabel,
+              tag: t.tag,
+              dueDate: t.dueDate || todayStr,
+            });
+          }
+
+          return {
+            type: createdList.length > 1 ? "batch_created" : "created_task",
+            text: cleanText || (createdList.length > 1 ? `✓ Đã tạo ${createdList.length} công việc mới vào danh sách:` : `✓ Đã tạo công việc mới:`),
+            createdTasks: createdList,
+          };
         }
 
-        return {
-          type: createdList.length > 1 ? "batch_created" : "created_task",
-          text: cleanText || (createdList.length > 1 ? `✓ Đã tạo ${createdList.length} công việc mới vào danh sách:` : `✓ Đã tạo công việc mới:`),
-          createdTasks: createdList,
-        };
-      }
+        // 2. Chia nhỏ kế hoạch (Breakdown Plan)
+        if (
+          actionPayload.action === "breakdown_plan" &&
+          actionPayload.plan &&
+          actionPayload.plan.steps &&
+          actionPayload.plan.steps.length > 0
+        ) {
+          const formattedSubtasks = actionPayload.plan.steps.map((s) => ({
+            title: s.title,
+            dueDate: s.dueDate || todayStr,
+            timeType: (s.timeType as TaskTimeType) || "scheduled",
+            startTime: s.startTime,
+            deadlineTime: s.deadlineTime,
+            priority: (s.priority as TaskPriority) || "medium",
+            tag: s.tag || "KeHoach",
+          }));
 
-      // 2. Chia nhỏ kế hoạch (Breakdown Plan)
-      if (
-        actionPayload.action === "breakdown_plan" &&
-        actionPayload.plan &&
-        actionPayload.plan.steps &&
-        actionPayload.plan.steps.length > 0
-      ) {
-        const formattedSubtasks = actionPayload.plan.steps.map((s) => ({
-          title: s.title,
-          dueDate: s.dueDate || todayStr,
-          timeType: (s.timeType as TaskTimeType) || "scheduled",
-          startTime: s.startTime,
-          deadlineTime: s.deadlineTime,
-          priority: (s.priority as TaskPriority) || "medium",
-          tag: s.tag || "KeHoach",
-        }));
-
-        return {
-          type: "goal_breakdown",
-          text: cleanText || `💡 Kế hoạch đề xuất cho: **"${actionPayload.plan.goalTitle}"**`,
-          breakdownPlan: {
-            goalTitle: actionPayload.plan.goalTitle,
-            subtasks: formattedSubtasks,
-          },
-        };
-      }
-
-      // 3. Hoàn thành việc
-      if (actionPayload.action === "complete_task" && actionPayload.completedTaskTitle) {
-        const match = tasks.find(
-          (t) =>
-            !t.completed &&
-            t.title.toLowerCase().includes(actionPayload!.completedTaskTitle!.toLowerCase())
-        );
-        if (match) {
-          toggleTask(match.id);
+          return {
+            type: "goal_breakdown",
+            text: cleanText || `💡 Kế hoạch đề xuất cho: **"${actionPayload.plan.goalTitle}"**`,
+            breakdownPlan: {
+              goalTitle: actionPayload.plan.goalTitle,
+              subtasks: formattedSubtasks,
+            },
+          };
         }
-        return {
-          type: "task_action",
-          text: cleanText || `✓ Đã đánh dấu hoàn thành công việc: **"${actionPayload.completedTaskTitle}"**!`,
-        };
-      }
-    }
 
-    return {
-      type: "text_reply",
-      text: cleanText || rawAnswer,
-    };
-  } catch (err) {
-    console.warn("Gemini fetch error, falling back to local NLP:", err);
-    return processUserQueryWithAgent(userQuery, context, now);
+        // 3. Hoàn thành việc
+        if (actionPayload.action === "complete_task" && actionPayload.completedTaskTitle) {
+          const match = tasks.find(
+            (t) =>
+              !t.completed &&
+              t.title.toLowerCase().includes(actionPayload!.completedTaskTitle!.toLowerCase())
+          );
+          if (match) {
+            toggleTask(match.id);
+          }
+          return {
+            type: "task_action",
+            text: cleanText || `✓ Đã đánh dấu hoàn thành công việc: **"${actionPayload.completedTaskTitle}"**!`,
+          };
+        }
+      }
+
+      return {
+        type: "text_reply",
+        text: cleanText || rawAnswer,
+      };
+    } catch (err) {
+      console.warn(`Gemini model ${model} error, trying next:`, err);
+    }
   }
+
+  // Nếu toàn bộ API models đều lỗi mạng hoặc quota -> Fallback sang local engine
+  return processUserQueryWithAgent(userQuery, context, now);
 }
