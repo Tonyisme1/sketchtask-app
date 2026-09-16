@@ -1,15 +1,11 @@
-import { TaskDto, TaskPriority, TaskTimeType } from "../types";
+import { TaskPriority, TaskTimeType } from "../types";
 import { getLocalTodayStr } from "../utils/date";
 import {
   isTaskDueToday,
   getTaskTemporalState,
 } from "../utils/taskSemantics";
 import { AI_CONFIG, getEffectiveGeminiApiKey } from "../config/aiConfig";
-import {
-  AIQueryResult,
-  AgentProcessContext,
-  processUserQueryWithAgent,
-} from "./aiAgentService";
+import { AIQueryResult, AgentProcessContext } from "./aiAgentService";
 
 // ==========================================
 // GEMINI API CALLER & INTELLIGENT AGENT
@@ -60,9 +56,11 @@ export async function askGeminiAIAssistant(
 ): Promise<AIQueryResult> {
   const apiKey = getEffectiveGeminiApiKey();
 
-  // Nếu chưa có API Key -> Fallback sang Smart Local Engine mượt mà
   if (!apiKey) {
-    return processUserQueryWithAgent(userQuery, context, now);
+    return {
+      type: "text_reply",
+      text: "Chưa tìm thấy API Key của Google Gemini. Vui lòng kiểm tra lại cấu hình API Key.",
+    };
   }
 
   const todayStr = getLocalTodayStr(now);
@@ -320,6 +318,8 @@ LƯU Ý QUAN TRỌNG:
     }
   }
 
-  // Nếu toàn bộ API models đều lỗi mạng hoặc quota -> Fallback sang local engine
-  return processUserQueryWithAgent(userQuery, context, now);
+  return {
+    type: "text_reply",
+    text: "Không thể kết nối đến máy chủ Google Gemini AI. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau giây lát.",
+  };
 }
