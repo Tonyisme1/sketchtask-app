@@ -739,7 +739,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [tasks, setTasks] = useState<TaskDto[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_tasks`);
-      return saved ? JSON.parse(saved) : [];
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          const seen = new Set<string>();
+          return parsed.filter((t) => {
+            if (!t || !t.id || seen.has(t.id)) return false;
+            seen.add(t.id);
+            return true;
+          });
+        }
+      }
+      return [];
     } catch {
       return [];
     }

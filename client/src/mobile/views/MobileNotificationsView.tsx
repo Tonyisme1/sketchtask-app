@@ -348,7 +348,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
 
                 {group.tasks.map((task) => (
                   <div
-                    key={task.id}
+                    key={`overdue-${task.id}`}
                     onClick={() => handleOpenTask(task)}
                     className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-3.5 shadow-xs transition-all cursor-pointer flex items-center justify-between gap-3 group active:scale-[0.99]"
                   >
@@ -423,7 +423,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
             <div className="space-y-2">
               {todayDueTasks.map((task) => (
                 <div
-                  key={task.id}
+                  key={`today-${task.id}`}
                   onClick={() => handleOpenTask(task)}
                   className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-3.5 shadow-xs transition-all cursor-pointer flex items-center justify-between gap-3 group active:scale-[0.99]"
                 >
@@ -498,7 +498,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
               <div className="space-y-2">
                 {completedTodayTasks.map((task) => (
                   <div
-                    key={task.id}
+                    key={`completed-${task.id}`}
                     onClick={() => handleOpenTask(task)}
                     className="bg-white/70 dark:bg-[#1C1C1E]/70 border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-3.5 shadow-2xs transition-all cursor-pointer flex items-center justify-between gap-3 group opacity-75 hover:opacity-100"
                   >

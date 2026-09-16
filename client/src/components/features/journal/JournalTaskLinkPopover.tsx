@@ -160,11 +160,11 @@ export const JournalTaskLinkPopover: React.FC<JournalTaskLinkPopoverProps> = ({
             Không tìm thấy công việc phù hợp
           </div>
         ) : (
-          filteredTasks.map((task) => {
+          filteredTasks.map((task, index) => {
             const isSelected = selectedTaskId === task.id;
             return (
               <button
-                key={task.id}
+                key={`link-task-${task.id}-${index}`}
                 type="button"
                 onClick={() => {
                   onSelectTask(task);

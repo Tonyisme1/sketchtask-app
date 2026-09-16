@@ -285,8 +285,8 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
 
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#34C759]" />
-            <span className="text-xs font-medium text-[#8E8E93] dark:text-[#98989D]">
-              {aiProvider === "gemini" ? "Gemini AI" : "AI"}
+            <span className="text-xs font-semibold text-[#8E8E93] dark:text-[#98989D]">
+              Gemini AI
             </span>
           </div>
         </div>
