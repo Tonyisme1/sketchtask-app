@@ -147,7 +147,7 @@ const SettingsSelect: React.FC<SettingsSelectProps> = ({
         <div
           className={`absolute ${
             align === "right" ? "right-0" : "left-0"
-          } top-full mt-1.5 w-60 sm:w-64 bg-[#FFFDF8] dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] rounded-[8px] shadow-[3px_3px_0px_#262626] py-1 z-50 animate-in fade-in zoom-in-95 flex flex-col overflow-hidden divide-y divide-[#E7E5E4] dark:divide-[#3A3A3C]`}
+          } top-full mt-1.5 w-60 sm:w-64 bg-[#FFFDF8] dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] rounded-[8px] shadow-[3px_3px_0px_#262626] py-1 z-50 animate-in fade-in flex flex-col overflow-hidden divide-y divide-[#E7E5E4] dark:divide-[#3A3A3C]`}
         >
           {options.map((opt) => {
             const isSelected = opt.value === value;

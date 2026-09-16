@@ -319,8 +319,8 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
         ref={panelRef}
         className={
           isTouchViewport
-            ? "pointer-events-auto relative w-full max-w-[310px] max-h-[calc(100dvh-2rem)] overflow-hidden rounded-[10px] border-[1.5px] border-[#262626] bg-[#FBF9F4] shadow-[4px_4px_0px_#262626] animate-in zoom-in-95 duration-150"
-            : "pointer-events-auto fixed max-w-[calc(100vw-1rem)] overflow-hidden rounded-[10px] border-[1.5px] border-[#262626] bg-[#FBF9F4] shadow-[3.5px_3.5px_0px_#262626] animate-in fade-in zoom-in-95 duration-150"
+            ? "pointer-events-auto relative w-full max-w-[310px] max-h-[calc(100dvh-2rem)] overflow-hidden rounded-[10px] border-[1.5px] border-[#262626] bg-[#FBF9F4] shadow-[4px_4px_0px_#262626] animate-in fade-in duration-150"
+            : "pointer-events-auto fixed max-w-[calc(100vw-1rem)] overflow-hidden rounded-[10px] border-[1.5px] border-[#262626] bg-[#FBF9F4] shadow-[3.5px_3.5px_0px_#262626] animate-in fade-in duration-150"
         }
         style={
           isTouchViewport

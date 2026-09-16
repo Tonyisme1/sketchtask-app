@@ -89,7 +89,7 @@ export const CustomAvatarPicker: React.FC<CustomAvatarPickerProps> = ({
 
       {/* Popover Box (Rộng rãi, hỗ trợ cuộn ẩn thanh cuộn) */}
       {isOpen && (
-        <div className="absolute left-0 top-full mt-2 w-[270px] max-w-[calc(100vw-36px)] bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] z-50 p-3 space-y-3 animate-in fade-in zoom-in-95 text-xs text-[#1C1917] select-none">
+        <div className="absolute left-0 top-full mt-2 w-[270px] max-w-[calc(100vw-36px)] bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] z-50 p-3 space-y-3 animate-in fade-in text-xs text-[#1C1917] select-none">
           {/* Header */}
           <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]">
             <span className="font-bold text-xs flex items-center gap-1 text-[#1C1917]">

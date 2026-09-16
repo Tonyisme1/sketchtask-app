@@ -75,7 +75,7 @@ export const JournalTaskLinkPopover: React.FC<JournalTaskLinkPopoverProps> = ({
     <div
       ref={popoverRef}
       onClick={(e) => e.stopPropagation()}
-      className={`absolute top-full mt-1.5 z-40 w-72 sm:w-80 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] p-2.5 space-y-2 select-none animate-in fade-in zoom-in-95 duration-150 ${
+      className={`absolute top-full mt-1.5 z-40 w-72 sm:w-80 bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] p-2.5 space-y-2 select-none animate-in fade-in duration-150 ${
         align === "right" ? "right-0" : "left-0"
       }`}
     >

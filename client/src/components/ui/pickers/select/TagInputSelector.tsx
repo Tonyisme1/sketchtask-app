@@ -69,7 +69,7 @@ export const TagInputSelector: React.FC<TagInputSelectorProps> = ({
           selectedTags.map((tag) => (
             <span
               key={tag}
-              className="inline-flex items-center gap-1.5 rounded-[4px] border-[1.5px] border-[#262626] bg-[#1C1917] px-2.5 py-1 text-xs font-bold text-white shadow-[1px_1px_0px_#262626] transition-all animate-in zoom-in-95 duration-100"
+              className="inline-flex items-center gap-1.5 rounded-[4px] border-[1.5px] border-[#262626] bg-[#1C1917] px-2.5 py-1 text-xs font-bold text-white shadow-[1px_1px_0px_#262626] transition-all animate-in fade-in duration-100"
             >
               <span>#{tag}</span>
               <button

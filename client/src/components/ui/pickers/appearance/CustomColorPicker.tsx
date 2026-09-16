@@ -104,7 +104,7 @@ export const CustomColorPicker: React.FC<CustomColorPickerProps> = ({
         <div
           className={`absolute ${
             align === "right" ? "right-0" : "left-0"
-          } top-full mt-1.5 w-[260px] max-w-[calc(100vw-28px)] bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] z-50 p-2.5 space-y-2 animate-in fade-in zoom-in-95 text-xs text-[#1C1917] select-none`}
+          } top-full mt-1.5 w-[260px] max-w-[calc(100vw-28px)] bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] z-50 p-2.5 space-y-2 animate-in fade-in text-xs text-[#1C1917] select-none`}
         >
           {/* Header */}
           <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]">

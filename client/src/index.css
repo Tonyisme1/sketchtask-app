@@ -555,126 +555,23 @@ body {
 
 
 
-/* Chuyển cảnh Tab mượt mà & tinh tế (loại bỏ trượt 100vw giật cục) */
-@keyframes mobileTabSlideLeft {
-  0% {
-    opacity: 0;
-    transform: translate3d(12px, 0, 0);
-  }
-  100% {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes mobileTabSlideRight {
-  0% {
-    opacity: 0;
-    transform: translate3d(-12px, 0, 0);
-  }
-  100% {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes mobileTabEnter {
-  0% {
-    opacity: 0;
-    transform: scale(0.99);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes mobilePanelEnter {
-  from {
-    opacity: 0;
-    transform: translate3d(20px, 0, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes mobilePanelExit {
-  from {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    opacity: 0;
-    transform: translate3d(20px, 0, 0);
-  }
-}
-
-@keyframes mobilePanelBackEnter {
-  from {
-    opacity: 0;
-    transform: translate3d(-20px, 0, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
 .mobile-tab-enter,
 .mobile-tab-slide-left,
 .mobile-tab-slide-right,
 .mobile-panel-enter,
 .mobile-panel-exit,
-.mobile-panel-back-enter,
+.mobile-panel-back-enter {
+  animation: none !important;
+  transform: none !important;
+}
+
 .mobile-toast-enter {
   animation-fill-mode: both;
 }
 
 @media (max-width: 767px) {
-  .mobile-tab-enter {
-    animation: mobileTabEnter 180ms cubic-bezier(0.16, 1, 0.3, 1);
-    will-change: transform, opacity;
-  }
-
-  .mobile-tab-slide-left {
-    animation: mobileTabSlideLeft 180ms cubic-bezier(0.16, 1, 0.3, 1);
-    will-change: transform, opacity;
-  }
-
-  .mobile-tab-slide-right {
-    animation: mobileTabSlideRight 180ms cubic-bezier(0.16, 1, 0.3, 1);
-    will-change: transform, opacity;
-  }
-
-  .mobile-panel-enter {
-    animation: mobilePanelEnter 200ms cubic-bezier(0.16, 1, 0.3, 1);
-    will-change: transform, opacity;
-  }
-
-  .mobile-panel-exit {
-    animation: mobilePanelExit 160ms cubic-bezier(0.7, 0, 0.84, 0);
-    pointer-events: none;
-    will-change: transform, opacity;
-  }
-
-  .mobile-panel-back-enter {
-    animation: mobilePanelBackEnter 200ms cubic-bezier(0.16, 1, 0.3, 1);
-    will-change: transform, opacity;
-  }
-
   .mobile-toast-enter {
-    animation: mobileTabEnter 180ms ease-out;
-  }
-}
-
-@media (min-width: 768px) {
-  .mobile-tab-enter,
-  .mobile-tab-slide-left,
-  .mobile-tab-slide-right {
-    animation: mobileTabEnter 180ms cubic-bezier(0.22, 1, 0.36, 1);
-    will-change: transform, opacity;
+    animation: uiFadeIn 180ms ease-out;
   }
 }
 

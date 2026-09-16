@@ -245,7 +245,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             </button>
 
             {!isScrolled && isTaskDropdownOpen && (
-              <div className="absolute left-0 top-full mt-2 w-52 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute left-0 top-full mt-2 w-52 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in duration-150">
                 {/* 1. Hôm nay */}
                 <button
                   type="button"
@@ -353,7 +353,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             </button>
 
             {!isScrolled && isNoteDropdownOpen && (
-              <div className="absolute left-0 top-full mt-2 w-48 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute left-0 top-full mt-2 w-48 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in duration-150">
                 <button
                   type="button"
                   onClick={() => {
@@ -469,7 +469,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             </button>
 
             {isAccountDropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute right-0 top-full mt-2 w-52 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in duration-150">
                 <button
                   type="button"
                   onClick={() => {

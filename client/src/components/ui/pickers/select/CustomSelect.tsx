@@ -131,7 +131,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       ref={panelRef}
       role="dialog"
       aria-label="Danh sách lựa chọn"
-      className="fixed z-[1000002] bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] py-1 animate-in fade-in zoom-in-95 flex flex-col overflow-hidden text-[#1C1917]"
+      className="fixed z-[1000002] bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] py-1 animate-in fade-in flex flex-col overflow-hidden text-[#1C1917]"
       style={{
         top: panelPos.top,
         left: panelPos.left,

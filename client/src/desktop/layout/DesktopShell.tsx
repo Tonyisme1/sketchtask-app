@@ -183,7 +183,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
           <section
             role="document"
             onClick={(event) => event.stopPropagation()}
-            className="flex h-[min(90dvh,840px)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] shadow-2xl animate-in zoom-in-95 duration-150"
+            className="flex h-[min(90dvh,840px)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#1C1C1E] shadow-2xl"
           >
             <header className="flex min-h-[56px] items-center justify-between border-b border-[#E5E5EA] dark:border-[#2C2C2E] bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl px-5 lg:px-6 shrink-0">
               <div className="flex items-center gap-2.5">

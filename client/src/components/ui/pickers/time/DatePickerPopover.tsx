@@ -207,7 +207,7 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
       >
         <div
           ref={panelRef}
-          className="w-full max-w-[310px] bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[10px] shadow-[4px_4px_0px_#262626] overflow-hidden p-3.5 animate-in zoom-in-95 duration-150"
+          className="w-full max-w-[310px] bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[10px] shadow-[4px_4px_0px_#262626] overflow-hidden p-3.5 animate-in fade-in duration-150"
           onClick={(event) => event.stopPropagation()}
         >
           {/* Header Tháng / Năm & Nút Đóng */}
