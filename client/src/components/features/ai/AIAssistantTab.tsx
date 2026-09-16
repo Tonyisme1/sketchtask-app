@@ -264,9 +264,9 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
           : "max-w-3xl h-[calc(100dvh-130px)] sm:h-[calc(100vh-135px)] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-none md:rounded-2xl shadow-xl overflow-hidden"
       }`}
     >
-      {/* 1. COPILOT HEADER */}
+      {/* 1. MINIMALIST TOPBAR */}
       <div
-        className={`px-4 py-3 bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-xl border-b border-[#E5E5EA] dark:border-[#2C2C2E] flex items-center justify-between shrink-0 ${
+        className={`px-4 py-3 bg-white dark:bg-[#1C1C1E] border-b border-[#E5E5EA] dark:border-[#2C2C2E] flex items-center justify-between shrink-0 ${
           isStandalone ? "pt-[max(env(safe-area-inset-top),12px)]" : ""
         }`}
       >
@@ -283,22 +283,9 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             </button>
           )}
 
-          <div className="w-8.5 h-8.5 rounded-xl bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] flex items-center justify-center shadow-xs shrink-0">
-            <Sparkles size={16} strokeWidth={2.4} />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h2 className="text-sm font-bold text-[#1C1C1E] dark:text-[#F2F2F7] leading-none">
-                Trợ lý AI
-              </h2>
-              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                Copilot
-              </span>
-            </div>
-            <p className="text-[11px] text-[#8E8E93] truncate mt-0.5">
-              Phân tích tiến độ & chia nhỏ mục tiêu
-            </p>
-          </div>
+          <h2 className="text-base font-bold text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight">
+            Trợ lý AI
+          </h2>
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
@@ -322,7 +309,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
       </div>
 
       {/* 2. KHUNG TIN NHẮN (MESSAGE STREAM) */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-[#F2F2F7]/30 dark:bg-black/20">
+      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-[#F2F2F7]/50 dark:bg-black/30">
         {messages.map((m) => {
           const isAi = m.sender === "ai";
           const res = m.queryResult;
@@ -335,8 +322,8 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
               }`}
             >
               {isAi && (
-                <div className="w-7 h-7 rounded-xl bg-[#007AFF] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
-                  <Bot size={15} strokeWidth={2.4} />
+                <div className="w-7 h-7 rounded-xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                  <Sparkles size={14} strokeWidth={2.2} />
                 </div>
               )}
 
@@ -560,8 +547,8 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
         })}
 
         {isTyping && (
-          <div className="flex items-center gap-2 text-xs text-[#8E8E93] font-medium pl-9 animate-pulse">
-            <Bot size={14} className="text-[#007AFF]" />
+          <div className="flex items-center gap-2 text-xs text-[#8E8E93] font-medium pl-9">
+            <Sparkles size={13} className="text-[#8E8E93]" />
             <span>Trợ lý AI đang suy nghĩ và phân tích...</span>
           </div>
         )}
@@ -592,7 +579,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
           isStandalone ? "pb-[max(env(safe-area-inset-bottom),12px)]" : ""
         }`}
       >
-        <div className="flex-1 flex items-center bg-[#F2F2F7]/80 dark:bg-black/40 border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-xl px-3.5 py-2 focus-within:border-[#007AFF] focus-within:bg-white dark:focus-within:bg-[#1C1C1E] transition-all">
+        <div className="flex-1 flex items-center bg-[#F2F2F7] dark:bg-[#2C2C2E] border border-[#E5E5EA] dark:border-[#3A3A3C] rounded-xl px-3.5 py-2 focus-within:border-[#1C1C1E] dark:focus-within:border-white transition-all">
           <input
             ref={inputRef}
             type="text"

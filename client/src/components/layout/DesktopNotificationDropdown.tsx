@@ -116,7 +116,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 top-full mt-2 w-[380px] max-w-[calc(100vw-32px)] bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-2xl z-50 overflow-hidden select-none flex flex-col max-h-[520px] animate-in fade-in slide-in-from-top-2 duration-150"
+      className="absolute right-0 top-full mt-2 w-[380px] max-w-[calc(100vw-32px)] bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-2xl z-50 overflow-hidden select-none flex flex-col max-h-[520px] animate-in fade-in duration-150"
     >
       {/* 1. Header Bar: Tiêu đề + Nút Cài Đặt */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
