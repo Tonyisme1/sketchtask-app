@@ -256,6 +256,33 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
     }
   };
 
+  // Helper render text không bị lộ ký tự markdown **
+  const renderMessageContent = (text: string) => {
+    if (!text) return null;
+    const regex = /\*\*([^*]+)\*\*/g;
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(text.substring(lastIndex, match.index));
+      }
+      parts.push(
+        <strong key={match.index} className="font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+          {match[1]}
+        </strong>
+      );
+      lastIndex = regex.lastIndex;
+    }
+
+    if (lastIndex < text.length) {
+      parts.push(text.substring(lastIndex));
+    }
+
+    return parts;
+  };
+
   return (
     <div
       className={`mx-auto w-full flex flex-col bg-white dark:bg-[#1C1C1E] select-none ${
@@ -327,7 +354,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                 }`}
               >
                 {/* Nội dung text chính */}
-                <div className="whitespace-pre-line font-normal">{m.text}</div>
+                <div className="whitespace-pre-line font-normal">{renderMessageContent(m.text)}</div>
 
                 {/* CARD 1: TASK CREATED CARD (ĐƠN LẺ & BATCH) */}
                 {res && (res.type === "created_task" || res.type === "batch_created") && res.createdTasks && (

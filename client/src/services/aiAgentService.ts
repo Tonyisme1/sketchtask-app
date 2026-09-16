@@ -105,7 +105,7 @@ export function generateDynamicPromptChips(
   if (overdue.length > 0) {
     chips.push({
       id: "overdue",
-      label: `⚠️ ${overdue.length} việc quá hạn`,
+      label: `${overdue.length} việc quá hạn`,
       query: "Phân tích và cho tôi danh sách các việc đang bị quá hạn",
     });
   }
@@ -114,7 +114,7 @@ export function generateDynamicPromptChips(
   if (urgent.length > 0) {
     chips.push({
       id: "urgent",
-      label: `🔥 ${urgent.length} việc gấp`,
+      label: `${urgent.length} việc gấp`,
       query: "Tổng hợp các việc gấp cần làm ưu tiên nhất",
     });
   }
@@ -123,24 +123,24 @@ export function generateDynamicPromptChips(
   if (openToday.length > 0) {
     chips.push({
       id: "today_summary",
-      label: `📋 Hôm nay (${openToday.length} việc)`,
+      label: `Hôm nay (${openToday.length} việc)`,
       query: "Tóm tắt danh sách công việc cần làm hôm nay",
     });
     chips.push({
       id: "next_task",
-      label: "🎯 Việc nên làm tiếp theo",
+      label: "Việc nên làm tiếp theo",
       query: "Dựa vào danh sách hôm nay, tôi nên làm việc gì tiếp theo?",
     });
   } else if (completedToday.length > 0 && todayTasks.length === completedToday.length) {
     chips.push({
       id: "completed_all",
-      label: "🎉 Tổng kết hôm nay",
+      label: "Tổng kết hôm nay",
       query: "Đánh giá hiệu suất làm việc hôm nay của tôi",
     });
   } else {
     chips.push({
       id: "plan_today",
-      label: "⚡ Lên kế hoạch hôm nay",
+      label: "Lên kế hoạch hôm nay",
       query: "Gợi ý lịch trình làm việc hiệu quả cho hôm nay",
     });
   }
@@ -148,14 +148,14 @@ export function generateDynamicPromptChips(
   // 4. Phân tích tiến độ
   chips.push({
     id: "stats",
-    label: "📊 Phân tích tiến độ",
+    label: "Phân tích tiến độ",
     query: "Phân tích tiến độ công việc và tỷ lệ hoàn thành",
   });
 
   // 5. Gợi ý chia nhỏ mục tiêu
   chips.push({
     id: "breakdown",
-    label: "💡 Chia nhỏ mục tiêu",
+    label: "Chia nhỏ mục tiêu",
     query: "Lập kế hoạch dọn dẹp nhà cửa cuối tuần",
   });
 

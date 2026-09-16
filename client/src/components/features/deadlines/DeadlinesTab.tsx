@@ -357,34 +357,7 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
         </div>
       </div>
 
-      {/* 2. Tiêu Đề Khu Vực */}
-      <div className="flex items-center justify-between pb-2 border-b border-[#E5E5EA] dark:border-[#2C2C2E] flex-wrap gap-2 pt-1">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] flex items-center justify-center shadow-xs">
-            {isOverdueView ? (
-              <AlertTriangle size={15} strokeWidth={2.2} className="text-red-400 dark:text-red-500" />
-            ) : (
-              <Hourglass size={15} strokeWidth={2.2} className="text-sky-400 dark:text-sky-500" />
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-sm sm:text-base text-[#1C1C1E] dark:text-[#F2F2F7]">
-              {isOverdueView ? "Quá hạn" : "Sắp đến hạn"}
-            </h3>
-            <span
-              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                isOverdueView
-                  ? "bg-red-500/10 text-red-600 dark:text-red-400"
-                  : "bg-sky-500/10 text-sky-600 dark:text-sky-400"
-              }`}
-            >
-              {activeCount} việc
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Batch actions */}
+      {/* 2. Batch actions */}
       {activeTasks.length > 0 && (
         <section className="space-y-2 rounded-2xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white/70 dark:bg-[#1C1C1E]/70 p-3 shadow-xs">
           <div className="flex flex-wrap gap-2">
