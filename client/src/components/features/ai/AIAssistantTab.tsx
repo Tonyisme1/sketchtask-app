@@ -283,26 +283,12 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             </button>
           )}
 
-          <div className="flex items-center gap-2 min-w-0">
-            <h2 className="text-base font-bold text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight truncate">
-              Trợ lý AI
-            </h2>
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#34C759]/10 text-[#34C759] border border-[#34C759]/20 text-[10px] font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#34C759]" />
-              <span>Gemini</span>
-            </div>
-          </div>
+          <h2 className="text-base font-bold text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight truncate">
+            Trợ lý AI
+          </h2>
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={handleOpenConfig}
-            title="Cấu hình API Key"
-            className="w-8.5 h-8.5 flex items-center justify-center text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-xl transition-all cursor-pointer active:scale-95"
-          >
-            <Settings size={16} strokeWidth={2.2} />
-          </button>
           <button
             type="button"
             onClick={handleClear}
