@@ -65,11 +65,12 @@ export const MobileShell: React.FC<MobileShellProps> = ({
     settingsMobileSubView,
   ]);
 
-  // Kiểm tra xem người dùng có đang ở chế độ Full Screen (Task detail, Full Note/Journal editor)
+  // Kiểm tra xem người dùng có đang ở chế độ Full Screen (Task detail, Full Note/Journal editor, hoặc Toàn màn hình AI)
   const isFullScreenView =
     Boolean(activeDetailTaskId) ||
     (activeTab === "notes" && Boolean(isMobileNoteDetailOpen)) ||
-    (activeTab === "journal" && Boolean(isJournalBookOpen));
+    (activeTab === "journal" && Boolean(isJournalBookOpen)) ||
+    activeTab === "ai";
 
   return (
     <div

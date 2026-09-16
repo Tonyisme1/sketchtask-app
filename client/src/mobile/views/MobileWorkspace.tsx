@@ -116,7 +116,12 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
 
     // 5. Trợ lý AI (AI)
     if (activeTab === "ai") {
-      return <AIAssistantTab />;
+      return (
+        <AIAssistantTab
+          onBack={() => onNavigateTab(previousTab || "tasks")}
+          isStandalone
+        />
+      );
     }
 
     // 6. Thông báo (Notifications Full Page)
