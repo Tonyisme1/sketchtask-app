@@ -65,12 +65,11 @@ export const MobileShell: React.FC<MobileShellProps> = ({
     settingsMobileSubView,
   ]);
 
-  // Kiểm tra xem người dùng có đang ở chế độ Full Screen (Task detail, Full Note/Journal editor, hoặc Toàn màn hình AI)
+  // Kiểm tra xem người dùng có đang ở chế độ Full Screen (Task detail, Full Note/Journal editor)
   const isFullScreenView =
     Boolean(activeDetailTaskId) ||
     (activeTab === "notes" && Boolean(isMobileNoteDetailOpen)) ||
-    (activeTab === "journal" && Boolean(isJournalBookOpen)) ||
-    activeTab === "ai";
+    (activeTab === "journal" && Boolean(isJournalBookOpen));
 
   return (
     <div
@@ -133,7 +132,7 @@ export const MobileShell: React.FC<MobileShellProps> = ({
       />
 
       {/* 3. Floating AI Action Button (Chỉ hiển thị khi không ở chế độ Full Screen & không ở tab AI) */}
-      {!isFullScreenView && (
+      {!isFullScreenView && activeTab !== "ai" && (
         <button
           type="button"
           onClick={() => onTabChange("ai")}

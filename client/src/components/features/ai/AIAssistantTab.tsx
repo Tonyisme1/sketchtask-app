@@ -261,31 +261,34 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
       className={`mx-auto w-full flex flex-col bg-white dark:bg-[#1C1C1E] select-none ${
         isStandalone
           ? "h-[100dvh] max-w-full rounded-none border-none shadow-none"
-          : "max-w-3xl h-[calc(100dvh-130px)] sm:h-[calc(100vh-135px)] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-none md:rounded-2xl shadow-xl overflow-hidden"
+          : "max-w-3xl h-[calc(100dvh-140px)] sm:h-[calc(100vh-135px)] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-sm overflow-hidden"
       }`}
     >
       {/* 1. MINIMALIST TOPBAR */}
       <div
-        className={`px-4 py-3 bg-white dark:bg-[#1C1C1E] border-b border-[#E5E5EA] dark:border-[#2C2C2E] flex items-center justify-between shrink-0 ${
+        className={`px-3.5 sm:px-4 py-2.5 bg-white dark:bg-[#1C1C1E] border-b border-[#E5E5EA] dark:border-[#2C2C2E] flex items-center justify-between shrink-0 ${
           isStandalone ? "pt-[max(env(safe-area-inset-top),12px)]" : ""
         }`}
       >
-        <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
           {onBack && (
             <button
               type="button"
               onClick={onBack}
-              className="w-8.5 h-8.5 rounded-xl bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] text-[#1C1917] dark:text-white flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95"
+              className="w-8 h-8 rounded-xl bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] text-[#1C1917] dark:text-white flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95"
               title="Quay lại"
               aria-label="Quay lại"
             >
-              <ArrowLeft size={18} strokeWidth={2.4} />
+              <ArrowLeft size={16} strokeWidth={2.4} />
             </button>
           )}
 
-          <h2 className="text-base font-bold text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight">
-            Trợ lý AI
-          </h2>
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#34C759]" />
+            <span className="text-xs font-medium text-[#8E8E93] dark:text-[#98989D]">
+              {aiProvider === "gemini" ? "Gemini AI" : "AI"}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-1 shrink-0">

@@ -116,12 +116,7 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
 
     // 5. Trợ lý AI (AI)
     if (activeTab === "ai") {
-      return (
-        <AIAssistantTab
-          onBack={() => onNavigateTab(previousTab || "tasks")}
-          isStandalone
-        />
-      );
+      return <AIAssistantTab />;
     }
 
     // 6. Thông báo (Notifications Full Page)
@@ -153,8 +148,8 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
 
   return (
     <main
-      className={`w-full min-w-0 select-none animate-in fade-in duration-150 ${
-        isFullBleed || activeTab === "ai"
+      className={`w-full min-w-0 select-none ${
+        isFullBleed
           ? "p-0"
           : "px-3.5 py-3 sm:px-5 pb-28"
       }`}
