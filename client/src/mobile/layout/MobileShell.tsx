@@ -65,12 +65,12 @@ export const MobileShell: React.FC<MobileShellProps> = ({
     settingsMobileSubView,
   ]);
 
-  // Kiểm tra xem người dùng có đang mở task detail canvas hoặc mobile full note editor
-  const isDetailOpen =
+  // Kiểm tra xem người dùng có đang ở chế độ Full Screen (Task detail, Full Note/Journal editor, hoặc Toàn màn hình AI)
+  const isFullScreenView =
     Boolean(activeDetailTaskId) ||
     (activeTab === "notes" && Boolean(isMobileNoteDetailOpen)) ||
-    (activeTab === "journal" && Boolean(isJournalBookOpen));
-  const isSettingsView = activeTab === "settings";
+    (activeTab === "journal" && Boolean(isJournalBookOpen)) ||
+    activeTab === "ai";
 
   return (
     <div
@@ -78,8 +78,8 @@ export const MobileShell: React.FC<MobileShellProps> = ({
         !isTiltEnabled ? "no-tilt" : ""
       } ${paperStyle && paperStyle !== "blank" ? `paper-${paperStyle}` : ""}`}
     >
-      {/* 1. Mobile Topbar Header (Hidden when viewing task detail or full note editor) */}
-      {!isDetailOpen && (
+      {/* 1. Mobile Topbar Header (Ẩn khi ở chế độ Full Screen / Task Detail / Note Editor / AI Page) */}
+      {!isFullScreenView && (
         <MobileHeader
           activeTab={activeTab}
           onTabChange={onTabChange}
@@ -132,40 +132,26 @@ export const MobileShell: React.FC<MobileShellProps> = ({
         onNavigateTab={onTabChange}
       />
 
-      {/* Floating AI Action Button (Góc dưới cùng bên phải) */}
-      {!isDetailOpen && (
+      {/* 3. Floating AI Action Button (Chỉ hiển thị khi không ở chế độ Full Screen & không ở tab AI) */}
+      {!isFullScreenView && (
         <button
           type="button"
-          onClick={() => {
-            if (activeTab === "ai") {
-              onTabChange(previousTab || "tasks");
-            } else {
-              onTabChange("ai");
-            }
-          }}
+          onClick={() => onTabChange("ai")}
           aria-label="Trợ lý AI"
           title="Trợ lý AI"
-          className={`fixed bottom-[72px] right-3.5 sm:right-5 z-40 flex items-center justify-center gap-1.5 h-11 px-3.5 rounded-2xl border shadow-lg transition-all duration-200 cursor-pointer active:scale-95 ${
-            activeTab === "ai"
-              ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] border-[#1C1C1E] dark:border-white shadow-black/25 ring-2 ring-amber-400/80"
-              : "bg-white/95 dark:bg-[#2C2C2E]/95 backdrop-blur-md text-[#1C1C1E] dark:text-white border-[#E5E5EA] dark:border-[#3A3A3C] shadow-black/10 hover:border-[#1C1C1E] dark:hover:border-white"
-          }`}
+          className="fixed bottom-[72px] right-3.5 sm:right-5 z-40 flex items-center justify-center gap-1.5 h-11 px-3.5 rounded-2xl border shadow-lg transition-all duration-200 cursor-pointer active:scale-95 bg-white/95 dark:bg-[#2C2C2E]/95 backdrop-blur-md text-[#1C1917] dark:text-white border-[#E5E5EA] dark:border-[#3A3A3C] shadow-black/10 hover:border-[#1C1917] dark:hover:border-white"
         >
           <Sparkles
             size={18}
             strokeWidth={2.3}
-            className={`${
-              activeTab === "ai"
-                ? "text-amber-300 dark:text-rose-500 animate-pulse"
-                : "text-amber-500 dark:text-amber-400"
-            }`}
+            className="text-amber-500 dark:text-amber-400"
           />
           <span className="text-xs font-black tracking-wider">AI</span>
         </button>
       )}
 
-      {/* Mobile Bottom Dock (Hidden only when viewing task detail or full note/journal editor) */}
-      {!isDetailOpen && (
+      {/* 4. Mobile Bottom Dock (Ẩn khi ở chế độ Full Screen / Task Detail / Note Editor / AI Page) */}
+      {!isFullScreenView && (
         <MobileNav
           activeTab={activeTab}
           activeTaskSubTab={activeTaskSubTab}

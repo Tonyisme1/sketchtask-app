@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
+  ArrowLeft,
   Bot,
   Send,
   RotateCcw,
@@ -59,7 +60,15 @@ const DEFAULT_WELCOME_MESSAGE: StoredChatMessage = {
   time: getTimeLabel(),
 };
 
-export const AIAssistantTab: React.FC = () => {
+export interface AIAssistantTabProps {
+  onBack?: () => void;
+  isStandalone?: boolean;
+}
+
+export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
+  onBack,
+  isStandalone = false,
+}) => {
   const { tasks, addTask, toggleTask, openTaskDetail } = useAppStore();
 
   const now = new Date();
@@ -248,44 +257,66 @@ export const AIAssistantTab: React.FC = () => {
   };
 
   return (
-    <div className="mx-auto w-full max-w-3xl flex flex-col h-[calc(100dvh-130px)] sm:h-[calc(100vh-135px)] bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-none md:rounded-2xl shadow-xl overflow-hidden select-none">
+    <div
+      className={`mx-auto w-full flex flex-col bg-white dark:bg-[#1C1C1E] select-none ${
+        isStandalone
+          ? "h-[100dvh] max-w-full rounded-none border-none shadow-none"
+          : "max-w-3xl h-[calc(100dvh-130px)] sm:h-[calc(100vh-135px)] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-none md:rounded-2xl shadow-xl overflow-hidden"
+      }`}
+    >
       {/* 1. COPILOT HEADER */}
-      <div className="px-4 py-3 bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-b border-[#E5E5EA] dark:border-[#2C2C2E] flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] flex items-center justify-center shadow-xs">
+      <div
+        className={`px-4 py-3 bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-xl border-b border-[#E5E5EA] dark:border-[#2C2C2E] flex items-center justify-between shrink-0 ${
+          isStandalone ? "pt-[max(env(safe-area-inset-top),12px)]" : ""
+        }`}
+      >
+        <div className="flex items-center gap-2.5 min-w-0">
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="w-8.5 h-8.5 rounded-xl bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] text-[#1C1917] dark:text-white flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95"
+              title="Quay lại"
+              aria-label="Quay lại"
+            >
+              <ArrowLeft size={18} strokeWidth={2.4} />
+            </button>
+          )}
+
+          <div className="w-8.5 h-8.5 rounded-xl bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] flex items-center justify-center shadow-xs shrink-0">
             <Sparkles size={16} strokeWidth={2.4} />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <h2 className="text-sm font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                Trợ lý SketchTask
+              <h2 className="text-sm font-bold text-[#1C1C1E] dark:text-[#F2F2F7] leading-none">
+                Trợ lý AI
               </h2>
               <span className="px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                AI Copilot
+                Copilot
               </span>
             </div>
-            <p className="text-[11px] text-[#8E8E93]">
-              Tự động phân tích, tạo việc & chia nhỏ mục tiêu
+            <p className="text-[11px] text-[#8E8E93] truncate mt-0.5">
+              Phân tích tiến độ & chia nhỏ mục tiêu
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           <button
             type="button"
             onClick={handleOpenConfig}
             title="Cấu hình API Key"
-            className="p-2 text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-xl transition-all cursor-pointer"
+            className="w-8.5 h-8.5 flex items-center justify-center text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-xl transition-all cursor-pointer active:scale-95"
           >
-            <Settings size={15} strokeWidth={2.2} />
+            <Settings size={16} strokeWidth={2.2} />
           </button>
           <button
             type="button"
             onClick={handleClear}
             title="Làm mới cuộc trò chuyện"
-            className="p-2 text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-xl transition-all cursor-pointer"
+            className="w-8.5 h-8.5 flex items-center justify-center text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-xl transition-all cursor-pointer active:scale-95"
           >
-            <RotateCcw size={15} strokeWidth={2.2} />
+            <RotateCcw size={16} strokeWidth={2.2} />
           </button>
         </div>
       </div>
@@ -557,16 +588,18 @@ export const AIAssistantTab: React.FC = () => {
           e.preventDefault();
           handleSend();
         }}
-        className="p-3 bg-white dark:bg-[#1C1C1E] border-t border-[#E5E5EA] dark:border-[#2C2C2E] flex items-center gap-2 shrink-0"
+        className={`p-3 bg-white dark:bg-[#1C1C1E] border-t border-[#E5E5EA] dark:border-[#2C2C2E] flex items-center gap-2 shrink-0 ${
+          isStandalone ? "pb-[max(env(safe-area-inset-bottom),12px)]" : ""
+        }`}
       >
-        <div className="flex-1 flex items-center bg-[#F2F2F7]/80 dark:bg-black/40 border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-none px-3.5 py-2 focus-within:border-[#007AFF] focus-within:bg-white dark:focus-within:bg-[#1C1C1E] transition-all">
+        <div className="flex-1 flex items-center bg-[#F2F2F7]/80 dark:bg-black/40 border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-xl px-3.5 py-2 focus-within:border-[#007AFF] focus-within:bg-white dark:focus-within:bg-[#1C1C1E] transition-all">
           <input
             ref={inputRef}
             type="text"
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
             placeholder="Hỏi hoặc gõ: Họp team 14:30 chiều mai #CongViec gấp..."
-            className="w-full text-xs sm:text-sm font-medium bg-transparent outline-none placeholder:text-[#8E8E93] text-[#1C1C1E] dark:text-[#F2F2F7] rounded-none"
+            className="w-full text-xs sm:text-sm font-medium bg-transparent outline-none placeholder:text-[#8E8E93] text-[#1C1C1E] dark:text-[#F2F2F7]"
           />
         </div>
 
