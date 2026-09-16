@@ -452,20 +452,16 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             <button
               type="button"
               onClick={() => setIsAccountDropdownOpen((prev) => !prev)}
-              className="w-9 h-9 rounded-xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#2C2C2E] flex items-center justify-center text-[#1C1C1E] dark:text-white shadow-sm active:scale-95 transition-all cursor-pointer"
+              style={{ backgroundColor: user.avatarBg || "#FEF08A" }}
+              className="w-9 h-9 rounded-xl border border-[#E5E5EA] dark:border-[#3A3A3C] flex items-center justify-center text-[#1C1C1E] shadow-2xs active:scale-95 transition-all cursor-pointer overflow-hidden"
               title="Tài khoản & Cài đặt"
               aria-label="Tài khoản & Cài đặt"
             >
-              <div
-                className="w-6.5 h-6.5 rounded-lg flex items-center justify-center text-[#1C1C1E]"
-                style={{ backgroundColor: user.avatarBg || "#FEF08A" }}
-              >
-                <DynamicIcon
-                  name={user.avatar || (user.isSignedIn ? "lucide:UserCheck" : "lucide:User")}
-                  size={14}
-                  strokeWidth={2.2}
-                />
-              </div>
+              <DynamicIcon
+                name={user.avatar || (user.isSignedIn ? "lucide:UserCheck" : "lucide:User")}
+                size={18}
+                strokeWidth={2.2}
+              />
             </button>
 
             {isAccountDropdownOpen && (

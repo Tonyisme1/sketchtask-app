@@ -52,22 +52,18 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className={`${buttonSize} relative flex items-center justify-center rounded-xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs transition-all hover:bg-[#F2F2F7] dark:hover:bg-[#3A3A3C] active:scale-95 cursor-pointer`}
+        style={{ backgroundColor: user.avatarBg || "#FEF08A" }}
+        className={`${buttonSize} relative flex items-center justify-center rounded-xl border border-[#E5E5EA] dark:border-[#3A3A3C] text-[#1C1C1E] shadow-2xs transition-all active:scale-95 cursor-pointer overflow-hidden`}
         title={user.isSignedIn ? `Tài khoản: ${user.name}` : "Đăng nhập"}
         aria-label={user.isSignedIn ? `Tài khoản: ${user.name}` : "Đăng nhập"}
         aria-haspopup="menu"
         aria-expanded={isOpen}
       >
-        <span
-          className={`${avatarSize} flex items-center justify-center rounded-lg text-[#1C1C1E] font-medium shadow-xs`}
-          style={{ backgroundColor: user.avatarBg || "#FEF08A" }}
-        >
-          <DynamicIcon
-            name={user.avatar || (user.isSignedIn ? "lucide:UserCheck" : "lucide:User")}
-            size={size === "sm" ? 12 : 14}
-            strokeWidth={2.2}
-          />
-        </span>
+        <DynamicIcon
+          name={user.avatar || (user.isSignedIn ? "lucide:UserCheck" : "lucide:User")}
+          size={size === "sm" ? 16 : 18}
+          strokeWidth={2.2}
+        />
       </button>
 
       {isOpen && (
