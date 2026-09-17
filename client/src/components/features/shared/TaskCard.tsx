@@ -271,14 +271,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         marginLeft: indentPx > 0 ? `${indentPx}px` : undefined,
         width: indentPx > 0 ? `calc(100% - ${indentPx}px)` : undefined,
       }}
-      className={`task-card-shell relative overflow-hidden transition-all duration-300 rounded-none border-b border-[#D4CEBF] dark:border-[#2C2C2E] ${
+      className={`task-card-shell relative overflow-hidden transition-all duration-300 rounded-none border-b border-[#D4CEBF] dark:border-transparent ${
         indentLevel > 0 ? "bg-[#FAF8F3]/70 dark:bg-[#1C1C1E]/70" : "bg-white dark:bg-[#1C1C1E]"
       } ${
         isSelected
-          ? "bg-[#FAF8F3] dark:bg-[#2C2C2E] border-b-[#1C1917] dark:border-b-white"
+          ? "bg-[#FAF8F3] dark:bg-[#2C2C2E] border-b-[#1C1917] dark:border-b-transparent"
           : isEffectivelyCompleted
-          ? "border-[#D4CEBF] dark:border-[#2C2C2E] opacity-60 bg-[#FAF8F3]/50 dark:bg-[#121214]/50 shadow-none translate-y-[0.5px]"
-          : "border-[#D4CEBF] dark:border-[#2C2C2E] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E]"
+          ? "border-[#D4CEBF] dark:border-transparent opacity-60 bg-[#FAF8F3]/50 dark:bg-[#121214]/50 shadow-none translate-y-[0.5px]"
+          : "border-[#D4CEBF] dark:border-transparent hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E]"
       }`}
     >
       {supportsMobileSwipe && (
@@ -297,7 +297,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 closeMobileActions();
                 onMoveTomorrow(task.id);
               }}
-              className="flex h-9 w-9 items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] bg-white dark:bg-[#1C1C1E] text-[#1C1917] dark:text-[#F2F2F7] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
+              className="flex h-9 w-9 items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#1C1C1E] text-[#1C1917] dark:text-[#F2F2F7] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
               title="Dời sang ngày mai"
               aria-label="Dời sang ngày mai"
             >

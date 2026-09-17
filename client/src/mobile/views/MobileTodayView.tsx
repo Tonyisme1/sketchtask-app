@@ -176,7 +176,7 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
         {/* Công việc cần làm (Chưa xong) */}
         {statusFilter !== "completed" && (
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20 dark:border-white/10">
+            <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20 dark:border-transparent">
               <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917] dark:text-[#F2F2F7]">
                 <ListTodo size={16} className="text-[#1C1917] dark:text-[#F2F2F7]" strokeWidth={2.2} />
                 <span>Công việc cần làm ({activeTaskListItems.length})</span>
@@ -198,8 +198,8 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
 
         {/* MỘT KHU VỰC DUY NHẤT CHO TOÀN BỘ CÔNG VIỆC ĐÃ HOÀN THÀNH */}
         {statusFilter !== "active" && completedTodayTasks.length > 0 && (
-          <div className="mt-6 pt-4 border-t border-[#E5E5EA] dark:border-[#2C2C2E] space-y-2.5">
-            <div className="flex items-center justify-between pb-2 border-b border-[#262626]/15 dark:border-white/10">
+          <div className="mt-6 pt-4 border-t border-[#E5E5EA] dark:border-transparent space-y-2.5">
+            <div className="flex items-center justify-between pb-2 border-b border-[#262626]/15 dark:border-transparent">
               <div className="flex items-center gap-2 text-sm font-semibold text-[#8E8E93] dark:text-[#aeaeb2]">
                 <CheckCircle2 size={16} strokeWidth={2.2} className="text-emerald-500 shrink-0" />
                 <span>Đã hoàn thành ({completedTodayTasks.length})</span>

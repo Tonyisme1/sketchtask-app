@@ -72,14 +72,15 @@ body.paper-grid,
 }
 
 /* ========================================== */
+/* ========================================== */
 /* DARK MODE (NỀN TỐI TỐI GIẢN GRAPHITE / OLED) */
 /* ========================================== */
 .dark {
   --bg-canvas: #121214;
   --bg-surface: #1c1c1e;
-  --bg-surface-muted: #2c2c2e;
-  --border-ink: #3a3a3c;
-  --border-ink-muted: #2c2c2e;
+  --bg-surface-muted: #27272a;
+  --border-ink: #000000;
+  --border-ink-muted: #000000;
   --text-main: #f2f2f7;
   --text-strong: #ffffff;
   --text-muted: #8e8e93;
@@ -98,7 +99,7 @@ body.paper-grid,
 .dark header,
 .dark nav {
   background-color: var(--bg-surface) !important;
-  border-color: var(--border-ink) !important;
+  border-color: #000000 !important;
 }
 
 .dark .bg-white,
@@ -155,32 +156,72 @@ body.paper-grid,
   color: var(--text-subtle);
 }
 
+/* ======================================================== */
+/* 1. BORDER TRONG DARK MODE: ĐEN THUẦN (KHÔNG CHÓI / SÁNG) */
+/* ======================================================== */
+.dark .border,
 .dark .border-\[\#262626\],
 .dark .border-\[\#1C1917\],
 .dark .border-\[\#E5E5EA\],
-.dark .border-\[\#D1D1D6\] {
-  border-color: var(--border-ink) !important;
-}
-
+.dark .border-\[\#D1D1D6\],
 .dark .border-\[\#D4CEBF\],
 .dark .border-\[\#E7E5E4\],
 .dark .border-\[\#D6D3D1\],
 .dark .border-\[\#A8A29E\],
 .dark .border-\[\#44403C\],
-.dark .border-\[\#2C2C2E\] {
-  border-color: var(--border-ink-muted) !important;
+.dark .border-\[\#2C2C2E\],
+.dark .border-\[\#3A3A3C\],
+.dark .border-\[\#52525B\],
+.dark .border-\[\#404040\],
+.dark [class*="dark:border-[#"],
+.dark [class*="dark:border-white"],
+.dark [class*="dark:border-zinc"],
+.dark [class*="dark:border-neutral"],
+.dark [class*="dark:border-gray"] {
+  border-color: #000000 !important;
 }
 
-/* Opacity variants on dividers & backgrounds */
-.dark [class*="border-[#262626]/"],
-.dark [class*="border-[#1C1917]/"] {
-  border-color: color-mix(in srgb, var(--border-ink) 45%, transparent) !important;
+/* ======================================================== */
+/* 2. LOẠI BỎ HOÀN TOÀN CÁC ĐƯỜNG KẺ GẠCH NGANG TRONG DARK MODE */
+/* ======================================================== */
+.dark hr {
+  display: none !important;
 }
 
-.dark [class*="border-[#D4CEBF]/"],
-.dark [class*="border-[#E7E5E4]/"],
-.dark [class*="border-[#E5E5EA]/"] {
-  border-color: color-mix(in srgb, var(--border-ink-muted) 80%, transparent) !important;
+.dark .divide-y > *,
+.dark .divide-y-reverse > *,
+.dark [class*="divide-y"] > * {
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
+}
+
+/* Toàn bộ đường kẻ phân cách ngang (border-b / border-t phụ) ẩn đi trong Dark Mode */
+.dark .task-card-shell,
+.dark [class*="border-b"][class*="border-[#262626]"],
+.dark [class*="border-t"][class*="border-[#262626]"],
+.dark [class*="border-b"][class*="border-[#D4CEBF]"],
+.dark [class*="border-t"][class*="border-[#D4CEBF]"],
+.dark [class*="border-b"][class*="border-[#E5E5EA]"],
+.dark [class*="border-t"][class*="border-[#E5E5EA]"],
+.dark [class*="border-b"][class*="border-[#2C2C2E]"],
+.dark [class*="border-t"][class*="border-[#2C2C2E]"],
+.dark [class*="border-b"][class*="dark:border-white"],
+.dark [class*="border-t"][class*="dark:border-white"] {
+  border-bottom-color: transparent !important;
+  border-top-color: transparent !important;
+}
+
+/* Bảo toàn viền đen hoàn chỉnh cho hộp bao 4 cạnh (Card, Input, Button, Modal, Popover) */
+.dark [class*="border-[1.5px]"],
+.dark [class*="border-[2px]"],
+.dark [class*="border-2"],
+.dark input,
+.dark textarea,
+.dark select,
+.dark button[class*="border-"],
+.dark [role="dialog"],
+.dark [class*="rounded-["] {
+  border-color: #000000 !important;
 }
 
 .dark [class*="bg-[#FAF8F3]/"],
@@ -293,9 +334,9 @@ html[data-interface-style="ios"] {
 html.dark[data-interface-style="ios"] {
   --bg-canvas: #121214;
   --bg-surface: #1c1c1e;
-  --bg-surface-muted: #2c2c2e;
-  --border-ink: #3a3a3c;
-  --border-ink-muted: #2c2c2e;
+  --bg-surface-muted: #27272a;
+  --border-ink: #000000;
+  --border-ink-muted: #000000;
   --text-main: #f2f2f7;
   --text-strong: #ffffff;
   --text-muted: #8e8e93;

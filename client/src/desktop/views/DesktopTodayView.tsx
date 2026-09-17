@@ -124,7 +124,7 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
   return (
     <div className="w-full min-w-0 space-y-6 select-none animate-in fade-in duration-150">
       {/* 1. Header Thoáng Đãng: Tiêu Đề + Bộ Lọc Chuẩn TaskNotes */}
-      <div className="space-y-3 pb-4 border-b border-[#262626]/20">
+      <div className="space-y-3 pb-4 border-b border-[#262626]/20 dark:border-transparent">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
@@ -191,7 +191,7 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
       {/* 4. Phần Danh Sách Công Việc Cần Làm (Chưa hoàn thành) */}
       {statusFilter !== "completed" && (
         <div className="space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20">
+          <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20 dark:border-transparent">
             <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917]">
               <ListTodo size={16} className="text-[#1C1917]" />
               <span>Công việc cần làm ({activeTaskListItems.length})</span>
@@ -214,8 +214,8 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
 
       {/* 5. MỘT KHU VỰC DUY NHẤT CHO TOÀN BỘ CÔNG VIỆC ĐÃ HOÀN THÀNH */}
       {statusFilter !== "active" && completedTodayTasks.length > 0 && (
-        <div className="mt-8 pt-5 border-t border-[#E5E5EA] dark:border-[#2C2C2E] space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-[#262626]/15 dark:border-white/10">
+        <div className="mt-8 pt-5 border-t border-[#E5E5EA] dark:border-transparent space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-[#262626]/15 dark:border-transparent">
             <div className="flex items-center gap-2 text-sm font-semibold text-[#8E8E93] dark:text-[#aeaeb2]">
               <CheckCircle2 size={16} strokeWidth={2.2} className="text-emerald-500 shrink-0" />
               <span>Đã hoàn thành ({completedTodayTasks.length})</span>

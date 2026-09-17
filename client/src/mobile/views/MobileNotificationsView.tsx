@@ -209,7 +209,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
         {/* SECTION 1: VIỆC QUÁ HẠN */}
         {(activeFilter === "all" || activeFilter === "overdue") && overdueGroups.length > 0 && (
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]/20 dark:border-white/10 text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA]">
+            <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]/20 dark:border-transparent text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA]">
               <span className="flex items-center gap-1.5">
                 <AlertTriangle size={13} strokeWidth={2.4} className="text-[#BE123C] dark:text-rose-400" />
                 <span>Việc quá hạn ({overdueTasks.length})</span>
@@ -227,7 +227,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
                   <div
                     key={`overdue-${task.id}`}
                     onClick={() => handleOpenTask(task)}
-                    className="border-[1.5px] border-[#262626] dark:border-[#52525B] bg-white dark:bg-[#27272A] rounded-[6px] p-3 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer flex items-center justify-between gap-2.5 group"
+                    className="border-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#27272A] rounded-[6px] p-3 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer flex items-center justify-between gap-2.5 group"
                   >
                     <div className="flex items-start gap-2.5 min-w-0 flex-1">
                       {/* HandDrawn Checkbox */}
@@ -253,7 +253,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
                             Quá hạn
                           </span>
                           {getTaskEffectiveTime(task) && (
-                            <span className="border border-[#D4CEBF] dark:border-[#52525B] bg-[#FAF8F3] dark:bg-[#18181B] text-[#78716C] dark:text-[#A1A1AA] rounded-[4px] px-1.5 py-0.5 font-mono text-[10px] leading-tight">
+                            <span className="border border-[#D4CEBF] dark:border-black bg-[#FAF8F3] dark:bg-[#18181B] text-[#78716C] dark:text-[#A1A1AA] rounded-[4px] px-1.5 py-0.5 font-mono text-[10px] leading-tight">
                               {getTaskEffectiveTime(task)}
                             </span>
                           )}
@@ -277,7 +277,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
                       <button
                         type="button"
                         onClick={() => handleOpenRescheduleSingle(task)}
-                        className="px-2.5 py-1 rounded-[4px] border-[1.5px] border-[#262626] dark:border-[#52525B] bg-[#FAF8F3] dark:bg-[#18181B] hover:bg-[#F3EFE6] text-xs font-semibold text-[#1C1917] dark:text-[#FAFAFA] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all flex items-center gap-1 cursor-pointer"
+                        className="px-2.5 py-1 rounded-[4px] border-[1.5px] border-[#262626] dark:border-black bg-[#FAF8F3] dark:bg-[#18181B] hover:bg-[#F3EFE6] text-xs font-semibold text-[#1C1917] dark:text-[#FAFAFA] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all flex items-center gap-1 cursor-pointer"
                         title="Dời ngày"
                       >
                         <CalendarPlus size={12} strokeWidth={2.4} />
@@ -294,7 +294,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
         {/* SECTION 2: VIỆC ĐẾN HẠN HÔM NAY */}
         {(activeFilter === "all" || activeFilter === "today") && todayDueTasks.length > 0 && (
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]/20 dark:border-white/10 text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA]">
+            <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]/20 dark:border-transparent text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA]">
               <span className="flex items-center gap-1.5">
                 <Clock size={13} strokeWidth={2.4} className="text-[#92400E] dark:text-[#FCD34D]" />
                 <span>Đến hạn hôm nay ({todayDueTasks.length})</span>
@@ -306,7 +306,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
                 <div
                   key={`today-${task.id}`}
                   onClick={() => handleOpenTask(task)}
-                  className="border-[1.5px] border-[#262626] dark:border-[#52525B] bg-white dark:bg-[#27272A] rounded-[6px] p-3 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer flex items-center justify-between gap-2.5 group"
+                  className="border-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#27272A] rounded-[6px] p-3 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer flex items-center justify-between gap-2.5 group"
                 >
                   <div className="flex items-start gap-2.5 min-w-0 flex-1">
                     {/* HandDrawn Checkbox */}
@@ -332,7 +332,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
                           Hôm nay
                         </span>
                         {getTaskEffectiveTime(task) && (
-                          <span className="border border-[#D4CEBF] dark:border-[#52525B] bg-[#FAF8F3] dark:bg-[#18181B] text-[#78716C] dark:text-[#A1A1AA] rounded-[4px] px-1.5 py-0.5 font-mono text-[10px] leading-tight">
+                          <span className="border border-[#D4CEBF] dark:border-black bg-[#FAF8F3] dark:bg-[#18181B] text-[#78716C] dark:text-[#A1A1AA] rounded-[4px] px-1.5 py-0.5 font-mono text-[10px] leading-tight">
                             {getTaskEffectiveTime(task)}
                           </span>
                         )}
@@ -359,7 +359,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
         {/* SECTION 3: VIỆC ĐÃ HOÀN THÀNH HÔM NAY */}
         {activeFilter === "completed" && (
           <div className="space-y-2.5">
-            <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]/20 dark:border-white/10 text-xs font-bold text-[#78716C] dark:text-[#A1A1AA]">
+            <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]/20 dark:border-transparent text-xs font-bold text-[#78716C] dark:text-[#A1A1AA]">
               <span className="flex items-center gap-1.5">
                 <CheckCircle2 size={13} strokeWidth={2.4} className="text-emerald-600 dark:text-emerald-400" />
                 <span>Đã hoàn thành hôm nay ({completedTodayTasks.length})</span>
