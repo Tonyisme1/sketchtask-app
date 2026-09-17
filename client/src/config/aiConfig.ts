@@ -4,10 +4,8 @@
 // ==========================================
 
 export const AI_CONFIG = {
-  // Key mặc định tích hợp sẵn
-  DEFAULT_GEMINI_API_KEY:
-    import.meta.env.VITE_GEMINI_API_KEY ||
-    "",
+  // Key mặc định lấy từ biến môi trường VITE_GEMINI_API_KEY (nếu có cấu hình)
+  DEFAULT_GEMINI_API_KEY: import.meta.env.VITE_GEMINI_API_KEY || "",
 
   // Danh sách các model tốc độ cao hoạt động ổn định nhất
   FALLBACK_MODELS: [
