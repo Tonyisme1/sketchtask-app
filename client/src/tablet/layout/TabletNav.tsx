@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { CheckSquare, FilePenLine, Sparkles, Sun, LucideIcon } from "lucide-react";
+import { CheckSquare, FilePenLine, Sun, LucideIcon } from "lucide-react";
 import { TabKey } from "../../shared/types";
 
 export interface TabletNavProps {
@@ -18,7 +18,6 @@ const navItems: Array<{
   { key: "today", label: "Hôm nay", shortLabel: "Nay", icon: Sun, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
   { key: "tasks", label: "Công việc", shortLabel: "Việc", icon: CheckSquare, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
   { key: "notes", label: "Ghi chép", shortLabel: "Ghi", icon: FilePenLine, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
-  { key: "ai", label: "Trợ lý AI", shortLabel: "AI", icon: Sparkles, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
 ];
 
 const isNavItemActive = (
@@ -33,7 +32,6 @@ const isNavItemActive = (
     return activeTab === "tasks" && activeTaskSubTab !== "today";
   }
   if (key === "notes") return activeTab === "notes" || activeTab === "journal";
-  if (key === "ai") return activeTab === "ai";
   return activeTab === key;
 };
 

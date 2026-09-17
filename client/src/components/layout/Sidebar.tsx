@@ -11,7 +11,6 @@ import {
   Hourglass,
   FilePenLine,
   BookOpen,
-  Sparkles,
   Plus,
   Settings,
 } from "lucide-react";
@@ -207,18 +206,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </nav>
         </div>
 
-        {/* Bottom Actions (AI & Settings) */}
-        <div className="flex flex-col items-center gap-1.5 w-full pt-2 border-t border-[#262626]/20">
-          <button
-            type="button"
-            onClick={onOpenAIModal || (() => onTabChange("ai"))}
-            title="Trợ lý AI Phác Thảo"
-            className="w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] border-[#262626] bg-white dark:bg-[#2C2C2E] text-[#1C1917] dark:text-white shadow-[1.5px_1.5px_0px_#262626] hover:bg-[#FAF8F3] dark:hover:bg-[#3A3A3C] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
-          >
-            <Sparkles size={18} strokeWidth={2.2} />
-          </button>
-
-          {onOpenSettings && (
+        {/* Bottom Actions (Settings) */}
+        {onOpenSettings && (
+          <div className="flex flex-col items-center gap-1.5 w-full pt-2 border-t border-[#262626]/20">
             <button
               type="button"
               onClick={onOpenSettings}
@@ -227,8 +217,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <Settings size={18} strokeWidth={2.2} />
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </aside>
     );
   }
@@ -375,25 +365,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </div>
 
-      {/* FOOTER ACTIONS (AI POPUP & CÀI ĐẶT) */}
-      <div className="pt-2 border-t-[1.5px] border-[#262626]/20 space-y-1">
-        {/* Nút Trợ lý AI Phác Thảo */}
-        <button
-          type="button"
-          onClick={onOpenAIModal || (() => onTabChange("ai"))}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold border-[1.5px] border-[#262626] bg-white dark:bg-[#2C2C2E] hover:bg-[#FAF8F3] dark:hover:bg-[#3A3A3C] text-[#1C1917] dark:text-[#F2F2F7] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
-        >
-          <div className="flex items-center gap-2.5">
-            <Sparkles size={16} strokeWidth={2.2} />
-            <span>Trợ lý AI</span>
-          </div>
-          <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-[#E7E5E4] dark:bg-[#3A3A3C] text-[#78716C] dark:text-[#A1A1AA] uppercase tracking-wider font-semibold">
-            AI Side
-          </span>
-        </button>
-
-        {/* Nút Cài đặt */}
-        {onOpenSettings && (
+      {/* FOOTER ACTIONS (CÀI ĐẶT) */}
+      {onOpenSettings && (
+        <div className="pt-2 border-t-[1.5px] border-[#262626]/20">
           <button
             type="button"
             onClick={onOpenSettings}
@@ -402,8 +376,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Settings size={16} strokeWidth={2.2} />
             <span>Cài đặt</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </aside>
   );
 };

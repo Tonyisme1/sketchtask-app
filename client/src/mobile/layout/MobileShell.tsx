@@ -13,7 +13,6 @@ import {
   GlobalSearchModal,
   NotificationDrawer,
 } from "../../shared/ui";
-import { Sparkles } from "lucide-react";
 
 export interface MobileShellProps {
   activeTab: TabKey;
@@ -132,25 +131,7 @@ export const MobileShell: React.FC<MobileShellProps> = ({
         onNavigateTab={onTabChange}
       />
 
-      {/* 3. Floating AI Action Button (Chỉ hiển thị khi không ở chế độ Full Screen & không ở tab AI) */}
-      {!isFullScreenView && (
-        <button
-          type="button"
-          onClick={() => onTabChange("ai")}
-          aria-label="Trợ lý AI"
-          title="Trợ lý AI"
-          className="fixed bottom-[72px] right-3.5 sm:right-5 z-40 flex items-center justify-center gap-1.5 h-10 px-3.5 rounded-2xl border bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-[#F2F2F7] border-[#E5E5EA] dark:border-[#2C2C2E] shadow-sm hover:border-[#1C1C1E] dark:hover:border-white transition-all cursor-pointer active:scale-95"
-        >
-          <Sparkles
-            size={16}
-            strokeWidth={2.4}
-            className="text-[#1C1C1E] dark:text-white"
-          />
-          <span className="text-xs font-black tracking-wider">AI</span>
-        </button>
-      )}
-
-      {/* 4. Mobile Bottom Dock (Ẩn khi ở chế độ Full Screen / Task Detail / Note Editor / AI Page) */}
+      {/* 3. Mobile Bottom Dock (Ẩn khi ở chế độ Full Screen / Task Detail / Note Editor / AI Page) */}
       {!isFullScreenView && (
         <MobileNav
           activeTab={activeTab}
