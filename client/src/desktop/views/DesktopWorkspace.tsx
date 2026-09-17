@@ -116,9 +116,9 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
 
   return (
     <div className="relative w-full flex-1 flex min-h-0 overflow-hidden">
-      {/* 1. Vùng Không Gian Chính (Tự động co nhỏ khi mở chi tiết) */}
-      <div className="flex-1 min-w-0 px-6 lg:px-8 xl:px-10 py-6 pb-16 overflow-y-auto transition-all duration-200">
-        <div className={`w-full mx-auto min-w-0 ${isTaskDetailOpen ? "max-w-4xl" : "max-w-6xl 2xl:max-w-[1480px]"}`}>
+      {/* 1. Vùng Không Gian Chính (Căn giữa hoàn hảo, tự động co nhỏ khi mở chi tiết) */}
+      <div className="flex-1 min-w-0 px-6 lg:px-8 xl:px-10 py-6 pb-16 overflow-y-auto transition-all duration-200 flex justify-center">
+        <div className="w-full min-w-0 max-w-3xl xl:max-w-4xl">
           {renderMainTab()}
         </div>
       </div>
