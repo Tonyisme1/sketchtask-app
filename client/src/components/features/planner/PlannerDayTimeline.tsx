@@ -6,13 +6,9 @@ import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   Check,
   Clock,
-  Compass,
   Hourglass,
-  ListTodo,
-  Moon,
   Pin,
   Plus,
-  Sun,
 } from "lucide-react";
 import { TaskDto } from "../../../types";
 import {
@@ -222,22 +218,6 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
     });
   }, []);
 
-  const scrollToHour = (hour: number) => {
-    if (!timelineScrollRef.current) return;
-    timelineScrollRef.current.scrollTo({
-      top: Math.max(0, hour * HOUR_ROW_HEIGHT - 30),
-      behavior: "smooth",
-    });
-  };
-
-  const scrollToNow = () => {
-    if (!timelineScrollRef.current) return;
-    timelineScrollRef.current.scrollTo({
-      top: Math.max(0, currentHourTop - 120),
-      behavior: "smooth",
-    });
-  };
-
   const handleCellClick = (hour: number) => {
     const startStr = `${String(hour).padStart(2, "0")}:00`;
     const endStr = `${String(Math.min(23, hour + 1)).padStart(2, "0")}:00`;
@@ -307,74 +287,6 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
 
   return (
     <section className="space-y-2.5 select-none animate-in fade-in duration-150">
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#262626]/20 pb-2">
-        <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-[#1C1917] dark:text-white">
-          <Clock size={16} strokeWidth={2.4} />
-          <span>Biểu đồ 24h</span>
-          <span className="font-mono text-xs font-semibold text-[#78716C] dark:text-[#A1A1AA]">
-            ({timedTasks.length} việc có giờ)
-          </span>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-end gap-1.5">
-          {/* Nút điều hướng nhanh khung giờ */}
-          <button
-            type="button"
-            onClick={scrollToNow}
-            title="Cuộn tới giờ hiện tại"
-            className="flex items-center gap-1 rounded-[5px] border-[1.5px] border-[#262626] bg-white dark:bg-[#2C2C2E] px-2.5 py-1 text-xs font-bold text-[#1C1917] dark:text-white shadow-[1.5px_1.5px_0px_#262626] transition-all hover:bg-[#FAF8F3] dark:hover:bg-[#3A3A3C] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer"
-          >
-            <Compass size={13} strokeWidth={2.4} className="text-[#E11D48]" />
-            <span>Bây giờ</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => scrollToHour(7)}
-            title="Cuộn tới 07:00 sáng"
-            className="flex items-center gap-1 rounded-[5px] border-[1.5px] border-[#262626] bg-white dark:bg-[#2C2C2E] px-2.5 py-1 text-xs font-bold text-[#1C1917] dark:text-white shadow-[1.5px_1.5px_0px_#262626] transition-all hover:bg-[#FAF8F3] dark:hover:bg-[#3A3A3C] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer"
-          >
-            <Sun size={13} strokeWidth={2.4} />
-            <span>07h</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => scrollToHour(19)}
-            title="Cuộn tới 19:00 tối"
-            className="flex items-center gap-1 rounded-[5px] border-[1.5px] border-[#262626] bg-white dark:bg-[#2C2C2E] px-2.5 py-1 text-xs font-bold text-[#1C1917] dark:text-white shadow-[1.5px_1.5px_0px_#262626] transition-all hover:bg-[#FAF8F3] dark:hover:bg-[#3A3A3C] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer"
-          >
-            <Moon size={13} strokeWidth={2.4} />
-            <span>19h</span>
-          </button>
-
-          {/* Toggle Chế Độ Biểu Đồ / Danh Sách */}
-          <div
-            className="inline-flex items-center gap-0.5 rounded-[5px] border-[1.5px] border-[#262626] dark:border-black bg-[#FAF8F3] dark:bg-[#2C2C2E] p-0.5 shadow-[1px_1px_0px_#262626]"
-            role="tablist"
-            aria-label="Kiểu hiển thị chi tiết ngày"
-          >
-            <button
-              type="button"
-              role="tab"
-              aria-selected
-              className="rounded-[3px] bg-[#1C1917] dark:bg-white px-2.5 py-1 text-xs font-bold text-white dark:text-[#1C1917] shadow-xs transition-all cursor-pointer"
-            >
-              Biểu đồ
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={false}
-              onClick={() => onDisplayModeChange("list")}
-              className="rounded-[3px] px-2.5 py-1 text-xs font-bold text-[#57534E] dark:text-[#AEAEC2] hover:text-[#1C1917] dark:hover:text-white transition-all cursor-pointer"
-            >
-              Danh sách
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Khay việc cả ngày nếu có */}
       {allDayTasks.length > 0 && (
         <div className="flex flex-wrap items-center gap-1.5 rounded-[6px] border-[1.5px] border-[#262626] dark:border-black bg-[#F5F2EA] dark:bg-[#202023] p-2 shadow-[1.5px_1.5px_0px_#262626] dark:shadow-none">
