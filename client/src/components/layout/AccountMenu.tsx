@@ -75,7 +75,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
           <div className="border-b border-[#E5E5EA] dark:border-[#2C2C2E] px-3 py-2.5 mb-1">
             <div className="flex items-center gap-2.5">
               <span
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-[#1C1C1E] text-xs font-semibold shrink-0 shadow-xs"
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-[#1C1C1E] text-xs font-semibold shrink-0 shadow-xs overflow-hidden"
                 style={{ backgroundColor: user.avatarBg || "#FEF08A" }}
               >
                 <DynamicIcon

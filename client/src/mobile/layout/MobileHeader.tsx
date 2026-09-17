@@ -490,12 +490,12 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                   className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-black/5 dark:hover:bg-white/10 active:scale-[0.98] transition-colors cursor-pointer text-left"
                 >
                   <DynamicIcon
-                    name={user.isSignedIn ? (user.avatar || "lucide:UserCheck") : "lucide:User"}
+                    name={user.isSignedIn ? "lucide:LogOut" : "lucide:LogIn"}
                     size={16}
                     strokeWidth={2.2}
-                    className={user.isSignedIn ? "text-emerald-500" : "text-[#8E8E93]"}
+                    className={user.isSignedIn ? "text-[#FF3B30]" : "text-[#34C759] dark:text-[#30D158]"}
                   />
-                  <span className="truncate">
+                  <span className={`truncate ${user.isSignedIn ? "text-[#FF3B30]" : "text-[#34C759] dark:text-[#30D158]"}`}>
                     {user.isSignedIn ? "Đăng xuất" : "Đăng nhập / Đăng ký"}
                   </span>
                 </button>
