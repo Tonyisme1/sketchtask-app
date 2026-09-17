@@ -442,8 +442,8 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
           </div>
         </div>
       ) : (
-        /* GIAO DIỆN DESKTOP: Gom gọn 1 hàng duy nhất (1-Row Compact Toolbar) */
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#262626]/20 dark:border-white/10 select-none">
+        /* GIAO DIỆN DESKTOP: Chỉ giữ thanh Tab Quá hạn / Sắp đến */
+        <div className="flex items-center justify-between pb-3 border-b border-[#262626]/20 dark:border-white/10 select-none">
           {/* Nhóm Trái: Segmented Switcher Quá hạn / Sắp đến */}
           <SketchTabs
             ariaLabel="Chuyển loại hạn định"
@@ -476,74 +476,6 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
               },
             ]}
           />
-
-          {/* Nhóm Phải: Tìm kiếm + Các nút hành động hàng loạt trực tiếp */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* Thanh tìm kiếm nhỏ gọn */}
-            <div className="flex items-center gap-1.5 h-8 px-2.5 bg-[#FAF8F3] dark:bg-[#202023] rounded-[6px] border border-[#262626]/30 dark:border-white/20 focus-within:border-[#262626] dark:focus-within:border-white focus-within:bg-white dark:focus-within:bg-[#2C2C2E] transition-all w-48 sm:w-56">
-              <Search size={13} strokeWidth={2.2} className="text-[#78716C] dark:text-[#8E8E93] shrink-0" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={`Tìm việc ${isOverdueView ? "quá hạn" : "sắp đến"}...`}
-                className="bg-transparent text-xs text-[#1C1917] dark:text-[#F2F2F7] placeholder:text-[#78716C]/70 dark:placeholder:text-[#8E8E93] focus:outline-none w-full font-sans"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="text-[#78716C] hover:text-[#1C1917] dark:hover:text-[#F2F2F7] cursor-pointer shrink-0 rounded p-0.5"
-                  title="Xóa tìm kiếm"
-                >
-                  <X size={12} strokeWidth={2.2} />
-                </button>
-              )}
-            </div>
-
-            {/* Các nút hành động hàng loạt inline, phong cách ink-and-paper */}
-            {activeTasks.length > 0 && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => requestBulkAction("complete", activeTasks)}
-                  className="h-8 rounded-[6px] border border-[#262626] dark:border-white/40 bg-[#E8F5E9] dark:bg-emerald-950/60 hover:bg-[#C8E6C9] dark:hover:bg-emerald-900/60 text-[#1B5E20] dark:text-emerald-300 px-2.5 text-xs font-bold active:translate-x-[0.5px] active:translate-y-[0.5px] shadow-[1px_1px_0px_#262626] dark:shadow-none transition-all cursor-pointer inline-flex items-center gap-1.5"
-                  title="Hoàn thành tất cả công việc"
-                >
-                  <CheckCheck size={13} strokeWidth={2.4} />
-                  <span>Hoàn thành tất cả</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setRescheduleModalState({
-                      isOpen: true,
-                      tasks: activeTasks,
-                      taskTitle: isOverdueView ? "Tất cả việc quá hạn" : "Tất cả việc sắp đến hạn",
-                    })
-                  }
-                  className="h-8 rounded-[6px] border border-[#262626] dark:border-white/40 bg-white dark:bg-[#2C2C2E] hover:bg-[#FAF8F3] dark:hover:bg-[#3A3A3C] text-[#1C1917] dark:text-[#F2F2F7] px-2.5 text-xs font-bold active:translate-x-[0.5px] active:translate-y-[0.5px] shadow-[1px_1px_0px_#262626] dark:shadow-none transition-all cursor-pointer inline-flex items-center gap-1.5"
-                  title={`Dời ngày cho ${activeTasks.length} việc`}
-                >
-                  <CalendarPlus size={13} strokeWidth={2.4} />
-                  <span>Dời ngày ({activeTasks.length})</span>
-                </button>
-
-                {junkTasks.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => requestBulkAction("delete", junkTasks)}
-                    className="h-8 rounded-[6px] border border-[#BE123C] dark:border-rose-400 bg-[#FFE4E6] dark:bg-rose-950/60 hover:bg-[#FECDD3] dark:hover:bg-rose-900/60 text-[#BE123C] dark:text-rose-300 px-2.5 text-xs font-bold active:translate-x-[0.5px] active:translate-y-[0.5px] shadow-[1px_1px_0px_#262626] dark:shadow-none transition-all cursor-pointer inline-flex items-center gap-1.5"
-                    title={`Xóa ${junkTasks.length} task rác`}
-                  >
-                    <Trash2 size={13} strokeWidth={2.4} />
-                    <span>Xóa rác ({junkTasks.length})</span>
-                  </button>
-                )}
-              </>
-            )}
-          </div>
         </div>
       )}
 
