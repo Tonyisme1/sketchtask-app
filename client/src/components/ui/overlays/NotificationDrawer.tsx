@@ -23,7 +23,7 @@ import { registerBackHandler } from "../../../utils/backNavigation";
 interface NotificationDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  onNavigateTab?: (tab: TabKey | string, target?: NavigationTarget) => void;
+  onNavigateTab?: (tab: TabKey, target?: NavigationTarget) => void;
   onSelectTask?: (task: TaskDto) => void;
 }
 
@@ -175,7 +175,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
 
           <button
             type="button"
-            onClick={handleClose}
+            onClick={onClose}
             className="w-7 h-7 rounded-lg hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
             aria-label="Đóng"
           >

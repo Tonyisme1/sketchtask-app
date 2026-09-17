@@ -44,7 +44,7 @@ const isNavItemActive = (
     return activeTab === "tasks" || activeTab === "today" || activeTab === "planner" || activeTab === "deadlines";
   }
   if (key === "notes") return activeTab === "notes" || activeTab === "journal";
-  if (key === "settings") return activeTab === "settings" || activeTab === "review";
+  if (key === "settings") return activeTab === "settings";
   return activeTab === key;
 };
 

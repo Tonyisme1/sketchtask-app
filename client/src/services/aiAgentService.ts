@@ -75,7 +75,23 @@ export interface DynamicPromptChip {
 
 export interface AgentProcessContext {
   tasks: TaskDto[];
-  addTask: (task: Partial<TaskDto>) => TaskDto;
+  addTask: (task: {
+    title: string;
+    description?: string;
+    dueDate?: string;
+    startDate?: string;
+    endDate?: string;
+    timeType?: TaskTimeType;
+    startTime?: string;
+    endTime?: string;
+    deadlineDate?: string;
+    deadlineTime?: string;
+    tag?: string;
+    tags?: string[];
+    parentTaskId?: string;
+    priority?: TaskPriority;
+    [key: string]: any;
+  }) => TaskDto;
   toggleTask: (taskId: string) => void;
   deleteTask?: (taskId: string) => void;
 }

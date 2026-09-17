@@ -6,6 +6,7 @@ import {
   Compass,
   ListTodo,
   Moon,
+  Pin,
   Plus,
   Sun,
   Trash2,

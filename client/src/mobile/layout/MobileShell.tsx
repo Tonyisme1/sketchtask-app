@@ -133,7 +133,7 @@ export const MobileShell: React.FC<MobileShellProps> = ({
       />
 
       {/* 3. Floating AI Action Button (Chỉ hiển thị khi không ở chế độ Full Screen & không ở tab AI) */}
-      {!isFullScreenView && activeTab !== "ai" && (
+      {!isFullScreenView && (
         <button
           type="button"
           onClick={() => onTabChange("ai")}

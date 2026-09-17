@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAppStore } from "../../../stores/appStore";
-import { TaskPriority, TaskTimeType } from "../../../types";
+import { TaskDto, TaskPriority, TaskTimeType } from "../../../types";
 import { getLocalTodayStr, getLocalTomorrowStr, formatFullDate, formatShortDayMonth } from "../../../utils/date";
 import { normalizeTaskTimeType, getTaskTags, extractTagsFromTitle, getTaskTemporalState, isTaskDueToday, getTaskEffectiveTime } from "../../../utils/taskSemantics";
 import { useResponsiveLayout } from "../../../shared/hooks";
@@ -204,7 +204,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   }, [onBack, isOptionsMenuOpen, mode, taskId]);
 
   // Phân tích trạng thái thời gian theo ngữ cảnh
-  const taskForTemporal = existingTask || {
+  const taskForTemporal: TaskDto = existingTask || {
     id: currentTaskId || "temp",
     title,
     dueDate,
@@ -217,6 +217,9 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     deadlineTime,
     completed,
     priority,
+    status: completed ? "completed" : "todo",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
   const temporal = getTaskTemporalState(taskForTemporal, new Date());
   const isOverdue = temporal === "overdue" || temporal === "pastScheduled";

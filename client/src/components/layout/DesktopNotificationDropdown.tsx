@@ -17,7 +17,7 @@ import {
 interface DesktopNotificationDropdownProps {
   isOpen: boolean;
   onClose: () => void;
-  onNavigateTab: (tab: TabKey | string, target?: NavigationTarget) => void;
+  onNavigateTab: (tab: TabKey, target?: NavigationTarget) => void;
   onSelectTask?: (task: TaskDto) => void;
 }
 
