@@ -673,6 +673,141 @@ body {
   animation: uiFadeIn 150ms ease-out forwards;
 }
 
+/* ========================================== */
+/* MOBILE PALETTE ON TABLET/DESKTOP ONLY     */
+/* Color-only adapter: no layout or behavior. */
+/* ========================================== */
+@media (min-width: 768px) {
+  [class*="bg-[#FBF9F4]"],
+  [class*="bg-[#121214]"] {
+    background-color: #fbf9f4 !important;
+  }
+
+  [class~="bg-white"],
+  [class*="bg-white/"],
+  [class*="bg-[#FFFFFF]"],
+  [class*="bg-[#FFFDF8]"],
+  [class*="bg-[#FCFBF9]"],
+  [class*="bg-[#FAF8F3]"] {
+    background-color: #ffffff !important;
+  }
+
+  [class*="bg-[#F2F2F7]"],
+  [class*="bg-[#E5E5EA]"],
+  [class*="bg-[#F5F5F4]"],
+  [class*="bg-[#F5F3EF]"],
+  [class*="bg-[#F5F2EA]"],
+  [class*="bg-[#F3EFE6]"],
+  [class*="bg-[#F0ECE1]"],
+  [class*="bg-[#E7E5E4]"] {
+    background-color: #f2f2f7 !important;
+  }
+
+  [class*="bg-[#1C1917]"],
+  [class*="bg-[#1C1C1E]"],
+  [class*="bg-[#262626]"] {
+    background-color: #1c1c1e !important;
+  }
+
+  [class*="bg-[#FEF08A]"],
+  [class*="bg-[#FDE047]"] {
+    background-color: #ffcc00 !important;
+  }
+
+  [class*="text-[#1C1917]"],
+  [class*="text-[#1C1C1E]"],
+  [class*="text-[#262626]"],
+  [class*="text-[#000000]"] {
+    color: #1c1c1e !important;
+  }
+
+  [class*="text-[#78716C]"],
+  [class*="text-[#57534E]"],
+  [class*="text-[#8E8E93]"],
+  [class*="text-[#A8A29E]"],
+  [class*="text-[#44403C]"] {
+    color: #8e8e93 !important;
+  }
+
+  [class*="border-[#262626]"],
+  [class*="border-[#1C1917]"],
+  [class*="border-[#D4CEBF]"],
+  [class*="border-[#E7E5E4]"],
+  [class*="border-[#D6D3D1]"],
+  [class*="border-[#A8A29E]"],
+  [class*="border-[#44403C]"] {
+    border-color: #e5e5ea !important;
+  }
+
+  [class*="hover:bg-[#FAF8F3]"]:hover,
+  [class*="hover:bg-[#FFFDF8]"]:hover,
+  [class*="hover:bg-white"]:hover,
+  [class*="hover:bg-[#E5E5EA]"]:hover,
+  [class*="hover:bg-[#F2F2F7]"]:hover {
+    background-color: #f2f2f7 !important;
+  }
+
+  .dark [class*="bg-[#FBF9F4]"],
+  .dark [class*="bg-[#121214]"] {
+    background-color: #121214 !important;
+  }
+
+  .dark [class~="bg-white"],
+  .dark [class*="bg-white/"],
+  .dark [class*="bg-[#FFFFFF]"],
+  .dark [class*="bg-[#FFFDF8]"],
+  .dark [class*="bg-[#FCFBF9]"],
+  .dark [class*="bg-[#FAF8F3]"] {
+    background-color: #1c1c1e !important;
+  }
+
+  .dark [class*="bg-[#F2F2F7]"],
+  .dark [class*="bg-[#E5E5EA]"],
+  .dark [class*="bg-[#F5F5F4]"],
+  .dark [class*="bg-[#F5F3EF]"],
+  .dark [class*="bg-[#F5F2EA]"],
+  .dark [class*="bg-[#F3EFE6]"],
+  .dark [class*="bg-[#F0ECE1]"],
+  .dark [class*="bg-[#E7E5E4]"] {
+    background-color: #2c2c2e !important;
+  }
+
+  .dark [class*="bg-[#1C1917]"],
+  .dark [class*="bg-[#1C1C1E]"],
+  .dark [class*="bg-[#262626]"] {
+    background-color: #f2f2f7 !important;
+  }
+
+  .dark [class*="bg-[#FEF08A]"],
+  .dark [class*="bg-[#FDE047]"] {
+    background-color: #ffd60a !important;
+  }
+
+  .dark [class*="text-[#1C1917]"],
+  .dark [class*="text-[#1C1C1E]"],
+  .dark [class*="text-[#262626]"],
+  .dark [class*="text-[#000000]"] {
+    color: #f2f2f7 !important;
+  }
+
+  .dark [class*="text-[#78716C]"],
+  .dark [class*="text-[#57534E]"],
+  .dark [class*="text-[#8E8E93]"],
+  .dark [class*="text-[#A8A29E]"],
+  .dark [class*="text-[#44403C]"] {
+    color: #8e8e93 !important;
+  }
+
+  .dark [class*="border-[#262626]"],
+  .dark [class*="border-[#1C1917]"],
+  .dark [class*="border-[#D4CEBF]"],
+  .dark [class*="border-[#E5E5EA]"],
+  .dark [class*="border-[#2C2C2E]"],
+  .dark [class*="border-[#3A3A3C]"] {
+    border-color: #2c2c2e !important;
+  }
+}
+
 /* 10. Tuân thủ Cài đặt Giảm Chuyển Động (prefers-reduced-motion) */
 @media (prefers-reduced-motion: reduce) {
   *,
