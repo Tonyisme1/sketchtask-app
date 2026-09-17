@@ -172,7 +172,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                   Thông báo
                 </h2>
                 {totalAlerts > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-md bg-[#FF3B30] text-white font-mono text-[10px] font-bold leading-none">
+                  <span className="px-1.5 py-0.5 rounded-md bg-black/10 dark:bg-white/20 text-[#1C1C1E] dark:text-white font-mono text-[10px] font-bold leading-none">
                     {totalAlerts}
                   </span>
                 )}
@@ -216,7 +216,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                 onClick={() => setFilter("overdue")}
                 className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
                   filter === "overdue"
-                    ? "bg-white dark:bg-[#2C2C2E] text-[#FF3B30] dark:text-[#FF453A] shadow-xs font-bold"
+                    ? "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs font-bold"
                     : "text-[#8E8E93] dark:text-[#AEAEC2] hover:text-[#1C1C1E]"
                 }`}
               >
@@ -230,7 +230,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                 onClick={() => setFilter("today")}
                 className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
                   filter === "today"
-                    ? "bg-white dark:bg-[#2C2C2E] text-[#007AFF] dark:text-[#0A84FF] shadow-xs font-bold"
+                    ? "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs font-bold"
                     : "text-[#8E8E93] dark:text-[#AEAEC2] hover:text-[#1C1C1E]"
                 }`}
               >
@@ -263,7 +263,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
               {/* Overdue Section */}
               {(filter === "all" || filter === "overdue") && overdueGroups.length > 0 && (
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between px-1 text-xs font-bold text-[#FF3B30] dark:text-[#FF453A]">
+                  <div className="flex items-center justify-between px-1 text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
                     <span className="flex items-center gap-1.5">
                       <AlertTriangle size={13} strokeWidth={2.4} />
                       <span>Cảnh báo quá hạn ({overdueTasks.length})</span>
@@ -284,7 +284,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                           className="rounded-xl border border-[#E5E5EA] dark:border-black bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] p-3 transition-all cursor-pointer flex items-center justify-between gap-3 group"
                         >
                           <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                            <div className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                            <div className="w-7 h-7 rounded-lg bg-black/[0.04] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-white flex items-center justify-center shrink-0 mt-0.5">
                               <AlertTriangle size={14} strokeWidth={2.2} />
                             </div>
                             <div className="min-w-0 flex-1 space-y-0.5">
@@ -292,7 +292,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                                 Quá hạn: {task.title}
                               </p>
                               <div className="flex items-center gap-1.5 text-[11px] text-[#8E8E93] dark:text-[#AEAEC2]">
-                                <span className="text-rose-600 dark:text-rose-400 font-semibold text-[10px]">
+                                <span className="font-medium text-[10px]">
                                   Cần dời lịch
                                 </span>
                                 {getTaskEffectiveTime(task) && (
@@ -314,7 +314,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
               {/* Today Due Section */}
               {(filter === "all" || filter === "today") && todayDueTasks.length > 0 && (
                 <div className="space-y-2 pt-1">
-                  <div className="flex items-center justify-between px-1 text-xs font-bold text-[#007AFF] dark:text-[#0A84FF]">
+                  <div className="flex items-center justify-between px-1 text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
                     <span className="flex items-center gap-1.5">
                       <Clock size={13} strokeWidth={2.4} />
                       <span>Đến hạn hôm nay ({todayDueTasks.length})</span>
@@ -329,7 +329,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                         className="rounded-xl border border-[#E5E5EA] dark:border-black bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] p-3 transition-all cursor-pointer flex items-center justify-between gap-3 group"
                       >
                         <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                          <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                          <div className="w-7 h-7 rounded-lg bg-black/[0.04] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-white flex items-center justify-center shrink-0 mt-0.5">
                             <Clock size={14} strokeWidth={2.2} />
                           </div>
                           <div className="min-w-0 flex-1 space-y-0.5">
@@ -337,7 +337,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                               Đến hạn: {task.title}
                             </p>
                             <div className="flex items-center gap-1.5 text-[11px] text-[#8E8E93] dark:text-[#AEAEC2]">
-                              <span className="text-blue-600 dark:text-blue-400 font-semibold text-[10px]">
+                              <span className="font-medium text-[10px]">
                                 Hôm nay
                               </span>
                               {getTaskEffectiveTime(task) && (

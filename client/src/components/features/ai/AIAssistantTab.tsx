@@ -207,19 +207,19 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
     switch (priority) {
       case "high":
         return (
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-none text-[10px] font-bold bg-[#FFE4E6] text-[#BE123C] border border-[#FDA4AF] dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800">
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-[#FFE4E6] text-[#BE123C] border border-[#FDA4AF] dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800">
             🔴 Gấp
           </span>
         );
       case "low":
         return (
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-none text-[10px] font-medium bg-[#D1FAE5] text-[#065F46] border border-[#6EE7B7] dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[#D1FAE5] text-[#065F46] border border-[#6EE7B7] dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
             🟢 Thấp
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-none text-[10px] font-medium bg-[#FEF3C7] text-[#92400E] border border-[#FCD34D] dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800">
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[#FEF3C7] text-[#92400E] border border-[#FCD34D] dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800">
             🟡 Vừa
           </span>
         );
@@ -258,12 +258,12 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
       className={`mx-auto w-full flex flex-col bg-[#FBF9F4] dark:bg-[#18181B] select-none ${
         isStandalone
           ? "fixed inset-0 z-50 h-[100dvh] max-w-full rounded-none border-none shadow-none"
-          : "max-w-3xl h-[calc(100vh-135px)] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[2px_2px_0px_#262626] dark:shadow-[2px_2px_0px_#000] overflow-hidden rounded-none"
+          : "max-w-3xl h-[calc(100vh-135px)] border-[1.5px] border-[#262626] dark:border-black shadow-[2px_2px_0px_#262626] dark:shadow-none overflow-hidden rounded-2xl"
       }`}
     >
       {/* 1. MINIMALIST TOPBAR */}
       <div
-        className={`px-3.5 sm:px-4 py-2.5 bg-white dark:bg-[#27272A] border-b-[1.5px] border-[#262626] dark:border-[#52525B] flex items-center justify-between shrink-0 ${
+        className={`px-3.5 sm:px-4 py-2.5 bg-white dark:bg-[#27272A] border-b-[1.5px] border-[#262626] dark:border-black flex items-center justify-between shrink-0 ${
           isStandalone ? "pt-[max(env(safe-area-inset-top),12px)]" : ""
         }`}
       >
@@ -272,7 +272,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             <button
               type="button"
               onClick={onBack}
-              className="w-8 h-8 rounded-none bg-white dark:bg-[#3F3F46] hover:bg-[#F3EFE6] dark:hover:bg-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center cursor-pointer shrink-0 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+              className="w-8 h-8 rounded-xl bg-white dark:bg-[#3F3F46] hover:bg-[#F3EFE6] dark:hover:bg-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] border-[1.5px] border-[#262626] dark:border-black shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center cursor-pointer shrink-0 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
               title="Quay lại"
               aria-label="Quay lại"
             >
@@ -291,7 +291,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             type="button"
             onClick={handleClear}
             title="Làm mới cuộc trò chuyện"
-            className="h-8 px-2.5 rounded-none border-[1.5px] border-[#262626] dark:border-[#52525B] bg-white dark:bg-[#3F3F46] hover:bg-[#F3EFE6] dark:hover:bg-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] shadow-[1.5px_1.5px_0px_#262626] flex items-center gap-1.5 text-xs font-semibold cursor-pointer active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+            className="h-8 px-2.5 rounded-xl border-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#3F3F46] hover:bg-[#F3EFE6] dark:hover:bg-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] shadow-[1.5px_1.5px_0px_#262626] flex items-center gap-1.5 text-xs font-semibold cursor-pointer active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
           >
             <RotateCcw size={13} strokeWidth={2.4} />
             <span>Làm mới</span>
@@ -313,16 +313,16 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
               }`}
             >
               {isAi && (
-                <div className="w-7 h-7 rounded-none bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1px_1px_0px_#262626] flex items-center justify-center shrink-0 mt-0.5">
+                <div className="w-7 h-7 rounded-xl bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626] flex items-center justify-center shrink-0 mt-0.5">
                   <Sparkles size={13} strokeWidth={2.4} />
                 </div>
               )}
 
               <div
-                className={`max-w-[90%] sm:max-w-[82%] px-3.5 py-3 rounded-none text-xs sm:text-[13px] leading-relaxed break-words transition-all border-[1.5px] ${
+                className={`max-w-[90%] sm:max-w-[82%] px-3.5 py-3 text-xs sm:text-[13px] leading-relaxed break-words transition-all border-[1.5px] ${
                   isAi
-                    ? "bg-white dark:bg-[#27272A] text-[#1C1917] dark:text-[#FAFAFA] border-[#262626] dark:border-[#52525B] shadow-[2px_2px_0px_#262626] dark:shadow-[2px_2px_0px_#000]"
-                    : "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[#1C1917] dark:border-[#52525B] font-medium shadow-[2px_2px_0px_#78716C] dark:shadow-[2px_2px_0px_#000]"
+                    ? "bg-white dark:bg-[#27272A] text-[#1C1917] dark:text-[#FAFAFA] border-[#262626] dark:border-black shadow-[2px_2px_0px_#262626] dark:shadow-none rounded-2xl rounded-tl-sm"
+                    : "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[#1C1917] dark:border-black font-medium shadow-[2px_2px_0px_#78716C] dark:shadow-none rounded-2xl rounded-tr-sm"
                 }`}
               >
                 {/* Nội dung text chính */}
@@ -330,11 +330,11 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
 
                 {/* CARD 1: TASK CREATED CARD (ĐƠN LẺ & BATCH) */}
                 {res && (res.type === "created_task" || res.type === "batch_created") && res.createdTasks && (
-                  <div className="mt-3 space-y-2 pt-2.5 border-t border-[#262626]/20 dark:border-white/10">
+                  <div className="mt-3 space-y-2 pt-2.5 border-t border-[#262626]/20 dark:border-transparent">
                     {res.createdTasks.map((t) => (
                       <div
                         key={t.id}
-                        className="p-2.5 rounded-none bg-[#FBF9F4] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2"
+                        className="p-2.5 rounded-xl bg-[#FBF9F4] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2"
                       >
                         <div className="min-w-0 flex-1">
                           <div className="font-bold text-xs text-[#1C1917] dark:text-[#FAFAFA] truncate">
@@ -349,7 +349,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                               </span>
                             )}
                             {t.tag && (
-                              <span className="text-[10px] font-semibold text-[#1C1917] dark:text-[#FAFAFA] bg-[#FEF08A] dark:bg-yellow-900/40 px-1 border border-[#262626]/30">
+                              <span className="text-[10px] font-semibold text-[#1C1917] dark:text-[#FAFAFA] bg-[#FEF08A] dark:bg-yellow-900/40 px-1 rounded-md border border-[#262626]/30 dark:border-black">
                                 #{t.tag}
                               </span>
                             )}
@@ -359,7 +359,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                         <button
                           type="button"
                           onClick={() => openTaskDetail(t.id)}
-                          className="px-2.5 py-1 rounded-none bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1px_1px_0px_#262626] text-[11px] font-bold text-[#1C1917] dark:text-[#FAFAFA] hover:bg-[#F3EFE6] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                          className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626] text-[11px] font-bold text-[#1C1917] dark:text-[#FAFAFA] hover:bg-[#F3EFE6] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1 shrink-0"
                         >
                           <span>Mở</span>
                           <ExternalLink size={11} />
@@ -371,7 +371,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
 
                 {/* CARD 2: GOAL BREAKDOWN PLAN CARD */}
                 {res && res.type === "goal_breakdown" && res.breakdownPlan && (
-                  <div className="mt-3 p-3 rounded-none bg-[#FBF9F4] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1.5px_1.5px_0px_#262626] space-y-2.5">
+                  <div className="mt-3 p-3 rounded-xl bg-[#FBF9F4] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-black shadow-[1.5px_1.5px_0px_#262626] space-y-2.5">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA] flex items-center gap-1.5">
                         <ListPlus size={14} className="text-[#1C1917] dark:text-[#FAFAFA]" />
@@ -381,10 +381,10 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                         type="button"
                         onClick={() => handleAddAllBreakdownTasks(res.breakdownPlan!)}
                         disabled={addedBreakdownGoals[res.breakdownPlan.goalTitle]}
-                        className={`px-2.5 py-1 rounded-none text-xs font-bold transition-all flex items-center gap-1 cursor-pointer border-[1.5px] ${
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer border-[1.5px] ${
                           addedBreakdownGoals[res.breakdownPlan.goalTitle]
                             ? "bg-emerald-100 text-emerald-800 border-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300"
-                            : "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[#262626] dark:border-[#52525B] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                            : "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[#262626] dark:border-black shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
                         }`}
                       >
                         {addedBreakdownGoals[res.breakdownPlan.goalTitle] ? (
@@ -405,10 +405,10 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                       {res.breakdownPlan.subtasks.map((st, idx) => (
                         <div
                           key={idx}
-                          className="p-2 rounded-none bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2 text-xs"
+                          className="p-2 rounded-lg bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2 text-xs"
                         >
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className="w-4 h-4 rounded-none bg-[#262626] text-white dark:bg-[#FAFAFA] dark:text-[#18181B] text-[10px] font-mono font-bold flex items-center justify-center shrink-0">
+                            <span className="w-4 h-4 rounded-md bg-[#262626] text-white dark:bg-[#FAFAFA] dark:text-[#18181B] text-[10px] font-mono font-bold flex items-center justify-center shrink-0">
                               {idx + 1}
                             </span>
                             <span className="font-semibold text-[#1C1917] dark:text-[#FAFAFA] truncate">
@@ -426,7 +426,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                               type="button"
                               onClick={() => handleAddSingleSubtask(st)}
                               title="Thêm bước này"
-                              className="p-1 rounded-none border border-[#262626] dark:border-[#52525B] bg-[#F3EFE6] dark:bg-[#3F3F46] hover:bg-[#E5E0D4] text-[#1C1917] dark:text-[#FAFAFA] cursor-pointer active:translate-x-[0.5px] active:translate-y-[0.5px] transition-all"
+                              className="p-1 rounded-md border border-[#262626] dark:border-black bg-[#F3EFE6] dark:bg-[#3F3F46] hover:bg-[#E5E0D4] text-[#1C1917] dark:text-[#FAFAFA] cursor-pointer active:translate-x-[0.5px] active:translate-y-[0.5px] transition-all"
                             >
                               <Plus size={12} strokeWidth={2.4} />
                             </button>
@@ -439,7 +439,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
 
                 {/* CARD 3: STATS & PROGRESS CARD */}
                 {res && res.type === "stats_progress" && res.stats && (
-                  <div className="mt-3 p-3 rounded-none bg-[#FBF9F4] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1.5px_1.5px_0px_#262626] space-y-3">
+                  <div className="mt-3 p-3 rounded-xl bg-[#FBF9F4] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-black shadow-[1.5px_1.5px_0px_#262626] space-y-3">
                     {/* Progress Bar Hôm Nay */}
                     <div>
                       <div className="flex items-center justify-between text-xs font-bold mb-1.5">
@@ -448,9 +448,9 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                           {res.stats.completedToday}/{res.stats.todayCount} ({res.stats.todayPercent}%)
                         </span>
                       </div>
-                      <div className="w-full h-2.5 rounded-none bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-[#52525B] overflow-hidden">
+                      <div className="w-full h-2.5 rounded-full bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-black overflow-hidden">
                         <div
-                          className="h-full bg-[#1C1917] dark:bg-[#FAFAFA] transition-all duration-500"
+                          className="h-full bg-[#1C1917] dark:bg-[#FAFAFA] transition-all duration-500 rounded-full"
                           style={{ width: `${res.stats.todayPercent}%` }}
                         />
                       </div>
@@ -458,7 +458,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
 
                     {/* Stat Badges */}
                     <div className="grid grid-cols-2 gap-2 pt-1">
-                      <div className="p-2 rounded-none bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1px_1px_0px_#262626] flex items-center gap-2">
+                      <div className="p-2 rounded-xl bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626] flex items-center gap-2">
                         <AlertTriangle size={14} className="text-[#BE123C] shrink-0" />
                         <div>
                           <div className="text-[10px] font-semibold text-[#78716C] dark:text-[#A1A1AA]">Quá hạn</div>
@@ -468,7 +468,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                         </div>
                       </div>
 
-                      <div className="p-2 rounded-none bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1px_1px_0px_#262626] flex items-center gap-2">
+                      <div className="p-2 rounded-xl bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626] flex items-center gap-2">
                         <TrendingUp size={14} className="text-[#92400E] shrink-0" />
                         <div>
                           <div className="text-[10px] font-semibold text-[#78716C] dark:text-[#A1A1AA]">Việc gấp</div>
@@ -483,11 +483,11 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
 
                 {/* CARD 4: TASK QUERY INTERACTIVE LIST */}
                 {res && res.type === "task_query" && res.queriedTasks && (
-                  <div className="mt-3 space-y-1.5 pt-2 border-t border-[#262626]/20 dark:border-white/10">
+                  <div className="mt-3 space-y-1.5 pt-2 border-t border-[#262626]/20 dark:border-transparent">
                     {res.queriedTasks.map((t) => (
                       <div
                         key={t.id}
-                        className="p-2 rounded-none bg-[#FBF9F4] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2 text-xs"
+                        className="p-2 rounded-xl bg-[#FBF9F4] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2 text-xs"
                       >
                         <div className="flex items-center gap-2 min-w-0 flex-1">
                           <HandDrawnCheckbox
@@ -541,13 +541,13 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
       </div>
 
       {/* 3. DYNAMIC SMART PROMPT CHIPS */}
-      <div className="px-3 py-2 bg-white dark:bg-[#27272A] border-t-[1.5px] border-[#262626] dark:border-[#52525B] flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+      <div className="px-3 py-2 bg-white dark:bg-[#27272A] border-t-[1.5px] border-[#262626] dark:border-black flex items-center gap-1.5 overflow-x-auto no-scrollbar">
         {dynamicChips.map((chip) => (
           <button
             key={chip.id}
             type="button"
             onClick={() => handleSend(chip.query)}
-            className="px-2.5 py-1 rounded-none text-xs font-semibold bg-[#F3EFE6] dark:bg-[#3F3F46] hover:bg-[#E5E0D4] dark:hover:bg-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1.5px_1.5px_0px_#262626] whitespace-nowrap active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+            className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#F3EFE6] dark:bg-[#3F3F46] hover:bg-[#E5E0D4] dark:hover:bg-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] border-[1.5px] border-[#262626] dark:border-black shadow-[1.5px_1.5px_0px_#262626] whitespace-nowrap active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
           >
             {chip.label}
           </button>
@@ -560,11 +560,11 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
           e.preventDefault();
           handleSend();
         }}
-        className={`p-2.5 sm:p-3 bg-white dark:bg-[#27272A] border-t-[1.5px] border-[#262626] dark:border-[#52525B] flex items-center gap-2 shrink-0 ${
+        className={`p-2.5 sm:p-3 bg-white dark:bg-[#27272A] border-t-[1.5px] border-[#262626] dark:border-black flex items-center gap-2 shrink-0 ${
           isStandalone ? "pb-[max(env(safe-area-inset-bottom),12px)]" : ""
         }`}
       >
-        <div className="flex-1 flex items-center bg-[#F3EFE6] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1.5px_1.5px_0px_#262626] px-3 py-1.5 transition-all">
+        <div className="flex-1 flex items-center bg-[#F3EFE6] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-black rounded-2xl shadow-[1.5px_1.5px_0px_#262626] px-3.5 py-2 transition-all">
           <input
             ref={inputRef}
             type="text"
@@ -578,7 +578,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
         <button
           type="submit"
           disabled={!inputVal.trim() || isTyping}
-          className={`h-9 w-9 shrink-0 rounded-none flex items-center justify-center transition-all border-[1.5px] border-[#262626] dark:border-[#52525B] ${
+          className={`h-10 w-10 shrink-0 rounded-2xl flex items-center justify-center transition-all border-[1.5px] border-[#262626] dark:border-black ${
             inputVal.trim() && !isTyping
               ? "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
               : "bg-[#E5E0D4] dark:bg-[#3F3F46] text-[#78716C] dark:text-[#71717A] cursor-not-allowed shadow-none"

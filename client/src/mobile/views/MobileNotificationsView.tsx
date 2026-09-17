@@ -120,7 +120,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
             icon: <Bell size={13} strokeWidth={2.2} />,
             badge:
               totalAlerts > 0 ? (
-                <span className="min-w-[18px] rounded-md bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] px-1.5 py-0.5 text-center font-mono text-[10px] leading-none font-semibold">
+                <span className="min-w-[18px] rounded-md bg-black/[0.08] dark:bg-white/[0.12] text-[#1C1C1E] dark:text-[#F2F2F7] px-1.5 py-0.5 text-center font-mono text-[10px] leading-none font-bold">
                   {totalAlerts}
                 </span>
               ) : undefined,
@@ -131,7 +131,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
             icon: <AlertTriangle size={13} strokeWidth={2.2} />,
             badge:
               overdueTasks.length > 0 ? (
-                <span className="min-w-[18px] rounded-md bg-[#FF3B30] text-white px-1.5 py-0.5 text-center font-mono text-[10px] leading-none font-semibold">
+                <span className="min-w-[18px] rounded-md bg-black/[0.08] dark:bg-white/[0.12] text-[#1C1C1E] dark:text-[#F2F2F7] px-1.5 py-0.5 text-center font-mono text-[10px] leading-none font-bold">
                   {overdueTasks.length}
                 </span>
               ) : undefined,
@@ -142,7 +142,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
             icon: <Clock size={13} strokeWidth={2.2} />,
             badge:
               todayDueTasks.length > 0 ? (
-                <span className="min-w-[18px] rounded-md bg-[#007AFF] text-white px-1.5 py-0.5 text-center font-mono text-[10px] leading-none font-semibold">
+                <span className="min-w-[18px] rounded-md bg-black/[0.08] dark:bg-white/[0.12] text-[#1C1C1E] dark:text-[#F2F2F7] px-1.5 py-0.5 text-center font-mono text-[10px] leading-none font-bold">
                   {todayDueTasks.length}
                 </span>
               ) : undefined,
@@ -152,9 +152,9 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
 
       {/* 2. BANNER HƯỚNG DẪN LÀM VIỆC TẠI HẠN ĐỊNH (CALL TO ACTION) */}
       {totalAlerts > 0 && (
-        <div className="rounded-2xl border border-[#E5E5EA] dark:border-black bg-white/80 dark:bg-[#1C1C1E]/80 p-3.5 shadow-xs flex items-center justify-between gap-3">
+        <div className="rounded-2xl border border-[#E5E5EA] dark:border-black bg-white dark:bg-[#1C1C1E] p-3.5 shadow-xs flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7] flex items-center justify-center shrink-0">
               <Calendar size={16} strokeWidth={2.2} />
             </div>
             <div className="min-w-0">
@@ -200,9 +200,9 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
         {/* SECTION 1: THÔNG BÁO VIỆC QUÁ HẠN */}
         {(activeFilter === "all" || activeFilter === "overdue") && overdueGroups.length > 0 && (
           <div className="space-y-2">
-            <div className="flex items-center justify-between px-1 text-xs font-bold text-[#FF3B30] dark:text-[#FF453A]">
+            <div className="flex items-center justify-between px-1 text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
               <span className="flex items-center gap-1.5">
-                <AlertTriangle size={13} strokeWidth={2.4} />
+                <AlertTriangle size={13} strokeWidth={2.2} />
                 <span>Cảnh báo quá hạn ({overdueTasks.length})</span>
               </span>
             </div>
@@ -222,18 +222,18 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
                   >
                     <div className="flex items-start gap-3 min-w-0 flex-1">
                       {/* Icon Badge */}
-                      <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <div className="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7] flex items-center justify-center shrink-0 mt-0.5">
                         <AlertTriangle size={15} strokeWidth={2.2} />
                       </div>
 
                       {/* Notification Content */}
                       <div className="min-w-0 flex-1 space-y-1">
-                        <p className="text-xs sm:text-sm font-bold text-[#1C1C1E] dark:text-[#F2F2F7] truncate leading-snug group-hover:text-[#007AFF] dark:group-hover:text-[#0A84FF] transition-colors">
+                        <p className="text-xs sm:text-sm font-bold text-[#1C1C1E] dark:text-[#F2F2F7] truncate leading-snug group-hover:opacity-80 transition-opacity">
                           Quá hạn: {task.title}
                         </p>
 
                         <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#8E8E93] dark:text-[#AEAEC2]">
-                          <span className="px-1.5 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-semibold">
+                          <span className="font-mono text-[10px] px-1.5 py-0.5 rounded-md bg-black/[0.04] dark:bg-white/[0.06] text-[#8E8E93] dark:text-[#AEAEC2] font-semibold">
                             Cần dời lịch
                           </span>
                           {getTaskEffectiveTime(task) && (
@@ -265,9 +265,9 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
         {/* SECTION 2: THÔNG BÁO VIỆC ĐẾN HẠN HÔM NAY */}
         {(activeFilter === "all" || activeFilter === "today") && todayDueTasks.length > 0 && (
           <div className="space-y-2 pt-1">
-            <div className="flex items-center justify-between px-1 text-xs font-bold text-[#007AFF] dark:text-[#0A84FF]">
+            <div className="flex items-center justify-between px-1 text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
               <span className="flex items-center gap-1.5">
-                <Clock size={13} strokeWidth={2.4} />
+                <span className="w-2 h-2 rounded-full bg-[#8E8E93]" />
                 <span>Đến hạn hôm nay ({todayDueTasks.length})</span>
               </span>
             </div>
@@ -281,18 +281,18 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
                 >
                   <div className="flex items-start gap-3 min-w-0 flex-1">
                     {/* Icon Badge */}
-                    <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7] flex items-center justify-center shrink-0 mt-0.5">
                       <Clock size={15} strokeWidth={2.2} />
                     </div>
 
                     {/* Notification Content */}
                     <div className="min-w-0 flex-1 space-y-1">
-                      <p className="text-xs sm:text-sm font-bold text-[#1C1C1E] dark:text-[#F2F2F7] truncate leading-snug group-hover:text-[#007AFF] dark:group-hover:text-[#0A84FF] transition-colors">
+                      <p className="text-xs sm:text-sm font-bold text-[#1C1C1E] dark:text-[#F2F2F7] truncate leading-snug group-hover:opacity-80 transition-opacity">
                         Đến hạn: {task.title}
                       </p>
 
                       <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#8E8E93] dark:text-[#AEAEC2]">
-                        <span className="px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-semibold">
+                        <span className="font-mono text-[10px] px-1.5 py-0.5 rounded-md bg-black/[0.04] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold">
                           Hôm nay
                         </span>
                         {getTaskEffectiveTime(task) ? (

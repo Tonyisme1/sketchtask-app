@@ -140,7 +140,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
             Thông báo
           </h3>
           {totalAlerts > 0 && (
-            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#FF3B30] text-white">
+            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-black/10 dark:bg-white/20 text-[#1C1C1E] dark:text-white">
               {totalAlerts}
             </span>
           )}
@@ -180,7 +180,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
             {/* Việc quá hạn */}
             {overdueGroups.length > 0 && (
               <div className="space-y-1.5">
-                <div className="flex items-center gap-1.5 px-1 py-0.5 text-xs font-bold text-[#FF3B30] dark:text-[#FF453A]">
+                <div className="flex items-center gap-1.5 px-1 py-0.5 text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
                   <AlertTriangle size={13} strokeWidth={2.2} />
                   <span>Cảnh báo quá hạn ({overdueTasks.length})</span>
                 </div>
@@ -197,7 +197,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
                         className="p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] flex items-center justify-between gap-2.5 cursor-pointer transition-all group"
                       >
                         <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                          <div className="w-6 h-6 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                          <div className="w-6 h-6 rounded-lg bg-black/[0.04] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-white flex items-center justify-center shrink-0 mt-0.5">
                             <AlertTriangle size={12} strokeWidth={2.2} />
                           </div>
                           <div className="min-w-0 flex-1 space-y-0.5">
@@ -220,7 +220,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
             {/* Việc hôm nay */}
             {todayDueTasks.length > 0 && (
               <div className="space-y-1.5 pt-1">
-                <div className="flex items-center gap-1.5 px-1 py-0.5 text-xs font-bold text-[#007AFF] dark:text-[#0A84FF]">
+                <div className="flex items-center gap-1.5 px-1 py-0.5 text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
                   <Clock size={13} strokeWidth={2.2} />
                   <span>Đến hạn hôm nay ({todayDueTasks.length})</span>
                 </div>
@@ -231,7 +231,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
                     className="p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] flex items-center justify-between gap-2.5 cursor-pointer transition-all group"
                   >
                     <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                      <div className="w-6 h-6 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <div className="w-6 h-6 rounded-lg bg-black/[0.04] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-white flex items-center justify-center shrink-0 mt-0.5">
                         <Clock size={12} strokeWidth={2.2} />
                       </div>
                       <div className="min-w-0 flex-1 space-y-0.5">
