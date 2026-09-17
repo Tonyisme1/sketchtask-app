@@ -94,19 +94,20 @@ export class AuthService {
         data: {
           email: cleanEmail,
           name: profile.name?.trim() || cleanEmail.split("@")[0],
-          avatar: profile.picture || "lucide:Sparkles",
+          avatar: profile.picture || "lucide:User",
           avatarBg: "#FEF08A",
           googleId: profile.sub,
         },
       });
     } else {
-      // Only bind the verified Google subject to the matching email account.
-      if (!user.googleId) {
-        user = await prisma.user.update({
-          where: { id: user.id },
-          data: { googleId: profile.sub },
-        });
-      }
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          googleId: profile.sub,
+          ...(profile.picture ? { avatar: profile.picture } : {}),
+          ...(profile.name ? { name: profile.name.trim() } : {}),
+        },
+      });
     }
 
     const token = signToken({ userId: user.id, email: user.email });
@@ -117,7 +118,7 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
-        avatar: user.avatar || "lucide:Sparkles",
+        avatar: user.avatar || "lucide:User",
         avatarBg: user.avatarBg || "#FEF08A",
       },
     };

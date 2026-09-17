@@ -566,73 +566,37 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
         return (
           <div className="space-y-4 sm:space-y-5">
             {/* Profile Info Card */}
-            <div className="bg-[#FFFDF8] dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] rounded-[8px] p-4 sm:p-5 shadow-[2px_2px_0px_#262626] space-y-3.5">
+            <div className="bg-[#FFFDF8] dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] rounded-[8px] p-4 sm:p-5 shadow-[2px_2px_0px_#262626] space-y-3.5">
               <div className="flex items-start justify-between gap-3 min-w-0">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  {/* Interactive Avatar */}
-                  <button
-                    type="button"
-                    onClick={() => setShowAvatarPicker(!showAvatarPicker)}
-                    className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-[10px] border-[1.5px] border-[#262626] shadow-[2px_2px_0px_#262626] flex items-center justify-center shrink-0 cursor-pointer hover:opacity-90 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all group ${
-                      user.avatarBg === "#262626" ? "text-white" : "text-[#1C1917]"
-                    }`}
-                    style={{ backgroundColor: user.avatarBg || "#FFFDF8" }}
-                    title="Chạm để đổi màu nền & icon đại diện"
+                <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                  {/* Google Profile Avatar */}
+                  <div
+                    className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-[10px] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] shadow-[2px_2px_0px_#262626] flex items-center justify-center shrink-0 overflow-hidden"
+                    style={{ backgroundColor: user.avatarBg || "#FEF08A" }}
                   >
                     <DynamicIcon
                       name={user.avatar || (user.isSignedIn ? "lucide:UserCheck" : "lucide:User")}
                       size={28}
                       strokeWidth={2.2}
                     />
-                    <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-[4px] bg-white border border-[#262626] shadow-[1px_1px_0px_#262626] flex items-center justify-center text-[10px] text-[#1C1917]">
-                      <Pencil size={11} strokeWidth={2.4} />
-                    </span>
-                  </button>
+                  </div>
 
                   {/* User Name & Email */}
                   <div className="min-w-0 flex-1">
-                    {isEditingName ? (
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <input
-                          type="text"
-                          value={editNameValue}
-                          onChange={(e) => setEditNameValue(e.target.value)}
-                          onKeyDown={(e) => e.key === "Enter" && handleSaveName()}
-                          className="px-2.5 py-1 bg-white dark:bg-[#2C2C2E] border border-[#262626] rounded-none text-xs font-bold w-full max-w-[160px] text-[#1C1917] dark:text-white"
-                          autoFocus
-                        />
-                        <button
-                          type="button"
-                          onClick={handleSaveName}
-                          className="px-2.5 py-1 bg-[#1C1917] border border-[#262626] rounded text-xs font-bold text-white shrink-0 cursor-pointer shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
-                        >
-                          Lưu
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 mb-0.5">
-                        <span className="font-black text-sm sm:text-base text-[#1C1917] dark:text-[#E5E5EA] truncate">
-                          {user.name || "Khách (Chưa đăng nhập)"}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setIsEditingName(true)}
-                          className="p-1 text-[#78716C] hover:text-[#1C1917] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E] rounded cursor-pointer shrink-0"
-                          title="Chỉnh sửa tên"
-                        >
-                          <Pencil size={12} strokeWidth={2.2} />
-                        </button>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <span className="font-black text-sm sm:text-base text-[#1C1917] dark:text-[#E5E5EA] truncate">
+                        {user.isSignedIn ? user.name : "Khách (Chưa đăng nhập)"}
+                      </span>
+                    </div>
 
-                    <p className="text-xs text-[#78716C] font-mono truncate mb-1.5">
+                    <p className="text-xs text-[#78716C] dark:text-[#8E8E93] font-mono truncate mb-1.5">
                       {user.isSignedIn ? user.email : "Tài khoản cục bộ (Chưa đăng nhập)"}
                     </p>
 
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-[3px] border border-[#262626] bg-[#FAF8F3] dark:bg-[#2C2C2E] text-[#1C1917] dark:text-[#E5E5EA]">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-[3px] border border-[#262626] dark:border-[#3A3A3C] bg-[#FAF8F3] dark:bg-[#2C2C2E] text-[#1C1917] dark:text-[#E5E5EA]">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        {user.isSignedIn ? "Đang kết nối Realtime" : "Chế độ Offline"}
+                        {user.isSignedIn ? "Đã liên kết Google (Realtime)" : "Chế độ Offline"}
                       </span>
                     </div>
                   </div>
@@ -644,7 +608,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     <button
                       type="button"
                       onClick={logout}
-                      className="px-3 py-1.5 bg-white hover:bg-[#FAF8F3] dark:bg-[#2C2C2E] dark:hover:bg-[#3A3A3C] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] dark:text-[#E5E5EA] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer flex items-center gap-1.5 transition-all"
+                      className="px-3 py-1.5 bg-white hover:bg-[#FAF8F3] dark:bg-[#2C2C2E] dark:hover:bg-[#3A3A3C] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] dark:text-[#E5E5EA] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer flex items-center gap-1.5 transition-all"
                     >
                       <LogOut size={13} strokeWidth={2.4} />
                       <span>Đăng xuất</span>
@@ -654,74 +618,16 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                       type="button"
                       onClick={() => {
                         if (onOpenAuth) onOpenAuth();
-                        else if (onNavigateRoute) onNavigateRoute("/login");
                         else openAuthModal();
                       }}
-                      className="px-3 py-1.5 bg-[#1C1917] hover:bg-[#262626] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-white active:translate-y-[0.5px] cursor-pointer flex items-center gap-1.5 transition-all"
+                      className="px-3.5 py-1.5 bg-[#1C1917] hover:bg-[#262626] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-white active:translate-y-[0.5px] cursor-pointer flex items-center gap-1.5 transition-all"
                     >
-                      <span>Đăng nhập</span>
+                      <span>Đăng nhập Google</span>
                       <ArrowRight size={13} strokeWidth={2.4} />
                     </button>
                   )}
                 </div>
               </div>
-
-              {/* Avatar picker expanded */}
-              {showAvatarPicker && (
-                <div className="pt-3.5 border-t border-[#262626]/15 space-y-3.5 animate-in fade-in slide-in-from-top-1 duration-150">
-                  <div>
-                    <p className="text-xs font-bold text-[#1C1917] dark:text-[#E5E5EA] font-mono mb-2">
-                      Màu nền:
-                    </p>
-                    <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
-                      {AVATAR_COLORS.map((c) => (
-                        <button
-                          key={c.hex}
-                          type="button"
-                          onClick={() => updateUserProfile({ avatarBg: c.hex })}
-                          className={`w-9 h-9 sm:w-10 sm:h-10 rounded-[6px] border-[1.5px] border-[#262626] flex items-center justify-center transition-all cursor-pointer active:translate-y-[0.5px] ${
-                            user.avatarBg === c.hex
-                              ? "shadow-[2px_2px_0px_#262626] ring-2 ring-[#262626]"
-                              : "opacity-80 hover:opacity-100 shadow-[1px_1px_0px_#262626]/40"
-                          }`}
-                          style={{ backgroundColor: c.hex }}
-                          title={c.name}
-                        >
-                          {user.avatarBg === c.hex && (
-                            <Check
-                              size={16}
-                              strokeWidth={3}
-                              className={c.hex === "#262626" ? "text-white" : "text-[#1C1917]"}
-                            />
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-bold text-[#1C1917] dark:text-[#E5E5EA] font-mono mb-2">
-                      Biểu tượng đại diện:
-                    </p>
-                    <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
-                      {AVATAR_ICONS.map((icon) => (
-                        <button
-                          key={icon}
-                          type="button"
-                          onClick={() => updateUserProfile({ avatar: icon })}
-                          className={`w-9 h-9 sm:w-10 sm:h-10 rounded-[6px] border-[1.5px] border-[#262626] flex items-center justify-center text-[#1C1917] transition-all cursor-pointer active:translate-y-[0.5px] ${
-                            user.avatar === icon
-                              ? "bg-[#1C1917] text-white shadow-[2px_2px_0px_#262626] ring-2 ring-[#262626]"
-                              : "bg-white hover:bg-[#FAF8F3] shadow-[1px_1px_0px_#262626]/40"
-                          }`}
-                        >
-                          <DynamicIcon name={icon} size={18} strokeWidth={2.2} />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Dữ Liệu Đồng Bộ Summary */}
@@ -1346,46 +1252,51 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
           {/* 1. Thẻ Hồ Sơ Người Dùng */}
           <section className="bg-[#FFFDF8] dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] rounded-[8px] p-3.5 shadow-[2.5px_2.5px_0px_#262626] space-y-3">
             <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setSettingsMobileSubView("account")}
-                className="relative w-12 h-12 rounded-[6px] border-[1.5px] border-[#262626] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center shrink-0 cursor-pointer active:translate-y-[0.5px] transition-all"
+              <div
+                className="relative w-12 h-12 rounded-[6px] border-[1.5px] border-[#262626] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center shrink-0 overflow-hidden"
                 style={{ backgroundColor: user.avatarBg || "#FEF08A" }}
-                title="Thay đổi ảnh đại diện"
               >
                 <DynamicIcon
                   name={user.avatar || (user.isSignedIn ? "lucide:UserCheck" : "lucide:User")}
                   size={24}
                   strokeWidth={2.2}
                 />
-              </button>
+              </div>
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <h2 className="font-black text-sm text-[#1C1917] dark:text-white tracking-tight truncate">
                     {user.name || (user.isSignedIn ? "Người dùng" : "Khách (Offline)")}
                   </h2>
-                  <button
-                    type="button"
-                    onClick={() => setSettingsMobileSubView("account")}
-                    className="p-1 text-[#78716C] hover:text-[#1C1917] dark:hover:text-white cursor-pointer"
-                    title="Chỉnh sửa thông tin"
-                  >
-                    <Pencil size={12} strokeWidth={2.4} />
-                  </button>
                 </div>
-                <p className="text-[11px] font-mono text-[#78716C] truncate mt-0.5">
-                  {user.isSignedIn ? user.email : "Tài khoản cục bộ (Offline)"}
+                <p className="text-[11px] text-[#78716C] dark:text-[#8E8E93] font-mono truncate">
+                  {user.isSignedIn ? user.email : "Chưa đăng nhập Google"}
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setSettingsMobileSubView("account")}
-                className="px-2.5 py-1 bg-white hover:bg-[#FAF8F3] dark:bg-[#2C2C2E] border border-[#262626] rounded-[4px] text-[11px] font-bold text-[#1C1917] dark:text-[#E5E5EA] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer shrink-0"
-              >
-                Hồ sơ
-              </button>
+              <div className="shrink-0">
+                {user.isSignedIn ? (
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="p-1.5 bg-white dark:bg-[#2C2C2E] hover:bg-rose-50 dark:hover:bg-rose-950 text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-900 rounded-[4px] shadow-[1px_1px_0px_#FDA4AF] active:translate-y-[0.5px] cursor-pointer"
+                    title="Đăng xuất"
+                  >
+                    <LogOut size={14} strokeWidth={2.2} />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onOpenAuth) onOpenAuth();
+                      else openAuthModal();
+                    }}
+                    className="px-2.5 py-1 bg-[#1C1917] hover:bg-[#262626] text-white text-xs font-bold rounded-[4px] border border-[#262626] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
+                  >
+                    Đăng nhập
+                  </button>
+                )}
+              </div>
             </div>
           </section>
 
