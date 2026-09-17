@@ -305,7 +305,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="button"
                   onClick={onBackToSettings ? onBackToSettings : onClose}
                   title="Quay lại"
-                  className="p-1.5 bg-white hover:bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[4px] text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer shrink-0 transition-all"
+                  className="mobile-back-button p-1.5 bg-white hover:bg-[#FEF08A] border-[1.5px] border-[#262626] rounded-[4px] text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer shrink-0 transition-all"
                 >
                   <ArrowLeft size={16} strokeWidth={2.4} />
                 </button>
@@ -614,7 +614,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   type="button"
                   onClick={onBackToSettings ? onBackToSettings : onClose}
                   title="Quay lại"
-                  className="p-1.5 bg-white hover:bg-[#FEF08A] border border-[#262626] rounded-[4px] text-[#1C1917] shadow-[1px_1px_0px_#262626] flex items-center justify-center active:translate-y-[0.5px] active:shadow-none cursor-pointer shrink-0"
+                  className="mobile-back-button p-1.5 bg-white hover:bg-[#FEF08A] border border-[#262626] rounded-[4px] text-[#1C1917] shadow-[1px_1px_0px_#262626] flex items-center justify-center active:translate-y-[0.5px] active:shadow-none cursor-pointer shrink-0"
                 >
                   <ArrowLeft size={17} strokeWidth={2.4} />
                 </button>

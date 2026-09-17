@@ -196,8 +196,8 @@ export const AIAssistantSidePanel: React.FC<AIAssistantSidePanelProps> = ({
       {/* 1. Header Cửa Sổ AI */}
       <header className="flex h-12 items-center justify-between border-b-[1.5px] border-[#262626] bg-[#FFFDF8] dark:bg-[#2C2C2E] px-4 shrink-0">
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#FEF08A] dark:bg-amber-500/20 text-[#1C1917] dark:text-amber-300 border border-[#262626]">
-            <Sparkles size={15} strokeWidth={2.4} />
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#1C1917] text-white dark:bg-white dark:text-[#1C1917] border border-[#262626]">
+            <Sparkles size={14} strokeWidth={2.2} />
           </div>
           <h3 className="text-xs font-bold text-[#1C1917] dark:text-white tracking-tight">
             Trợ lý AI Phác Thảo

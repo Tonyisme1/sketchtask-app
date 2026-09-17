@@ -1291,7 +1291,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               <button
                 type="button"
                 onClick={() => setSettingsMobileSubView(null)}
-                className="w-8 h-8 bg-white dark:bg-[#1C1C1E] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] dark:text-[#E5E5EA] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer shrink-0 transition-all"
+                className="mobile-back-button w-8 h-8 bg-white dark:bg-[#1C1C1E] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center text-[#1C1917] dark:text-[#E5E5EA] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer shrink-0 transition-all"
                 title="Quay lại danh sách cài đặt"
               >
                 <ArrowLeft size={16} strokeWidth={2.4} />

@@ -57,7 +57,7 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
           <button
             type="button"
             onClick={toggleSidebar}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border-[1.5px] border-[#262626] bg-white dark:bg-[#2C2C2E] text-[#1C1917] dark:text-[#F2F2F7] shadow-[1.5px_1.5px_0px_#262626] transition-all hover:bg-[#FEF08A] dark:hover:bg-[#3A3A3C] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border-[1.5px] border-[#262626] bg-white dark:bg-[#2C2C2E] text-[#1C1917] dark:text-[#F2F2F7] shadow-[1.5px_1.5px_0px_#262626] transition-all hover:bg-[#FAF8F3] dark:hover:bg-[#3A3A3C] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer"
             title="Mở / Thu gọn menu bên (Ctrl + B)"
             aria-label="Thanh menu"
           >
@@ -88,9 +88,9 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
             onClick={onOpenAIModal || (() => onTabChange("ai"))}
             title="Mở Trợ lý AI Phác Thảo"
             aria-label="Trợ lý AI"
-            className="flex h-10 items-center gap-1.5 px-3 rounded-xl border-[1.5px] border-[#262626] bg-[#FEF08A] hover:bg-[#FDE047] dark:bg-amber-500/20 dark:hover:bg-amber-500/30 text-[#1C1917] dark:text-amber-200 font-bold text-xs shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
+            className="flex h-10 items-center gap-1.5 px-3 rounded-xl border-[1.5px] border-[#262626] bg-white hover:bg-[#FAF8F3] dark:bg-[#2C2C2E] dark:hover:bg-[#3A3A3C] text-[#1C1917] dark:text-[#F2F2F7] font-bold text-xs shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
           >
-            <Sparkles size={16} strokeWidth={2.4} className="text-amber-600 dark:text-amber-300" />
+            <Sparkles size={16} strokeWidth={2.2} />
             <span className="hidden sm:inline">Trợ lý AI</span>
           </button>
 

@@ -349,7 +349,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
           onClick={handleCloseNoteEditor}
           className={`inline-flex min-w-0 items-center gap-1.5 text-xs font-bold text-[#1C1917] transition-all cursor-pointer ${
             isMobile
-              ? "h-9 px-2.5 rounded-[4px] border border-[#262626] bg-white shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
+              ? "mobile-back-button h-9 px-2.5 rounded-[4px] border border-[#262626] bg-white shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px]"
               : "h-9 flex-1 rounded-[4px] border-[1.5px] border-[#262626] bg-white px-2.5 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
           }`}
           aria-label="Quay lại danh sách ghi chú"

@@ -201,7 +201,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                   setSettingsMobileSubView(null);
                 }
               }}
-              className="w-9 h-9 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] rounded-xl flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7] active:scale-95 transition-all cursor-pointer shrink-0"
+              className="mobile-back-button w-9 h-9 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] rounded-xl flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7] active:scale-95 transition-all cursor-pointer shrink-0"
               title="Quay lại"
               aria-label="Quay lại"
             >

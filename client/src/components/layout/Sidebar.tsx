@@ -141,11 +141,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title="Hôm nay"
               className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer ${
                 isTodayActive
-                  ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
-                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+                  ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
+                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
               } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
             >
-              <Sun size={18} strokeWidth={2.4} />
+              <Sun size={18} strokeWidth={2.2} />
             </button>
 
             <button
@@ -154,11 +154,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title="Kế hoạch tuần & tháng"
               className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer ${
                 isPlannerActive
-                  ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
-                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+                  ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
+                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
               } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
             >
-              <CalendarIcon size={18} strokeWidth={2.4} />
+              <CalendarIcon size={18} strokeWidth={2.2} />
             </button>
 
             <button
@@ -167,13 +167,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title="Hạn định & Quá hạn"
               className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer relative ${
                 isDeadlinesActive
-                  ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
-                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+                  ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
+                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
               } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
             >
-              <Hourglass size={18} strokeWidth={2.4} />
+              <Hourglass size={18} strokeWidth={2.2} />
               {deadlineAlertTotal > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#FF3B30]" />
+                <span className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
+                  isDeadlinesActive ? "bg-white dark:bg-[#1C1917]" : "bg-[#1C1917] dark:bg-white"
+                }`} />
               )}
             </button>
 
@@ -183,11 +185,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title="Ghi chú phác thảo"
               className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer ${
                 isNotesActive
-                  ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
-                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+                  ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
+                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
               } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
             >
-              <FilePenLine size={18} strokeWidth={2.4} />
+              <FilePenLine size={18} strokeWidth={2.2} />
             </button>
 
             <button
@@ -196,11 +198,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title="Sổ nhật ký"
               className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer ${
                 isJournalActive
-                  ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
-                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+                  ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
+                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
               } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
             >
-              <BookOpen size={18} strokeWidth={2.4} />
+              <BookOpen size={18} strokeWidth={2.2} />
             </button>
           </nav>
         </div>
@@ -211,9 +213,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             type="button"
             onClick={onOpenAIModal || (() => onTabChange("ai"))}
             title="Trợ lý AI Phác Thảo"
-            className="w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] border-[#262626] bg-[#FEF08A] dark:bg-amber-500/20 text-[#1C1917] dark:text-amber-300 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
+            className="w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] border-[#262626] bg-white dark:bg-[#2C2C2E] text-[#1C1917] dark:text-white shadow-[1.5px_1.5px_0px_#262626] hover:bg-[#FAF8F3] dark:hover:bg-[#3A3A3C] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
           >
-            <Sparkles size={18} strokeWidth={2.4} />
+            <Sparkles size={18} strokeWidth={2.2} />
           </button>
 
           {onOpenSettings && (
@@ -260,16 +262,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={handleSelectToday}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
               isTodayActive
-                ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
-                : "border-transparent text-[#1C1917] dark:text-[#F2F2F7] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+                ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
+                : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
             } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
           >
             <div className="flex items-center gap-2.5">
-              <Sun size={16} strokeWidth={2.4} className="text-amber-500" />
-              <span>Hôm nay</span>
+              <Sun size={16} strokeWidth={2.2} />
+              <span className={isTodayActive ? "font-bold" : ""}>Hôm nay</span>
             </div>
             {pendingTodayCount > 0 && (
-              <span className="font-mono text-[10px] px-1.5 py-0.25 rounded-md font-bold bg-[#1C1917] text-white dark:bg-white dark:text-[#1C1917]">
+              <span className={`font-mono text-[10px] px-1.5 py-0.25 rounded-md font-bold ${
+                isTodayActive
+                  ? "bg-white text-[#1C1917] dark:bg-[#1C1917] dark:text-white"
+                  : "bg-[#E7E5E4] text-[#1C1917] dark:bg-[#2C2C2E] dark:text-[#F2F2F7]"
+              }`}>
                 {pendingTodayCount}
               </span>
             )}
@@ -281,15 +287,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={handleSelectPlanner}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
               isPlannerActive
-                ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
-                : "border-transparent text-[#1C1917] dark:text-[#F2F2F7] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+                ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
+                : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
             } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
           >
             <div className="flex items-center gap-2.5">
-              <CalendarIcon size={16} strokeWidth={2.4} className="text-blue-500" />
-              <span>Kế hoạch</span>
+              <CalendarIcon size={16} strokeWidth={2.2} />
+              <span className={isPlannerActive ? "font-bold" : ""}>Kế hoạch</span>
             </div>
-            <span className="text-[10px] text-[#78716C] dark:text-[#A1A1AA] font-mono">
+            <span className={`text-[10px] font-mono ${
+              isPlannerActive ? "text-white/80 dark:text-[#1C1917]/80" : "text-[#78716C] dark:text-[#A1A1AA]"
+            }`}>
               7 ngày
             </span>
           </button>
@@ -300,16 +308,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={handleSelectDeadlines}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
               isDeadlinesActive
-                ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
-                : "border-transparent text-[#1C1917] dark:text-[#F2F2F7] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+                ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
+                : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
             } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
           >
             <div className="flex items-center gap-2.5">
-              <Hourglass size={16} strokeWidth={2.4} className="text-rose-500" />
-              <span>Hạn định</span>
+              <Hourglass size={16} strokeWidth={2.2} />
+              <span className={isDeadlinesActive ? "font-bold" : ""}>Hạn định</span>
             </div>
             {deadlineAlertTotal > 0 && (
-              <span className="font-mono text-[10px] px-1.5 py-0.25 rounded-md font-bold bg-[#FF3B30] text-white">
+              <span className={`font-mono text-[10px] px-1.5 py-0.25 rounded-md font-bold ${
+                isDeadlinesActive
+                  ? "bg-white text-[#1C1917] dark:bg-[#1C1917] dark:text-white"
+                  : "bg-[#1C1917] text-white dark:bg-white dark:text-[#1C1917]"
+              }`}>
                 {deadlineAlertTotal}
               </span>
             )}
@@ -321,16 +333,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={handleSelectNotes}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
               isNotesActive
-                ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
-                : "border-transparent text-[#1C1917] dark:text-[#F2F2F7] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+                ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
+                : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
             } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
           >
             <div className="flex items-center gap-2.5">
-              <FilePenLine size={16} strokeWidth={2.4} className="text-emerald-500" />
-              <span>Ghi chú</span>
+              <FilePenLine size={16} strokeWidth={2.2} />
+              <span className={isNotesActive ? "font-bold" : ""}>Ghi chú</span>
             </div>
             {notesCount > 0 && (
-              <span className="font-mono text-[10px] text-[#78716C] dark:text-[#A1A1AA]">
+              <span className={`font-mono text-[10px] ${
+                isNotesActive ? "text-white/80 dark:text-[#1C1917]/80" : "text-[#78716C] dark:text-[#A1A1AA]"
+              }`}>
                 {notesCount}
               </span>
             )}
@@ -342,16 +356,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={handleSelectJournal}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
               isJournalActive
-                ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
-                : "border-transparent text-[#1C1917] dark:text-[#F2F2F7] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+                ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
+                : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
             } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
           >
             <div className="flex items-center gap-2.5">
-              <BookOpen size={16} strokeWidth={2.4} className="text-purple-500" />
-              <span>Nhật ký</span>
+              <BookOpen size={16} strokeWidth={2.2} />
+              <span className={isJournalActive ? "font-bold" : ""}>Nhật ký</span>
             </div>
             {journalEntries.length > 0 && (
-              <span className="font-mono text-[10px] text-[#78716C] dark:text-[#A1A1AA]">
+              <span className={`font-mono text-[10px] ${
+                isJournalActive ? "text-white/80 dark:text-[#1C1917]/80" : "text-[#78716C] dark:text-[#A1A1AA]"
+              }`}>
                 {journalEntries.length}
               </span>
             )}
@@ -361,17 +377,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* FOOTER ACTIONS (AI POPUP & CÀI ĐẶT) */}
       <div className="pt-2 border-t-[1.5px] border-[#262626]/20 space-y-1">
-        {/* Nút Trợ lý AI Phác Thảo mở Popup 1 bên */}
+        {/* Nút Trợ lý AI Phác Thảo */}
         <button
           type="button"
           onClick={onOpenAIModal || (() => onTabChange("ai"))}
-          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold border-[1.5px] border-[#262626] bg-[#FEF08A] hover:bg-[#FDE047] dark:bg-amber-500/20 dark:hover:bg-amber-500/30 text-[#1C1917] dark:text-amber-200 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold border-[1.5px] border-[#262626] bg-white dark:bg-[#2C2C2E] hover:bg-[#FAF8F3] dark:hover:bg-[#3A3A3C] text-[#1C1917] dark:text-[#F2F2F7] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
         >
           <div className="flex items-center gap-2.5">
-            <Sparkles size={16} strokeWidth={2.4} className="text-amber-600 dark:text-amber-300" />
+            <Sparkles size={16} strokeWidth={2.2} />
             <span>Trợ lý AI</span>
           </div>
-          <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10 uppercase tracking-wider">
+          <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-[#E7E5E4] dark:bg-[#3A3A3C] text-[#78716C] dark:text-[#A1A1AA] uppercase tracking-wider font-semibold">
             AI Side
           </span>
         </button>

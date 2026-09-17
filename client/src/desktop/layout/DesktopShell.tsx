@@ -191,8 +191,8 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
           >
             <header className="flex min-h-[56px] items-center justify-between border-b-[1.5px] border-[#262626] bg-[#FFFDF8] dark:bg-[#2C2C2E] px-5 lg:px-6 shrink-0">
               <div className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#262626] bg-[#FEF08A] text-[#1C1917] dark:bg-white dark:text-[#1C1917]">
-                  <Settings size={16} strokeWidth={2.4} />
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#262626] bg-[#1C1917] text-white dark:bg-white dark:text-[#1C1917]">
+                  <Settings size={16} strokeWidth={2.2} />
                 </span>
                 <h2 className="text-base font-bold tracking-tight text-[#1C1917] dark:text-white">Cài đặt hệ thống</h2>
               </div>

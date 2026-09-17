@@ -272,7 +272,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             <button
               type="button"
               onClick={onBack}
-              className="w-8 h-8 rounded-xl bg-white dark:bg-[#3F3F46] hover:bg-[#F3EFE6] dark:hover:bg-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] border-[1.5px] border-[#262626] dark:border-black shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center cursor-pointer shrink-0 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
+              className="mobile-back-button w-8 h-8 rounded-xl bg-white dark:bg-[#3F3F46] hover:bg-[#F3EFE6] dark:hover:bg-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] border-[1.5px] border-[#262626] dark:border-black shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center cursor-pointer shrink-0 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
               title="Quay lại"
               aria-label="Quay lại"
             >
@@ -590,4 +590,3 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
     </div>
   );
 };
-
