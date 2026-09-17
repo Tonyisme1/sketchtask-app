@@ -113,7 +113,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   const hasChildren = childCount > 0;
   const indentLevel = Math.max(0, hierarchyDepth ?? (isSubtask ? 1 : 0));
-  const indentPx = indentLevel * 20;
+  const indentPx = indentLevel * 14;
 
   // Trạng thái chờ hoàn thành có hiệu ứng tích và trượt mượt mà
   const [isPendingComplete, setIsPendingComplete] = useState(false);
@@ -178,7 +178,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleClickRow}
-        className={`relative z-10 flex items-center justify-between gap-3 px-3.5 py-3 min-h-[54px] cursor-pointer select-none transition-colors duration-200 ${
+        className={`relative z-10 flex items-center justify-between gap-2.5 px-3 py-2 min-h-[42px] sm:min-h-[44px] cursor-pointer select-none transition-colors duration-200 ${
           isSelected
             ? "bg-[#FAF8F3] dark:bg-[#2C2C2E]"
             : isEffectivelyCompleted
@@ -187,13 +187,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         }`}
       >
         {/* KHỐI TRÁI: Checkbox sát tiêu đề, thời gian nằm ngay bên dưới */}
-        <div className="flex items-start gap-3 min-w-0 flex-1">
+        <div className="flex items-start gap-2.5 min-w-0 flex-1">
           {isSubtask && (
-            <CornerDownRight size={13} className="text-[#78716C] dark:text-[#8E8E93] shrink-0" strokeWidth={2.4} />
+            <CornerDownRight size={12} className="text-[#78716C] dark:text-[#8E8E93] shrink-0 mt-0.5" strokeWidth={2.4} />
           )}
 
           {/* Checkbox Tròn (Min touch target) */}
-          <div className="shrink-0 flex items-center justify-center min-w-[26px] min-h-[26px]" onClick={(e) => e.stopPropagation()}>
+          <div className="shrink-0 flex items-center justify-center min-w-[22px] min-h-[22px]" onClick={(e) => e.stopPropagation()}>
             <HandDrawnCheckbox
               checked={isEffectivelyCompleted}
               onChange={handleToggleCheckbox}
@@ -201,10 +201,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </div>
 
           {/* Nội dung Task: Tiêu đề + Metadata dòng 2 */}
-          <div className="min-w-0 flex-1 flex flex-col justify-center py-0.5">
+          <div className="min-w-0 flex-1 flex flex-col justify-center">
             <div className="flex items-center gap-1.5 min-w-0">
               <span
-                className={`text-[14.5px] sm:text-base font-semibold line-clamp-2 break-words leading-snug transition-all duration-300 ${
+                className={`text-[13.5px] sm:text-sm font-semibold line-clamp-2 break-words leading-snug transition-all duration-300 ${
                   isEffectivelyCompleted
                     ? "text-[#78716C] dark:text-[#8E8E93] line-through opacity-70"
                     : "text-[#1C1917] dark:text-[#F2F2F7]"
@@ -229,38 +229,38 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     e.stopPropagation();
                     onToggleExpand?.();
                   }}
-                  className="flex items-center gap-1 px-1.5 py-0.5 rounded-[4px] border border-[#262626]/30 bg-[#FAF8F3] hover:bg-white text-[11px] font-sans text-[#78716C] shrink-0"
+                  className="flex items-center gap-1 px-1.5 py-0.25 rounded-[3px] border border-[#262626]/30 bg-[#FAF8F3] hover:bg-white text-[10px] font-sans text-[#78716C] shrink-0"
                   title={isExpanded ? "Thu gọn việc con" : "Mở rộng việc con"}
                 >
-                  <Layers size={11} />
+                  <Layers size={10} />
                   <span>
                     {completedChildCount}/{childCount}
                   </span>
-                  {isExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                  {isExpanded ? <ChevronUp size={9} /> : <ChevronDown size={9} />}
                 </button>
               )}
             </div>
 
             {(dateRangeLabel || singleDateLabel || timeLabel || (!task.completed && (temporal === "overdue" || temporal === "pastScheduled"))) && (
-              <div className="flex flex-wrap items-center gap-1.5 mt-1.5 min-w-0">
+              <div className="flex flex-wrap items-center gap-1 mt-1 min-w-0">
                 {dateRangeLabel && (
-                  <span className="inline-flex items-center gap-1 rounded-[4px] border border-[#262626] bg-[#FEF08A] px-1.5 py-0.5 font-sans text-[11px] font-semibold text-[#1C1917] leading-tight shadow-[1px_1px_0px_#262626]">
-                    <Calendar size={11} className="shrink-0 text-[#1C1917]" />
+                  <span className="inline-flex items-center gap-1 rounded-[3px] border border-[#262626] bg-[#FEF08A] px-1.5 py-0.25 font-sans text-[10px] sm:text-[10.5px] font-semibold text-[#1C1917] leading-tight shadow-[0.5px_0.5px_0px_#262626]">
+                    <Calendar size={10} className="shrink-0 text-[#1C1917]" />
                     <span>{dateRangeLabel}</span>
                   </span>
                 )}
                 {timeLabel && (
-                  <span className={`inline-flex items-center rounded-[4px] border px-1.5 py-0.5 font-sans text-[11px] font-semibold leading-tight ${timeTone}`}>
+                  <span className={`inline-flex items-center rounded-[3px] border px-1.5 py-0.25 font-sans text-[10px] sm:text-[10.5px] font-semibold leading-tight ${timeTone}`}>
                     {timeLabel}
                   </span>
                 )}
                 {singleDateLabel && (
-                  <span className="font-sans text-[11px] text-[#78716C]">
+                  <span className="font-sans text-[10px] sm:text-[10.5px] text-[#78716C]">
                     {singleDateLabel}
                   </span>
                 )}
                 {!task.completed && (temporal === "overdue" || temporal === "pastScheduled") && (
-                  <span className="shrink-0 rounded-[4px] border border-[#FDA4AF] bg-[#FECDD3] px-1.5 py-0.5 font-sans text-[11px] font-semibold text-[#9F1239]">
+                  <span className="shrink-0 rounded-[3px] border border-[#FDA4AF] bg-[#FECDD3] px-1.5 py-0.25 font-sans text-[10px] sm:text-[10.5px] font-semibold text-[#9F1239]">
                     {temporal === "pastScheduled" ? "Đã qua" : "Quá hạn"}
                   </span>
                 )}
@@ -269,7 +269,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
             {/* Dòng metadata phụ (Tag nếu có) */}
             {task.tag && (
-              <div className="flex items-center gap-1.5 text-[11px] font-normal text-[#78716C] truncate mt-1">
+              <div className="flex items-center gap-1 text-[10px] sm:text-[10.5px] font-normal text-[#78716C] truncate mt-0.5">
                 <span className="font-sans text-[#57534E]">#{task.tag}</span>
               </div>
             )}
