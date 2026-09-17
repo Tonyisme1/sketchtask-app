@@ -59,7 +59,7 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
   const totalTodayCount = todayList.length;
 
   return (
-    <div className="w-full max-w-4xl xl:max-w-5xl mx-auto min-w-0 space-y-6 select-none animate-in fade-in duration-150">
+    <div className="w-full min-w-0 space-y-6 select-none animate-in fade-in duration-150">
       {/* 1. Header: Tiêu Đề + Ngày + Tiến Độ */}
       <div className="space-y-3 pb-3 border-b border-[#262626]/20 dark:border-transparent">
         <div className="flex items-center gap-3.5 flex-wrap">
