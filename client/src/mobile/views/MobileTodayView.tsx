@@ -3,7 +3,6 @@ import { CheckCircle2, ListTodo, Search, X } from "lucide-react";
 import { useAppStore } from "../../shared/stores";
 import { getLocalTodayStr, isTaskDueToday, normalizeTaskTimeType, getTaskTags } from "../../shared/utils";
 import { TodayScheduleNotes } from "../../components/features/today/TodayScheduleNotes";
-import { TodayFilterBar } from "../../components/features/today/TodayFilterBar";
 import { TodayTaskList } from "../../components/features/today/TodayTaskList";
 import { TodayProgressBar } from "../../components/features/today/TodayProgressBar";
 
@@ -28,54 +27,21 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
   const todayStr = getLocalTodayStr(now);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
-  const [timeTypeFilter, setTimeTypeFilter] = useState<"all" | "scheduled" | "deadline">("all");
-  const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all");
-  const [tagFilter, setTagFilter] = useState<string>("all");
-  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
   const todayList = useMemo(() => {
     return tasks.filter((task) => isTaskDueToday(task, now));
   }, [tasks, todayStr]);
 
   const filteredTodayTasks = useMemo(() => {
+    if (!searchQuery.trim()) return todayList;
+    const q = searchQuery.toLowerCase().trim();
     return todayList.filter((task) => {
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
-        const matchesTitle = task.title.toLowerCase().includes(q);
-        const matchesTag = getTaskTags(task).some((t) => t.toLowerCase().includes(q));
-        const matchesNote = task.description?.toLowerCase().includes(q);
-        if (!matchesTitle && !matchesTag && !matchesNote) return false;
-      }
-
-      if (hideCompletedTasks && statusFilter === "all" && task.completed)
-        return false;
-
-      if (statusFilter === "active" && task.completed) return false;
-      if (statusFilter === "completed" && !task.completed) return false;
-
-      const normTime = normalizeTaskTimeType(task);
-      if (timeTypeFilter === "scheduled" && normTime !== "scheduled")
-        return false;
-      if (timeTypeFilter === "deadline" && normTime !== "deadline")
-        return false;
-
-      if (priorityFilter !== "all" && task.priority !== priorityFilter)
-        return false;
-
-      if (tagFilter !== "all" && !getTaskTags(task).includes(tagFilter)) return false;
-
-      return true;
+      const matchesTitle = task.title.toLowerCase().includes(q);
+      const matchesTag = getTaskTags(task).some((t) => t.toLowerCase().includes(q));
+      const matchesNote = task.description?.toLowerCase().includes(q);
+      return matchesTitle || matchesTag || matchesNote;
     });
-  }, [
-    todayList,
-    searchQuery,
-    statusFilter,
-    timeTypeFilter,
-    priorityFilter,
-    tagFilter,
-    hideCompletedTasks,
-  ]);
+  }, [todayList, searchQuery]);
 
   const activeScheduledTasks = useMemo(() => {
     return filteredTodayTasks.filter((task) => {
@@ -93,16 +59,9 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
   }, [filteredTodayTasks]);
 
   const completedTodayTasks = useMemo(() => {
+    if (hideCompletedTasks) return [];
     return filteredTodayTasks.filter((task) => task.completed);
-  }, [filteredTodayTasks]);
-
-  const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (timeTypeFilter !== "all") count++;
-    if (priorityFilter !== "all") count++;
-    if (tagFilter !== "all") count++;
-    return count;
-  }, [timeTypeFilter, priorityFilter, tagFilter]);
+  }, [filteredTodayTasks, hideCompletedTasks]);
 
   const completedTodayCount = todayList.filter((task) => task.completed).length;
   const totalTodayCount = todayList.length;
@@ -131,37 +90,16 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
         )}
       </div>
 
-      {/* 2. Tiến độ tổng quan (Siêu gọn) */}
+      {/* 2. Tiến độ tổng quan */}
       <TodayProgressBar
         completedCount={completedTodayCount}
         totalCount={totalTodayCount}
       />
 
-      {/* 3. Mobile Filter Bar (2 Tầng Cốt Lõi Tối Giản) */}
-      <TodayFilterBar
-        statusFilter={statusFilter}
-        onStatusChange={setStatusFilter}
-        timeTypeFilter={timeTypeFilter}
-        onTimeTypeChange={setTimeTypeFilter}
-        priorityFilter={priorityFilter}
-        onPriorityChange={setPriorityFilter}
-        tagFilter={tagFilter}
-        onTagChange={setTagFilter}
-        isFilterDrawerOpen={isFilterDrawerOpen}
-        onToggleFilterDrawer={() => setIsFilterDrawerOpen(!isFilterDrawerOpen)}
-        onResetFilters={() => {
-          setTimeTypeFilter("all");
-          setStatusFilter("all");
-          setPriorityFilter("all");
-          setTagFilter("all");
-        }}
-        activeFilterCount={activeFilterCount}
-      />
-
-      {/* 4. Mobile Single Stream List */}
+      {/* 3. Mobile Single Stream List */}
       <div className="space-y-4 w-full">
         {/* Lịch hẹn chưa xong */}
-        {statusFilter !== "completed" && activeScheduledTasks.length > 0 && (
+        {activeScheduledTasks.length > 0 && (
           <TodayScheduleNotes
             scheduledTasks={activeScheduledTasks}
             onToggle={toggleTask}
@@ -174,30 +112,28 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
         )}
 
         {/* Công việc cần làm (Chưa xong) */}
-        {statusFilter !== "completed" && (
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20 dark:border-transparent">
-              <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917] dark:text-[#F2F2F7]">
-                <ListTodo size={16} className="text-[#1C1917] dark:text-[#F2F2F7]" strokeWidth={2.2} />
-                <span>Công việc cần làm ({activeTaskListItems.length})</span>
-              </div>
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20 dark:border-transparent">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917] dark:text-[#F2F2F7]">
+              <ListTodo size={16} className="text-[#1C1917] dark:text-[#F2F2F7]" strokeWidth={2.2} />
+              <span>Công việc cần làm ({activeTaskListItems.length})</span>
             </div>
-
-            <TodayTaskList
-              tasks={activeTaskListItems}
-              onToggle={toggleTask}
-              onEdit={(task) => openTaskDetail(task.id)}
-              onDelete={deleteTask}
-              onMoveTomorrow={moveTaskToTomorrow}
-              onClick={(task) => openTaskDetail(task.id)}
-              activeTaskId={targetTaskId}
-              showQuickAdd={false}
-            />
           </div>
-        )}
 
-        {/* MỘT KHU VỰC DUY NHẤT CHO TOÀN BỘ CÔNG VIỆC ĐÃ HOÀN THÀNH */}
-        {statusFilter !== "active" && completedTodayTasks.length > 0 && (
+          <TodayTaskList
+            tasks={activeTaskListItems}
+            onToggle={toggleTask}
+            onEdit={(task) => openTaskDetail(task.id)}
+            onDelete={deleteTask}
+            onMoveTomorrow={moveTaskToTomorrow}
+            onClick={(task) => openTaskDetail(task.id)}
+            activeTaskId={targetTaskId}
+            showQuickAdd={false}
+          />
+        </div>
+
+        {/* Toàn bộ công việc đã hoàn thành */}
+        {completedTodayTasks.length > 0 && (
           <div className="mt-6 pt-4 border-t border-[#E5E5EA] dark:border-transparent space-y-2.5">
             <div className="flex items-center justify-between pb-2 border-b border-[#262626]/15 dark:border-transparent">
               <div className="flex items-center gap-2 text-sm font-semibold text-[#8E8E93] dark:text-[#aeaeb2]">
