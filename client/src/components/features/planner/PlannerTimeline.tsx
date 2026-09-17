@@ -7,11 +7,8 @@ import {
   ArrowRight,
   Check,
   Clock,
-  Compass,
   Hourglass,
-  Moon,
   Plus,
-  Sun,
   Trash2,
 } from "lucide-react";
 import { TaskDto } from "../../../types";
@@ -255,11 +252,6 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
     });
   }, [weekDays, getTasksForDate]);
 
-  // Kiểm tra toàn tuần có việc ngoài giờ (00:00 - 06:00 hoặc sau 22:00) không
-  const hasOffHoursTasksInWeek = useMemo(() => {
-    return daysLayoutData.some((d) => d.hasEarlyOrNightTasks);
-  }, [daysLayoutData]);
-
   // Tự động cuộn đến vị trí giờ hiện tại (hoặc 07:00 sáng) khi mở
   useEffect(() => {
     if (!timelineScrollRef.current) return;
@@ -269,23 +261,6 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
       behavior: "smooth",
     });
   }, []);
-
-  // Điều hướng nhanh đến các khung giờ
-  const scrollToHour = (hour: number) => {
-    if (!timelineScrollRef.current) return;
-    timelineScrollRef.current.scrollTo({
-      top: Math.max(0, hour * HOUR_HEIGHT - 30),
-      behavior: "smooth",
-    });
-  };
-
-  const scrollToNow = () => {
-    if (!timelineScrollRef.current) return;
-    timelineScrollRef.current.scrollTo({
-      top: Math.max(0, currentHourTop - 120),
-      behavior: "smooth",
-    });
-  };
 
   // Mở modal tạo việc nhanh khi bấm vào ô giờ trống
   const handleCellClick = (dateStr: string, hour: number) => {
@@ -305,57 +280,11 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
   );
 
   return (
-    <div className="w-full space-y-2.5 select-none animate-in fade-in duration-150">
-      {/* 1. Header Toolbar của Lịch Trình Tuần */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#262626]/20 pb-2">
-        <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-[#1C1917] dark:text-white">
-          <Clock size={16} strokeWidth={2.4} />
-          <span>Thời khóa biểu 7 ngày</span>
-          {hasOffHoursTasksInWeek && (
-            <span className="rounded-[4px] border border-[#262626] dark:border-white/30 bg-[#FAF8F3] dark:bg-[#2C2C2E] px-2 py-0.5 text-[10.5px] font-semibold text-[#78716C] dark:text-[#A1A1AA]">
-              🌙 Có việc sáng sớm / đêm
-            </span>
-          )}
-        </div>
-
-        {/* Nút điều hướng nhanh khung giờ */}
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={scrollToNow}
-            title="Cuộn tới giờ hiện tại"
-            className="flex items-center gap-1 rounded-[5px] border-[1.5px] border-[#262626] bg-white dark:bg-[#2C2C2E] px-2.5 py-1 text-xs font-bold text-[#1C1917] dark:text-white shadow-[1.5px_1.5px_0px_#262626] transition-all hover:bg-[#FAF8F3] dark:hover:bg-[#3A3A3C] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer"
-          >
-            <Compass size={13} strokeWidth={2.4} className="text-[#E11D48]" />
-            <span>Bây giờ ({formatTime(currentMinutes)})</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => scrollToHour(7)}
-            title="Cuộn tới 07:00 sáng"
-            className="flex items-center gap-1 rounded-[5px] border-[1.5px] border-[#262626] bg-white dark:bg-[#2C2C2E] px-2.5 py-1 text-xs font-bold text-[#1C1917] dark:text-white shadow-[1.5px_1.5px_0px_#262626] transition-all hover:bg-[#FAF8F3] dark:hover:bg-[#3A3A3C] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer"
-          >
-            <Sun size={13} strokeWidth={2.4} />
-            <span>Sáng (07h)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => scrollToHour(19)}
-            title="Cuộn tới 19:00 tối"
-            className="flex items-center gap-1 rounded-[5px] border-[1.5px] border-[#262626] bg-white dark:bg-[#2C2C2E] px-2.5 py-1 text-xs font-bold text-[#1C1917] dark:text-white shadow-[1.5px_1.5px_0px_#262626] transition-all hover:bg-[#FAF8F3] dark:hover:bg-[#3A3A3C] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer"
-          >
-            <Moon size={13} strokeWidth={2.4} />
-            <span>Tối (19h)</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 2. Container Lưới 7 Cột Tuần Vừa Vặn 100% Khung Màn Hình */}
+    <div className="w-full select-none animate-in fade-in duration-150">
+      {/* Container Lưới 7 Cột Tuần Vừa Vặn 100% Khung Màn Hình */}
       <div
         ref={timelineScrollRef}
-        className="h-[calc(100vh-190px)] min-h-[520px] overflow-y-auto overflow-x-hidden rounded-[8px] border-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#1C1C1E] shadow-[2px_2px_0px_#262626] dark:shadow-none"
+        className="h-[calc(100vh-140px)] min-h-[560px] overflow-y-auto overflow-x-hidden rounded-[8px] border-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#1C1C1E] shadow-[2px_2px_0px_#262626] dark:shadow-none"
         tabIndex={0}
         aria-label="Khung thời khóa biểu 7 ngày"
       >
