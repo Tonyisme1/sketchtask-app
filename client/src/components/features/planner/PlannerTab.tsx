@@ -425,7 +425,7 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
                         setPlannerScreen("overview");
                       }
                     }}
-                    className="flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-1 bg-[#FAF8F3] hover:bg-[#F3EFE6] border-[1.5px] border-[#262626] rounded-[5px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] transition-all"
+                    className="mobile-back-button flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-1 bg-[#FAF8F3] hover:bg-[#F3EFE6] border-[1.5px] border-[#262626] rounded-[5px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] transition-all"
                   >
                     <ArrowLeft size={13} strokeWidth={2.4} />
                     <span className="hidden sm:inline">
