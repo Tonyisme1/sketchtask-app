@@ -80,7 +80,7 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
   onNavigateToTaskDate,
 }) => {
   const { isMobile } = useResponsiveLayout();
-  const { tasks, toggleTask, deleteTask, updateTask } = useAppStore();
+  const { tasks, toggleTask, deleteTask, updateTask, openTaskDetail } = useAppStore();
   const todayStr = getLocalTodayStr(new Date());
   const tomorrowStr = getLocalTomorrowStr();
   const [view, setView] = useState<DeadlineView>("overdue");
@@ -177,10 +177,7 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
   };
 
   const handleTaskClick = (task: TaskDto) => {
-    const date = getTaskEffectiveDate(task);
-    if (date && onNavigateToTaskDate) {
-      onNavigateToTaskDate(date, task.id);
-    }
+    openTaskDetail(task.id);
   };
 
   const requestBulkAction = (kind: BulkActionKind, selectedTasks: TaskDto[]) => {
@@ -245,7 +242,7 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
 
             return (
               <section key={group.dateStr} className="space-y-2">
-                <div className="flex items-center gap-2 border-b border-[#E5E5EA] dark:border-transparent pb-2">
+                <div className="flex items-center justify-between gap-2 border-b border-[#E5E5EA] dark:border-transparent pb-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -263,13 +260,47 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
                     <span className="min-w-0 truncate text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
                       {formatFullDate(group.dateStr)}
                     </span>
+                    <span className="text-[11px] font-mono text-[#8E8E93] dark:text-[#aeaeb2] shrink-0">
+                      ({group.tasks.length})
+                    </span>
                   </button>
 
-                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-x-2 gap-y-0.5 text-[11px] text-[#8E8E93] dark:text-[#aeaeb2]">
-                    <span className="font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{group.tasks.length} việc</span>
-                    <span>{completedCount} xong</span>
-                    {scheduledCount > 0 && <span>{scheduledCount} hẹn</span>}
-                    {deadlineCount > 0 && <span>{deadlineCount} hạn</span>}
+                  {/* Nút thao tác riêng cho nhóm ngày này */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRescheduleModalState({
+                          isOpen: true,
+                          tasks: group.tasks.filter((t) => !t.completed),
+                          taskTitle: `Nhóm ${formatFullDate(group.dateStr)}`,
+                        });
+                      }}
+                      className="px-2 py-1 rounded-lg bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-[#1C1C1E] dark:text-[#F2F2F7] text-[11px] font-semibold active:scale-95 transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                      title={`Dời tất cả việc của ngày ${formatFullDate(group.dateStr)}`}
+                    >
+                      <CalendarPlus size={12} strokeWidth={2.2} />
+                      <span>Dời nhóm</span>
+                    </button>
+
+                    {group.tasks.some((t) => !t.completed) && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          requestBulkAction(
+                            "complete",
+                            group.tasks.filter((t) => !t.completed),
+                          );
+                        }}
+                        className="px-2 py-1 rounded-lg bg-[#34C759]/15 hover:bg-[#34C759]/25 text-[#34C759] dark:text-[#30D158] text-[11px] font-semibold active:scale-95 transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                        title={`Hoàn thành tất cả việc của ngày ${formatFullDate(group.dateStr)}`}
+                      >
+                        <CheckCheck size={12} strokeWidth={2.2} />
+                        <span>Xong nhóm</span>
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -384,21 +415,20 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
               <CheckCheck size={14} className="mr-1.5 inline-block" />
               Hoàn thành tất cả
             </button>
-            {isOverdueView && (
-              <button
-                type="button"
-                onClick={() =>
-                  setRescheduleModalState({
-                    isOpen: true,
-                    tasks: activeTasks,
-                  })
-                }
-                className="min-h-[36px] flex-1 rounded-xl bg-black/[0.05] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-[#1C1C1E] dark:text-[#F2F2F7] px-3 py-1.5 text-xs font-semibold active:scale-[0.98] transition-all sm:flex-none cursor-pointer"
-              >
-                <CalendarPlus size={14} className="mr-1.5 inline-block" />
-                Dời ngày
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() =>
+                setRescheduleModalState({
+                  isOpen: true,
+                  tasks: activeTasks,
+                  taskTitle: isOverdueView ? "Tất cả việc quá hạn" : "Tất cả việc sắp đến hạn",
+                })
+              }
+              className="min-h-[36px] flex-1 rounded-xl bg-black/[0.05] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-[#1C1C1E] dark:text-[#F2F2F7] px-3 py-1.5 text-xs font-semibold active:scale-[0.98] transition-all sm:flex-none cursor-pointer"
+            >
+              <CalendarPlus size={14} className="mr-1.5 inline-block" />
+              Dời ngày ({activeTasks.length})
+            </button>
             {junkTasks.length > 0 && (
               <button
                 type="button"

@@ -65,15 +65,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   isSelected = false,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isMobileActionsOpen, setIsMobileActionsOpen] = useState(false);
-  const [swipeOffset, setSwipeOffset] = useState(0);
-  const [isSwipeDragging, setIsSwipeDragging] = useState(false);
-  const longPressTimerRef = useRef<number | null>(null);
-  const longPressStartPointRef = useRef<{ x: number; y: number } | null>(null);
-  const swipeActiveRef = useRef(false);
-  const swipeOffsetRef = useRef(0);
-  const swipeStartOffsetRef = useRef(0);
-  const longPressTriggeredRef = useRef(false);
 
   const now = new Date();
   const todayStr = getLocalTodayStr(now);
@@ -123,23 +114,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const hasChildren = childCount > 0;
   const indentLevel = Math.max(0, hierarchyDepth ?? (isSubtask ? 1 : 0));
   const indentPx = indentLevel * 20;
-  const supportsMobileSwipe =
-    variant === "today" ||
-    variant === "planner" ||
-    variant === "overdue";
-  const mobileActionWidth = onMoveTomorrow && !task.completed ? 104 : 56;
-
-  const setSwipePosition = (offset: number) => {
-    swipeOffsetRef.current = offset;
-    setSwipeOffset(offset);
-  };
-
-  const clearLongPressTimer = () => {
-    if (longPressTimerRef.current !== null) {
-      window.clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  };
 
   // Trạng thái chờ hoàn thành có hiệu ứng tích và trượt mượt mà
   const [isPendingComplete, setIsPendingComplete] = useState(false);
@@ -177,89 +151,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   const isEffectivelyCompleted = task.completed || isPendingComplete;
 
-  useEffect(() => clearLongPressTimer, []);
-
-  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.pointerType !== "touch") return;
-
-    const target = event.target as HTMLElement;
-    if (target.closest("button, input, a, [role='button']")) return;
-
-    clearLongPressTimer();
-    longPressTriggeredRef.current = false;
-    swipeActiveRef.current = false;
-    swipeStartOffsetRef.current = swipeOffsetRef.current;
-    longPressStartPointRef.current = { x: event.clientX, y: event.clientY };
-    event.currentTarget.setPointerCapture?.(event.pointerId);
-    longPressTimerRef.current = window.setTimeout(() => {
-      longPressTriggeredRef.current = true;
-      setIsMobileActionsOpen(true);
-      setSwipePosition(-mobileActionWidth);
-      longPressTimerRef.current = null;
-    }, 550);
-  };
-
-  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.pointerType !== "touch" || !longPressStartPointRef.current) return;
-
-    const dx = event.clientX - longPressStartPointRef.current.x;
-    const dy = event.clientY - longPressStartPointRef.current.y;
-    const isHorizontalSwipe = supportsMobileSwipe && Math.abs(dx) > Math.abs(dy);
-
-    if (isHorizontalSwipe && Math.abs(dx) > 8) {
-      clearLongPressTimer();
-      swipeActiveRef.current = true;
-      setIsSwipeDragging(true);
-      // Keep the row attached to the finger while actions stay behind it.
-      setSwipePosition(
-        Math.max(-mobileActionWidth, Math.min(0, swipeStartOffsetRef.current + dx)),
-      );
-      if (event.cancelable) event.preventDefault();
-      return;
-    }
-
-    if (Math.hypot(dx, dy) > 8) {
-      clearLongPressTimer();
-      longPressStartPointRef.current = null;
-      swipeActiveRef.current = false;
-      setIsSwipeDragging(false);
-      setSwipePosition(0);
-      if (isMobileActionsOpen) setIsMobileActionsOpen(false);
-    }
-  };
-
-  const handlePointerEnd = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.pointerType === "touch") {
-      clearLongPressTimer();
-      longPressStartPointRef.current = null;
-      if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId);
-      }
-      if (swipeActiveRef.current) {
-        const shouldRevealActions = swipeOffsetRef.current <= -(mobileActionWidth / 2);
-        setSwipePosition(shouldRevealActions ? -mobileActionWidth : 0);
-        swipeActiveRef.current = false;
-        setIsSwipeDragging(false);
-        longPressTriggeredRef.current = shouldRevealActions;
-        setIsMobileActionsOpen(shouldRevealActions);
-      }
-    }
-  };
-
-  const closeMobileActions = () => {
-    clearLongPressTimer();
-    longPressTriggeredRef.current = false;
-    setIsMobileActionsOpen(false);
-    setIsSwipeDragging(false);
-    setSwipePosition(0);
-  };
-
   const handleClickRow = () => {
-    // A long press opens actions and must not also open the task detail.
-    if (longPressTriggeredRef.current) {
-      closeMobileActions();
-      return;
-    }
     onClick?.(task);
   };
 
@@ -281,65 +173,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           : "border-[#D4CEBF] dark:border-transparent hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E]"
       }`}
     >
-      {supportsMobileSwipe && (
-        <div
-          className={`absolute inset-y-0 right-0 z-0 flex items-center justify-end gap-1 bg-[#F3EFE6] dark:bg-[#2C2C2E] px-2 lg:hidden ${
-            swipeOffset === 0 ? "pointer-events-none" : "pointer-events-auto"
-          }`}
-          style={{ width: mobileActionWidth }}
-          aria-hidden={swipeOffset === 0}
-        >
-          {onMoveTomorrow && !isEffectivelyCompleted && (
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                closeMobileActions();
-                onMoveTomorrow(task.id);
-              }}
-              className="flex h-9 w-9 items-center justify-center rounded-[4px] border-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#1C1C1E] text-[#1C1917] dark:text-[#F2F2F7] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
-              title="Dời sang ngày mai"
-              aria-label="Dời sang ngày mai"
-            >
-              <ArrowRight size={15} strokeWidth={2.2} />
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              closeMobileActions();
-              onDelete(task.id);
-            }}
-            className="flex h-9 w-9 items-center justify-center rounded-[4px] border-[1.5px] border-[#BE123C] bg-[#FFE4E6] dark:bg-rose-950/40 text-[#BE123C] dark:text-rose-400 shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
-            title="Xóa công việc"
-            aria-label="Xóa công việc"
-          >
-            <Trash2 size={15} strokeWidth={2.2} />
-          </button>
-        </div>
-      )}
       {/* 1. HÀNG CHÍNH (COMPACT SCAN-FRIENDLY TASK ROW) */}
       <div
-        onPointerEnter={(event) => {
-          if (event.pointerType === "mouse") setIsHovered(true);
-        }}
-        onPointerLeave={(event) => {
-          if (event.pointerType === "mouse") setIsHovered(false);
-        }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerEnd}
-        onPointerCancel={handlePointerEnd}
-        onContextMenu={(event) => {
-          if (isMobileActionsOpen) event.preventDefault();
-        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         onClick={handleClickRow}
-        style={{
-          touchAction: "pan-y",
-          transform: swipeOffset ? `translateX(${swipeOffset}px)` : undefined,
-          transition: isSwipeDragging ? "none" : "transform 180ms ease-out",
-        }}
         className={`relative z-10 flex items-center justify-between gap-3 px-3.5 py-3 min-h-[54px] cursor-pointer select-none transition-colors duration-200 ${
           isSelected
             ? "bg-[#FAF8F3] dark:bg-[#2C2C2E]"
@@ -454,7 +292,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  closeMobileActions();
                   onAddSubtask(task);
                 }}
                 className="w-7 h-7 rounded flex items-center justify-center text-[#78716C] hover:text-[#1C1917] hover:bg-[#FAF8F3]"
@@ -469,7 +306,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  closeMobileActions();
                   onMoveTomorrow(task.id);
                 }}
                 className="w-7 h-7 rounded flex items-center justify-center text-[#78716C] hover:text-[#1C1917] hover:bg-[#FAF8F3]"
@@ -483,7 +319,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                closeMobileActions();
                 onDelete(task.id);
               }}
               className="w-7 h-7 rounded flex items-center justify-center text-[#78716C] hover:text-[#1C1917] hover:bg-[#FAF8F3]"

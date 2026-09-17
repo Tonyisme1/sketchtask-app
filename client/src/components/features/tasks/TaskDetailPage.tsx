@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAppStore } from "../../../stores/appStore";
 import { TaskPriority, TaskTimeType } from "../../../types";
-import { getLocalTodayStr } from "../../../utils/date";
+import { getLocalTodayStr, getLocalTomorrowStr } from "../../../utils/date";
 import { normalizeTaskTimeType, getTaskTags, extractTagsFromTitle } from "../../../utils/taskSemantics";
 import { useResponsiveLayout } from "../../../shared/hooks";
 import { isNativePlatform } from "../../../services/notificationService";
+import { dispatchToast } from "../../../utils/toast";
 import { HandDrawnCheckbox } from "../../ui/core/HandDrawnCheckbox";
 import { TagInputSelector } from "../../ui/pickers/select/TagInputSelector";
 import { TimePickerPopover } from "../../ui/pickers/time/TimePickerPopover";
-import { DatePickerPopover } from "../../ui/pickers/time/DatePickerPopover";
+import { DatePickerPopover, formatDisplayDate } from "../../ui/pickers/time/DatePickerPopover";
 import {
   ArrowLeft,
   Trash2,
@@ -21,6 +22,11 @@ import {
   Circle,
   ChevronDown,
   ChevronUp,
+  MoreVertical,
+  Edit3,
+  Copy,
+  ArrowRight,
+  CheckSquare,
 } from "lucide-react";
 
 type TaskEditorSection = "status" | "timing" | "organize" | "notes" | "subtasks";
@@ -121,6 +127,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   const [selectedTags, setSelectedTags] = useState<string[]>(existingTask ? getTaskTags(existingTask) : activeTaskDetailInitialData?.tags || (activeTaskDetailInitialData?.tag ? [activeTaskDetailInitialData.tag] : []));
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [saveStatus, setSaveStatus] = useState<"saved" | "unsaved" | "saving">("saved");
+  const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
   const [openSections, setOpenSections] = useState<Record<TaskEditorSection, boolean>>({
     status: taskId !== "new",
     timing: true,
@@ -130,6 +137,19 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   });
 
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const optionsMenuRef = useRef<HTMLDivElement>(null);
+
+  // Đóng 3-dot dropdown khi click ra ngoài
+  useEffect(() => {
+    if (!isOptionsMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (optionsMenuRef.current && !optionsMenuRef.current.contains(e.target as Node)) {
+        setIsOptionsMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOptionsMenuOpen]);
 
   // Đồng bộ state khi taskId thay đổi (người dùng bấm task khác trên danh sách)
   useEffect(() => {
@@ -150,6 +170,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     setPriority(task?.priority || activeTaskDetailInitialData?.priority || "medium");
     setSelectedTags(task ? getTaskTags(task) : activeTaskDetailInitialData?.tags || (activeTaskDetailInitialData?.tag ? [activeTaskDetailInitialData.tag] : []));
     setSaveStatus("saved");
+    setIsOptionsMenuOpen(false);
     setOpenSections({
       status: taskId !== "new",
       timing: true,
@@ -170,12 +191,16 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onBack();
+        if (isOptionsMenuOpen) {
+          setIsOptionsMenuOpen(false);
+        } else {
+          onBack();
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onBack]);
+  }, [onBack, isOptionsMenuOpen]);
 
   // Task detail giữ draft cục bộ; chỉ ghi vào store khi người dùng bấm Lưu.
   const markDraftChanged = () => setSaveStatus("unsaved");
@@ -223,6 +248,46 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     }
 
     setSaveStatus("saved");
+  };
+
+  // Quick Reschedule to a date
+  const handleRescheduleToDate = (targetDate: string) => {
+    setDueDate(targetDate);
+    setStartDate(targetDate);
+    if (isDateRange) {
+      setEndDate(targetDate);
+    }
+    if (currentTaskId) {
+      updateTask(currentTaskId, {
+        dueDate: targetDate,
+        startDate: isDateRange ? targetDate : undefined,
+        endDate: isDateRange ? targetDate : undefined,
+        deadlineDate: timeType === "deadline" ? targetDate : undefined,
+      });
+    }
+    markDraftChanged();
+    dispatchToast({ message: `Đã dời công việc sang ${formatDisplayDate(targetDate)}` });
+  };
+
+  // Duplicate task
+  const handleDuplicateTask = () => {
+    addTask({
+      title: `${title.trim() || "Công việc"} (Bản sao)`,
+      description: description.trim() || undefined,
+      dueDate: dueDate || todayStr,
+      startDate: isDateRange ? startDate : undefined,
+      endDate: isDateRange ? endDate : undefined,
+      deadlineDate: timeType === "deadline" ? dueDate : undefined,
+      timeType,
+      startTime: timeType === "scheduled" ? startTime : undefined,
+      endTime: timeType === "scheduled" ? endTime : undefined,
+      deadlineTime: timeType === "deadline" ? deadlineTime : undefined,
+      priority,
+      tag: selectedTags[0] || undefined,
+      tags: selectedTags.length > 0 ? selectedTags : undefined,
+    });
+    dispatchToast({ message: "Đã nhân bản công việc thành công!" });
+    onBack();
   };
 
   // Danh sách việc con (Subtasks) của task này
@@ -275,7 +340,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
 
   return (
     <div className="task-detail-editor w-full h-full bg-[#FBF9F4] dark:bg-[#121214] text-[#1C1C1E] dark:text-[#F2F2F7] select-none flex flex-col overflow-y-auto">
-      {/* 1. TOPBAR CỦA PANEL: Nút Quay Lại + Trạng Thái Lưu + Nút Xóa (Đồng bộ MobileHeader) */}
+      {/* 1. TOPBAR CỦA PANEL: Nút Quay Lại + Nút Lưu + Nút 3 Chấm (Menu Tuỳ Chọn) */}
       <div className={`shrink-0 z-30 sticky top-0 bg-white/92 dark:bg-[#1C1C1E]/92 backdrop-blur-xl border-b border-[#E5E5EA] dark:border-[#2C2C2E] px-3.5 sm:px-5 flex items-center justify-between min-h-[56px] sm:min-h-[60px] ${
         isMobile || isTablet
           ? isNativePlatform()
@@ -293,15 +358,15 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
           <span>Quay lại</span>
         </button>
 
-        {/* Nút Dấu Tích Lưu & Nút Xóa */}
-        <div className="flex items-center gap-2">
-          {/* Nút Dấu Tích Lưu (mờ khi đã lưu, rõ khi chưa lưu, màu đen/trắng theo theme) */}
+        {/* Nút Dấu Tích Lưu & Nút 3 Chấm */}
+        <div className="flex items-center gap-1.5 relative">
+          {/* Nút Dấu Tích Lưu (mờ khi đã lưu, rõ khi chưa lưu) */}
           <button
             type="button"
             onClick={handleSave}
             disabled={saveStatus === "saved" || !title.trim()}
-            title={saveStatus === "saved" ? "Đã lưu" : "Lưu"}
-            aria-label="Lưu"
+            title={saveStatus === "saved" ? "Đã lưu" : "Lưu thay đổi"}
+            aria-label="Lưu thay đổi"
             className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 text-[#1C1917] dark:text-white ${
               saveStatus === "saved"
                 ? "opacity-25 cursor-default"
@@ -311,15 +376,105 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             <Check size={19} strokeWidth={2.8} />
           </button>
 
+          {/* NÚT 3 CHẤM (OPTIONS MENU) */}
           {currentTaskId && (
-            <button
-              type="button"
-              onClick={handleDeleteSelf}
-              className="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-100 border border-rose-200 dark:border-rose-900/40 shadow-sm active:scale-95 cursor-pointer transition-all flex items-center justify-center"
-              title="Xóa công việc này"
-            >
-              <Trash2 size={15} strokeWidth={2.2} />
-            </button>
+            <div className="relative" ref={optionsMenuRef}>
+              <button
+                type="button"
+                onClick={() => setIsOptionsMenuOpen(!isOptionsMenuOpen)}
+                className="w-9 h-9 rounded-xl bg-white dark:bg-[#2C2C2E] hover:bg-[#F2F2F7] dark:hover:bg-[#3A3A3C] border border-[#E5E5EA] dark:border-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-sm active:scale-95 cursor-pointer transition-all flex items-center justify-center"
+                title="Tùy chọn công việc"
+                aria-label="Tùy chọn công việc"
+              >
+                <MoreVertical size={16} strokeWidth={2.2} />
+              </button>
+
+              {/* POPUP MENU 3 CHẤM */}
+              {isOptionsMenuOpen && (
+                <div className="absolute right-0 top-full mt-1.5 w-56 bg-white dark:bg-[#1C1C1E] rounded-2xl border border-[#E5E5EA] dark:border-black shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150 select-none overflow-hidden">
+                  {/* 1. Sửa / Focus tiêu đề */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOptionsMenuOpen(false);
+                      titleInputRef.current?.focus();
+                    }}
+                    className="w-full px-3.5 py-2.5 text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] flex items-center gap-2.5 transition-colors cursor-pointer text-left"
+                  >
+                    <Edit3 size={15} strokeWidth={2.2} className="text-[#8E8E93]" />
+                    <span>Chỉnh sửa tiêu đề</span>
+                  </button>
+
+                  {/* 2. Dời sang hôm nay */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOptionsMenuOpen(false);
+                      handleRescheduleToDate(todayStr);
+                    }}
+                    className="w-full px-3.5 py-2.5 text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] flex items-center gap-2.5 transition-colors cursor-pointer text-left"
+                  >
+                    <Calendar size={15} strokeWidth={2.2} className="text-[#8E8E93]" />
+                    <span>Dời sang Hôm nay</span>
+                  </button>
+
+                  {/* 3. Dời sang ngày mai */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOptionsMenuOpen(false);
+                      const tomorrow = getLocalTomorrowStr();
+                      handleRescheduleToDate(tomorrow);
+                    }}
+                    className="w-full px-3.5 py-2.5 text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] flex items-center gap-2.5 transition-colors cursor-pointer text-left"
+                  >
+                    <ArrowRight size={15} strokeWidth={2.2} className="text-[#8E8E93]" />
+                    <span>Dời sang Ngày mai</span>
+                  </button>
+
+                  {/* 4. Đổi trạng thái Hoàn thành / Cần làm */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOptionsMenuOpen(false);
+                      handleToggleComplete();
+                    }}
+                    className="w-full px-3.5 py-2.5 text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] flex items-center gap-2.5 transition-colors cursor-pointer text-left"
+                  >
+                    <CheckSquare size={15} strokeWidth={2.2} className="text-[#8E8E93]" />
+                    <span>{completed ? "Đánh dấu Chưa xong" : "Đánh dấu Đã xong"}</span>
+                  </button>
+
+                  {/* 5. Nhân bản công việc */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOptionsMenuOpen(false);
+                      handleDuplicateTask();
+                    }}
+                    className="w-full px-3.5 py-2.5 text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] flex items-center gap-2.5 transition-colors cursor-pointer text-left"
+                  >
+                    <Copy size={15} strokeWidth={2.2} className="text-[#8E8E93]" />
+                    <span>Nhân bản công việc</span>
+                  </button>
+
+                  <div className="my-1 border-t border-[#E5E5EA] dark:border-black" />
+
+                  {/* 6. Xóa công việc */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOptionsMenuOpen(false);
+                      handleDeleteSelf();
+                    }}
+                    className="w-full px-3.5 py-2.5 text-xs font-semibold text-[#FF3B30] dark:text-[#FF453A] hover:bg-rose-50 dark:hover:bg-rose-950/30 flex items-center gap-2.5 transition-colors cursor-pointer text-left"
+                  >
+                    <Trash2 size={15} strokeWidth={2.2} className="text-[#FF3B30] dark:text-[#FF453A]" />
+                    <span>Xóa công việc</span>
+                  </button>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
