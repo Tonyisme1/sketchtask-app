@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Bell, Menu } from "lucide-react";
+import { Bell, Menu, Sparkles } from "lucide-react";
 import { TabKey, NavigationTarget } from "../../shared/types";
 import { useAppStore } from "../../shared/stores";
 import { BrandLogo } from "../../shared/ui";
@@ -82,6 +82,17 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
 
       {activeTab !== "settings" && (
         <div className="flex shrink-0 items-center gap-2.5">
+          {/* Nút Kích Hoạt Trợ Lý AI Nhanh */}
+          <button
+            type="button"
+            onClick={onOpenAIModal || (() => onTabChange("ai"))}
+            title="Trợ lý AI Phác Thảo"
+            aria-label="Trợ lý AI"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border-[1.5px] border-[#262626] bg-white hover:bg-[#FAF8F3] dark:bg-[#2C2C2E] dark:hover:bg-[#3A3A3C] text-[#1C1917] dark:text-[#F2F2F7] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
+          >
+            <Sparkles size={18} strokeWidth={2.2} />
+          </button>
+
           {/* Nút Thông Báo & Nhắc Việc */}
           <div className="relative">
             <button

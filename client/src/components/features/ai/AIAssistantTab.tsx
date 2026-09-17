@@ -532,9 +532,15 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
         })}
 
         {isTyping && (
-          <div className="flex items-center gap-2 text-xs text-[#78716C] dark:text-[#A1A1AA] font-semibold pl-9">
-            <Sparkles size={13} className="text-[#1C1917] dark:text-[#FAFAFA] animate-spin" />
-            <span>Trợ lý AI đang suy nghĩ và phân tích...</span>
+          <div className="flex items-start gap-2.5 justify-start">
+            <div className="w-7 h-7 rounded-xl bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626] flex items-center justify-center shrink-0 mt-0.5">
+              <Sparkles size={13} strokeWidth={2.4} />
+            </div>
+            <div className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl rounded-tl-sm bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-black shadow-[2px_2px_0px_#262626] dark:shadow-none w-fit">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#1C1917] dark:bg-white animate-bounce" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#1C1917] dark:bg-white animate-bounce [animation-delay:0.2s]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#1C1917] dark:bg-white animate-bounce [animation-delay:0.4s]" />
+            </div>
           </div>
         )}
         <div ref={chatEndRef} />

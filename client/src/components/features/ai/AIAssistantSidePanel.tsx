@@ -10,14 +10,19 @@ import {
   Sparkles,
   ListPlus,
   Check,
+  Plus,
+  ExternalLink,
+  Clock,
 } from "lucide-react";
 import { useAppStore } from "../../../stores/appStore";
+import { TaskPriority } from "../../../types";
 import {
   generateDynamicPromptChips,
   AIQueryResult,
   GoalPlanBreakdown,
 } from "../../../services/aiAgentService";
 import { askGeminiAIAssistant } from "../../../services/geminiAiService";
+import { HandDrawnCheckbox } from "../../ui/core/HandDrawnCheckbox";
 
 const CHAT_STORAGE_KEY = "sketchtask_ai_chat_history";
 
@@ -155,7 +160,7 @@ export const AIAssistantSidePanel: React.FC<AIAssistantSidePanelProps> = ({
     }
   };
 
-  const handleAddBreakdownTasks = (breakdown: GoalPlanBreakdown) => {
+  const handleAddAllBreakdownTasks = (breakdown: GoalPlanBreakdown) => {
     if (!breakdown || addedBreakdownGoals[breakdown.goalTitle]) return;
 
     for (const item of breakdown.subtasks) {
@@ -177,11 +182,75 @@ export const AIAssistantSidePanel: React.FC<AIAssistantSidePanelProps> = ({
     }));
   };
 
+  const handleAddSingleSubtask = (st: GoalPlanBreakdown["subtasks"][0]) => {
+    addTask({
+      title: st.title,
+      dueDate: st.dueDate,
+      timeType: st.timeType,
+      startTime: st.startTime,
+      deadlineTime: st.deadlineTime,
+      priority: st.priority,
+      tag: st.tag || "Mục tiêu",
+      description: st.description,
+    });
+  };
+
   const handleClearChat = () => {
     if (window.confirm("Bạn có muốn xóa toàn bộ lịch sử trò chuyện AI?")) {
       setMessages([DEFAULT_WELCOME_MESSAGE]);
       localStorage.removeItem(CHAT_STORAGE_KEY);
     }
+  };
+
+  // Render Priority Badge
+  const renderPriorityBadge = (priority: TaskPriority) => {
+    switch (priority) {
+      case "high":
+        return (
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-[#FFE4E6] text-[#BE123C] border border-[#FDA4AF] dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800">
+            🔴 Gấp
+          </span>
+        );
+      case "low":
+        return (
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[#D1FAE5] text-[#065F46] border border-[#6EE7B7] dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
+            🟢 Thấp
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[#FEF3C7] text-[#92400E] border border-[#FCD34D] dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800">
+            🟡 Vừa
+          </span>
+        );
+    }
+  };
+
+  // Helper render text with **bold** formatting without raw markdown marks
+  const renderMessageContent = (text: string) => {
+    if (!text) return null;
+    const regex = /\*\*([^*]+)\*\*/g;
+    const parts: React.ReactNode[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(text.substring(lastIndex, match.index));
+      }
+      parts.push(
+        <strong key={match.index} className="font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+          {match[1]}
+        </strong>
+      );
+      lastIndex = regex.lastIndex;
+    }
+
+    if (lastIndex < text.length) {
+      parts.push(text.substring(lastIndex));
+    }
+
+    return parts;
   };
 
   if (!isOpen) return null;
@@ -191,33 +260,33 @@ export const AIAssistantSidePanel: React.FC<AIAssistantSidePanelProps> = ({
       role="dialog"
       aria-modal="false"
       aria-label="Trợ lý AI Phác Thảo"
-      className="fixed top-[68px] right-4 bottom-4 w-[420px] sm:w-[460px] max-w-[calc(100vw-2rem)] z-40 flex flex-col rounded-2xl border-[1.5px] border-[#262626] bg-[#FBF9F4] dark:bg-[#1C1C1E] shadow-[4px_4px_0px_#262626] overflow-hidden animate-in slide-in-from-right-4 duration-150 select-none"
+      className="fixed top-[68px] right-4 bottom-4 w-[420px] sm:w-[460px] max-w-[calc(100vw-2rem)] z-40 flex flex-col rounded-2xl border-[1.5px] border-[#262626] dark:border-black bg-[#FBF9F4] dark:bg-[#18181B] shadow-[4px_4px_0px_#262626] dark:shadow-none overflow-hidden animate-in slide-in-from-right-4 duration-150 select-none"
     >
       {/* 1. Header Cửa Sổ AI */}
-      <header className="flex h-12 items-center justify-between border-b-[1.5px] border-[#262626] bg-[#FFFDF8] dark:bg-[#2C2C2E] px-4 shrink-0">
+      <header className="flex h-12 items-center justify-between border-b-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#27272A] px-4 shrink-0">
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#1C1917] text-white dark:bg-white dark:text-[#1C1917] border border-[#262626]">
-            <Sparkles size={14} strokeWidth={2.2} />
+          <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#1C1917] text-white dark:bg-[#FAFAFA] dark:text-[#18181B] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626]">
+            <Sparkles size={13} strokeWidth={2.4} />
           </div>
-          <h3 className="text-xs font-bold text-[#1C1917] dark:text-white tracking-tight">
-            Trợ lý AI Phác Thảo
+          <h3 className="text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA] tracking-tight">
+            Trợ lý AI
           </h3>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={handleClearChat}
-            className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#262626] bg-white dark:bg-[#1C1C1E] text-[#78716C] hover:text-[#1C1917] dark:hover:text-white shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
+            className="flex h-7 w-7 items-center justify-center rounded-xl border-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#3F3F46] hover:bg-[#F3EFE6] dark:hover:bg-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
             title="Xóa đoạn chat"
             aria-label="Xóa đoạn chat"
           >
-            <RotateCcw size={12} strokeWidth={2.2} />
+            <RotateCcw size={12} strokeWidth={2.4} />
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#262626] bg-white dark:bg-[#1C1C1E] text-[#1C1917] dark:text-white shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
+            className="flex h-7 w-7 items-center justify-center rounded-xl border-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#3F3F46] hover:bg-[#F3EFE6] dark:hover:bg-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
             title="Đóng (ESC)"
             aria-label="Đóng"
           >
@@ -227,123 +296,203 @@ export const AIAssistantSidePanel: React.FC<AIAssistantSidePanelProps> = ({
       </header>
 
       {/* 2. Danh sách tin nhắn cuộc trò chuyện */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-3.5 space-y-3 font-sans">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex flex-col ${
-              msg.sender === "user" ? "items-end" : "items-start"
-            }`}
-          >
+      <div className="flex-1 min-h-0 overflow-y-auto p-3.5 space-y-3.5 bg-[#FBF9F4] dark:bg-[#18181B] font-sans">
+        {messages.map((m) => {
+          const isAi = m.sender === "ai";
+          const res = m.queryResult;
+
+          return (
             <div
-              className={`max-w-[88%] rounded-xl px-3 py-2 text-xs leading-relaxed border-[1.5px] border-[#262626] shadow-[2px_2px_0px_#262626] ${
-                msg.sender === "user"
-                  ? "bg-[#FEF08A] text-[#1C1917] font-medium"
-                  : "bg-white dark:bg-[#2C2C2E] text-[#1C1917] dark:text-[#F2F2F7]"
+              key={m.id}
+              className={`flex items-start gap-2.5 ${
+                isAi ? "justify-start" : "justify-end"
               }`}
             >
-              <p className="whitespace-pre-wrap">{msg.text}</p>
+              {isAi && (
+                <div className="w-7 h-7 rounded-xl bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626] flex items-center justify-center shrink-0 mt-0.5">
+                  <Sparkles size={13} strokeWidth={2.4} />
+                </div>
+              )}
 
-              {/* Rich Query Result Blocks */}
-              {msg.queryResult && (
-                <div className="mt-2.5 pt-2 border-t border-[#262626]/15 space-y-2">
-                  {/* Task list created */}
-                  {msg.queryResult.createdTasks &&
-                    msg.queryResult.createdTasks.length > 0 && (
-                      <div className="space-y-1">
-                        <p className="text-[10px] font-bold text-[#1C1917] dark:text-white uppercase tracking-wider">
-                          Đã thêm {msg.queryResult.createdTasks.length} việc:
-                        </p>
-                        <div className="space-y-1">
-                          {msg.queryResult.createdTasks.map((t) => (
-                            <div
-                              key={t.id}
-                              onClick={() => openTaskDetail(t.id)}
-                              className="flex items-center justify-between gap-1.5 p-1.5 rounded-lg bg-[#FAF8F3] dark:bg-[#1C1C1E] border border-[#262626]/30 hover:border-[#262626] cursor-pointer text-[11px]"
-                            >
-                              <span className="font-semibold truncate">
-                                {t.title}
-                              </span>
-                              {t.timeLabel && (
-                                <span className="font-mono text-[9.5px] text-[#78716C] shrink-0">
-                                  {t.timeLabel}
-                                </span>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+              <div
+                className={`max-w-[88%] px-3.5 py-2.5 text-xs leading-relaxed break-words transition-all border-[1.5px] ${
+                  isAi
+                    ? "bg-white dark:bg-[#27272A] text-[#1C1917] dark:text-[#FAFAFA] border-[#262626] dark:border-black shadow-[2px_2px_0px_#262626] dark:shadow-none rounded-2xl rounded-tl-sm"
+                    : "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[#1C1917] dark:border-black font-medium shadow-[2px_2px_0px_#78716C] dark:shadow-none rounded-2xl rounded-tr-sm"
+                }`}
+              >
+                {/* Nội dung text chính */}
+                <div className="whitespace-pre-line font-normal">{renderMessageContent(m.text)}</div>
 
-                  {/* Plan Breakdown */}
-                  {msg.queryResult.breakdownPlan && (
-                    <div className="space-y-1.5 p-2 rounded-lg bg-[#FAF8F3] dark:bg-[#1C1C1E] border border-[#262626]/30">
-                      <p className="text-[11px] font-bold text-[#1C1917] dark:text-white">
-                        🎯 {msg.queryResult.breakdownPlan.goalTitle}
-                      </p>
-                      <div className="space-y-1">
-                        {msg.queryResult.breakdownPlan.subtasks.map((st, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center gap-1.5 text-[10.5px] text-[#78716C] dark:text-[#A1A1AA]"
-                          >
-                            <span>•</span>
-                            <span className="truncate">{st.title}</span>
+                {/* CARD 1: TASK CREATED CARD */}
+                {res && (res.type === "created_task" || res.type === "batch_created") && res.createdTasks && (
+                  <div className="mt-3 space-y-2 pt-2.5 border-t border-[#262626]/20 dark:border-transparent">
+                    {res.createdTasks.map((t) => (
+                      <div
+                        key={t.id}
+                        className="p-2.5 rounded-xl bg-[#FBF9F4] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2"
+                      >
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-xs text-[#1C1917] dark:text-[#FAFAFA] truncate">
+                            {t.title}
                           </div>
-                        ))}
-                      </div>
+                          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                            {renderPriorityBadge(t.priority)}
+                            {t.timeLabel && (
+                              <span className="text-[10px] font-mono text-[#78716C] dark:text-[#A1A1AA] flex items-center gap-0.5">
+                                <Clock size={10} />
+                                {t.timeLabel}
+                              </span>
+                            )}
+                            {t.tag && (
+                              <span className="text-[10px] font-semibold text-[#1C1917] dark:text-[#FAFAFA] bg-[#FEF08A] dark:bg-yellow-900/40 px-1 rounded-md border border-[#262626]/30 dark:border-black">
+                                #{t.tag}
+                              </span>
+                            )}
+                          </div>
+                        </div>
 
+                        <button
+                          type="button"
+                          onClick={() => openTaskDetail(t.id)}
+                          className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626] text-[11px] font-bold text-[#1C1917] dark:text-[#FAFAFA] hover:bg-[#F3EFE6] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1 shrink-0"
+                        >
+                          <span>Mở</span>
+                          <ExternalLink size={11} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* CARD 2: GOAL BREAKDOWN PLAN CARD */}
+                {res && res.type === "goal_breakdown" && res.breakdownPlan && (
+                  <div className="mt-3 p-3 rounded-xl bg-[#FBF9F4] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-black shadow-[1.5px_1.5px_0px_#262626] space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA] flex items-center gap-1.5">
+                        <ListPlus size={14} className="text-[#1C1917] dark:text-[#FAFAFA]" />
+                        <span>{res.breakdownPlan.subtasks.length} bước đề xuất</span>
+                      </span>
                       <button
                         type="button"
-                        disabled={
-                          addedBreakdownGoals[
-                            msg.queryResult.breakdownPlan.goalTitle
-                          ]
-                        }
-                        onClick={() =>
-                          handleAddBreakdownTasks(
-                            msg.queryResult!.breakdownPlan!
-                          )
-                        }
-                        className={`w-full mt-1.5 py-1 px-2 rounded-md border border-[#262626] text-[10.5px] font-bold flex items-center justify-center gap-1 shadow-[1px_1px_0px_#262626] active:shadow-none transition-all cursor-pointer ${
-                          addedBreakdownGoals[
-                            msg.queryResult.breakdownPlan.goalTitle
-                          ]
-                            ? "bg-[#BBF7D0] text-[#065F46] opacity-70"
-                            : "bg-[#FEF08A] hover:bg-[#FDE047] text-[#1C1917]"
+                        onClick={() => handleAddAllBreakdownTasks(res.breakdownPlan!)}
+                        disabled={addedBreakdownGoals[res.breakdownPlan.goalTitle]}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer border-[1.5px] ${
+                          addedBreakdownGoals[res.breakdownPlan.goalTitle]
+                            ? "bg-emerald-100 text-emerald-800 border-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300"
+                            : "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[#262626] dark:border-black shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
                         }`}
                       >
-                        {addedBreakdownGoals[
-                          msg.queryResult.breakdownPlan.goalTitle
-                        ] ? (
+                        {addedBreakdownGoals[res.breakdownPlan.goalTitle] ? (
                           <>
-                            <Check size={11} strokeWidth={2.4} />
-                            <span>Đã thêm vào danh sách</span>
+                            <Check size={12} strokeWidth={2.6} />
+                            <span>Đã thêm</span>
                           </>
                         ) : (
                           <>
-                            <ListPlus size={11} strokeWidth={2.4} />
-                            <span>Thêm tất cả vào việc cần làm</span>
+                            <Plus size={12} strokeWidth={2.6} />
+                            <span>Thêm tất cả</span>
                           </>
                         )}
                       </button>
                     </div>
-                  )}
-                </div>
-              )}
 
-              <span className="block text-[9px] text-[#78716C] dark:text-[#A1A1AA] text-right mt-1">
-                {msg.time}
-              </span>
+                    <div className="space-y-1.5">
+                      {res.breakdownPlan.subtasks.map((st, idx) => (
+                        <div
+                          key={idx}
+                          className="p-2 rounded-lg bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2 text-xs"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="w-4 h-4 rounded-md bg-[#262626] text-white dark:bg-[#FAFAFA] dark:text-[#18181B] text-[10px] font-mono font-bold flex items-center justify-center shrink-0">
+                              {idx + 1}
+                            </span>
+                            <span className="font-semibold text-[#1C1917] dark:text-[#FAFAFA] truncate">
+                              {st.title}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {st.startTime && (
+                              <span className="text-[10px] font-mono text-[#78716C] dark:text-[#A1A1AA]">
+                                {st.startTime}
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleAddSingleSubtask(st)}
+                              title="Thêm bước này"
+                              className="p-1 rounded-md border border-[#262626] dark:border-black bg-[#F3EFE6] dark:bg-[#3F3F46] hover:bg-[#E5E0D4] text-[#1C1917] dark:text-[#FAFAFA] cursor-pointer active:translate-x-[0.5px] active:translate-y-[0.5px] transition-all"
+                            >
+                              <Plus size={12} strokeWidth={2.4} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* CARD 3: TASK QUERY INTERACTIVE LIST */}
+                {res && res.type === "task_query" && res.queriedTasks && (
+                  <div className="mt-3 space-y-1.5 pt-2 border-t border-[#262626]/20 dark:border-transparent">
+                    {res.queriedTasks.map((t) => (
+                      <div
+                        key={t.id}
+                        className="p-2 rounded-xl bg-[#FBF9F4] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2 text-xs"
+                      >
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <HandDrawnCheckbox
+                            size="sm"
+                            checked={Boolean(t.completed)}
+                            onChange={() => toggleTask(t.id)}
+                          />
+                          <span
+                            onClick={() => openTaskDetail(t.id)}
+                            className={`font-semibold truncate cursor-pointer hover:underline ${
+                              t.completed ? "line-through text-[#78716C] dark:text-[#A1A1AA]" : "text-[#1C1917] dark:text-[#FAFAFA]"
+                            }`}
+                          >
+                            {t.title}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {renderPriorityBadge(t.priority)}
+                          {t.timeLabel && (
+                            <span className="text-[10px] font-mono text-[#78716C] dark:text-[#A1A1AA]">
+                              {t.timeLabel}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Timestamp */}
+                <div
+                  className={`text-[9px] font-mono font-medium text-right mt-1.5 ${
+                    isAi ? "text-[#78716C] dark:text-[#A1A1AA]" : "text-white/80 dark:text-[#18181B]/80"
+                  }`}
+                >
+                  {m.time}
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         {isTyping && (
-          <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-[#2C2C2E] border border-[#262626] shadow-[1px_1px_0px_#262626] w-fit">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#1C1917] dark:bg-white animate-bounce" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#1C1917] dark:bg-white animate-bounce [animation-delay:0.2s]" />
-            <span className="w-1.5 h-1.5 rounded-full bg-[#1C1917] dark:bg-white animate-bounce [animation-delay:0.4s]" />
+          <div className="flex items-start gap-2.5 justify-start">
+            <div className="w-7 h-7 rounded-xl bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626] flex items-center justify-center shrink-0 mt-0.5">
+              <Sparkles size={13} strokeWidth={2.4} />
+            </div>
+            <div className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-2xl rounded-tl-sm bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-black shadow-[2px_2px_0px_#262626] dark:shadow-none w-fit">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#1C1917] dark:bg-white animate-bounce" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#1C1917] dark:bg-white animate-bounce [animation-delay:0.2s]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#1C1917] dark:bg-white animate-bounce [animation-delay:0.4s]" />
+            </div>
           </div>
         )}
         <div ref={chatEndRef} />
@@ -351,13 +500,13 @@ export const AIAssistantSidePanel: React.FC<AIAssistantSidePanelProps> = ({
 
       {/* 3. Prompt Chips Gợi Ý Nhanh */}
       {dynamicChips.length > 0 && (
-        <div className="px-3 py-1.5 bg-[#FFFDF8] dark:bg-[#2C2C2E] border-t border-[#262626]/15 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <div className="px-3 py-2 bg-white dark:bg-[#27272A] border-t-[1.5px] border-[#262626] dark:border-black flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           {dynamicChips.map((chip) => (
             <button
               key={chip.id}
               type="button"
               onClick={() => handleSend(chip.query)}
-              className="px-2 py-1 rounded-md border border-[#262626] bg-white dark:bg-[#1C1C1E] text-[10.5px] font-medium text-[#1C1917] dark:text-[#F2F2F7] hover:bg-[#FEF08A] hover:text-[#1C1917] shadow-[1px_1px_0px_#262626] active:shadow-none transition-all whitespace-nowrap cursor-pointer shrink-0"
+              className="px-2.5 py-1 rounded-full text-xs font-semibold bg-[#F3EFE6] dark:bg-[#3F3F46] hover:bg-[#E5E0D4] dark:hover:bg-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] border-[1.5px] border-[#262626] dark:border-black shadow-[1px_1px_0px_#262626] whitespace-nowrap active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer shrink-0"
             >
               {chip.label}
             </button>
@@ -366,31 +515,35 @@ export const AIAssistantSidePanel: React.FC<AIAssistantSidePanelProps> = ({
       )}
 
       {/* 4. Ô Nhập Lệnh Chat */}
-      <div className="p-3 bg-[#FFFDF8] dark:bg-[#2C2C2E] border-t-[1.5px] border-[#262626]">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSend();
-          }}
-          className="flex items-center gap-2"
-        >
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSend();
+        }}
+        className="p-2.5 bg-white dark:bg-[#27272A] border-t-[1.5px] border-[#262626] dark:border-black flex items-center gap-2 shrink-0"
+      >
+        <div className="flex-1 flex items-center bg-[#F3EFE6] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-black rounded-2xl shadow-[1px_1px_0px_#262626] px-3.5 py-1.5 transition-all">
           <input
             ref={inputRef}
             type="text"
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
-            placeholder="Hỏi AI hoặc giao việc: 'Họp lúc 3h chiều'..."
-            className="flex-1 min-w-0 h-9 px-3 rounded-lg border-[1.5px] border-[#262626] bg-white dark:bg-[#1C1C1E] text-xs text-[#1C1917] dark:text-white placeholder:text-[#78716C] shadow-[1px_1px_0px_#262626] focus:outline-none focus:ring-1 focus:ring-[#1C1917]"
+            placeholder="Hỏi AI hoặc giao việc: Họp 14h chiều mai..."
+            className="w-full text-xs font-medium bg-transparent outline-none placeholder:text-[#78716C] dark:placeholder:text-[#A1A1AA] text-[#1C1917] dark:text-[#FAFAFA]"
           />
-          <button
-            type="submit"
-            disabled={!inputVal.trim() || isTyping}
-            className="h-9 px-3 rounded-lg border-[1.5px] border-[#262626] bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer flex items-center justify-center shrink-0"
-          >
-            <Send size={13} strokeWidth={2.4} />
-          </button>
-        </form>
-      </div>
+        </div>
+        <button
+          type="submit"
+          disabled={!inputVal.trim() || isTyping}
+          className={`h-9 w-9 shrink-0 rounded-2xl flex items-center justify-center transition-all border-[1.5px] border-[#262626] dark:border-black ${
+            inputVal.trim() && !isTyping
+              ? "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
+              : "bg-[#E5E0D4] dark:bg-[#3F3F46] text-[#78716C] dark:text-[#71717A] cursor-not-allowed shadow-none"
+          }`}
+        >
+          <Send size={14} strokeWidth={2.4} />
+        </button>
+      </form>
     </div>
   );
 };
