@@ -373,6 +373,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
           <button
             type="button"
             onClick={onBack}
+            aria-label="Quay lại"
             className="mobile-back-button flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-[#2C2C2E] hover:bg-[#F2F2F7] dark:hover:bg-[#3A3A3C] border border-[#E5E5EA] dark:border-black text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] shadow-2xs active:scale-95 cursor-pointer transition-all"
           >
             <ArrowLeft size={14} strokeWidth={2.4} />
@@ -401,6 +402,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                 setMode("view");
               }
             }}
+            aria-label={taskId === "new" ? "Hủy" : "Quay lại"}
             className="mobile-back-button flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-[#2C2C2E] hover:bg-[#F2F2F7] dark:hover:bg-[#3A3A3C] border border-[#E5E5EA] dark:border-black text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] shadow-2xs active:scale-95 cursor-pointer transition-all"
           >
             <ArrowLeft size={14} strokeWidth={2.4} />
