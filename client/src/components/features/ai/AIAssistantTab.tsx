@@ -318,6 +318,14 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
         <div className="flex items-center gap-1 shrink-0">
           <button
             type="button"
+            onClick={handleOpenConfig}
+            title="Cấu hình Google Gemini API Key"
+            className="w-8.5 h-8.5 flex items-center justify-center text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-xl transition-all cursor-pointer active:scale-95"
+          >
+            <Key size={16} strokeWidth={2.2} />
+          </button>
+          <button
+            type="button"
             onClick={handleClear}
             title="Làm mới cuộc trò chuyện"
             className="w-8.5 h-8.5 flex items-center justify-center text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-xl transition-all cursor-pointer active:scale-95"
@@ -355,6 +363,20 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
               >
                 {/* Nội dung text chính */}
                 <div className="whitespace-pre-line font-normal">{renderMessageContent(m.text)}</div>
+
+                {/* NÚT MỞ CẤU HÌNH KHI THIẾU API KEY */}
+                {isAi && m.text.includes("API Key") && (
+                  <div className="mt-2.5 pt-2 border-t border-[#E5E5EA] dark:border-[#3A3A3C]">
+                    <button
+                      type="button"
+                      onClick={handleOpenConfig}
+                      className="px-3 py-1.5 rounded-xl bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] text-xs font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                    >
+                      <Key size={13} strokeWidth={2.4} />
+                      <span>Nhập Gemini API Key ngay</span>
+                    </button>
+                  </div>
+                )}
 
                 {/* CARD 1: TASK CREATED CARD (ĐƠN LẺ & BATCH) */}
                 {res && (res.type === "created_task" || res.type === "batch_created") && res.createdTasks && (
@@ -648,7 +670,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             </div>
 
             <p className="text-xs text-[#8E8E93] leading-relaxed">
-              Dán API Key Google Gemini vào đây để kích hoạt trí tuệ nhân tạo nâng cao. Key được lưu an toàn trực tiếp trên thiết bị của bạn.
+              Dán API Key Google Gemini vào đây để kích hoạt trí tuệ nhân tạo. Bạn có thể lấy key miễn phí tại <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-[#007AFF] underline font-semibold">Google AI Studio</a>. Key được lưu an toàn trên máy của bạn.
             </p>
 
             <div className="space-y-1.5">
