@@ -1,5 +1,5 @@
 // ==========================================
-// VIEW: MobileNotificationsView (Tier 1 & Tier 2 Ink & Paper)
+// VIEW: MobileNotificationsView (Notification Feed & Alerts)
 // ==========================================
 
 import React, { useState, useMemo, useEffect } from "react";
@@ -7,12 +7,9 @@ import {
   Bell,
   AlertTriangle,
   Clock,
-  CheckCircle2,
   Calendar,
-  CalendarPlus,
-  RotateCcw,
-  Tag as TagIcon,
   ChevronRight,
+  ArrowRight,
 } from "lucide-react";
 import { useAppStore } from "../../shared/stores";
 import { NavigationTarget, TabKey, TaskDto } from "../../shared/types";
@@ -24,29 +21,21 @@ import {
   getTaskTemporalState,
   isTaskDueToday,
 } from "../../shared/utils";
-import { formatDisplayDate } from "../../components/ui/pickers/time/DatePickerPopover";
-import { RescheduleDateModal } from "../../components/ui/overlays/RescheduleDateModal";
-import { HandDrawnCheckbox } from "../../components/ui/core/HandDrawnCheckbox";
+import { SketchTabs } from "../../components/layout/SketchTabs";
 
 export interface MobileNotificationsViewProps {
   onNavigateTab?: (tab: TabKey | string, target?: NavigationTarget) => void;
 }
 
-type NotificationFilterTab = "all" | "overdue" | "today" | "completed";
+type NotificationFilterTab = "all" | "overdue" | "today";
 
 export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = ({
   onNavigateTab,
 }) => {
   // === PHẦN 1: STORE & LOCAL STATES ===
-  const { tasks, toggleTask, updateTask, openTaskDetail } = useAppStore();
+  const { tasks, openTaskDetail, setActiveTaskSubTab } = useAppStore();
   const [now, setNow] = useState(() => Date.now());
   const [activeFilter, setActiveFilter] = useState<NotificationFilterTab>("all");
-  const [rescheduleToastText, setRescheduleToastText] = useState<string | null>(null);
-  const [rescheduleModalState, setRescheduleModalState] = useState<{
-    isOpen: boolean;
-    taskIds: string[];
-    taskTitle?: string;
-  } | null>(null);
 
   const todayStr = getLocalTodayStr(new Date());
 
@@ -56,7 +45,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
     return () => window.clearInterval(timer);
   }, []);
 
-  // === PHẦN 2: TÍNH TOÁN DANH SÁCH DỮ LIỆU ===
+  // === PHẦN 2: TÍNH TOÁN DANH SÁCH DỮ LIỆU THÔNG BÁO ===
   // 1. Danh sách việc quá hạn
   const overdueTasks = useMemo(() => {
     return tasks.filter((t) => {
@@ -76,14 +65,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
     });
   }, [tasks, now]);
 
-  // 3. Danh sách việc đã hoàn thành hôm nay
-  const completedTodayTasks = useMemo(() => {
-    return tasks.filter((t) => {
-      if (!t.completed) return false;
-      const date = getTaskEffectiveDate(t);
-      return date === todayStr;
-    });
-  }, [tasks, todayStr]);
+  const totalAlerts = overdueTasks.length + todayDueTasks.length;
 
   // Gom nhóm theo ngày cho danh sách quá hạn
   const overdueGroups = useMemo(() => {
@@ -108,182 +90,171 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
       }));
   }, [overdueTasks]);
 
-  const totalActiveAlerts = overdueTasks.length + todayDueTasks.length;
-
-  // === PHẦN 3: XỬ LÝ SỰ KIỆN DỜI LỊCH & THAO TÁC ===
-  // Mở modal dời 1 việc cụ thể
-  const handleOpenRescheduleSingle = (task: TaskDto) => {
-    setRescheduleModalState({
-      isOpen: true,
-      taskIds: [task.id],
-      taskTitle: task.title,
-    });
-  };
-
-  // Xác nhận dời ngày sang targetDate
-  const handleConfirmReschedule = (targetDate: string) => {
-    if (!rescheduleModalState || rescheduleModalState.taskIds.length === 0) return;
-    const { taskIds } = rescheduleModalState;
-    for (const id of taskIds) {
-      const task = tasks.find((t) => t.id === id);
-      if (!task) continue;
-      if (task.dueDate) {
-        updateTask(id, { dueDate: targetDate });
-      } else if (task.deadlineDate) {
-        updateTask(id, { deadlineDate: targetDate });
-      } else {
-        updateTask(id, { dueDate: targetDate });
-      }
-    }
-    const formatted = formatDisplayDate(targetDate);
-    const msg =
-      taskIds.length === 1
-        ? `Đã dời công việc sang ${formatted}`
-        : `Đã dời ${taskIds.length} việc quá hạn sang ${formatted}`;
-    setRescheduleToastText(msg);
-    setTimeout(() => setRescheduleToastText(null), 3000);
-    setRescheduleModalState(null);
-  };
-
+  // Điều hướng mở chi tiết task
   const handleOpenTask = (task: TaskDto) => {
     openTaskDetail(task.id);
   };
 
-  // === PHẦN 4: GIAO DIỆN CHÍNH (INK & PAPER TACTILE LAYOUT) ===
+  // Điều hướng sang tab Hạn định để làm việc/dời lịch
+  const handleNavigateToDeadlines = () => {
+    setActiveTaskSubTab("deadlines");
+    if (onNavigateTab) {
+      onNavigateTab("deadlines");
+    }
+  };
+
+  // === PHẦN 3: GIAO DIỆN CHÍNH (NOTIFICATION FEED) ===
   return (
-    <div className="w-full space-y-3 pb-24 select-none">
-      {/* Toast thông báo hoàn thành/dời ngày */}
-      {rescheduleToastText && (
-        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[1.5px] border-[#262626] px-3.5 py-1.5 rounded-[6px] shadow-[2px_2px_0px_#262626] text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-          <CheckCircle2 size={14} className="text-emerald-400 dark:text-emerald-600 shrink-0" />
-          <span>{rescheduleToastText}</span>
+    <div className="w-full space-y-3.5 pb-24 select-none animate-in fade-in duration-150">
+      {/* 1. THANH PHÂN LOẠI THÔNG BÁO (SKETCH TABS) */}
+      <SketchTabs
+        ariaLabel="Bộ lọc thông báo"
+        size="md"
+        className="w-full flex justify-center [&>button]:min-h-[40px] [&>button]:flex-1"
+        value={activeFilter}
+        onChange={(val) => setActiveFilter(val as NotificationFilterTab)}
+        items={[
+          {
+            key: "all",
+            label: "Tất cả",
+            icon: <Bell size={13} strokeWidth={2.2} />,
+            badge:
+              totalAlerts > 0 ? (
+                <span className="min-w-[18px] rounded-md bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] px-1.5 py-0.5 text-center font-mono text-[10px] leading-none font-semibold">
+                  {totalAlerts}
+                </span>
+              ) : undefined,
+          },
+          {
+            key: "overdue",
+            label: "Quá hạn",
+            icon: <AlertTriangle size={13} strokeWidth={2.2} />,
+            badge:
+              overdueTasks.length > 0 ? (
+                <span className="min-w-[18px] rounded-md bg-[#FF3B30] text-white px-1.5 py-0.5 text-center font-mono text-[10px] leading-none font-semibold">
+                  {overdueTasks.length}
+                </span>
+              ) : undefined,
+          },
+          {
+            key: "today",
+            label: "Hôm nay",
+            icon: <Clock size={13} strokeWidth={2.2} />,
+            badge:
+              todayDueTasks.length > 0 ? (
+                <span className="min-w-[18px] rounded-md bg-[#007AFF] text-white px-1.5 py-0.5 text-center font-mono text-[10px] leading-none font-semibold">
+                  {todayDueTasks.length}
+                </span>
+              ) : undefined,
+          },
+        ]}
+      />
+
+      {/* 2. BANNER HƯỚNG DẪN LÀM VIỆC TẠI HẠN ĐỊNH (CALL TO ACTION) */}
+      {totalAlerts > 0 && (
+        <div className="rounded-2xl border border-[#E5E5EA] dark:border-black bg-white/80 dark:bg-[#1C1C1E]/80 p-3.5 shadow-xs flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <Calendar size={16} strokeWidth={2.2} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+                Cần dời lịch hoặc xử lý công việc?
+              </p>
+              <p className="text-[11px] text-[#8E8E93] dark:text-[#AEAEC2] truncate">
+                Làm việc trực tiếp tại không gian Hạn định
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleNavigateToDeadlines}
+            className="shrink-0 px-3 py-1.5 rounded-xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] text-xs font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer flex items-center gap-1 shadow-xs"
+          >
+            <span>Hạn định</span>
+            <ArrowRight size={13} strokeWidth={2.4} />
+          </button>
         </div>
       )}
 
-      {/* 1. THANH BỘ LỌC PHÂN TẦNG (TIER 1 FILTER TOOLBAR) */}
-      <div className="border-[1.5px] border-[#262626] dark:border-[#52525B] bg-white dark:bg-[#27272A] p-1 rounded-[6px] shadow-[2px_2px_0px_#262626] flex items-center gap-1">
-        {[
-          { key: "all", label: "Tất cả", count: totalActiveAlerts },
-          { key: "overdue", label: "Quá hạn", count: overdueTasks.length },
-          { key: "today", label: "Hôm nay", count: todayDueTasks.length },
-          { key: "completed", label: "Đã xong", count: completedTodayTasks.length },
-        ].map((tab) => {
-          const isActive = activeFilter === tab.key;
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setActiveFilter(tab.key as NotificationFilterTab)}
-              className={`flex-1 py-1.5 px-1 rounded-[4px] text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:translate-x-[0.5px] active:translate-y-[0.5px] ${
-                isActive
-                  ? "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] font-bold shadow-[1px_1px_0px_#262626] dark:shadow-none"
-                  : "text-[#78716C] dark:text-[#A1A1AA] hover:text-[#1C1917] dark:hover:text-white"
-              }`}
-            >
-              <span>{tab.label}</span>
-              <span className="font-mono text-[10px] opacity-80">({tab.count})</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* 3. NỘI DUNG DANH SÁCH THÔNG BÁO */}
-      <div className="space-y-4">
-        {/* Trường hợp: Toàn bộ danh sách rỗng */}
-        {totalActiveAlerts === 0 && activeFilter !== "completed" && (
-          <div className="border-[1.5px] border-dashed border-[#262626]/30 dark:border-white/20 bg-white dark:bg-[#27272A] rounded-[6px] py-12 px-4 text-center shadow-[2px_2px_0px_#262626] space-y-2.5">
-            <div className="w-10 h-10 rounded-[6px] border-[1.5px] border-[#262626] bg-[#FAF8F3] dark:bg-[#18181B] text-[#1C1917] dark:text-[#FAFAFA] flex items-center justify-center mx-auto shadow-[1.5px_1.5px_0px_#262626]">
-              <CheckCircle2 size={20} strokeWidth={2.2} />
+      {/* 3. DANH SÁCH BẢN TIN THÔNG BÁO */}
+      <div className="space-y-3">
+        {/* Trường hợp: Không có thông báo nào */}
+        {totalAlerts === 0 && (
+          <div className="rounded-2xl border border-dashed border-[#E5E5EA] dark:border-black bg-white/60 dark:bg-[#1C1C1E]/60 py-12 px-4 text-center space-y-2">
+            <div className="w-12 h-12 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] text-[#8E8E93] flex items-center justify-center mx-auto">
+              <Bell size={24} strokeWidth={1.8} />
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-bold text-[#1C1917] dark:text-[#FAFAFA]">
+              <p className="text-sm font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
                 Hộp thông báo sạch sẽ
               </p>
-              <p className="text-xs text-[#78716C] dark:text-[#A1A1AA] max-w-xs mx-auto">
+              <p className="text-xs text-[#8E8E93] dark:text-[#AEAEC2] max-w-xs mx-auto">
                 Không có việc quá hạn hay cần gấp hôm nay. Mọi thứ đều đang đúng tiến độ!
               </p>
             </div>
           </div>
         )}
 
-        {/* SECTION 1: VIỆC QUÁ HẠN */}
+        {/* SECTION 1: THÔNG BÁO VIỆC QUÁ HẠN */}
         {(activeFilter === "all" || activeFilter === "overdue") && overdueGroups.length > 0 && (
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]/20 dark:border-transparent text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA]">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between px-1 text-xs font-bold text-[#FF3B30] dark:text-[#FF453A]">
               <span className="flex items-center gap-1.5">
-                <AlertTriangle size={13} strokeWidth={2.4} className="text-[#BE123C] dark:text-rose-400" />
-                <span>Việc quá hạn ({overdueTasks.length})</span>
+                <AlertTriangle size={13} strokeWidth={2.4} />
+                <span>Cảnh báo quá hạn ({overdueTasks.length})</span>
               </span>
             </div>
 
             {overdueGroups.map((group) => (
-              <div key={group.dateStr} className="space-y-2">
-                <div className="flex items-center justify-between text-[11px] font-medium text-[#78716C] dark:text-[#A1A1AA] px-0.5">
-                  <span>{formatFullDate(group.dateStr)}</span>
-                  <span className="font-mono text-[10px]">{group.tasks.length} việc</span>
+              <div key={group.dateStr} className="space-y-1.5">
+                <div className="flex items-center justify-between text-[11px] font-medium text-[#8E8E93] dark:text-[#AEAEC2] px-1">
+                  <span>Hạn chót: {formatFullDate(group.dateStr)}</span>
+                  <span className="font-mono text-[10px]">{group.tasks.length} thông báo</span>
                 </div>
 
                 {group.tasks.map((task) => (
                   <div
                     key={`overdue-${task.id}`}
                     onClick={() => handleOpenTask(task)}
-                    className="border-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#27272A] rounded-[6px] p-3 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer flex items-center justify-between gap-2.5 group"
+                    className="rounded-2xl border border-[#E5E5EA] dark:border-black bg-white dark:bg-[#1C1C1E] p-3.5 shadow-xs hover:border-[#D1D1D6] dark:hover:border-zinc-800 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-between gap-3 group"
                   >
-                    <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                      {/* HandDrawn Checkbox */}
-                      <div
-                        className="shrink-0 pt-0.5"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <HandDrawnCheckbox
-                          checked={Boolean(task.completed)}
-                          onChange={() => toggleTask(task.id)}
-                          size="sm"
-                        />
+                    <div className="flex items-start gap-3 min-w-0 flex-1">
+                      {/* Icon Badge */}
+                      <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 mt-0.5">
+                        <AlertTriangle size={15} strokeWidth={2.2} />
                       </div>
 
-                      {/* Tiêu đề + Metadata */}
+                      {/* Notification Content */}
                       <div className="min-w-0 flex-1 space-y-1">
-                        <p className="text-[13.5px] sm:text-sm font-semibold text-[#1C1917] dark:text-[#FAFAFA] truncate leading-snug group-hover:underline">
-                          {task.title}
+                        <p className="text-xs sm:text-sm font-bold text-[#1C1C1E] dark:text-[#F2F2F7] truncate leading-snug group-hover:text-[#007AFF] dark:group-hover:text-[#0A84FF] transition-colors">
+                          Quá hạn: {task.title}
                         </p>
 
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span className="border border-[#FDA4AF] bg-[#FECDD3] text-[#9F1239] rounded-[4px] px-1.5 py-0.5 text-[10px] font-semibold font-sans leading-tight">
-                            Quá hạn
+                        <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#8E8E93] dark:text-[#AEAEC2]">
+                          <span className="px-1.5 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 text-[10px] font-semibold">
+                            Cần dời lịch
                           </span>
                           {getTaskEffectiveTime(task) && (
-                            <span className="border border-[#D4CEBF] dark:border-black bg-[#FAF8F3] dark:bg-[#18181B] text-[#78716C] dark:text-[#A1A1AA] rounded-[4px] px-1.5 py-0.5 font-mono text-[10px] leading-tight">
-                              {getTaskEffectiveTime(task)}
+                            <span className="font-mono text-[10px]">
+                              lúc {getTaskEffectiveTime(task)}
                             </span>
                           )}
                           {task.tag && (
-                            <span className="text-[11px] font-normal text-[#78716C] dark:text-[#A1A1AA] font-sans">
-                              #{task.tag}
-                            </span>
+                            <span className="text-[#8E8E93]">#{task.tag}</span>
                           )}
                         </div>
 
                         {task.description && (
-                          <p className="text-xs text-[#78716C] dark:text-[#A1A1AA] line-clamp-1">
+                          <p className="text-[11px] text-[#8E8E93] dark:text-[#AEAEC2] line-clamp-1">
                             {task.description}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    {/* Nút Dời Ngày tactile */}
-                    <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        type="button"
-                        onClick={() => handleOpenRescheduleSingle(task)}
-                        className="px-2.5 py-1 rounded-[4px] border-[1.5px] border-[#262626] dark:border-black bg-[#FAF8F3] dark:bg-[#18181B] hover:bg-[#F3EFE6] text-xs font-semibold text-[#1C1917] dark:text-[#FAFAFA] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all flex items-center gap-1 cursor-pointer"
-                        title="Dời ngày"
-                      >
-                        <CalendarPlus size={12} strokeWidth={2.4} />
-                        <span>Dời</span>
-                      </button>
-                    </div>
+                    <ChevronRight size={16} strokeWidth={2.2} className="text-[#C7C7CC] group-hover:text-[#1C1C1E] dark:group-hover:text-white transition-colors shrink-0" />
                   </div>
                 ))}
               </div>
@@ -291,163 +262,104 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
           </div>
         )}
 
-        {/* SECTION 2: VIỆC ĐẾN HẠN HÔM NAY */}
+        {/* SECTION 2: THÔNG BÁO VIỆC ĐẾN HẠN HÔM NAY */}
         {(activeFilter === "all" || activeFilter === "today") && todayDueTasks.length > 0 && (
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]/20 dark:border-transparent text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA]">
+          <div className="space-y-2 pt-1">
+            <div className="flex items-center justify-between px-1 text-xs font-bold text-[#007AFF] dark:text-[#0A84FF]">
               <span className="flex items-center gap-1.5">
-                <Clock size={13} strokeWidth={2.4} className="text-[#92400E] dark:text-[#FCD34D]" />
+                <Clock size={13} strokeWidth={2.4} />
                 <span>Đến hạn hôm nay ({todayDueTasks.length})</span>
               </span>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               {todayDueTasks.map((task) => (
                 <div
                   key={`today-${task.id}`}
                   onClick={() => handleOpenTask(task)}
-                  className="border-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#27272A] rounded-[6px] p-3 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer flex items-center justify-between gap-2.5 group"
+                  className="rounded-2xl border border-[#E5E5EA] dark:border-black bg-white dark:bg-[#1C1C1E] p-3.5 shadow-xs hover:border-[#D1D1D6] dark:hover:border-zinc-800 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-between gap-3 group"
                 >
-                  <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                    {/* HandDrawn Checkbox */}
-                    <div
-                      className="shrink-0 pt-0.5"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <HandDrawnCheckbox
-                        checked={Boolean(task.completed)}
-                        onChange={() => toggleTask(task.id)}
-                        size="sm"
-                      />
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    {/* Icon Badge */}
+                    <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <Clock size={15} strokeWidth={2.2} />
                     </div>
 
-                    {/* Tiêu đề + Metadata */}
+                    {/* Notification Content */}
                     <div className="min-w-0 flex-1 space-y-1">
-                      <p className="text-[13.5px] sm:text-sm font-semibold text-[#1C1917] dark:text-[#FAFAFA] truncate leading-snug group-hover:underline">
-                        {task.title}
+                      <p className="text-xs sm:text-sm font-bold text-[#1C1C1E] dark:text-[#F2F2F7] truncate leading-snug group-hover:text-[#007AFF] dark:group-hover:text-[#0A84FF] transition-colors">
+                        Đến hạn: {task.title}
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="border border-[#262626]/20 bg-[#FEF08A] text-[#1C1917] rounded-[4px] px-1.5 py-0.5 text-[10px] font-semibold font-sans leading-tight">
+                      <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#8E8E93] dark:text-[#AEAEC2]">
+                        <span className="px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-semibold">
                           Hôm nay
                         </span>
-                        {getTaskEffectiveTime(task) && (
-                          <span className="border border-[#D4CEBF] dark:border-black bg-[#FAF8F3] dark:bg-[#18181B] text-[#78716C] dark:text-[#A1A1AA] rounded-[4px] px-1.5 py-0.5 font-mono text-[10px] leading-tight">
-                            {getTaskEffectiveTime(task)}
+                        {getTaskEffectiveTime(task) ? (
+                          <span className="font-mono text-[10px]">
+                            lúc {getTaskEffectiveTime(task)}
                           </span>
+                        ) : (
+                          <span className="text-[10px]">Trong ngày</span>
                         )}
                         {task.tag && (
-                          <span className="text-[11px] font-normal text-[#78716C] dark:text-[#A1A1AA] font-sans">
-                            #{task.tag}
-                          </span>
+                          <span className="text-[#8E8E93]">#{task.tag}</span>
                         )}
                       </div>
 
                       {task.description && (
-                        <p className="text-xs text-[#78716C] dark:text-[#A1A1AA] line-clamp-1">
+                        <p className="text-[11px] text-[#8E8E93] dark:text-[#AEAEC2] line-clamp-1">
                           {task.description}
                         </p>
                       )}
                     </div>
                   </div>
+
+                  <ChevronRight size={16} strokeWidth={2.2} className="text-[#C7C7CC] group-hover:text-[#1C1C1E] dark:group-hover:text-white transition-colors shrink-0" />
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* SECTION 3: VIỆC ĐÃ HOÀN THÀNH HÔM NAY */}
-        {activeFilter === "completed" && (
-          <div className="space-y-2.5">
-            <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]/20 dark:border-transparent text-xs font-bold text-[#78716C] dark:text-[#A1A1AA]">
-              <span className="flex items-center gap-1.5">
-                <CheckCircle2 size={13} strokeWidth={2.4} className="text-emerald-600 dark:text-emerald-400" />
-                <span>Đã hoàn thành hôm nay ({completedTodayTasks.length})</span>
-              </span>
-            </div>
+        {/* Empty filter sub-states */}
+        {activeFilter === "overdue" && overdueTasks.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-[#E5E5EA] dark:border-black bg-white/60 dark:bg-[#1C1C1E]/60 py-8 px-4 text-center space-y-1">
+            <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+              Không có công việc nào quá hạn
+            </p>
+            <p className="text-[11px] text-[#8E8E93] dark:text-[#AEAEC2]">
+              Bạn đã hoàn thành tốt các hạn chót trước đó.
+            </p>
+          </div>
+        )}
 
-            {completedTodayTasks.length === 0 ? (
-              <div className="border-[1.5px] border-dashed border-[#262626]/30 dark:border-white/20 bg-white dark:bg-[#27272A] rounded-[6px] py-8 px-4 text-center shadow-[2px_2px_0px_#262626] space-y-1.5">
-                <p className="text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA]">
-                  Chưa có công việc nào hoàn thành hôm nay
-                </p>
-                <p className="text-[11px] text-[#78716C] dark:text-[#A1A1AA]">
-                  Bắt đầu tích hoàn thành các việc trong danh sách nhé!
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {completedTodayTasks.map((task) => (
-                  <div
-                    key={`completed-${task.id}`}
-                    onClick={() => handleOpenTask(task)}
-                    className="border-[1.5px] border-[#D4CEBF] dark:border-[#52525B] bg-[#FAF8F3]/70 dark:bg-[#18181B]/70 rounded-[6px] p-3 shadow-[1px_1px_0px_#262626]/20 transition-all cursor-pointer flex items-center justify-between gap-2.5 opacity-80 hover:opacity-100"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                      <div
-                        className="shrink-0"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <HandDrawnCheckbox
-                          checked={true}
-                          onChange={() => toggleTask(task.id)}
-                          size="sm"
-                        />
-                      </div>
-                      <p className="text-sm font-semibold text-[#78716C] dark:text-[#A1A1AA] line-through truncate">
-                        {task.title}
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleTask(task.id);
-                      }}
-                      className="px-2 py-1 rounded-[4px] border-[1.5px] border-[#262626] dark:border-[#52525B] bg-white dark:bg-[#27272A] hover:bg-[#FAF8F3] text-[11px] font-semibold text-[#78716C] dark:text-[#A1A1AA] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all flex items-center gap-1 shrink-0 cursor-pointer"
-                      title="Hoàn tác"
-                    >
-                      <RotateCcw size={11} strokeWidth={2.4} />
-                      <span>Hoàn tác</span>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+        {activeFilter === "today" && todayDueTasks.length === 0 && (
+          <div className="rounded-2xl border border-dashed border-[#E5E5EA] dark:border-black bg-white/60 dark:bg-[#1C1C1E]/60 py-8 px-4 text-center space-y-1">
+            <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+              Không có việc nào đến hạn hôm nay
+            </p>
+            <p className="text-[11px] text-[#8E8E93] dark:text-[#AEAEC2]">
+              Tất cả công việc trong ngày đã được hoàn tất hoặc không có hạn hôm nay.
+            </p>
           </div>
         )}
       </div>
 
       {/* 4. FOOTER QUICK JUMP: CHUYỂN NHANH ĐẾN LỊCH HẠN ĐỊNH */}
-      <div className="pt-1">
+      <div className="pt-2">
         <button
           type="button"
-          onClick={() => {
-            if (onNavigateTab) {
-              onNavigateTab("deadlines");
-            }
-          }}
-          className="w-full py-2.5 px-3.5 rounded-[6px] border-[1.5px] border-[#262626] dark:border-[#52525B] bg-white dark:bg-[#27272A] hover:bg-[#FAF8F3] dark:hover:bg-[#3F3F46] text-xs font-semibold text-[#1C1917] dark:text-[#FAFAFA] flex items-center justify-between shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+          onClick={handleNavigateToDeadlines}
+          className="w-full py-3 px-4 rounded-2xl border border-[#E5E5EA] dark:border-black bg-white dark:bg-[#1C1C1E] hover:bg-[#F2F2F7] dark:hover:bg-zinc-800 text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] flex items-center justify-between shadow-xs active:scale-[0.99] transition-all cursor-pointer"
         >
           <div className="flex items-center gap-2">
-            <Calendar size={14} strokeWidth={2.2} className="text-[#78716C] dark:text-[#A1A1AA]" />
-            <span>Mở Lịch Quản lý Hạn định</span>
+            <Calendar size={15} strokeWidth={2.2} className="text-[#8E8E93]" />
+            <span>Mở không gian Quản lý Hạn định để làm việc</span>
           </div>
-          <ChevronRight size={14} strokeWidth={2.4} className="text-[#78716C] dark:text-[#A1A1AA]" />
+          <ChevronRight size={15} strokeWidth={2.4} className="text-[#8E8E93]" />
         </button>
       </div>
-
-      {/* Reschedule Date Modal */}
-      {rescheduleModalState && (
-        <RescheduleDateModal
-          isOpen={rescheduleModalState.isOpen}
-          taskCount={rescheduleModalState.taskIds.length}
-          taskTitle={rescheduleModalState.taskTitle}
-          onClose={() => setRescheduleModalState(null)}
-          onConfirm={handleConfirmReschedule}
-        />
-      )}
     </div>
   );
 };

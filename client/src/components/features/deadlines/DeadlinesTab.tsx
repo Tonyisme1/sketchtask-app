@@ -245,7 +245,7 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
 
             return (
               <section key={group.dateStr} className="space-y-2">
-                <div className="flex items-center gap-2 border-b border-[#E5E5EA] dark:border-[#2C2C2E] pb-2">
+                <div className="flex items-center gap-2 border-b border-[#E5E5EA] dark:border-transparent pb-2">
                   <button
                     type="button"
                     onClick={() => {
@@ -279,7 +279,7 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
                     onClick={() => {
                       setCollapsedGroups((previous) => ({ ...previous, [groupKey]: false }));
                     }}
-                    className="w-full rounded-xl border border-dashed border-[#E5E5EA] dark:border-[#2C2C2E] bg-black/[0.02] dark:bg-white/[0.04] px-3.5 py-2.5 text-left text-xs text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7] cursor-pointer transition-colors"
+                    className="w-full rounded-xl border border-dashed border-[#E5E5EA] dark:border-black bg-black/[0.02] dark:bg-white/[0.04] px-3.5 py-2.5 text-left text-xs text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7] cursor-pointer transition-colors"
                   >
                     Nhóm đang thu gọn. Chạm để xem {group.tasks.length} việc.
                   </button>
@@ -374,7 +374,7 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
 
       {/* 2. Batch actions */}
       {activeTasks.length > 0 && (
-        <section className="space-y-2 rounded-2xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white/70 dark:bg-[#1C1C1E]/70 p-3 shadow-xs">
+        <section className="space-y-2 rounded-2xl border border-[#E5E5EA] dark:border-black bg-white/70 dark:bg-[#1C1C1E]/70 p-3 shadow-xs">
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
