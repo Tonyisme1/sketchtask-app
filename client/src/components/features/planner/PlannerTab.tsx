@@ -140,11 +140,11 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
     const endD = new Date(currentMonday);
     endD.setDate(startD.getDate() + 6);
 
-    const label = `${startD.getDate()}/${startD.getMonth() + 1} - ${endD.getDate()}/${endD.getMonth() + 1}/${endD.getFullYear()}`;
+    const label = `${startD.getDate()}/${startD.getMonth() + 1} - ${endD.getDate()}/${endD.getMonth() + 1}`;
 
     return {
       weekDays: days,
-      weekLabel: `Tuần ${label}`,
+      weekLabel: label,
     };
   }, [todayStr, weekOffset]);
 
