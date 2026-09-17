@@ -59,7 +59,7 @@ export async function askGeminiAIAssistant(
   if (!apiKey) {
     return {
       type: "text_reply",
-      text: "Chưa tìm thấy API Key của Google Gemini. Vui lòng kiểm tra lại cấu hình API Key.",
+      text: "Hệ thống AI hiện chưa sẵn sàng kết nối. Vui lòng thử lại sau.",
     };
   }
 

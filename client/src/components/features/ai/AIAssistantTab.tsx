@@ -1,12 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
-  Bot,
   Send,
   RotateCcw,
   ExternalLink,
-  CheckCircle2,
-  Circle,
   Plus,
   Sparkles,
   TrendingUp,
@@ -14,10 +11,6 @@ import {
   Clock,
   ListPlus,
   Check,
-  Settings,
-  X,
-  Key,
-  ShieldCheck,
 } from "lucide-react";
 import { useAppStore } from "../../../stores/appStore";
 import { TaskPriority } from "../../../types";
@@ -28,10 +21,7 @@ import {
   ParsedTaskIntent,
 } from "../../../services/aiAgentService";
 import { askGeminiAIAssistant } from "../../../services/geminiAiService";
-import {
-  getEffectiveGeminiApiKey,
-  setEffectiveGeminiApiKey,
-} from "../../../config/aiConfig";
+import { HandDrawnCheckbox } from "../../ui/core/HandDrawnCheckbox";
 
 // ==========================================
 // CHAT MESSAGE TYPES & LOCAL STORAGE KEY
@@ -92,9 +82,6 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
   const [inputVal, setInputVal] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [addedBreakdownGoals, setAddedBreakdownGoals] = useState<{ [goalTitle: string]: boolean }>({});
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
-  const [tempApiKey, setTempApiKey] = useState("");
-  const [keySavedToast, setKeySavedToast] = useState(false);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -215,42 +202,25 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
     }, 120);
   };
 
-  // Open config modal
-  const handleOpenConfig = () => {
-    setTempApiKey(getEffectiveGeminiApiKey());
-    setIsConfigOpen(true);
-    setKeySavedToast(false);
-  };
-
-  // Save API Key
-  const handleSaveApiKey = () => {
-    setEffectiveGeminiApiKey(tempApiKey.trim());
-    setKeySavedToast(true);
-    setTimeout(() => {
-      setIsConfigOpen(false);
-      setKeySavedToast(false);
-    }, 600);
-  };
-
-  // Render Priority Badge
+  // Render Priority Badge (Strict Hand-Drawn Sketch Tokens)
   const renderPriorityBadge = (priority: TaskPriority) => {
     switch (priority) {
       case "high":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#FF3B30]/10 text-[#FF3B30] border border-[#FF3B30]/20">
-            ● Gấp
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-none text-[10px] font-bold bg-[#FFE4E6] text-[#BE123C] border border-[#FDA4AF] dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800">
+            🔴 Gấp
           </span>
         );
       case "low":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-[#34C759]/10 text-[#34C759] border border-[#34C759]/20">
-            ○ Thấp
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-none text-[10px] font-medium bg-[#D1FAE5] text-[#065F46] border border-[#6EE7B7] dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800">
+            🟢 Thấp
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-[#FF9500]/10 text-[#FF9500] border border-[#FF9500]/20">
-            ◐ Vừa
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-none text-[10px] font-medium bg-[#FEF3C7] text-[#92400E] border border-[#FCD34D] dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800">
+            🟡 Vừa
           </span>
         );
     }
@@ -285,16 +255,16 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
 
   return (
     <div
-      className={`mx-auto w-full flex flex-col bg-white dark:bg-[#1C1C1E] select-none ${
+      className={`mx-auto w-full flex flex-col bg-[#FBF9F4] dark:bg-[#18181B] select-none ${
         isStandalone
           ? "fixed inset-0 z-50 h-[100dvh] max-w-full rounded-none border-none shadow-none"
-          : "max-w-3xl h-[calc(100vh-135px)] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-sm overflow-hidden"
+          : "max-w-3xl h-[calc(100vh-135px)] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[2px_2px_0px_#262626] dark:shadow-[2px_2px_0px_#000] overflow-hidden rounded-none"
       }`}
     >
       {/* 1. MINIMALIST TOPBAR */}
       <div
-        className={`px-3.5 sm:px-4 py-3 bg-white dark:bg-[#1C1C1E] border-b border-[#E5E5EA] dark:border-[#2C2C2E] flex items-center justify-between shrink-0 ${
-          isStandalone ? "pt-[max(env(safe-area-inset-top),14px)]" : ""
+        className={`px-3.5 sm:px-4 py-2.5 bg-white dark:bg-[#27272A] border-b-[1.5px] border-[#262626] dark:border-[#52525B] flex items-center justify-between shrink-0 ${
+          isStandalone ? "pt-[max(env(safe-area-inset-top),12px)]" : ""
         }`}
       >
         <div className="flex items-center gap-2.5 min-w-0">
@@ -302,41 +272,35 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
             <button
               type="button"
               onClick={onBack}
-              className="w-8.5 h-8.5 rounded-xl bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] text-[#1C1917] dark:text-white flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-95"
+              className="w-8 h-8 rounded-none bg-white dark:bg-[#3F3F46] hover:bg-[#F3EFE6] dark:hover:bg-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1.5px_1.5px_0px_#262626] flex items-center justify-center cursor-pointer shrink-0 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
               title="Quay lại"
               aria-label="Quay lại"
             >
-              <ArrowLeft size={18} strokeWidth={2.4} />
+              <ArrowLeft size={16} strokeWidth={2.4} />
             </button>
           )}
 
-          <h2 className="text-base font-bold text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight truncate">
-            Trợ lý AI
+          <h2 className="text-sm sm:text-base font-bold text-[#1C1917] dark:text-[#FAFAFA] tracking-tight truncate flex items-center gap-1.5">
+            <Sparkles size={16} className="text-[#1C1917] dark:text-[#FAFAFA]" />
+            <span>Trợ lý AI</span>
           </h2>
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={handleOpenConfig}
-            title="Cấu hình Google Gemini API Key"
-            className="w-8.5 h-8.5 flex items-center justify-center text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-xl transition-all cursor-pointer active:scale-95"
-          >
-            <Key size={16} strokeWidth={2.2} />
-          </button>
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             type="button"
             onClick={handleClear}
             title="Làm mới cuộc trò chuyện"
-            className="w-8.5 h-8.5 flex items-center justify-center text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] rounded-xl transition-all cursor-pointer active:scale-95"
+            className="h-8 px-2.5 rounded-none border-[1.5px] border-[#262626] dark:border-[#52525B] bg-white dark:bg-[#3F3F46] hover:bg-[#F3EFE6] dark:hover:bg-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] shadow-[1.5px_1.5px_0px_#262626] flex items-center gap-1.5 text-xs font-semibold cursor-pointer active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all"
           >
-            <RotateCcw size={16} strokeWidth={2.2} />
+            <RotateCcw size={13} strokeWidth={2.4} />
+            <span>Làm mới</span>
           </button>
         </div>
       </div>
 
       {/* 2. KHUNG TIN NHẮN (MESSAGE STREAM) */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-[#F2F2F7]/50 dark:bg-black/30">
+      <div className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-4 space-y-4 bg-[#FBF9F4] dark:bg-[#18181B]">
         {messages.map((m) => {
           const isAi = m.sender === "ai";
           const res = m.queryResult;
@@ -349,57 +313,43 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
               }`}
             >
               {isAi && (
-                <div className="w-7 h-7 rounded-xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
-                  <Sparkles size={14} strokeWidth={2.2} />
+                <div className="w-7 h-7 rounded-none bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1px_1px_0px_#262626] flex items-center justify-center shrink-0 mt-0.5">
+                  <Sparkles size={13} strokeWidth={2.4} />
                 </div>
               )}
 
               <div
-                className={`max-w-[90%] sm:max-w-[80%] px-4 py-3 rounded-2xl text-xs sm:text-[13px] leading-relaxed break-words transition-all ${
+                className={`max-w-[90%] sm:max-w-[82%] px-3.5 py-3 rounded-none text-xs sm:text-[13px] leading-relaxed break-words transition-all border-[1.5px] ${
                   isAi
-                    ? "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] border border-[#E5E5EA] dark:border-[#3A3A3C] shadow-xs rounded-tl-xs"
-                    : "bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] font-medium shadow-sm rounded-tr-xs"
+                    ? "bg-white dark:bg-[#27272A] text-[#1C1917] dark:text-[#FAFAFA] border-[#262626] dark:border-[#52525B] shadow-[2px_2px_0px_#262626] dark:shadow-[2px_2px_0px_#000]"
+                    : "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[#1C1917] dark:border-[#52525B] font-medium shadow-[2px_2px_0px_#78716C] dark:shadow-[2px_2px_0px_#000]"
                 }`}
               >
                 {/* Nội dung text chính */}
                 <div className="whitespace-pre-line font-normal">{renderMessageContent(m.text)}</div>
 
-                {/* NÚT MỞ CẤU HÌNH KHI THIẾU API KEY */}
-                {isAi && m.text.includes("API Key") && (
-                  <div className="mt-2.5 pt-2 border-t border-[#E5E5EA] dark:border-[#3A3A3C]">
-                    <button
-                      type="button"
-                      onClick={handleOpenConfig}
-                      className="px-3 py-1.5 rounded-xl bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] text-xs font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
-                    >
-                      <Key size={13} strokeWidth={2.4} />
-                      <span>Nhập Gemini API Key ngay</span>
-                    </button>
-                  </div>
-                )}
-
                 {/* CARD 1: TASK CREATED CARD (ĐƠN LẺ & BATCH) */}
                 {res && (res.type === "created_task" || res.type === "batch_created") && res.createdTasks && (
-                  <div className="mt-3 space-y-2 pt-2.5 border-t border-[#E5E5EA] dark:border-[#3A3A3C]">
+                  <div className="mt-3 space-y-2 pt-2.5 border-t border-[#262626]/20 dark:border-white/10">
                     {res.createdTasks.map((t) => (
                       <div
                         key={t.id}
-                        className="p-2.5 rounded-xl bg-[#F2F2F7] dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#3A3A3C] flex items-center justify-between gap-2"
+                        className="p-2.5 rounded-none bg-[#FBF9F4] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2"
                       >
                         <div className="min-w-0 flex-1">
-                          <div className="font-semibold text-xs text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+                          <div className="font-bold text-xs text-[#1C1917] dark:text-[#FAFAFA] truncate">
                             {t.title}
                           </div>
                           <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                             {renderPriorityBadge(t.priority)}
                             {t.timeLabel && (
-                              <span className="text-[10px] font-medium text-[#8E8E93] flex items-center gap-0.5">
+                              <span className="text-[10px] font-mono text-[#78716C] dark:text-[#A1A1AA] flex items-center gap-0.5">
                                 <Clock size={10} />
                                 {t.timeLabel}
                               </span>
                             )}
                             {t.tag && (
-                              <span className="text-[10px] font-medium text-[#007AFF] dark:text-[#0A84FF]">
+                              <span className="text-[10px] font-semibold text-[#1C1917] dark:text-[#FAFAFA] bg-[#FEF08A] dark:bg-yellow-900/40 px-1 border border-[#262626]/30">
                                 #{t.tag}
                               </span>
                             )}
@@ -409,7 +359,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                         <button
                           type="button"
                           onClick={() => openTaskDetail(t.id)}
-                          className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#2C2C2E] border border-[#E5E5EA] dark:border-[#3A3A3C] text-[11px] font-semibold text-[#1C1C1E] dark:text-white hover:bg-black/[0.03] dark:hover:bg-white/[0.05] active:scale-95 transition-all cursor-pointer flex items-center gap-1 shrink-0 shadow-2xs"
+                          className="px-2.5 py-1 rounded-none bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1px_1px_0px_#262626] text-[11px] font-bold text-[#1C1917] dark:text-[#FAFAFA] hover:bg-[#F3EFE6] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1 shrink-0"
                         >
                           <span>Mở</span>
                           <ExternalLink size={11} />
@@ -421,20 +371,20 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
 
                 {/* CARD 2: GOAL BREAKDOWN PLAN CARD */}
                 {res && res.type === "goal_breakdown" && res.breakdownPlan && (
-                  <div className="mt-3 p-3 rounded-xl bg-[#F2F2F7] dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#3A3A3C] space-y-2.5">
+                  <div className="mt-3 p-3 rounded-none bg-[#FBF9F4] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1.5px_1.5px_0px_#262626] space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7] flex items-center gap-1.5">
-                        <ListPlus size={14} className="text-[#007AFF]" />
+                      <span className="text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA] flex items-center gap-1.5">
+                        <ListPlus size={14} className="text-[#1C1917] dark:text-[#FAFAFA]" />
                         <span>{res.breakdownPlan.subtasks.length} bước đề xuất</span>
                       </span>
                       <button
                         type="button"
                         onClick={() => handleAddAllBreakdownTasks(res.breakdownPlan!)}
                         disabled={addedBreakdownGoals[res.breakdownPlan.goalTitle]}
-                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
+                        className={`px-2.5 py-1 rounded-none text-xs font-bold transition-all flex items-center gap-1 cursor-pointer border-[1.5px] ${
                           addedBreakdownGoals[res.breakdownPlan.goalTitle]
-                            ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
-                            : "bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] shadow-xs active:scale-95"
+                            ? "bg-emerald-100 text-emerald-800 border-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-300"
+                            : "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[#262626] dark:border-[#52525B] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
                         }`}
                       >
                         {addedBreakdownGoals[res.breakdownPlan.goalTitle] ? (
@@ -455,20 +405,20 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                       {res.breakdownPlan.subtasks.map((st, idx) => (
                         <div
                           key={idx}
-                          className="p-2 rounded-lg bg-white dark:bg-[#2C2C2E] border border-[#E5E5EA] dark:border-[#3A3A3C] flex items-center justify-between gap-2 text-xs"
+                          className="p-2 rounded-none bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2 text-xs"
                         >
                           <div className="flex items-center gap-2 min-w-0">
-                            <span className="w-4 h-4 rounded-full bg-black/[0.05] dark:bg-white/[0.08] text-[10px] font-bold flex items-center justify-center shrink-0">
+                            <span className="w-4 h-4 rounded-none bg-[#262626] text-white dark:bg-[#FAFAFA] dark:text-[#18181B] text-[10px] font-mono font-bold flex items-center justify-center shrink-0">
                               {idx + 1}
                             </span>
-                            <span className="font-medium text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
+                            <span className="font-semibold text-[#1C1917] dark:text-[#FAFAFA] truncate">
                               {st.title}
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-1 shrink-0">
+                          <div className="flex items-center gap-1.5 shrink-0">
                             {st.startTime && (
-                              <span className="text-[10px] text-[#8E8E93]">
+                              <span className="text-[10px] font-mono text-[#78716C] dark:text-[#A1A1AA]">
                                 {st.startTime}
                               </span>
                             )}
@@ -476,9 +426,9 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                               type="button"
                               onClick={() => handleAddSingleSubtask(st)}
                               title="Thêm bước này"
-                              className="p-1 rounded-md hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-[#8E8E93] hover:text-[#007AFF] cursor-pointer transition-colors"
+                              className="p-1 rounded-none border border-[#262626] dark:border-[#52525B] bg-[#F3EFE6] dark:bg-[#3F3F46] hover:bg-[#E5E0D4] text-[#1C1917] dark:text-[#FAFAFA] cursor-pointer active:translate-x-[0.5px] active:translate-y-[0.5px] transition-all"
                             >
-                              <Plus size={13} />
+                              <Plus size={12} strokeWidth={2.4} />
                             </button>
                           </div>
                         </div>
@@ -489,18 +439,18 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
 
                 {/* CARD 3: STATS & PROGRESS CARD */}
                 {res && res.type === "stats_progress" && res.stats && (
-                  <div className="mt-3 p-3 rounded-xl bg-[#F2F2F7] dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#3A3A3C] space-y-3">
+                  <div className="mt-3 p-3 rounded-none bg-[#FBF9F4] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1.5px_1.5px_0px_#262626] space-y-3">
                     {/* Progress Bar Hôm Nay */}
                     <div>
-                      <div className="flex items-center justify-between text-xs font-semibold mb-1">
-                        <span className="text-[#8E8E93]">Tiến độ hôm nay</span>
-                        <span className="text-[#1C1C1E] dark:text-[#F2F2F7]">
+                      <div className="flex items-center justify-between text-xs font-bold mb-1.5">
+                        <span className="text-[#78716C] dark:text-[#A1A1AA]">Tiến độ hôm nay</span>
+                        <span className="font-mono text-[#1C1917] dark:text-[#FAFAFA]">
                           {res.stats.completedToday}/{res.stats.todayCount} ({res.stats.todayPercent}%)
                         </span>
                       </div>
-                      <div className="w-full h-2 rounded-full bg-black/[0.06] dark:bg-white/[0.1] overflow-hidden">
+                      <div className="w-full h-2.5 rounded-none bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-[#52525B] overflow-hidden">
                         <div
-                          className="h-full bg-[#007AFF] rounded-full transition-all duration-500"
+                          className="h-full bg-[#1C1917] dark:bg-[#FAFAFA] transition-all duration-500"
                           style={{ width: `${res.stats.todayPercent}%` }}
                         />
                       </div>
@@ -508,21 +458,21 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
 
                     {/* Stat Badges */}
                     <div className="grid grid-cols-2 gap-2 pt-1">
-                      <div className="p-2 rounded-lg bg-white dark:bg-[#2C2C2E] border border-[#E5E5EA] dark:border-[#3A3A3C] flex items-center gap-2">
-                        <AlertTriangle size={14} className="text-[#FF3B30] shrink-0" />
+                      <div className="p-2 rounded-none bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1px_1px_0px_#262626] flex items-center gap-2">
+                        <AlertTriangle size={14} className="text-[#BE123C] shrink-0" />
                         <div>
-                          <div className="text-[10px] text-[#8E8E93]">Quá hạn</div>
-                          <div className="text-xs font-bold text-[#FF3B30]">
+                          <div className="text-[10px] font-semibold text-[#78716C] dark:text-[#A1A1AA]">Quá hạn</div>
+                          <div className="text-xs font-bold text-[#BE123C] dark:text-rose-400 font-mono">
                             {res.stats.overdueCount} việc
                           </div>
                         </div>
                       </div>
 
-                      <div className="p-2 rounded-lg bg-white dark:bg-[#2C2C2E] border border-[#E5E5EA] dark:border-[#3A3A3C] flex items-center gap-2">
-                        <TrendingUp size={14} className="text-[#FF9500] shrink-0" />
+                      <div className="p-2 rounded-none bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1px_1px_0px_#262626] flex items-center gap-2">
+                        <TrendingUp size={14} className="text-[#92400E] shrink-0" />
                         <div>
-                          <div className="text-[10px] text-[#8E8E93]">Việc gấp</div>
-                          <div className="text-xs font-bold text-[#FF9500]">
+                          <div className="text-[10px] font-semibold text-[#78716C] dark:text-[#A1A1AA]">Việc gấp</div>
+                          <div className="text-xs font-bold text-[#92400E] dark:text-amber-400 font-mono">
                             {res.stats.urgentCount} việc
                           </div>
                         </div>
@@ -533,28 +483,22 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
 
                 {/* CARD 4: TASK QUERY INTERACTIVE LIST */}
                 {res && res.type === "task_query" && res.queriedTasks && (
-                  <div className="mt-3 space-y-1.5 pt-2 border-t border-[#E5E5EA] dark:border-[#3A3A3C]">
+                  <div className="mt-3 space-y-1.5 pt-2 border-t border-[#262626]/20 dark:border-white/10">
                     {res.queriedTasks.map((t) => (
                       <div
                         key={t.id}
-                        className="p-2 rounded-xl bg-[#F2F2F7] dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#3A3A3C] flex items-center justify-between gap-2 text-xs hover:border-[#007AFF]/40 transition-colors"
+                        className="p-2 rounded-none bg-[#FBF9F4] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1px_1px_0px_#262626] flex items-center justify-between gap-2 text-xs"
                       >
                         <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <button
-                            type="button"
-                            onClick={() => toggleTask(t.id)}
-                            className="text-[#8E8E93] hover:text-[#007AFF] cursor-pointer shrink-0"
-                          >
-                            {t.completed ? (
-                              <CheckCircle2 size={16} className="text-emerald-500" />
-                            ) : (
-                              <Circle size={16} />
-                            )}
-                          </button>
+                          <HandDrawnCheckbox
+                            size="sm"
+                            checked={Boolean(t.completed)}
+                            onChange={() => toggleTask(t.id)}
+                          />
                           <span
                             onClick={() => openTaskDetail(t.id)}
-                            className={`font-medium truncate cursor-pointer hover:underline ${
-                              t.completed ? "line-through text-[#8E8E93]" : "text-[#1C1C1E] dark:text-[#F2F2F7]"
+                            className={`font-semibold truncate cursor-pointer hover:underline ${
+                              t.completed ? "line-through text-[#78716C] dark:text-[#A1A1AA]" : "text-[#1C1917] dark:text-[#FAFAFA]"
                             }`}
                           >
                             {t.title}
@@ -564,7 +508,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                         <div className="flex items-center gap-1.5 shrink-0">
                           {renderPriorityBadge(t.priority)}
                           {t.timeLabel && (
-                            <span className="text-[10px] text-[#8E8E93]">
+                            <span className="text-[10px] font-mono text-[#78716C] dark:text-[#A1A1AA]">
                               {t.timeLabel}
                             </span>
                           )}
@@ -577,7 +521,7 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
                 {/* Timestamp */}
                 <div
                   className={`text-[9px] font-mono font-medium text-right mt-1.5 ${
-                    isAi ? "text-[#8E8E93]" : "text-white/70 dark:text-[#1C1917]/70"
+                    isAi ? "text-[#78716C] dark:text-[#A1A1AA]" : "text-white/80 dark:text-[#18181B]/80"
                   }`}
                 >
                   {m.time}
@@ -588,8 +532,8 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
         })}
 
         {isTyping && (
-          <div className="flex items-center gap-2 text-xs text-[#8E8E93] font-medium pl-9">
-            <Sparkles size={13} className="text-[#8E8E93]" />
+          <div className="flex items-center gap-2 text-xs text-[#78716C] dark:text-[#A1A1AA] font-semibold pl-9">
+            <Sparkles size={13} className="text-[#1C1917] dark:text-[#FAFAFA] animate-spin" />
             <span>Trợ lý AI đang suy nghĩ và phân tích...</span>
           </div>
         )}
@@ -597,13 +541,13 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
       </div>
 
       {/* 3. DYNAMIC SMART PROMPT CHIPS */}
-      <div className="px-3 py-2 bg-white dark:bg-[#1C1C1E] border-t border-[#E5E5EA] dark:border-[#2C2C2E] flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+      <div className="px-3 py-2 bg-white dark:bg-[#27272A] border-t-[1.5px] border-[#262626] dark:border-[#52525B] flex items-center gap-1.5 overflow-x-auto no-scrollbar">
         {dynamicChips.map((chip) => (
           <button
             key={chip.id}
             type="button"
             onClick={() => handleSend(chip.query)}
-            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] text-[#1C1C1E] dark:text-[#F2F2F7] border border-[#E5E5EA] dark:border-[#3A3A3C] whitespace-nowrap active:scale-95 transition-all cursor-pointer shadow-2xs"
+            className="px-2.5 py-1 rounded-none text-xs font-semibold bg-[#F3EFE6] dark:bg-[#3F3F46] hover:bg-[#E5E0D4] dark:hover:bg-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1.5px_1.5px_0px_#262626] whitespace-nowrap active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
           >
             {chip.label}
           </button>
@@ -616,102 +560,34 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
           e.preventDefault();
           handleSend();
         }}
-        className={`p-3 bg-white dark:bg-[#1C1C1E] border-t border-[#E5E5EA] dark:border-[#2C2C2E] flex items-center gap-2 shrink-0 ${
+        className={`p-2.5 sm:p-3 bg-white dark:bg-[#27272A] border-t-[1.5px] border-[#262626] dark:border-[#52525B] flex items-center gap-2 shrink-0 ${
           isStandalone ? "pb-[max(env(safe-area-inset-bottom),12px)]" : ""
         }`}
       >
-        <div className="flex-1 flex items-center bg-[#F2F2F7] dark:bg-[#2C2C2E] border border-[#E5E5EA] dark:border-[#3A3A3C] rounded-xl px-3.5 py-2 focus-within:border-[#1C1C1E] dark:focus-within:border-white transition-all">
+        <div className="flex-1 flex items-center bg-[#F3EFE6] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[1.5px_1.5px_0px_#262626] px-3 py-1.5 transition-all">
           <input
             ref={inputRef}
             type="text"
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
             placeholder="Hỏi hoặc gõ: Họp team 14:30 chiều mai #CongViec gấp..."
-            className="w-full text-xs sm:text-sm font-medium bg-transparent outline-none placeholder:text-[#8E8E93] text-[#1C1C1E] dark:text-[#F2F2F7]"
+            className="w-full text-xs sm:text-sm font-medium bg-transparent outline-none placeholder:text-[#78716C] dark:placeholder:text-[#A1A1AA] text-[#1C1917] dark:text-[#FAFAFA]"
           />
         </div>
 
         <button
           type="submit"
           disabled={!inputVal.trim() || isTyping}
-          className={`h-9 w-9 shrink-0 rounded-xl flex items-center justify-center transition-all shadow-xs ${
+          className={`h-9 w-9 shrink-0 rounded-none flex items-center justify-center transition-all border-[1.5px] border-[#262626] dark:border-[#52525B] ${
             inputVal.trim() && !isTyping
-              ? "bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] hover:opacity-90 active:scale-95 cursor-pointer"
-              : "bg-[#E5E5EA] dark:bg-[#2C2C2E] text-[#8E8E93] cursor-not-allowed shadow-none"
+              ? "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer"
+              : "bg-[#E5E0D4] dark:bg-[#3F3F46] text-[#78716C] dark:text-[#71717A] cursor-not-allowed shadow-none"
           }`}
         >
           <Send size={15} strokeWidth={2.4} />
         </button>
       </form>
-
-      {/* 5. MODAL CẤU HÌNH API KEY (DÀNH CHO DEVELOPER / QUẢN TRỊ VIÊN) */}
-      {isConfigOpen && (
-        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
-          <div
-            className="w-full max-w-md bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-2xl p-5 space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between pb-2 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-[#007AFF]/10 text-[#007AFF] flex items-center justify-center">
-                  <Key size={15} />
-                </div>
-                <h3 className="font-bold text-sm text-[#1C1C1E] dark:text-[#F2F2F7]">
-                  Cấu hình Google Gemini API Key
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsConfigOpen(false)}
-                className="p-1 rounded-lg text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            <p className="text-xs text-[#8E8E93] leading-relaxed">
-              Dán API Key Google Gemini vào đây để kích hoạt trí tuệ nhân tạo. Bạn có thể lấy key miễn phí tại <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-[#007AFF] underline font-semibold">Google AI Studio</a>. Key được lưu an toàn trên máy của bạn.
-            </p>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                Gemini API Key:
-              </label>
-              <input
-                type="password"
-                value={tempApiKey}
-                onChange={(e) => setTempApiKey(e.target.value)}
-                placeholder="AIzaSy..."
-                className="w-full px-3.5 py-2 text-xs font-mono bg-[#F2F2F7] dark:bg-[#2C2C2E] border border-[#E5E5EA] dark:border-[#3A3A3C] rounded-none focus:outline-none focus:border-[#007AFF]"
-              />
-            </div>
-
-            {keySavedToast && (
-              <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-1.5">
-                <ShieldCheck size={14} />
-                <span>Đã lưu API Key thành công!</span>
-              </div>
-            )}
-
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E5E5EA] dark:border-[#2C2C2E]">
-              <button
-                type="button"
-                onClick={() => setIsConfigOpen(false)}
-                className="px-3.5 py-1.5 rounded-xl border border-[#E5E5EA] dark:border-[#2C2C2E] text-xs font-semibold text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
-              >
-                Đóng
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveApiKey}
-                className="px-4 py-1.5 rounded-xl bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] text-xs font-bold hover:opacity-90 active:scale-95 shadow-xs"
-              >
-                Lưu cấu hình
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
+
