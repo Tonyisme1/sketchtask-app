@@ -4,7 +4,6 @@
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
-  ArrowRight,
   Check,
   Clock,
   Compass,
@@ -14,7 +13,6 @@ import {
   Pin,
   Plus,
   Sun,
-  Trash2,
 } from "lucide-react";
 import { TaskDto } from "../../../types";
 import {
@@ -75,16 +73,12 @@ const DayTimelineTaskCard: React.FC<{
   showLabel?: boolean;
   onSelectTask: (task: TaskDto) => void;
   onToggleTask: (taskId: string) => void;
-  onDeleteTask: (taskId: string) => void;
-  onMoveTomorrow?: (taskId: string) => void;
 }> = ({
   task,
   style,
   showLabel = true,
   onSelectTask,
   onToggleTask,
-  onDeleteTask,
-  onMoveTomorrow,
 }) => {
   const type = normalizeTaskTimeType(task);
   const time = getTaskEffectiveTime(task);
@@ -161,36 +155,6 @@ const DayTimelineTaskCard: React.FC<{
           >
             {showLabel ? task.title : "..."}
           </span>
-        </div>
-
-        {/* Quick action buttons on hover */}
-        <div className="hidden shrink-0 items-center gap-0.5 group-hover:flex">
-          {onMoveTomorrow && (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onMoveTomorrow(task.id);
-              }}
-              title="Dời sang ngày mai"
-              aria-label={`Dời sang ngày mai: ${task.title}`}
-              className="flex h-4 w-4 items-center justify-center rounded-[2px] border border-[#262626] bg-white text-[#1C1917] hover:bg-[#FAF8F3] active:scale-95"
-            >
-              <ArrowRight size={9} strokeWidth={2.4} />
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDeleteTask(task.id);
-            }}
-            title="Xóa công việc"
-            aria-label={`Xóa task: ${task.title}`}
-            className="flex h-4 w-4 items-center justify-center rounded-[2px] border border-[#BE123C] bg-white text-[#BE123C] hover:bg-[#FFE4E6] active:scale-95"
-          >
-            <Trash2 size={9} strokeWidth={2.4} />
-          </button>
         </div>
       </div>
     </article>
@@ -527,8 +491,6 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
                   }}
                   onSelectTask={onSelectTask}
                   onToggleTask={onToggleTask}
-                  onDeleteTask={onDeleteTask}
-                  onMoveTomorrow={onMoveTomorrow}
                 />
               ))}
             </div>

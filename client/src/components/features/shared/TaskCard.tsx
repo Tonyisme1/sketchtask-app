@@ -15,8 +15,6 @@ import {
   CornerDownRight,
   ChevronDown,
   ChevronUp,
-  ArrowRight,
-  Trash2,
   Layers,
   Plus,
   Calendar,
@@ -27,7 +25,7 @@ export interface TaskCardProps {
   index?: number;
   onToggle: (taskId: string) => void;
   onEdit: (task: TaskDto) => void;
-  onDelete: (taskId: string) => void;
+  onDelete?: (taskId: string) => void;
   onMoveTomorrow?: (taskId: string) => void;
   onAddSubtask?: (parentTask: TaskDto) => void;
   onClick?: (task: TaskDto) => void;
@@ -50,8 +48,6 @@ export interface TaskCardProps {
 export const TaskCard: React.FC<TaskCardProps> = ({
   task,
   onToggle,
-  onDelete,
-  onMoveTomorrow,
   onAddSubtask,
   onClick,
   variant = "today",
@@ -274,18 +270,16 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           </div>
         </div>
 
-        {/* KHỐI PHẢI: Chỉ giữ quick actions, không chiếm chỗ của thời gian */}
-        <div className="relative flex items-start gap-2 shrink-0 min-w-0 pt-0.5">
-
-          {/* Desktop: hover. Touch: long press. Hidden actions do not reserve width. */}
-          <div
-            className={`hidden md:items-center md:gap-1 transition-opacity ${
-              areActionsVisible
-                ? "md:flex md:opacity-100 md:pointer-events-auto"
-                : "md:absolute md:right-0 md:flex md:opacity-0 md:pointer-events-none"
-            }`}
-          >
-            {onAddSubtask && !isSubtask && (
+        {/* KHỐI PHẢI: Chỉ giữ quick action thêm việc con nếu có */}
+        {onAddSubtask && !isSubtask && (
+          <div className="relative flex items-start gap-2 shrink-0 min-w-0 pt-0.5">
+            <div
+              className={`hidden md:items-center md:gap-1 transition-opacity ${
+                areActionsVisible
+                  ? "md:flex md:opacity-100 md:pointer-events-auto"
+                  : "md:absolute md:right-0 md:flex md:opacity-0 md:pointer-events-none"
+              }`}
+            >
               <button
                 type="button"
                 onClick={(e) => {
@@ -297,35 +291,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               >
                 <Plus size={14} strokeWidth={2.4} />
               </button>
-            )}
-
-            {onMoveTomorrow && !task.completed && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onMoveTomorrow(task.id);
-                }}
-                className="w-7 h-7 rounded flex items-center justify-center text-[#78716C] hover:text-[#1C1917] hover:bg-[#FAF8F3]"
-                title="Dời sang ngày mai"
-              >
-                <ArrowRight size={14} strokeWidth={2.2} />
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(task.id);
-              }}
-              className="w-7 h-7 rounded flex items-center justify-center text-[#78716C] hover:text-[#1C1917] hover:bg-[#FAF8F3]"
-              title="Xóa công việc"
-            >
-              <Trash2 size={14} strokeWidth={2.2} />
-            </button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
