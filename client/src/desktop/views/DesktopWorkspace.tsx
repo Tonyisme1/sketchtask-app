@@ -103,28 +103,42 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
 
   const isTaskDetailOpen = Boolean(activeDetailTaskId);
 
+  React.useEffect(() => {
+    if (!isTaskDetailOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeTaskDetail();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isTaskDetailOpen, closeTaskDetail]);
+
   return (
     <div className="relative w-full flex-1 flex min-h-0">
-      {/* 1. Vùng Không Gian Chính (Rộng rãi, thoáng đãng, không bị co giật khi mở chi tiết) */}
+      {/* 1. Vùng Không Gian Chính */}
       <div className="flex-1 min-w-0 px-6 lg:px-8 xl:px-10 py-6 pb-16 overflow-y-auto">
         <div className="w-full max-w-6xl 2xl:max-w-[1480px] mx-auto min-w-0">
           {renderMainTab()}
         </div>
       </div>
 
-      {/* 2. Modal Chi Tiết Task Phác Thảo Nét Mực (Hiển thị popup ở giữa, không ép co hẹp nội dung bên dưới) */}
+      {/* 2. Side Panel Chi Tiết Task: Trượt từ phải sang trái góc màn hình */}
       {isTaskDetailOpen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Chi tiết công việc"
-          onClick={closeTaskDetail}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 sm:p-6 lg:p-8 animate-in fade-in duration-150"
-        >
+        <div className="fixed inset-0 z-50 overflow-hidden select-none">
+          {/* Backdrop tối nhẹ */}
           <div
-            role="document"
-            onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-2xl h-[88vh] max-h-[820px] bg-[#FAF8F3] dark:bg-[#1C1C1E] rounded-2xl border-[1.5px] border-[#262626] shadow-[4px_4px_0px_#262626] overflow-hidden flex flex-col animate-in zoom-in-95 duration-150"
+            onClick={closeTaskDetail}
+            className="absolute inset-0 bg-black/30 backdrop-blur-xs animate-in fade-in duration-200"
+            aria-hidden="true"
+          />
+
+          {/* Drawer trượt từ phải sang */}
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Chi tiết công việc"
+            className="absolute top-0 right-0 bottom-0 w-full sm:w-[500px] lg:w-[560px] max-w-[100vw] bg-[#FAF8F3] dark:bg-[#1C1C1E] border-l-[1.5px] border-[#262626] shadow-[-6px_0px_0px_rgba(0,0,0,0.08)] flex flex-col animate-in slide-in-from-right duration-200 ease-out"
           >
             <TaskDetailPage
               taskId={activeDetailTaskId!}
