@@ -161,100 +161,89 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
         <div className="w-10 h-1.2 rounded-full bg-black/20 dark:bg-white/20 mx-auto mt-2.5 mb-1 sm:hidden shrink-0" />
 
         {/* 1. Header */}
-        <div className="px-5 py-3.5 border-b border-[#E5E5EA] dark:border-black flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] flex items-center justify-center">
-              <Bell size={16} strokeWidth={2.2} />
+        <div className="px-4 py-2.5 border-b border-[#E5E5EA] dark:border-black flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-black/[0.04] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7] flex items-center justify-center">
+              <Bell size={15} strokeWidth={2.2} />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm sm:text-base font-bold text-[#1C1C1E] dark:text-[#F2F2F7] leading-none">
-                  Thông báo
-                </h2>
-                {totalAlerts > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-md bg-black/10 dark:bg-white/20 text-[#1C1C1E] dark:text-white font-mono text-[10px] font-bold leading-none">
-                    {totalAlerts}
-                  </span>
-                )}
-              </div>
-              <p className="text-[11px] text-[#8E8E93] dark:text-[#AEAEC2] mt-0.5">
-                Nhắc nhở công việc & hạn định
-              </p>
+              <h2 className="text-sm font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                Thông báo
+              </h2>
             </div>
           </div>
 
           <button
             type="button"
-            onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer"
-            title="Đóng"
+            onClick={handleClose}
+            className="w-7 h-7 rounded-lg hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
             aria-label="Đóng"
           >
-            <X size={16} strokeWidth={2.2} />
+            <X size={15} strokeWidth={2.2} />
           </button>
         </div>
 
-        {/* 2. Segmented Filter Bar */}
+        {/* 2. Filter Pills */}
         {totalAlerts > 0 && (
-          <div className="px-5 pt-3 pb-1 shrink-0">
-            <div className="grid grid-cols-3 gap-1 bg-black/[0.04] dark:bg-white/[0.06] p-1 rounded-xl">
+          <div className="px-4 py-1.5 border-b border-[#E5E5EA] dark:border-black shrink-0">
+            <div className="grid grid-cols-3 gap-1 bg-black/[0.04] dark:bg-white/[0.06] p-0.5 rounded-lg">
               <button
                 type="button"
                 onClick={() => setFilter("all")}
-                className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
+                className={`py-1 px-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
                   filter === "all"
-                    ? "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs font-bold"
+                    ? "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-2xs font-bold"
                     : "text-[#8E8E93] dark:text-[#AEAEC2] hover:text-[#1C1C1E]"
                 }`}
               >
                 <span>Tất cả</span>
-                <span className="font-mono text-[10px] opacity-80">({totalAlerts})</span>
+                <span className="font-mono text-[9.5px] opacity-80">({totalAlerts})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setFilter("overdue")}
-                className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
+                className={`py-1 px-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
                   filter === "overdue"
-                    ? "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs font-bold"
+                    ? "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-2xs font-bold"
                     : "text-[#8E8E93] dark:text-[#AEAEC2] hover:text-[#1C1C1E]"
                 }`}
               >
-                <AlertTriangle size={12} strokeWidth={2.2} />
+                <AlertTriangle size={11} strokeWidth={2.2} />
                 <span>Quá hạn</span>
-                <span className="font-mono text-[10px] opacity-80">({overdueTasks.length})</span>
+                <span className="font-mono text-[9.5px] opacity-80">({overdueTasks.length})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setFilter("today")}
-                className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
+                className={`py-1 px-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
                   filter === "today"
-                    ? "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs font-bold"
+                    ? "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-2xs font-bold"
                     : "text-[#8E8E93] dark:text-[#AEAEC2] hover:text-[#1C1C1E]"
                 }`}
               >
-                <Clock size={12} strokeWidth={2.2} />
+                <Clock size={11} strokeWidth={2.2} />
                 <span>Hôm nay</span>
-                <span className="font-mono text-[10px] opacity-80">({todayDueTasks.length})</span>
+                <span className="font-mono text-[9.5px] opacity-80">({todayDueTasks.length})</span>
               </button>
             </div>
           </div>
         )}
 
         {/* 3. Notification Feed Content */}
-        <div className="flex-1 overflow-y-auto px-5 py-3 space-y-3 min-h-0">
+        <div className="flex-1 overflow-y-auto px-4 py-2.5 space-y-2 min-h-0">
           {totalAlerts === 0 ? (
-            <div className="text-center py-12 px-4 space-y-2 rounded-2xl border border-dashed border-[#E5E5EA] dark:border-black">
-              <div className="w-12 h-12 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] text-[#8E8E93] flex items-center justify-center mx-auto">
-                <Bell size={24} strokeWidth={1.8} />
+            <div className="text-center py-8 px-3 space-y-1.5 rounded-xl border border-dashed border-[#E5E5EA] dark:border-black">
+              <div className="w-9 h-9 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-[#8E8E93] flex items-center justify-center mx-auto">
+                <Bell size={18} strokeWidth={1.8} />
               </div>
-              <div className="space-y-1">
-                <p className="text-sm font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+              <div className="space-y-0.5">
+                <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
                   Không có thông báo mới
                 </p>
-                <p className="text-xs text-[#8E8E93] dark:text-[#AEAEC2] max-w-xs mx-auto">
-                  Bạn đã xử lý hết mọi việc quá hạn và hôm nay. Thật tuyệt vời!
+                <p className="text-[11px] text-[#8E8E93] dark:text-[#AEAEC2] max-w-xs mx-auto">
+                  Mọi công việc đều đang đúng tiến độ!
                 </p>
               </div>
             </div>
@@ -262,48 +251,48 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
             <>
               {/* Overdue Section */}
               {(filter === "all" || filter === "overdue") && overdueGroups.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between px-1 text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                    <span className="flex items-center gap-1.5">
-                      <AlertTriangle size={13} strokeWidth={2.4} />
-                      <span>Cảnh báo quá hạn ({overdueTasks.length})</span>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between px-0.5 text-[11px] font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                    <span className="flex items-center gap-1">
+                      <AlertTriangle size={12} strokeWidth={2.2} className="text-[#FF3B30] dark:text-[#FF453A]" />
+                      <span>Quá hạn ({overdueTasks.length})</span>
                     </span>
                   </div>
 
                   {overdueGroups.map((group) => (
-                    <div key={group.dateStr} className="space-y-1.5">
-                      <div className="flex items-center justify-between text-[11px] font-medium text-[#8E8E93] dark:text-[#AEAEC2] px-1">
-                        <span>Hạn chót: {formatFullDate(group.dateStr)}</span>
-                        <span className="font-mono text-[10px]">{group.tasks.length} thông báo</span>
+                    <div key={group.dateStr} className="space-y-1">
+                      <div className="flex items-center justify-between text-[10px] font-medium text-[#8E8E93] dark:text-[#AEAEC2] px-0.5">
+                        <span>Hạn: {formatFullDate(group.dateStr)}</span>
+                        <span className="font-mono">{group.tasks.length}</span>
                       </div>
 
                       {group.tasks.map((task) => (
                         <div
                           key={task.id}
                           onClick={() => handleTaskClick(task)}
-                          className="rounded-xl border border-[#E5E5EA] dark:border-black bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] p-3 transition-all cursor-pointer flex items-center justify-between gap-3 group"
+                          className="rounded-xl border border-[#E5E5EA] dark:border-black bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] p-2.5 transition-all cursor-pointer flex items-center justify-between gap-2.5 group"
                         >
-                          <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                            <div className="w-7 h-7 rounded-lg bg-black/[0.04] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-white flex items-center justify-center shrink-0 mt-0.5">
-                              <AlertTriangle size={14} strokeWidth={2.2} />
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <div className="w-6 h-6 rounded-md bg-rose-500/10 text-[#FF3B30] dark:text-[#FF453A] flex items-center justify-center shrink-0">
+                              <AlertTriangle size={12} strokeWidth={2.2} />
                             </div>
-                            <div className="min-w-0 flex-1 space-y-0.5">
-                              <p className="text-xs sm:text-sm font-bold text-[#1C1C1E] dark:text-[#F2F2F7] truncate group-hover:text-[#007AFF] transition-colors">
-                                Quá hạn: {task.title}
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate group-hover:opacity-80 transition-opacity">
+                                {task.title}
                               </p>
-                              <div className="flex items-center gap-1.5 text-[11px] text-[#8E8E93] dark:text-[#AEAEC2]">
-                                <span className="font-medium text-[10px]">
+                              <div className="flex items-center gap-1.5 text-[10px] text-[#8E8E93] dark:text-[#AEAEC2] mt-0.5">
+                                <span className="font-medium text-[#FF3B30] dark:text-[#FF453A]">
                                   Cần dời lịch
                                 </span>
                                 {getTaskEffectiveTime(task) && (
-                                  <span className="font-mono text-[10px]">
+                                  <span className="font-mono">
                                     • {getTaskEffectiveTime(task)}
                                   </span>
                                 )}
                               </div>
                             </div>
                           </div>
-                          <ChevronRight size={15} strokeWidth={2.2} className="text-[#C7C7CC] group-hover:text-[#1C1C1E] dark:group-hover:text-white transition-colors shrink-0" />
+                          <ChevronRight size={14} strokeWidth={2.2} className="text-[#C7C7CC] group-hover:text-[#1C1C1E] dark:group-hover:text-white transition-colors shrink-0" />
                         </div>
                       ))}
                     </div>
@@ -313,42 +302,42 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
 
               {/* Today Due Section */}
               {(filter === "all" || filter === "today") && todayDueTasks.length > 0 && (
-                <div className="space-y-2 pt-1">
-                  <div className="flex items-center justify-between px-1 text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                    <span className="flex items-center gap-1.5">
-                      <Clock size={13} strokeWidth={2.4} />
+                <div className="space-y-1.5 pt-0.5">
+                  <div className="flex items-center justify-between px-0.5 text-[11px] font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                    <span className="flex items-center gap-1">
+                      <Clock size={12} strokeWidth={2.2} className="text-blue-500" />
                       <span>Đến hạn hôm nay ({todayDueTasks.length})</span>
                     </span>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1">
                     {todayDueTasks.map((task) => (
                       <div
                         key={task.id}
                         onClick={() => handleTaskClick(task)}
-                        className="rounded-xl border border-[#E5E5EA] dark:border-black bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] p-3 transition-all cursor-pointer flex items-center justify-between gap-3 group"
+                        className="rounded-xl border border-[#E5E5EA] dark:border-black bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] p-2.5 transition-all cursor-pointer flex items-center justify-between gap-2.5 group"
                       >
-                        <div className="flex items-start gap-2.5 min-w-0 flex-1">
-                          <div className="w-7 h-7 rounded-lg bg-black/[0.04] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-white flex items-center justify-center shrink-0 mt-0.5">
-                            <Clock size={14} strokeWidth={2.2} />
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div className="w-6 h-6 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                            <Clock size={12} strokeWidth={2.2} />
                           </div>
-                          <div className="min-w-0 flex-1 space-y-0.5">
-                            <p className="text-xs sm:text-sm font-bold text-[#1C1C1E] dark:text-[#F2F2F7] truncate group-hover:text-[#007AFF] transition-colors">
-                              Đến hạn: {task.title}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate group-hover:opacity-80 transition-opacity">
+                              {task.title}
                             </p>
-                            <div className="flex items-center gap-1.5 text-[11px] text-[#8E8E93] dark:text-[#AEAEC2]">
-                              <span className="font-medium text-[10px]">
+                            <div className="flex items-center gap-1.5 text-[10px] text-[#8E8E93] dark:text-[#AEAEC2] mt-0.5">
+                              <span className="font-medium text-blue-600 dark:text-blue-400">
                                 Hôm nay
                               </span>
                               {getTaskEffectiveTime(task) && (
-                                <span className="font-mono text-[10px]">
+                                <span className="font-mono">
                                   • {getTaskEffectiveTime(task)}
                                 </span>
                               )}
                             </div>
                           </div>
                         </div>
-                        <ChevronRight size={15} strokeWidth={2.2} className="text-[#C7C7CC] group-hover:text-[#1C1C1E] dark:group-hover:text-white transition-colors shrink-0" />
+                        <ChevronRight size={14} strokeWidth={2.2} className="text-[#C7C7CC] group-hover:text-[#1C1C1E] dark:group-hover:text-white transition-colors shrink-0" />
                       </div>
                     ))}
                   </div>
@@ -357,22 +346,22 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
 
               {/* Filter Empty States */}
               {filter === "overdue" && overdueTasks.length === 0 && (
-                <div className="rounded-xl border border-dashed border-[#E5E5EA] dark:border-black py-8 text-center space-y-1">
+                <div className="rounded-xl border border-dashed border-[#E5E5EA] dark:border-black py-6 text-center space-y-0.5">
                   <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                    Không có công việc nào quá hạn
+                    Không có việc quá hạn
                   </p>
-                  <p className="text-[11px] text-[#8E8E93] dark:text-[#AEAEC2]">
-                    Bạn đã hoàn thành tốt các hạn chót trước đó.
+                  <p className="text-[10px] text-[#8E8E93] dark:text-[#AEAEC2]">
+                    Tất cả hạn chót đã được xử lý tốt.
                   </p>
                 </div>
               )}
 
               {filter === "today" && todayDueTasks.length === 0 && (
-                <div className="rounded-xl border border-dashed border-[#E5E5EA] dark:border-black py-8 text-center space-y-1">
+                <div className="rounded-xl border border-dashed border-[#E5E5EA] dark:border-black py-6 text-center space-y-0.5">
                   <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                    Không có việc nào đến hạn hôm nay
+                    Không có việc đến hạn hôm nay
                   </p>
-                  <p className="text-[11px] text-[#8E8E93] dark:text-[#AEAEC2]">
+                  <p className="text-[10px] text-[#8E8E93] dark:text-[#AEAEC2]">
                     Tất cả công việc trong ngày đã được hoàn tất.
                   </p>
                 </div>
@@ -382,22 +371,21 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
         </div>
 
         {/* 4. Footer Quick Action */}
-        <div className="px-5 py-3 bg-black/[0.02] dark:bg-white/[0.02] border-t border-[#E5E5EA] dark:border-black flex items-center justify-between shrink-0">
+        <div className="px-4 py-2 bg-black/[0.02] dark:bg-white/[0.02] border-t border-[#E5E5EA] dark:border-black flex items-center justify-between shrink-0">
           <span className="text-[11px] font-medium text-[#8E8E93] dark:text-[#AEAEC2]">
-            Tổng: <strong className="text-[#1C1C1E] dark:text-white font-mono">{totalAlerts} thông báo</strong>
+            Tổng: <strong className="text-[#1C1C1E] dark:text-white font-mono">{totalAlerts}</strong>
           </span>
 
           <button
             type="button"
             onClick={handleNavigateToDeadlines}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] text-xs font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] text-xs font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-2xs"
           >
             <span>Quản lý Hạn định</span>
-            <ArrowRight size={13} strokeWidth={2.4} />
+            <ArrowRight size={12} strokeWidth={2.4} />
           </button>
         </div>
       </div>
     </div>
   );
 };
-
