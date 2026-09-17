@@ -1,7 +1,10 @@
 import React from "react";
 import { TabKey, NavigationTarget } from "../../shared/types";
 import { DesktopTasksView } from "./DesktopTasksView";
+import { DesktopTodayView } from "./DesktopTodayView";
 import {
+  PlannerTab,
+  DeadlinesTab,
   NotesTab,
   JournalTab,
   AIAssistantTab,
@@ -31,6 +34,29 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
 
   const renderMainTab = () => {
     switch (activeTab) {
+      case "today":
+        return (
+          <DesktopTodayView
+            targetTaskId={navigationTarget?.taskId}
+            onClearTarget={onClearNavigationTarget}
+          />
+        );
+      case "planner":
+        return (
+          <PlannerTab
+            targetDateStr={navigationTarget?.date}
+            targetTaskId={navigationTarget?.taskId}
+            onClearTarget={onClearNavigationTarget}
+          />
+        );
+      case "deadlines":
+        return (
+          <DeadlinesTab
+            onNavigateToTaskDate={(dateStr, taskId) => {
+              onNavigateTab("planner", { date: dateStr, taskId });
+            }}
+          />
+        );
       case "tasks":
         return (
           <DesktopTasksView
@@ -67,9 +93,9 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
         );
       default:
         return (
-          <DesktopTasksView
-            navigationTarget={navigationTarget}
-            onClearNavigationTarget={onClearNavigationTarget}
+          <DesktopTodayView
+            targetTaskId={navigationTarget?.taskId}
+            onClearTarget={onClearNavigationTarget}
           />
         );
     }
@@ -79,28 +105,33 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
 
   return (
     <div className="relative w-full flex-1 flex min-h-0">
-      {/* 1. Vùng Tab Chính (Gọn gàng, dễ nhìn, tự động chừa lề cho panel chi tiết cố định khi ở tab tasks) */}
-      <div
-        className={`flex-1 min-w-0 px-6 lg:px-8 xl:px-10 py-6 pb-16 overflow-y-auto ${
-          isTaskDetailOpen ? "mr-[380px] lg:mr-[410px] xl:mr-[430px]" : ""
-        }`}
-      >
+      {/* 1. Vùng Không Gian Chính (Rộng rãi, thoáng đãng, không bị co giật khi mở chi tiết) */}
+      <div className="flex-1 min-w-0 px-6 lg:px-8 xl:px-10 py-6 pb-16 overflow-y-auto">
         <div className="w-full max-w-6xl 2xl:max-w-[1480px] mx-auto min-w-0">
           {renderMainTab()}
         </div>
       </div>
 
-      {/* 2. Panel Chi Tiết Task Cố Định (Chỉ xuất hiện khi đang ở tab Công việc/Hôm nay) */}
+      {/* 2. Modal Chi Tiết Task Phác Thảo Nét Mực (Hiển thị popup ở giữa, không ép co hẹp nội dung bên dưới) */}
       {isTaskDetailOpen && (
-        <aside
-          key={activeDetailTaskId}
-          className="fixed right-0 top-[60px] bottom-0 w-[380px] lg:w-[410px] xl:w-[430px] z-20 bg-white dark:bg-[#1C1C1E] border-l border-[#E5E5EA] dark:border-[#2C2C2E] flex flex-col overflow-hidden animate-detail-slide-in shadow-2xl"
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Chi tiết công việc"
+          onClick={closeTaskDetail}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 sm:p-6 lg:p-8 animate-in fade-in duration-150"
         >
-          <TaskDetailPage
-            taskId={activeDetailTaskId!}
-            onBack={closeTaskDetail}
-          />
-        </aside>
+          <div
+            role="document"
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-2xl h-[88vh] max-h-[820px] bg-[#FAF8F3] dark:bg-[#1C1C1E] rounded-2xl border-[1.5px] border-[#262626] shadow-[4px_4px_0px_#262626] overflow-hidden flex flex-col animate-in zoom-in-95 duration-150"
+          >
+            <TaskDetailPage
+              taskId={activeDetailTaskId!}
+              onBack={closeTaskDetail}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

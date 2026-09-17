@@ -173,65 +173,119 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
         />
       </div>
 
-      {/* 3. Phần Lịch Hẹn Theo Khung Giờ (Chưa hoàn thành) */}
-      {statusFilter !== "completed" && activeScheduledTasks.length > 0 && (
-        <div className="space-y-3">
-          <TodayScheduleNotes
-            scheduledTasks={activeScheduledTasks}
-            onToggle={toggleTask}
-            onEdit={(task) => openTaskDetail(task.id)}
-            onDelete={deleteTask}
-            onMoveTomorrow={moveTaskToTomorrow}
-            onClick={(task) => openTaskDetail(task.id)}
-            activeTaskId={targetTaskId}
-          />
-        </div>
-      )}
-
-      {/* 4. Phần Danh Sách Công Việc Cần Làm (Chưa hoàn thành) */}
-      {statusFilter !== "completed" && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20 dark:border-transparent">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917]">
-              <ListTodo size={16} className="text-[#1C1917]" />
-              <span>Công việc cần làm ({activeTaskListItems.length})</span>
-            </div>
+      {/* 2. Nội dung chính: Phân bổ 2 cột khi có Lịch hẹn theo giờ trên Desktop */}
+      {statusFilter !== "completed" && activeScheduledTasks.length > 0 ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Cột Trái: Lịch Hẹn Theo Giờ */}
+          <div className="lg:col-span-5 space-y-3">
+            <TodayScheduleNotes
+              scheduledTasks={activeScheduledTasks}
+              onToggle={toggleTask}
+              onEdit={(task) => openTaskDetail(task.id)}
+              onDelete={deleteTask}
+              onMoveTomorrow={moveTaskToTomorrow}
+              onClick={(task) => openTaskDetail(task.id)}
+              activeTaskId={targetTaskId}
+            />
           </div>
 
-          <TodayTaskList
-            tasks={activeTaskListItems}
-            onToggle={toggleTask}
-            onEdit={(task) => openTaskDetail(task.id)}
-            onDelete={deleteTask}
-            onMoveTomorrow={moveTaskToTomorrow}
-            onClick={(task) => openTaskDetail(task.id)}
-            activeTaskId={targetTaskId}
-            showQuickAdd={false}
-            onEmptyAction={() => openQuickTaskModal({ dueDate: todayStr })}
-          />
-        </div>
-      )}
+          {/* Cột Phải: Danh Sách Công Việc & Đã Xong */}
+          <div className="lg:col-span-7 space-y-6">
+            {/* Công việc cần làm */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20 dark:border-transparent">
+                <div className="flex items-center gap-2 text-sm font-bold text-[#1C1917] dark:text-white">
+                  <ListTodo size={16} strokeWidth={2.4} className="text-[#1C1917] dark:text-white" />
+                  <span>Công việc cần làm ({activeTaskListItems.length})</span>
+                </div>
+              </div>
 
-      {/* 5. MỘT KHU VỰC DUY NHẤT CHO TOÀN BỘ CÔNG VIỆC ĐÃ HOÀN THÀNH */}
-      {statusFilter !== "active" && completedTodayTasks.length > 0 && (
-        <div className="mt-8 pt-5 border-t border-[#E5E5EA] dark:border-transparent space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-[#262626]/15 dark:border-transparent">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#8E8E93] dark:text-[#aeaeb2]">
-              <CheckCircle2 size={16} strokeWidth={2.2} className="text-emerald-500 shrink-0" />
-              <span>Đã hoàn thành ({completedTodayTasks.length})</span>
+              <TodayTaskList
+                tasks={activeTaskListItems}
+                onToggle={toggleTask}
+                onEdit={(task) => openTaskDetail(task.id)}
+                onDelete={deleteTask}
+                onMoveTomorrow={moveTaskToTomorrow}
+                onClick={(task) => openTaskDetail(task.id)}
+                activeTaskId={targetTaskId}
+                showQuickAdd={false}
+                onEmptyAction={() => openQuickTaskModal({ dueDate: todayStr })}
+              />
             </div>
-          </div>
 
-          <TodayTaskList
-            tasks={completedTodayTasks}
-            onToggle={toggleTask}
-            onEdit={(task) => openTaskDetail(task.id)}
-            onDelete={deleteTask}
-            onMoveTomorrow={moveTaskToTomorrow}
-            onClick={(task) => openTaskDetail(task.id)}
-            activeTaskId={targetTaskId}
-            showQuickAdd={false}
-          />
+            {/* Công việc đã hoàn thành */}
+            {statusFilter !== "active" && completedTodayTasks.length > 0 && (
+              <div className="pt-4 border-t border-[#262626]/15 dark:border-transparent space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-[#262626]/15 dark:border-transparent">
+                  <div className="flex items-center gap-2 text-sm font-bold text-[#78716C] dark:text-[#A1A1AA]">
+                    <CheckCircle2 size={16} strokeWidth={2.4} className="text-emerald-500 shrink-0" />
+                    <span>Đã hoàn thành ({completedTodayTasks.length})</span>
+                  </div>
+                </div>
+
+                <TodayTaskList
+                  tasks={completedTodayTasks}
+                  onToggle={toggleTask}
+                  onEdit={(task) => openTaskDetail(task.id)}
+                  onDelete={deleteTask}
+                  onMoveTomorrow={moveTaskToTomorrow}
+                  onClick={(task) => openTaskDetail(task.id)}
+                  activeTaskId={targetTaskId}
+                  showQuickAdd={false}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* Khi không có lịch hẹn hoặc lọc chỉ xem hoàn thành */
+        <div className="space-y-6">
+          {/* Phần Danh Sách Công Việc Cần Làm */}
+          {statusFilter !== "completed" && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20 dark:border-transparent">
+                <div className="flex items-center gap-2 text-sm font-bold text-[#1C1917] dark:text-white">
+                  <ListTodo size={16} strokeWidth={2.4} className="text-[#1C1917] dark:text-white" />
+                  <span>Công việc cần làm ({activeTaskListItems.length})</span>
+                </div>
+              </div>
+
+              <TodayTaskList
+                tasks={activeTaskListItems}
+                onToggle={toggleTask}
+                onEdit={(task) => openTaskDetail(task.id)}
+                onDelete={deleteTask}
+                onMoveTomorrow={moveTaskToTomorrow}
+                onClick={(task) => openTaskDetail(task.id)}
+                activeTaskId={targetTaskId}
+                showQuickAdd={false}
+                onEmptyAction={() => openQuickTaskModal({ dueDate: todayStr })}
+              />
+            </div>
+          )}
+
+          {/* Công việc đã hoàn thành */}
+          {statusFilter !== "active" && completedTodayTasks.length > 0 && (
+            <div className="mt-8 pt-5 border-t border-[#262626]/15 dark:border-transparent space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-[#262626]/15 dark:border-transparent">
+                <div className="flex items-center gap-2 text-sm font-bold text-[#78716C] dark:text-[#A1A1AA]">
+                  <CheckCircle2 size={16} strokeWidth={2.4} className="text-emerald-500 shrink-0" />
+                  <span>Đã hoàn thành ({completedTodayTasks.length})</span>
+                </div>
+              </div>
+
+              <TodayTaskList
+                tasks={completedTodayTasks}
+                onToggle={toggleTask}
+                onEdit={(task) => openTaskDetail(task.id)}
+                onDelete={deleteTask}
+                onMoveTomorrow={moveTaskToTomorrow}
+                onClick={(task) => openTaskDetail(task.id)}
+                activeTaskId={targetTaskId}
+                showQuickAdd={false}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

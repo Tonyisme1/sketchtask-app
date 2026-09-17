@@ -1,16 +1,19 @@
+// ==========================================
+// COMPONENT: Desktop Sidebar (Central Ink & Paper Navigation)
+// ==========================================
+
 import React from "react";
 import { TabKey } from "../../types";
 import { useAppStore } from "../../stores/appStore";
 import {
-  BookOpen,
+  Sun,
   Calendar as CalendarIcon,
-  CheckSquare,
-  FileText,
   Hourglass,
   FilePenLine,
-  Plus,
+  BookOpen,
   Sparkles,
-  Sun,
+  Plus,
+  Settings,
 } from "lucide-react";
 import {
   getTaskEffectiveDate,
@@ -21,18 +24,21 @@ import {
 import { getLocalTodayStr } from "../../utils/date";
 import { loadNotesFromStorage } from "../../utils/noteStorage";
 
-// Desktop navigation keeps the same four workspaces as mobile and tablet.
 export interface SidebarProps {
   activeTab: TabKey;
   onTabChange: (tab: TabKey) => void;
   onCreateTask?: () => void;
   onOpenSettings?: () => void;
+  onOpenAIModal?: () => void;
 }
 
-const baseItemClass =
-  "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer select-none active:scale-[0.98]";
-
-export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCreateTask }) => {
+export const Sidebar: React.FC<SidebarProps> = ({
+  activeTab,
+  onTabChange,
+  onCreateTask,
+  onOpenSettings,
+  onOpenAIModal,
+}) => {
   const {
     tasks,
     journalEntries,
@@ -40,13 +46,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
     setActiveTaskSubTab,
     isSidebarOpen,
   } = useAppStore();
+
   const todayStr = getLocalTodayStr(new Date());
-  const pendingTodayCount = tasks.filter((task) => !task.completed && isTaskDueToday(task)).length;
+
+  // Task Stats for Badges
+  const pendingTodayCount = tasks.filter(
+    (task) => !task.completed && isTaskDueToday(task)
+  ).length;
+
   const overdueCount = tasks.filter((task) => {
     if (task.completed) return false;
     const temporal = getTaskTemporalState(task);
     return temporal === "overdue" || temporal === "pastScheduled";
   }).length;
+
   const dueWithin24hCount = tasks.filter((task) => {
     if (task.completed) return false;
     const temporal = getTaskTemporalState(task);
@@ -55,267 +68,327 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, onCrea
     const timeType = normalizeTaskTimeType(task);
     const effectiveDate = getTaskEffectiveDate(task);
     const tomorrow = getLocalTodayStr(new Date(Date.now() + 86400000));
-    return (timeType === "deadline" || Boolean(task.deadlineTime)) &&
-      (effectiveDate === todayStr || effectiveDate === tomorrow);
+    return (
+      (timeType === "deadline" || Boolean(task.deadlineTime)) &&
+      (effectiveDate === todayStr || effectiveDate === tomorrow)
+    );
   }).length;
+
   const deadlineAlertTotal = overdueCount + dueWithin24hCount;
   const notesCount = loadNotesFromStorage().length;
 
-  const isTodayActive = activeTab === "today" || (activeTab === "tasks" && activeTaskSubTab === "today");
-  const isTasksActive = activeTab === "tasks" && activeTaskSubTab !== "today";
-  const isNotesActive = activeTab === "notes" || activeTab === "journal";
-  const isAiActive = activeTab === "ai";
+  // Active state determinations
+  const isTodayActive =
+    activeTab === "today" ||
+    (activeTab === "tasks" && activeTaskSubTab === "today");
+  const isPlannerActive =
+    activeTab === "planner" ||
+    (activeTab === "tasks" && activeTaskSubTab === "planner");
+  const isDeadlinesActive =
+    activeTab === "deadlines" ||
+    (activeTab === "tasks" && activeTaskSubTab === "deadlines");
+  const isNotesActive = activeTab === "notes";
+  const isJournalActive = activeTab === "journal";
 
-  const goToday = () => {
+  // Handlers
+  const handleSelectToday = () => {
     setActiveTaskSubTab("today");
     onTabChange("today");
   };
 
-  const goTasks = () => onTabChange("tasks");
+  const handleSelectPlanner = () => {
+    setActiveTaskSubTab("planner");
+    onTabChange("planner");
+  };
 
-  const renderWorkspaceButton = (
-    label: string,
-    icon: React.ReactNode,
-    isActive: boolean,
-    onClick: () => void,
-    trailing?: React.ReactNode,
-  ) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`${baseItemClass} ${
-        isActive
-          ? "bg-black/[0.08] dark:bg-white/[0.12] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold shadow-xs"
-          : "bg-transparent text-[#8E8E93] dark:text-[#8E8E93] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
-      }`}
-    >
-      <span className="flex items-center gap-3 min-w-0">
-        <span className={isActive ? "text-[#007AFF] dark:text-[#0A84FF]" : "text-[#8E8E93] dark:text-[#8E8E93]"}>
-          {icon}
-        </span>
-        <span className="tracking-tight truncate">{label}</span>
-      </span>
-      {trailing}
-    </button>
-  );
+  const handleSelectDeadlines = () => {
+    setActiveTaskSubTab("deadlines");
+    onTabChange("deadlines");
+  };
 
-  const renderSubButton = (
-    label: string,
-    icon: React.ReactNode,
-    isActive: boolean,
-    onClick: () => void,
-    trailing?: React.ReactNode,
-  ) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`w-full flex items-center justify-between pl-9 pr-3 py-2 rounded-lg text-xs transition-all cursor-pointer select-none active:scale-[0.98] ${
-        isActive
-          ? "bg-black/[0.06] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold"
-          : "text-[#8E8E93] dark:text-[#8E8E93] hover:bg-black/[0.03] dark:hover:bg-white/[0.04] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
-      }`}
-    >
-      <span className="flex items-center gap-2 min-w-0">
-        <span className={isActive ? "text-[#007AFF] dark:text-[#0A84FF]" : "text-[#8E8E93] dark:text-[#8E8E93]"}>
-          {icon}
-        </span>
-        <span className="truncate">{label}</span>
-      </span>
-      {trailing}
-    </button>
-  );
+  const handleSelectNotes = () => {
+    onTabChange("notes");
+  };
 
+  const handleSelectJournal = () => {
+    onTabChange("journal");
+  };
+
+  // ----------------------------------------------------
+  // COLLAPSED MODE (w-[72px] icon-only navigation)
+  // ----------------------------------------------------
   if (!isSidebarOpen) {
     return (
-      <aside className="hidden md:flex flex-col items-center h-[calc(100vh-60px)] sticky top-[60px] bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-r border-[#E5E5EA] dark:border-[#2C2C2E] select-none z-20 shrink-0 w-[72px] py-3 px-2 transition-[width] duration-200">
-        {onCreateTask && (
+      <aside className="hidden md:flex flex-col items-center justify-between h-[calc(100vh-60px)] sticky top-[60px] bg-[#FAF8F3] dark:bg-[#1C1C1E] border-r-[1.5px] border-[#262626] select-none z-20 shrink-0 w-[72px] py-3 px-2 transition-[width] duration-150">
+        <div className="flex flex-col items-center gap-1.5 w-full">
+          {/* Quick Create Task Button */}
+          {onCreateTask && (
+            <button
+              type="button"
+              onClick={onCreateTask}
+              title="Tạo công việc mới (N)"
+              aria-label="Tạo công việc mới"
+              className="w-10 h-10 mb-2 rounded-xl flex items-center justify-center bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] border-[1.5px] border-[#262626] shadow-[2px_2px_0px_#262626] hover:bg-black active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+            >
+              <Plus size={18} strokeWidth={2.6} />
+            </button>
+          )}
+
+          <nav className="flex flex-col items-center gap-1.5 w-full" aria-label="Menu thu gọn">
+            <button
+              type="button"
+              onClick={handleSelectToday}
+              title="Hôm nay"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer ${
+                isTodayActive
+                  ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
+                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+              } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
+            >
+              <Sun size={18} strokeWidth={2.4} />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSelectPlanner}
+              title="Kế hoạch tuần & tháng"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer ${
+                isPlannerActive
+                  ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
+                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+              } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
+            >
+              <CalendarIcon size={18} strokeWidth={2.4} />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSelectDeadlines}
+              title="Hạn định & Quá hạn"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer relative ${
+                isDeadlinesActive
+                  ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
+                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+              } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
+            >
+              <Hourglass size={18} strokeWidth={2.4} />
+              {deadlineAlertTotal > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#FF3B30]" />
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSelectNotes}
+              title="Ghi chú phác thảo"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer ${
+                isNotesActive
+                  ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
+                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+              } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
+            >
+              <FilePenLine size={18} strokeWidth={2.4} />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSelectJournal}
+              title="Sổ nhật ký"
+              className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer ${
+                isJournalActive
+                  ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
+                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+              } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
+            >
+              <BookOpen size={18} strokeWidth={2.4} />
+            </button>
+          </nav>
+        </div>
+
+        {/* Bottom Actions (AI & Settings) */}
+        <div className="flex flex-col items-center gap-1.5 w-full pt-2 border-t border-[#262626]/20">
           <button
             type="button"
-            onClick={onCreateTask}
-            title="Tạo công việc mới"
-            aria-label="Tạo công việc mới"
-            className="w-full py-2.5 px-1 mb-2 rounded-xl flex flex-col items-center justify-center gap-1 bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] shadow-sm hover:opacity-90 transition-all cursor-pointer active:scale-95"
+            onClick={onOpenAIModal || (() => onTabChange("ai"))}
+            title="Trợ lý AI Phác Thảo"
+            className="w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] border-[#262626] bg-[#FEF08A] dark:bg-amber-500/20 text-[#1C1917] dark:text-amber-300 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
           >
-            <Plus size={18} strokeWidth={2.4} />
-            <span className="text-[10px] leading-none truncate font-semibold">Tạo mới</span>
+            <Sparkles size={18} strokeWidth={2.4} />
           </button>
-        )}
-        <nav className="flex flex-col items-center gap-1 w-full" aria-label="Không gian chính">
-          <button
-            type="button"
-            onClick={goToday}
-            title="Hôm nay"
-            className={`w-full py-2.5 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-              isTodayActive
-                ? "bg-black/[0.08] dark:bg-white/[0.12] text-[#007AFF] dark:text-[#0A84FF] font-semibold"
-                : "text-[#8E8E93] dark:text-[#8E8E93] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-[#1C1C1E] dark:hover:text-white"
-            } active:scale-95`}
-          >
-            <Sun size={18} strokeWidth={2.2} />
-            <span className="text-[10px] leading-none truncate font-medium">Nay</span>
-          </button>
-          <button
-            type="button"
-            onClick={goTasks}
-            title="Công việc"
-            className={`w-full py-2.5 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-              isTasksActive
-                ? "bg-black/[0.08] dark:bg-white/[0.12] text-[#007AFF] dark:text-[#0A84FF] font-semibold"
-                : "text-[#8E8E93] dark:text-[#8E8E93] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-[#1C1C1E] dark:hover:text-white"
-            } active:scale-95`}
-          >
-            <CheckSquare size={18} strokeWidth={2.2} />
-            <span className="text-[10px] leading-none truncate font-medium">Việc</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => onTabChange("notes")}
-            title="Ghi chép"
-            className={`w-full py-2.5 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-              isNotesActive
-                ? "bg-black/[0.08] dark:bg-white/[0.12] text-[#007AFF] dark:text-[#0A84FF] font-semibold"
-                : "text-[#8E8E93] dark:text-[#8E8E93] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-[#1C1C1E] dark:hover:text-white"
-            } active:scale-95`}
-          >
-            <FilePenLine size={18} strokeWidth={2.2} />
-            <span className="text-[10px] leading-none truncate font-medium">Ghi</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => onTabChange("ai")}
-            title="Trợ lý AI"
-            className={`w-full py-2.5 px-1 rounded-xl flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-              isAiActive
-                ? "bg-black/[0.08] dark:bg-white/[0.12] text-[#007AFF] dark:text-[#0A84FF] font-semibold"
-                : "text-[#8E8E93] dark:text-[#8E8E93] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] hover:text-[#1C1C1E] dark:hover:text-white"
-            } active:scale-95`}
-          >
-            <Sparkles size={18} strokeWidth={2.2} />
-            <span className="text-[10px] leading-none truncate font-medium">AI</span>
-          </button>
-        </nav>
+
+          {onOpenSettings && (
+            <button
+              type="button"
+              onClick={onOpenSettings}
+              title="Cài đặt"
+              className="w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] border-transparent hover:border-[#262626] text-[#78716C] hover:text-[#1C1917] dark:hover:text-white transition-all cursor-pointer"
+            >
+              <Settings size={18} strokeWidth={2.2} />
+            </button>
+          )}
+        </div>
       </aside>
     );
   }
 
+  // ----------------------------------------------------
+  // EXPANDED MODE (Full 240px Navigation Sidebar)
+  // ----------------------------------------------------
   return (
-    <aside className="hidden md:flex flex-col h-[calc(100vh-60px)] sticky top-[60px] bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl border-r border-[#E5E5EA] dark:border-[#2C2C2E] select-none z-20 shrink-0 w-60 p-3 transition-[width] duration-200">
-      <nav className="flex flex-col gap-1 overflow-y-auto no-scrollbar" aria-label="Không gian chính">
+    <aside className="hidden md:flex flex-col justify-between h-[calc(100vh-60px)] sticky top-[60px] bg-[#FAF8F3] dark:bg-[#1C1C1E] border-r-[1.5px] border-[#262626] select-none z-20 shrink-0 w-60 p-3 transition-[width] duration-150">
+      <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar">
+        {/* Quick Create Task Button */}
         {onCreateTask && (
           <button
             type="button"
             onClick={onCreateTask}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 mb-2 rounded-xl text-xs font-semibold bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] shadow-sm hover:opacity-90 transition-all cursor-pointer active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] border-[1.5px] border-[#262626] shadow-[2px_2px_0px_#262626] hover:bg-black active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
           >
-            <Plus size={16} strokeWidth={2.4} />
-            <span>Tạo mới</span>
+            <Plus size={16} strokeWidth={2.6} />
+            <span>Tạo công việc mới</span>
           </button>
         )}
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-[#8E8E93] px-3 py-1.5 font-mono">
-          Không gian
-        </p>
 
-        {renderWorkspaceButton(
-          "Nay",
-          <Sun size={17} strokeWidth={2.2} className="shrink-0" />,
-          isTodayActive,
-          goToday,
-          pendingTodayCount > 0 ? (
-            <span className={`font-mono text-[10px] px-2 py-0.5 rounded-md font-semibold ${
+        <div className="space-y-1">
+          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#78716C] dark:text-[#A1A1AA] px-2 py-1">
+            Không gian làm việc
+          </p>
+
+          {/* 1. HÔM NAY */}
+          <button
+            type="button"
+            onClick={handleSelectToday}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
               isTodayActive
-                ? "bg-[#007AFF] text-white"
-                : "bg-black/[0.05] dark:bg-white/[0.1] text-[#8E8E93]"
-            }`}>
-              {pendingTodayCount}
+                ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
+                : "border-transparent text-[#1C1917] dark:text-[#F2F2F7] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+            } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Sun size={16} strokeWidth={2.4} className="text-amber-500" />
+              <span>Hôm nay</span>
+            </div>
+            {pendingTodayCount > 0 && (
+              <span className="font-mono text-[10px] px-1.5 py-0.25 rounded-md font-bold bg-[#1C1917] text-white dark:bg-white dark:text-[#1C1917]">
+                {pendingTodayCount}
+              </span>
+            )}
+          </button>
+
+          {/* 2. KẾ HOẠCH */}
+          <button
+            type="button"
+            onClick={handleSelectPlanner}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
+              isPlannerActive
+                ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
+                : "border-transparent text-[#1C1917] dark:text-[#F2F2F7] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+            } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
+          >
+            <div className="flex items-center gap-2.5">
+              <CalendarIcon size={16} strokeWidth={2.4} className="text-blue-500" />
+              <span>Kế hoạch</span>
+            </div>
+            <span className="text-[10px] text-[#78716C] dark:text-[#A1A1AA] font-mono">
+              7 ngày
             </span>
-          ) : undefined,
-        )}
+          </button>
 
-        {renderWorkspaceButton(
-          "Việc",
-          <CheckSquare size={17} strokeWidth={2.2} className="shrink-0" />,
-          isTasksActive,
-          goTasks,
-        )}
-
-        {isTasksActive && (
-          <div className="space-y-0.5 pb-1" aria-label="Chế độ Công việc">
-            {renderSubButton(
-              "Kế hoạch",
-              <CalendarIcon size={14} strokeWidth={2.2} />,
-              activeTaskSubTab === "planner",
-              () => {
-                setActiveTaskSubTab("planner");
-                onTabChange("tasks");
-              },
+          {/* 3. HẠN ĐỊNH */}
+          <button
+            type="button"
+            onClick={handleSelectDeadlines}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
+              isDeadlinesActive
+                ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
+                : "border-transparent text-[#1C1917] dark:text-[#F2F2F7] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+            } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
+          >
+            <div className="flex items-center gap-2.5">
+              <Hourglass size={16} strokeWidth={2.4} className="text-rose-500" />
+              <span>Hạn định</span>
+            </div>
+            {deadlineAlertTotal > 0 && (
+              <span className="font-mono text-[10px] px-1.5 py-0.25 rounded-md font-bold bg-[#FF3B30] text-white">
+                {deadlineAlertTotal}
+              </span>
             )}
-            {renderSubButton(
-              "Hạn định",
-              <Hourglass size={14} strokeWidth={2.2} />,
-              activeTaskSubTab === "deadlines",
-              () => {
-                setActiveTaskSubTab("deadlines");
-                onTabChange("tasks");
-              },
-              deadlineAlertTotal > 0 ? (
-                <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded-md font-semibold ${
-                  activeTaskSubTab === "deadlines"
-                    ? "bg-[#FF3B30] text-white"
-                    : "bg-[#FF3B30]/10 text-[#FF3B30]"
-                }`}>
-                  {deadlineAlertTotal}
-                </span>
-              ) : undefined,
-            )}
-          </div>
-        )}
+          </button>
 
-        {renderWorkspaceButton(
-          "Ghi",
-          <FilePenLine size={17} strokeWidth={2.2} className="shrink-0" />,
-          isNotesActive,
-          () => onTabChange("notes"),
-          notesCount + journalEntries.length > 0 ? (
-            <span className={`font-mono text-[10px] px-2 py-0.5 rounded-md font-semibold ${
+          {/* 4. GHI CHÚ */}
+          <button
+            type="button"
+            onClick={handleSelectNotes}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
               isNotesActive
-                ? "bg-[#007AFF] text-white"
-                : "bg-black/[0.05] dark:bg-white/[0.1] text-[#8E8E93]"
-            }`}>
-              {notesCount + journalEntries.length}
-            </span>
-          ) : undefined,
-        )}
+                ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
+                : "border-transparent text-[#1C1917] dark:text-[#F2F2F7] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+            } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
+          >
+            <div className="flex items-center gap-2.5">
+              <FilePenLine size={16} strokeWidth={2.4} className="text-emerald-500" />
+              <span>Ghi chú</span>
+            </div>
+            {notesCount > 0 && (
+              <span className="font-mono text-[10px] text-[#78716C] dark:text-[#A1A1AA]">
+                {notesCount}
+              </span>
+            )}
+          </button>
 
-        {isNotesActive && (
-          <div className="space-y-0.5 pb-1" aria-label="Chế độ Ghi chép">
-            {renderSubButton(
-              "Ghi chú",
-              <FileText size={14} strokeWidth={2.2} />,
-              activeTab === "notes",
-              () => onTabChange("notes"),
-              notesCount > 0 ? (
-                <span className="font-mono text-[10px] text-[#8E8E93]">{notesCount}</span>
-              ) : undefined,
+          {/* 5. SỔ NHẬT KÝ */}
+          <button
+            type="button"
+            onClick={handleSelectJournal}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
+              isJournalActive
+                ? "bg-[#FEF08A] dark:bg-[#3A3A3C] text-[#1C1917] dark:text-white border-[#262626] shadow-[2px_2px_0px_#262626]"
+                : "border-transparent text-[#1C1917] dark:text-[#F2F2F7] hover:border-[#262626] hover:bg-white dark:hover:bg-[#2C2C2E]"
+            } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
+          >
+            <div className="flex items-center gap-2.5">
+              <BookOpen size={16} strokeWidth={2.4} className="text-purple-500" />
+              <span>Nhật ký</span>
+            </div>
+            {journalEntries.length > 0 && (
+              <span className="font-mono text-[10px] text-[#78716C] dark:text-[#A1A1AA]">
+                {journalEntries.length}
+              </span>
             )}
-            {renderSubButton(
-              "Nhật ký",
-              <BookOpen size={14} strokeWidth={2.2} />,
-              activeTab === "journal",
-              () => onTabChange("journal"),
-              journalEntries.length > 0 ? (
-                <span className="font-mono text-[10px] text-[#8E8E93]">{journalEntries.length}</span>
-              ) : undefined,
-            )}
+          </button>
+        </div>
+      </div>
+
+      {/* FOOTER ACTIONS (AI POPUP & CÀI ĐẶT) */}
+      <div className="pt-2 border-t-[1.5px] border-[#262626]/20 space-y-1">
+        {/* Nút Trợ lý AI Phác Thảo mở Popup 1 bên */}
+        <button
+          type="button"
+          onClick={onOpenAIModal || (() => onTabChange("ai"))}
+          className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold border-[1.5px] border-[#262626] bg-[#FEF08A] hover:bg-[#FDE047] dark:bg-amber-500/20 dark:hover:bg-amber-500/30 text-[#1C1917] dark:text-amber-200 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
+        >
+          <div className="flex items-center gap-2.5">
+            <Sparkles size={16} strokeWidth={2.4} className="text-amber-600 dark:text-amber-300" />
+            <span>Trợ lý AI</span>
           </div>
-        )}
+          <span className="text-[9.5px] font-mono px-1.5 py-0.5 rounded bg-black/10 dark:bg-white/10 uppercase tracking-wider">
+            AI Side
+          </span>
+        </button>
 
-        {renderWorkspaceButton(
-          "Trợ lý AI",
-          <Sparkles size={17} strokeWidth={2.2} className="shrink-0 text-amber-500" />,
-          isAiActive,
-          () => onTabChange("ai"),
+        {/* Nút Cài đặt */}
+        {onOpenSettings && (
+          <button
+            type="button"
+            onClick={onOpenSettings}
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#78716C] dark:text-[#A1A1AA] hover:text-[#1C1917] dark:hover:text-white hover:bg-white dark:hover:bg-[#2C2C2E] border-[1.5px] border-transparent hover:border-[#262626] transition-all cursor-pointer"
+          >
+            <Settings size={16} strokeWidth={2.2} />
+            <span>Cài đặt</span>
+          </button>
         )}
-      </nav>
+      </div>
     </aside>
   );
 };
+

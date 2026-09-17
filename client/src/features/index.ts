@@ -9,3 +9,4 @@ export * from "../components/features/settings/SettingsTab";
 export * from "../components/features/tasks/TaskDetailPage";
 export * from "../components/features/tasks/QuickTaskModal";
 export * from "../components/features/ai/AIAssistantTab";
+export * from "../components/features/ai/AIAssistantSidePanel";
