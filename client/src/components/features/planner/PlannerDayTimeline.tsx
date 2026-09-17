@@ -8,6 +8,7 @@ import {
   Check,
   Clock,
   Compass,
+  Hourglass,
   ListTodo,
   Moon,
   Pin,
@@ -86,7 +87,7 @@ const DayTimelineTaskCard: React.FC<{
   onMoveTomorrow,
 }) => {
   const type = normalizeTaskTimeType(task);
-  const timeLabel = getTaskTimeLabel(task);
+  const time = getTaskEffectiveTime(task);
 
   const tone = task.completed
     ? "bg-[#F5F5F4] dark:bg-[#27272A] border-[#D6D3D1] dark:border-[#3F3F46] opacity-60"
@@ -103,10 +104,17 @@ const DayTimelineTaskCard: React.FC<{
         e.stopPropagation();
         onSelectTask(task);
       }}
+      title={
+        type === "deadline"
+          ? `Hạn chót${time ? `: ${time}` : ""} - ${task.title}`
+          : type === "scheduled"
+            ? `Lịch hẹn${time ? `: ${time}${task.endTime ? ` - ${task.endTime}` : ""}` : ""} - ${task.title}`
+            : task.title
+      }
       className={`group absolute overflow-hidden rounded-[4px] border-[1.5px] ${tone} p-1 shadow-[1px_1px_0px_#262626] dark:shadow-none cursor-pointer transition-all hover:z-20 hover:shadow-[2px_2px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] select-none`}
     >
       <div className="flex min-w-0 items-center justify-between gap-1 h-full">
-        <div className="flex min-w-0 items-center gap-1 flex-1 overflow-hidden">
+        <div className="flex min-w-0 items-center gap-1.5 flex-1 overflow-hidden">
           <button
             type="button"
             onClick={(e) => {
@@ -123,6 +131,29 @@ const DayTimelineTaskCard: React.FC<{
             {task.completed && <Check size={9} strokeWidth={3} />}
           </button>
 
+          {/* Icon phân biệt Hẹn (Clock) vs Hạn (Hourglass) */}
+          {type === "deadline" ? (
+            <Hourglass
+              size={11}
+              strokeWidth={2.4}
+              className={`shrink-0 ${
+                task.completed
+                  ? "text-[#78716C] dark:text-[#A1A1AA]"
+                  : "text-[#BE123C] dark:text-rose-300"
+              }`}
+            />
+          ) : (
+            <Clock
+              size={11}
+              strokeWidth={2.4}
+              className={`shrink-0 ${
+                task.completed
+                  ? "text-[#78716C] dark:text-[#A1A1AA]"
+                  : "text-[#0369A1] dark:text-sky-300"
+              }`}
+            />
+          )}
+
           <span
             className={`truncate text-[11px] font-bold leading-tight ${
               task.completed ? "line-through text-[#78716C] dark:text-[#A1A1AA]" : "text-[#1C1917] dark:text-white"
@@ -131,12 +162,6 @@ const DayTimelineTaskCard: React.FC<{
             {showLabel ? task.title : "..."}
           </span>
         </div>
-
-        {showLabel && timeLabel && (
-          <span className="hidden sm:inline-block shrink-0 font-mono text-[9.5px] font-semibold text-[#78716C] dark:text-[#A1A1AA]">
-            {timeLabel}
-          </span>
-        )}
 
         {/* Quick action buttons on hover */}
         <div className="hidden shrink-0 items-center gap-0.5 group-hover:flex">
