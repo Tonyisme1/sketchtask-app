@@ -111,15 +111,6 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
   const totalActiveAlerts = overdueTasks.length + todayDueTasks.length;
 
   // === PHẦN 3: XỬ LÝ SỰ KIỆN DỜI LỊCH & THAO TÁC ===
-  // Mở modal dời toàn bộ việc quá hạn
-  const handleOpenRescheduleAll = () => {
-    if (overdueTasks.length === 0) return;
-    setRescheduleModalState({
-      isOpen: true,
-      taskIds: overdueTasks.map((t) => t.id),
-    });
-  };
-
   // Mở modal dời 1 việc cụ thể
   const handleOpenRescheduleSingle = (task: TaskDto) => {
     setRescheduleModalState({
@@ -169,35 +160,7 @@ export const MobileNotificationsView: React.FC<MobileNotificationsViewProps> = (
         </div>
       )}
 
-      {/* 1. BATCH BANNER: DỜI TOÀN BỘ VIỆC QUÁ HẠN (NÉT MỰC TỐI GIẢN) */}
-      {overdueTasks.length > 0 && (activeFilter === "all" || activeFilter === "overdue") && (
-        <div className="border-[1.5px] border-[#262626] dark:border-[#52525B] bg-[#FFF1F2] dark:bg-[#27272A] rounded-[6px] p-3 shadow-[2px_2px_0px_#262626] flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-7 h-7 rounded-[4px] border-[1.5px] border-[#262626] bg-[#FFE4E6] dark:bg-rose-950/40 text-[#BE123C] dark:text-rose-400 flex items-center justify-center shrink-0 shadow-[1px_1px_0px_#262626]">
-              <AlertTriangle size={14} strokeWidth={2.4} />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA] leading-tight">
-                {overdueTasks.length} việc quá hạn cần dời
-              </p>
-              <p className="text-[11px] text-[#78716C] dark:text-[#A1A1AA] mt-0.5 truncate">
-                Dời ngày đồng loạt để không bỏ lỡ
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleOpenRescheduleAll}
-            className="px-3 py-1.5 rounded-[4px] border-[1.5px] border-[#262626] bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] text-xs font-bold shrink-0 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1"
-          >
-            <CalendarPlus size={12} strokeWidth={2.4} />
-            <span>Dời ngày</span>
-          </button>
-        </div>
-      )}
-
-      {/* 2. THANH BỘ LỌC PHÂN TẦNG (TIER 1 FILTER TOOLBAR) */}
+      {/* 1. THANH BỘ LỌC PHÂN TẦNG (TIER 1 FILTER TOOLBAR) */}
       <div className="border-[1.5px] border-[#262626] dark:border-[#52525B] bg-white dark:bg-[#27272A] p-1 rounded-[6px] shadow-[2px_2px_0px_#262626] flex items-center gap-1">
         {[
           { key: "all", label: "Tất cả", count: totalActiveAlerts },
