@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Calendar, ChevronLeft, ChevronRight, CalendarPlus, X, Check } from "lucide-react";
 import { useScrollLock } from "../../../hooks/useScrollLock";
@@ -147,28 +147,28 @@ export const RescheduleDateModal: React.FC<RescheduleDateModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm bg-white dark:bg-[#1C1C1E] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-2xl p-4 sm:p-5 space-y-3.5 relative z-[1000000] overflow-hidden"
+        className="w-full max-w-sm bg-white dark:bg-[#27272A] border-[1.5px] border-[#262626] dark:border-[#52525B] rounded-[8px] shadow-[4px_4px_0px_#262626] p-4 sm:p-5 space-y-3.5 relative z-[1000000] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center shrink-0">
-              <CalendarPlus size={18} strokeWidth={2.4} />
+            <div className="w-8 h-8 bg-[#FEF08A] text-[#1C1917] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1px_1px_0px_#262626] flex items-center justify-center shrink-0">
+              <CalendarPlus size={16} strokeWidth={2.4} />
             </div>
             <div>
-              <h3 className="font-bold text-sm sm:text-base text-[#1C1C1E] dark:text-[#F2F2F7]">
+              <h3 className="font-bold text-sm sm:text-base text-[#1C1917] dark:text-[#FAFAFA]">
                 Chọn ngày dời lịch
               </h3>
-              <p className="text-[11px] text-[#8E8E93] dark:text-[#aeaeb2] truncate max-w-[200px]">
-                {taskTitle ? taskTitle : `${taskCount} công việc quá hạn`}
+              <p className="text-[11px] text-[#78716C] dark:text-[#A1A1AA] truncate max-w-[200px]">
+                {taskTitle ? taskTitle : `${taskCount} việc quá hạn`}
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] cursor-pointer"
+            className="p-1.5 rounded-[4px] text-[#78716C] hover:text-[#1C1917] dark:hover:text-white hover:bg-[#FAF8F3] dark:hover:bg-[#3F3F46] cursor-pointer"
             title="Đóng"
           >
             <X size={16} strokeWidth={2.2} />
@@ -176,14 +176,14 @@ export const RescheduleDateModal: React.FC<RescheduleDateModalProps> = ({
         </div>
 
         {/* Quick Date Pills */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => handleSelectQuick(todayStr)}
-            className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex flex-col items-center ${
+            className={`flex-1 py-1.5 px-2 rounded-[4px] text-xs font-semibold transition-all cursor-pointer flex flex-col items-center active:translate-x-[0.5px] active:translate-y-[0.5px] ${
               selectedDate === todayStr
-                ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] shadow-sm font-bold"
-                : "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]"
+                ? "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626] font-bold"
+                : "bg-[#FAF8F3] dark:bg-[#18181B] border-[1.5px] border-[#D4CEBF] dark:border-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] hover:bg-[#F3EFE6]"
             }`}
           >
             <span>Hôm nay</span>
@@ -193,10 +193,10 @@ export const RescheduleDateModal: React.FC<RescheduleDateModalProps> = ({
           <button
             type="button"
             onClick={() => handleSelectQuick(tomorrowStr)}
-            className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex flex-col items-center ${
+            className={`flex-1 py-1.5 px-2 rounded-[4px] text-xs font-semibold transition-all cursor-pointer flex flex-col items-center active:translate-x-[0.5px] active:translate-y-[0.5px] ${
               selectedDate === tomorrowStr
-                ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] shadow-sm font-bold"
-                : "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]"
+                ? "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] border-[1.5px] border-[#262626] shadow-[1px_1px_0px_#262626] font-bold"
+                : "bg-[#FAF8F3] dark:bg-[#18181B] border-[1.5px] border-[#D4CEBF] dark:border-[#52525B] text-[#1C1917] dark:text-[#FAFAFA] hover:bg-[#F3EFE6]"
             }`}
           >
             <span>Ngày mai</span>
@@ -205,24 +205,24 @@ export const RescheduleDateModal: React.FC<RescheduleDateModalProps> = ({
         </div>
 
         {/* Interactive Calendar Box */}
-        <div className="p-3 bg-[#F9F9FB] dark:bg-[#121214] border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-xl space-y-2">
+        <div className="p-3 bg-[#FAF8F3] dark:bg-[#18181B] border-[1.5px] border-[#262626] dark:border-[#52525B] rounded-[6px] space-y-2 shadow-[1px_1px_0px_#262626]">
           {/* Calendar Month Navigation */}
-          <div className="flex items-center justify-between pb-1">
+          <div className="flex items-center justify-between pb-1 border-b border-[#262626]/10 dark:border-white/10">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-1 rounded-lg hover:bg-white dark:hover:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] cursor-pointer"
+              className="p-1 rounded-[4px] hover:bg-white dark:hover:bg-[#2C2C2E] text-[#1C1917] dark:text-[#FAFAFA] cursor-pointer"
               title="Tháng trước"
             >
               <ChevronLeft size={16} strokeWidth={2.4} />
             </button>
-            <span className="font-semibold text-xs text-[#1C1C1E] dark:text-[#F2F2F7]">
+            <span className="font-semibold text-xs text-[#1C1917] dark:text-[#FAFAFA]">
               Tháng {viewMonth + 1}, {viewYear}
             </span>
             <button
               type="button"
               onClick={handleNextMonth}
-              className="p-1 rounded-lg hover:bg-white dark:hover:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] cursor-pointer"
+              className="p-1 rounded-[4px] hover:bg-white dark:hover:bg-[#2C2C2E] text-[#1C1917] dark:text-[#FAFAFA] cursor-pointer"
               title="Tháng sau"
             >
               <ChevronRight size={16} strokeWidth={2.4} />
@@ -230,7 +230,7 @@ export const RescheduleDateModal: React.FC<RescheduleDateModalProps> = ({
           </div>
 
           {/* Weekdays */}
-          <div className="grid grid-cols-7 text-center font-mono text-[10px] font-bold text-[#8E8E93]">
+          <div className="grid grid-cols-7 text-center font-mono text-[10px] font-bold text-[#78716C] dark:text-[#A1A1AA]">
             {WEEKDAY_NAMES.map((day) => (
               <div key={day} className="py-0.5">{day}</div>
             ))}
@@ -246,17 +246,17 @@ export const RescheduleDateModal: React.FC<RescheduleDateModalProps> = ({
                   key={`${item.dateStr}-${index}`}
                   type="button"
                   onClick={() => setSelectedDate(item.dateStr)}
-                  className={`h-7 rounded-lg text-xs font-mono font-semibold flex flex-col items-center justify-center relative transition-all cursor-pointer ${
+                  className={`h-7 rounded-[4px] text-xs font-mono font-semibold flex flex-col items-center justify-center relative transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] font-bold shadow-xs scale-105"
+                      ? "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] font-bold border border-[#262626] shadow-[1px_1px_0px_#262626]"
                       : item.isCurrentMonth
-                      ? "text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-white dark:hover:bg-[#2C2C2E]"
-                      : "text-[#8E8E93]/40 dark:text-[#636366]/40 hover:bg-black/5 dark:hover:bg-white/5"
+                      ? "text-[#1C1917] dark:text-[#FAFAFA] hover:bg-white dark:hover:bg-[#27272A]"
+                      : "text-[#78716C]/40 dark:text-[#A1A1AA]/40 hover:bg-black/5 dark:hover:bg-white/5"
                   }`}
                 >
                   <span>{item.dayNum}</span>
                   {isToday && (
-                    <span className={`w-1 h-1 rounded-full absolute bottom-0.5 ${isSelected ? "bg-white dark:bg-[#1C1C1E]" : "bg-[#007AFF]"}`} />
+                    <span className={`w-1 h-1 rounded-full absolute bottom-0.5 ${isSelected ? "bg-white dark:bg-[#1C1C1E]" : "bg-[#1C1917] dark:bg-[#FAFAFA]"}`} />
                   )}
                 </button>
               );
@@ -265,10 +265,10 @@ export const RescheduleDateModal: React.FC<RescheduleDateModalProps> = ({
         </div>
 
         {/* Selected date preview and Actions */}
-        <div className="flex items-center justify-between pt-1 border-t border-[#E5E5EA] dark:border-[#2C2C2E]">
+        <div className="flex items-center justify-between pt-1 border-t border-[#262626]/20 dark:border-white/10">
           <div className="text-xs">
-            <span className="text-[#8E8E93] dark:text-[#aeaeb2]">Dời sang: </span>
-            <span className="font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+            <span className="text-[#78716C] dark:text-[#A1A1AA]">Dời sang: </span>
+            <span className="font-bold text-[#1C1917] dark:text-[#FAFAFA]">
               {formatFullDate(selectedDate)}
             </span>
           </div>
@@ -277,14 +277,14 @@ export const RescheduleDateModal: React.FC<RescheduleDateModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] rounded-xl transition-all cursor-pointer"
+              className="px-2.5 py-1.5 text-xs font-semibold text-[#78716C] dark:text-[#A1A1AA] hover:text-[#1C1917] dark:hover:text-white rounded-[4px] transition-all cursor-pointer"
             >
               Hủy
             </button>
             <button
               type="button"
               onClick={handleConfirm}
-              className="px-3.5 py-1.5 text-xs font-bold text-white dark:text-[#1C1C1E] bg-[#1C1C1E] dark:bg-white rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1 cursor-pointer"
+              className="px-3.5 py-1.5 text-xs font-bold text-white dark:text-[#18181B] bg-[#1C1917] dark:bg-[#FAFAFA] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none flex items-center gap-1 cursor-pointer transition-all"
             >
               <Check size={13} strokeWidth={2.6} />
               <span>Xác nhận</span>

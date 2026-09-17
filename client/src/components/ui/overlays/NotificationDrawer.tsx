@@ -4,7 +4,6 @@ import {
   X,
   AlertTriangle,
   Clock,
-  Check,
   CheckCircle2,
   ArrowRight,
 } from "lucide-react";
@@ -19,6 +18,7 @@ import {
 } from "../../../utils/taskSemantics";
 import { useScrollLock } from "../../../hooks/useScrollLock";
 import { registerBackHandler } from "../../../utils/backNavigation";
+import { HandDrawnCheckbox } from "../core/HandDrawnCheckbox";
 
 interface NotificationDrawerProps {
   isOpen: boolean;
@@ -139,13 +139,13 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm select-none transition-opacity duration-200 ${
+      className={`fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-xs select-none transition-opacity duration-200 ${
         isClosing ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       onClick={onClose}
     >
       <div
-        className={`relative w-full max-w-lg bg-[#FAF8F3] dark:bg-[#1C1C1E] rounded-t-[28px] sm:rounded-2xl border-t sm:border border-[#E5E5EA] dark:border-[#2C2C2E] shadow-2xl max-h-[90dvh] sm:max-h-[85vh] flex flex-col overflow-hidden transition-all duration-200 ${
+        className={`relative w-full max-w-lg bg-[#FAF8F3] dark:bg-[#27272A] rounded-t-[22px] sm:rounded-[8px] border-[1.5px] border-[#262626] dark:border-[#52525B] shadow-[4px_4px_0px_#262626] max-h-[90dvh] sm:max-h-[85vh] flex flex-col overflow-hidden transition-all duration-200 ${
           isClosing
             ? "translate-y-full sm:translate-y-4 sm:scale-95 opacity-0"
             : "translate-y-0 sm:scale-100 opacity-100"
@@ -153,26 +153,26 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile Grab Handle */}
-        <div className="w-10 h-1.2 rounded-full bg-[#D1D1D6] dark:bg-[#3A3A3C] mx-auto mt-2.5 mb-1 sm:hidden shrink-0" />
+        <div className="w-10 h-1.2 rounded-full bg-[#262626]/30 dark:bg-white/30 mx-auto mt-2.5 mb-1 sm:hidden shrink-0" />
 
         {/* 1. Header */}
-        <div className="px-4.5 sm:px-5 py-3.5 border-b border-[#E5E5EA] dark:border-[#2C2C2E] flex items-center justify-between shrink-0">
+        <div className="px-4.5 sm:px-5 py-3 border-b border-[#262626]/20 dark:border-white/10 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8.5 h-8.5 rounded-xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] flex items-center justify-center shadow-xs">
-              <Bell size={16} strokeWidth={2.4} />
+            <div className="w-7 h-7 rounded-[4px] border-[1.5px] border-[#262626] bg-[#FEF08A] text-[#1C1917] flex items-center justify-center shadow-[1px_1px_0px_#262626]">
+              <Bell size={15} strokeWidth={2.4} />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-black text-[#1C1917] dark:text-[#F2F2F7] leading-none">
+                <h2 className="text-sm sm:text-base font-black text-[#1C1917] dark:text-[#FAFAFA] leading-none">
                   Thông báo
                 </h2>
                 {totalAlerts > 0 && (
-                  <span className="px-1.5 py-0.5 rounded-full bg-rose-500 text-white font-mono text-[10px] font-bold leading-none">
+                  <span className="px-1.5 py-0.5 rounded-[4px] border border-[#FDA4AF] bg-[#FECDD3] text-[#9F1239] font-mono text-[10px] font-bold leading-none">
                     {totalAlerts}
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-[#78716C] dark:text-[#aeaeb2] mt-0.5">
+              <p className="text-[11px] text-[#78716C] dark:text-[#A1A1AA] mt-0.5">
                 Nhắc nhở công việc & hạn định
               </p>
             </div>
@@ -181,57 +181,57 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] text-[#8E8E93] hover:text-[#1C1917] dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer active:scale-95"
+            className="w-7 h-7 rounded-[4px] border-[1.5px] border-[#262626] dark:border-[#52525B] bg-white dark:bg-[#18181B] text-[#78716C] hover:text-[#1C1917] dark:hover:text-white flex items-center justify-center shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
             title="Đóng"
             aria-label="Đóng"
           >
-            <X size={16} strokeWidth={2.4} />
+            <X size={15} strokeWidth={2.4} />
           </button>
         </div>
 
         {/* 2. Segmented Filter Bar (Tầng phân loại trực quan) */}
         {totalAlerts > 0 && (
           <div className="px-4.5 sm:px-5 pt-3 pb-1 shrink-0">
-            <div className="grid grid-cols-3 gap-1 bg-[#F2F2F7] dark:bg-[#2C2C2E] p-1 rounded-xl">
+            <div className="grid grid-cols-3 gap-1 border-[1.5px] border-[#262626] dark:border-[#52525B] bg-white dark:bg-[#18181B] p-1 rounded-[6px] shadow-[1.5px_1.5px_0px_#262626]">
               <button
                 type="button"
                 onClick={() => setFilter("all")}
-                className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`py-1.5 px-2 rounded-[4px] text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:translate-x-[0.5px] active:translate-y-[0.5px] ${
                   filter === "all"
-                    ? "bg-white dark:bg-[#1C1C1E] text-[#1C1917] dark:text-white shadow-xs"
-                    : "text-[#78716C] dark:text-[#aeaeb2] hover:text-[#1C1917]"
+                    ? "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] shadow-[1px_1px_0px_#262626] dark:shadow-none"
+                    : "text-[#78716C] dark:text-[#A1A1AA] hover:text-[#1C1917]"
                 }`}
               >
                 <span>Tất cả</span>
-                <span className="font-mono text-[10px] opacity-75">({totalAlerts})</span>
+                <span className="font-mono text-[10px] opacity-80">({totalAlerts})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setFilter("overdue")}
-                className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`py-1.5 px-2 rounded-[4px] text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:translate-x-[0.5px] active:translate-y-[0.5px] ${
                   filter === "overdue"
-                    ? "bg-white dark:bg-[#1C1C1E] text-rose-600 dark:text-rose-400 shadow-xs"
-                    : "text-[#78716C] dark:text-[#aeaeb2] hover:text-[#1C1917]"
+                    ? "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] shadow-[1px_1px_0px_#262626] dark:shadow-none"
+                    : "text-[#78716C] dark:text-[#A1A1AA] hover:text-[#1C1917]"
                 }`}
               >
-                <AlertTriangle size={12} strokeWidth={2.4} className="text-rose-500" />
+                <AlertTriangle size={12} strokeWidth={2.4} className="text-[#BE123C] dark:text-rose-400" />
                 <span>Quá hạn</span>
-                <span className="font-mono text-[10px] opacity-75">({overdueTasks.length})</span>
+                <span className="font-mono text-[10px] opacity-80">({overdueTasks.length})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setFilter("today")}
-                className={`py-1.5 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                className={`py-1.5 px-2 rounded-[4px] text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:translate-x-[0.5px] active:translate-y-[0.5px] ${
                   filter === "today"
-                    ? "bg-white dark:bg-[#1C1C1E] text-amber-600 dark:text-amber-400 shadow-xs"
-                    : "text-[#78716C] dark:text-[#aeaeb2] hover:text-[#1C1917]"
+                    ? "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] shadow-[1px_1px_0px_#262626] dark:shadow-none"
+                    : "text-[#78716C] dark:text-[#A1A1AA] hover:text-[#1C1917]"
                 }`}
               >
-                <Clock size={12} strokeWidth={2.4} className="text-amber-500" />
+                <Clock size={12} strokeWidth={2.4} className="text-[#92400E] dark:text-[#FCD34D]" />
                 <span>Hôm nay</span>
-                <span className="font-mono text-[10px] opacity-75">({todayDueTasks.length})</span>
+                <span className="font-mono text-[10px] opacity-80">({todayDueTasks.length})</span>
               </button>
             </div>
           </div>
@@ -240,16 +240,16 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
         {/* 3. Task List Content */}
         <div className="flex-1 overflow-y-auto px-4.5 sm:px-5 py-3 space-y-4 min-h-0">
           {totalAlerts === 0 ? (
-            <div className="text-center py-12 px-4 space-y-3">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto shadow-xs">
-                <CheckCircle2 size={28} strokeWidth={2.2} />
+            <div className="text-center py-10 px-4 space-y-2.5 border-[1.5px] border-dashed border-[#262626]/30 dark:border-white/20 rounded-[6px] bg-white dark:bg-[#18181B] shadow-[2px_2px_0px_#262626]">
+              <div className="w-10 h-10 rounded-[6px] border-[1.5px] border-[#262626] bg-[#FAF8F3] dark:bg-[#27272A] text-[#1C1917] dark:text-[#FAFAFA] flex items-center justify-center mx-auto shadow-[1.5px_1.5px_0px_#262626]">
+                <CheckCircle2 size={20} strokeWidth={2.2} />
               </div>
               <div className="space-y-1">
-                <p className="text-sm font-bold text-[#1C1917] dark:text-[#F2F2F7]">
+                <p className="text-sm font-bold text-[#1C1917] dark:text-[#FAFAFA]">
                   Không có thông báo mới
                 </p>
-                <p className="text-xs text-[#78716C] dark:text-[#aeaeb2] max-w-xs mx-auto">
-                  Bạn đã xử lý hết mọi việc quá hạn và hôm nay. Thật tuyệt vời! 🎉
+                <p className="text-xs text-[#78716C] dark:text-[#A1A1AA] max-w-xs mx-auto">
+                  Bạn đã xử lý hết mọi việc quá hạn và hôm nay. Thật tuyệt vời!
                 </p>
               </div>
             </div>
@@ -258,16 +258,16 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
               {/* Overdue Section */}
               {(filter === "all" || filter === "overdue") && overdueGroups.length > 0 && (
                 <div className="space-y-2.5">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider">
+                  <div className="flex items-center justify-between pb-1 border-b border-[#262626]/20 dark:border-white/10 text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA]">
                     <span className="flex items-center gap-1.5">
-                      <AlertTriangle size={13} strokeWidth={2.4} />
+                      <AlertTriangle size={13} strokeWidth={2.4} className="text-[#BE123C] dark:text-rose-400" />
                       <span>Việc quá hạn ({overdueTasks.length})</span>
                     </span>
                   </div>
 
                   {overdueGroups.map((group) => (
                     <div key={group.dateStr} className="space-y-1.5">
-                      <div className="flex items-center justify-between text-[11px] font-semibold text-[#78716C] dark:text-[#aeaeb2] px-1">
+                      <div className="flex items-center justify-between text-[11px] font-semibold text-[#78716C] dark:text-[#A1A1AA] px-0.5">
                         <span>{formatFullDate(group.dateStr)}</span>
                         <span className="font-mono text-[10px]">{group.tasks.length} việc</span>
                       </div>
@@ -276,37 +276,32 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                         <div
                           key={task.id}
                           onClick={() => handleTaskClick(task)}
-                          className="bg-white dark:bg-[#242426] border border-rose-200 dark:border-rose-900/40 hover:border-rose-400 dark:hover:border-rose-700/60 rounded-xl p-3 shadow-xs hover:shadow-sm transition-all cursor-pointer flex items-center justify-between gap-3 group active:scale-[0.99]"
+                          className="border-[1.5px] border-[#262626] dark:border-[#52525B] bg-white dark:bg-[#18181B] rounded-[6px] p-3 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer flex items-center justify-between gap-2.5 group"
                         >
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5 mb-1">
-                              <span className="px-1.5 py-0.5 rounded-md bg-rose-100 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 text-[10px] font-bold flex items-center gap-1">
-                                <AlertTriangle size={10} strokeWidth={2.5} />
-                                <span>Quá hạn</span>
-                              </span>
-                              {getTaskEffectiveTime(task) && (
-                                <span className="font-mono text-[10px] text-[#78716C] dark:text-[#aeaeb2]">
-                                  {getTaskEffectiveTime(task)}
-                                </span>
-                              )}
+                          <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                            <div className="shrink-0 pt-0.5" onClick={(e) => e.stopPropagation()}>
+                              <HandDrawnCheckbox
+                                checked={Boolean(task.completed)}
+                                onChange={() => toggleTask(task.id)}
+                                size="sm"
+                              />
                             </div>
-                            <p className="text-xs sm:text-sm font-bold text-[#1C1917] dark:text-[#F2F2F7] truncate group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
-                              {task.title}
-                            </p>
+                            <div className="min-w-0 flex-1 space-y-1">
+                              <p className="text-xs sm:text-sm font-semibold text-[#1C1917] dark:text-[#FAFAFA] truncate group-hover:underline">
+                                {task.title}
+                              </p>
+                              <div className="flex items-center gap-1.5">
+                                <span className="border border-[#FDA4AF] bg-[#FECDD3] text-[#9F1239] rounded-[4px] px-1.5 py-0.5 text-[10px] font-semibold font-sans">
+                                  Quá hạn
+                                </span>
+                                {getTaskEffectiveTime(task) && (
+                                  <span className="border border-[#D4CEBF] dark:border-[#52525B] bg-[#FAF8F3] dark:bg-[#27272A] text-[#78716C] dark:text-[#A1A1AA] rounded-[4px] px-1.5 py-0.5 font-mono text-[10px]">
+                                    {getTaskEffectiveTime(task)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
-
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleTask(task.id);
-                            }}
-                            className="px-2.5 py-1.5 rounded-lg border border-[#E5E5EA] dark:border-[#3A3A3C] bg-[#FAF8F3] dark:bg-[#2C2C2E] hover:bg-emerald-500 hover:text-white hover:border-emerald-500 text-xs font-bold text-[#1C1917] dark:text-white transition-all active:scale-90 flex items-center gap-1 shrink-0 cursor-pointer"
-                            title="Đánh dấu hoàn thành"
-                          >
-                            <Check size={13} strokeWidth={2.4} />
-                            <span>Xong</span>
-                          </button>
                         </div>
                       ))}
                     </div>
@@ -317,9 +312,9 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
               {/* Today Due Section */}
               {(filter === "all" || filter === "today") && todayDueTasks.length > 0 && (
                 <div className="space-y-2.5">
-                  <div className="flex items-center justify-between text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                  <div className="flex items-center justify-between pb-1 border-b border-[#262626]/20 dark:border-white/10 text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA]">
                     <span className="flex items-center gap-1.5">
-                      <Clock size={13} strokeWidth={2.4} />
+                      <Clock size={13} strokeWidth={2.4} className="text-[#92400E] dark:text-[#FCD34D]" />
                       <span>Đến hạn hôm nay ({todayDueTasks.length})</span>
                     </span>
                   </div>
@@ -329,37 +324,32 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                       <div
                         key={task.id}
                         onClick={() => handleTaskClick(task)}
-                        className="bg-white dark:bg-[#242426] border border-[#E5E5EA] dark:border-[#2C2C2E] hover:border-amber-400 dark:hover:border-amber-600/60 rounded-xl p-3 shadow-xs hover:shadow-sm transition-all cursor-pointer flex items-center justify-between gap-3 group active:scale-[0.99]"
+                        className="border-[1.5px] border-[#262626] dark:border-[#52525B] bg-white dark:bg-[#18181B] rounded-[6px] p-3 shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer flex items-center justify-between gap-2.5 group"
                       >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 mb-1">
-                            <span className="px-1.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-[10px] font-bold flex items-center gap-1">
-                              <Clock size={10} strokeWidth={2.5} />
-                              <span>Hôm nay</span>
-                            </span>
-                            {getTaskEffectiveTime(task) && (
-                              <span className="font-mono text-[10px] text-[#78716C] dark:text-[#aeaeb2]">
-                                {getTaskEffectiveTime(task)}
-                              </span>
-                            )}
+                        <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                          <div className="shrink-0 pt-0.5" onClick={(e) => e.stopPropagation()}>
+                            <HandDrawnCheckbox
+                              checked={Boolean(task.completed)}
+                              onChange={() => toggleTask(task.id)}
+                              size="sm"
+                            />
                           </div>
-                          <p className="text-xs sm:text-sm font-bold text-[#1C1917] dark:text-[#F2F2F7] truncate group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                            {task.title}
-                          </p>
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <p className="text-xs sm:text-sm font-semibold text-[#1C1917] dark:text-[#FAFAFA] truncate group-hover:underline">
+                              {task.title}
+                            </p>
+                            <div className="flex items-center gap-1.5">
+                              <span className="border border-[#262626]/20 bg-[#FEF08A] text-[#1C1917] rounded-[4px] px-1.5 py-0.5 text-[10px] font-semibold font-sans">
+                                Hôm nay
+                              </span>
+                              {getTaskEffectiveTime(task) && (
+                                <span className="border border-[#D4CEBF] dark:border-[#52525B] bg-[#FAF8F3] dark:bg-[#27272A] text-[#78716C] dark:text-[#A1A1AA] rounded-[4px] px-1.5 py-0.5 font-mono text-[10px]">
+                                  {getTaskEffectiveTime(task)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleTask(task.id);
-                          }}
-                          className="px-2.5 py-1.5 rounded-lg border border-[#E5E5EA] dark:border-[#3A3A3C] bg-[#FAF8F3] dark:bg-[#2C2C2E] hover:bg-emerald-500 hover:text-white hover:border-emerald-500 text-xs font-bold text-[#1C1917] dark:text-white transition-all active:scale-90 flex items-center gap-1 shrink-0 cursor-pointer"
-                          title="Đánh dấu hoàn thành"
-                        >
-                          <Check size={13} strokeWidth={2.4} />
-                          <span>Xong</span>
-                        </button>
                       </div>
                     ))}
                   </div>
@@ -368,22 +358,22 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
 
               {/* Filter Empty States */}
               {filter === "overdue" && overdueTasks.length === 0 && (
-                <div className="text-center py-8 space-y-2">
-                  <p className="text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7]">
+                <div className="border-[1.5px] border-dashed border-[#262626]/30 dark:border-white/20 rounded-[6px] bg-white dark:bg-[#18181B] text-center py-8 space-y-1.5 shadow-[2px_2px_0px_#262626]">
+                  <p className="text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA]">
                     Không có công việc nào quá hạn
                   </p>
-                  <p className="text-[11px] text-[#78716C] dark:text-[#aeaeb2]">
+                  <p className="text-[11px] text-[#78716C] dark:text-[#A1A1AA]">
                     Bạn đã hoàn thành tốt các hạn chót trước đó.
                   </p>
                 </div>
               )}
 
               {filter === "today" && todayDueTasks.length === 0 && (
-                <div className="text-center py-8 space-y-2">
-                  <p className="text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7]">
+                <div className="border-[1.5px] border-dashed border-[#262626]/30 dark:border-white/20 rounded-[6px] bg-white dark:bg-[#18181B] text-center py-8 space-y-1.5 shadow-[2px_2px_0px_#262626]">
+                  <p className="text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA]">
                     Không có việc nào đến hạn hôm nay
                   </p>
-                  <p className="text-[11px] text-[#78716C] dark:text-[#aeaeb2]">
+                  <p className="text-[11px] text-[#78716C] dark:text-[#A1A1AA]">
                     Tất cả công việc trong ngày đã được giải quyết.
                   </p>
                 </div>
@@ -394,9 +384,9 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
 
         {/* 4. Footer Quick Action */}
         {totalAlerts > 0 && (
-          <div className="px-4.5 sm:px-5 py-2.5 bg-white/60 dark:bg-[#1C1C1E]/60 border-t border-[#E5E5EA] dark:border-[#2C2C2E] flex items-center justify-between shrink-0">
-            <span className="text-[11px] font-semibold text-[#78716C] dark:text-[#aeaeb2]">
-              Tổng: <strong className="text-[#1C1917] dark:text-white">{totalAlerts} việc</strong>
+          <div className="px-4.5 sm:px-5 py-2.5 bg-white dark:bg-[#18181B] border-t border-[#262626]/20 dark:border-white/10 flex items-center justify-between shrink-0">
+            <span className="text-[11px] font-semibold text-[#78716C] dark:text-[#A1A1AA]">
+              Tổng: <strong className="text-[#1C1917] dark:text-white font-mono">{totalAlerts} việc</strong>
             </span>
 
             <button
