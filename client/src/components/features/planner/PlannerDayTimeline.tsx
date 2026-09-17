@@ -43,8 +43,8 @@ interface PlannerDayTimelineProps {
 
 const START_HOUR = 0;
 const END_HOUR = 24;
-const HOUR_ROW_HEIGHT = 56; // Chiều cao 56px/giờ cân đối
-const MIN_LANE_HEIGHT = 26;
+const HOUR_ROW_HEIGHT = 64; // Chiều cao 64px/giờ cân đối và thoáng
+const MIN_LANE_HEIGHT = 28;
 
 const parseTime = (value?: string) => {
   if (!value || !/^\d{2}:\d{2}$/.test(value)) return undefined;
@@ -413,7 +413,7 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
       {/* Khung cuộn Timeline 24 Giờ của Ngày Vừa Vặn 100% */}
       <div
         ref={timelineScrollRef}
-        className="h-[calc(100vh-250px)] min-h-[460px] overflow-y-auto overflow-x-hidden rounded-[8px] border-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#1C1C1E] shadow-[2px_2px_0px_#262626] dark:shadow-none"
+        className="h-[calc(100vh-210px)] min-h-[500px] overflow-y-auto overflow-x-hidden rounded-[8px] border-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#1C1C1E] shadow-[2px_2px_0px_#262626] dark:shadow-none"
         tabIndex={0}
         aria-label="Vùng cuộn biểu đồ chi tiết ngày"
       >

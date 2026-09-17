@@ -44,8 +44,8 @@ interface PlannerTimelineProps {
 
 const START_HOUR = 0;
 const END_HOUR = 24;
-const HOUR_HEIGHT = 56; // Chiều cao 56px/giờ cân đối, vừa vặn không gian làm việc
-const MIN_LANE_HEIGHT = 26;
+const HOUR_HEIGHT = 64; // Chiều cao 64px/giờ cân đối và thoáng
+const MIN_LANE_HEIGHT = 28;
 
 const formatTime = (minutes: number) => {
   const hours = Math.floor(minutes / 60);
@@ -336,7 +336,7 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
       {/* 2. Container Lưới 7 Cột Tuần Vừa Vặn 100% Khung Màn Hình */}
       <div
         ref={timelineScrollRef}
-        className="h-[calc(100vh-210px)] min-h-[480px] overflow-y-auto overflow-x-hidden rounded-[8px] border-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#1C1C1E] shadow-[2px_2px_0px_#262626] dark:shadow-none"
+        className="h-[calc(100vh-190px)] min-h-[520px] overflow-y-auto overflow-x-hidden rounded-[8px] border-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#1C1C1E] shadow-[2px_2px_0px_#262626] dark:shadow-none"
         tabIndex={0}
         aria-label="Khung thời khóa biểu 7 ngày"
       >
