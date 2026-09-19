@@ -228,7 +228,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
 
       {/* 2. THANH ĐIỀU HƯỚNG DƯỚI ĐÁY TỐI GIẢN */}
       <nav
-        className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#F2F2F7]/95 dark:bg-[#18181A]/95 backdrop-blur-xl border-t border-[#E5E5EA] dark:border-[#262626] px-2 py-1 pb-[max(env(safe-area-inset-bottom),6px)] select-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform shadow-[0_-1px_10px_rgba(0,0,0,0.03)] ${
+        className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#F8F9FA]/95 dark:bg-[#141417]/95 backdrop-blur-xl border-t border-[#E4E4E7] dark:border-[#2E2E34] px-2 py-1 pb-[max(env(safe-area-inset-bottom),6px)] select-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform shadow-[0_-1px_10px_rgba(0,0,0,0.03)] ${
           shouldHideNav ? "translate-y-full pointer-events-none" : "translate-y-0"
         }`}
         aria-label="Điều hướng chính"
@@ -246,8 +246,8 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                 title={label}
                 className={`relative min-h-[46px] flex flex-col items-center justify-center gap-0.5 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
                   isActive
-                    ? "text-[#1C1C1E] dark:text-white font-bold bg-black/[0.05] dark:bg-white/[0.08]"
-                    : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
+                    ? "text-[#09090B] dark:text-white font-bold bg-black/[0.06] dark:bg-white/[0.10]"
+                    : "text-[#71717A] hover:text-[#09090B] dark:text-[#A1A1AA] dark:hover:text-white"
                 } active:scale-95`}
               >
                 <Icon size={19} strokeWidth={isActive ? 2.4 : 1.9} />
@@ -265,7 +265,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
               onClick={() => setIsCreateSheetOpen(true)}
               aria-label="Tạo mới công việc hoặc ghi chú"
               title="Tạo mới"
-              className="w-11 h-11 flex items-center justify-center rounded-2xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] shadow-md shadow-black/15 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              className="w-11 h-11 flex items-center justify-center rounded-2xl bg-[#09090B] dark:bg-white text-white dark:text-[#09090B] border border-[#18181B] dark:border-white shadow-[2px_2px_0px_#18181B] dark:shadow-none hover:scale-105 active:scale-95 transition-all cursor-pointer"
             >
               <Plus size={22} strokeWidth={2.6} />
             </button>

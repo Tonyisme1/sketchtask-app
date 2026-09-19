@@ -159,10 +159,10 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
       <aside
         role="region"
         aria-label="Chi tiết công việc"
-        className={`shrink-0 border-[#E5E5EA] dark:border-[#262626] bg-white dark:bg-black flex flex-col min-h-0 overflow-hidden z-20 transition-all duration-200 ease-in-out ${
+        className={`shrink-0 bg-white dark:bg-black flex flex-col min-h-0 overflow-hidden z-20 transition-all duration-200 ease-in-out ${
           isTaskDetailOpen
-            ? "w-[360px] lg:w-[400px] xl:w-[480px] 2xl:w-[520px] border-l opacity-100 translate-x-0"
-            : "w-0 border-l-0 opacity-0 translate-x-6 pointer-events-none"
+            ? "w-[360px] lg:w-[400px] xl:w-[480px] 2xl:w-[520px] opacity-100 translate-x-0"
+            : "w-0 opacity-0 translate-x-6 pointer-events-none"
         }`}
       >
         <div className="w-[360px] lg:w-[400px] xl:w-[480px] 2xl:w-[520px] h-full flex flex-col min-h-0 shrink-0">

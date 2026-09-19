@@ -4,27 +4,27 @@
 
 ## 1. Màu nền và chữ (3-Tier Surface Elevation)
 
-| Token | Light | Dark | Dùng cho |
-| --- | --- | --- | --- |
-| `--bg-canvas` | `#F4F4F6` | `#09090B` | Nền app (Canvas OLED), vùng trống chính |
-| `--bg-surface` | `#FFFFFF` | `#141417` | Card, dialog, header, bottom sheet |
-| `--bg-surface-muted` | `#EAEBEE` | `#1F1F23` | Input, toolbar, vùng phụ, gutter |
-| `--border-ink` | `#262626` | `#2E2E34` | Viền nét mực chính của card, nút bấm, divider |
-| `--border-ink-muted` | `#E4E4E7` | `#1E1E22` | Divider/lưới nhẹ |
-| `--text-main` | `#18181B` | `#F4F4F5` | Nội dung chính, tiêu đề task |
-| `--text-strong` | `#09090B` | `#FFFFFF` | Heading hoặc emphasis mạnh |
-| `--text-muted` | `#71717A` | `#A1A1AA` | Metadata, subtitle, ngày giờ |
-| `--text-subtle` | `#A1A1AA` | `#71717A` | Placeholder, disabled, hint |
+| Token                | Light     | Dark      | Dùng cho                                      |
+| -------------------- | --------- | --------- | --------------------------------------------- |
+| `--bg-canvas`        | `#F4F4F6` | `#09090B` | Nền app (Canvas OLED), vùng trống chính       |
+| `--bg-surface`       | `#FFFFFF` | `#141417` | Card, dialog, header, bottom sheet            |
+| `--bg-surface-muted` | `#EAEBEE` | `#1F1F23` | Input, toolbar, vùng phụ, gutter              |
+| `--border-ink`       | `#262626` | `#2E2E34` | Viền nét mực chính của card, nút bấm, divider |
+| `--border-ink-muted` | `#E4E4E7` | `#1E1E22` | Divider/lưới nhẹ                              |
+| `--text-main`        | `#18181B` | `#F4F4F5` | Nội dung chính, tiêu đề task                  |
+| `--text-strong`      | `#09090B` | `#FFFFFF` | Heading hoặc emphasis mạnh                    |
+| `--text-muted`       | `#71717A` | `#A1A1AA` | Metadata, subtitle, ngày giờ                  |
+| `--text-subtle`      | `#A1A1AA` | `#71717A` | Placeholder, disabled, hint                   |
 
 ## 2. Hệ 4 Màu Ngữ Nghĩa Độc Quyền (Exclusive Semantic Palette)
 
-| Ngữ Nghĩa | Token CSS | Light Mode | Dark Mode | Ý nghĩa & Vị trí sử dụng |
-| :--- | :--- | :--- | :--- | :--- |
-| **Sự kiện (Event)** | `--accent-blue` | `#2563EB` | `#3B82F6` | Sự kiện trên lịch, tab active, link, focus |
-| **Công việc (Task)** | `--accent-sky` | `#0284C7` / `#E0F2FE` | `#38BDF8` / `#0F172A` | Thẻ công việc trên lịch, khung giờ làm việc |
-| **Hạn chót / Quá hạn**| `--accent-coral` | `#EF4444` / `#FEE2E2` | `#F87171` / `#450A0A` | Quá hạn, mốc hạn chót, lỗi, cảnh báo đỏ |
-| **Hoàn thành / Success**| `--accent-mint` | `#10B981` | `#34D399` | Trạng thái đã xong, kết nối thành công |
-| **Highlight phụ** | `--accent-yellow` | `#F59E0B` | `#FBBF24` | Sticky note, điểm nhấn ghi chú |
+| Ngữ Nghĩa                | Token CSS         | Light Mode            | Dark Mode             | Ý nghĩa & Vị trí sử dụng                    |
+| :----------------------- | :---------------- | :-------------------- | :-------------------- | :------------------------------------------ |
+| **Sự kiện (Event)**      | `--accent-blue`   | `#2563EB`             | `#3B82F6`             | Sự kiện trên lịch, tab active, link, focus  |
+| **Công việc (Task)**     | `--accent-sky`    | `#0284C7` / `#E0F2FE` | `#38BDF8` / `#0F172A` | Thẻ công việc trên lịch, khung giờ làm việc |
+| **Hạn chót / Quá hạn**   | `--accent-coral`  | `#EF4444` / `#FEE2E2` | `#F87171` / `#450A0A` | Quá hạn, mốc hạn chót, lỗi, cảnh báo đỏ     |
+| **Hoàn thành / Success** | `--accent-mint`   | `#10B981`             | `#34D399`             | Trạng thái đã xong, kết nối thành công      |
+| **Highlight phụ**        | `--accent-yellow` | `#F59E0B`             | `#FBBF24`             | Sticky note, điểm nhấn ghi chú              |
 
 Badge hoặc trạng thái phải kết hợp màu với text/icon. Không dùng chấm màu đơn độc cho thông tin quan trọng.
 

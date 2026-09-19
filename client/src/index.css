@@ -3,21 +3,21 @@
 @tailwind utilities;
 
 :root {
-  --bg-canvas: #f4f4f6;          /* App shell / background: xám trắng thanh lịch, sạch sẽ */
+  --bg-canvas: #f8f9fa;          /* App shell / background: xám trắng tinh khiết, sạch sẽ */
   --bg-surface: #ffffff;         /* Main content surface: trắng tinh */
-  --bg-surface-muted: #eaebee;   /* Vùng phụ, input, gutter */
-  --border-ink: #262626;         /* Nét mực đen chuẩn tactile */
+  --bg-surface-muted: #f1f3f5;   /* Vùng phụ, input, gutter */
+  --border-ink: #18181b;         /* Nét mực đen chuẩn tactile */
   --border-ink-muted: #e4e4e7;   /* Đường phân cách phụ */
-  --text-main: #18181b;          /* Văn bản chính - Zinc 900 */
-  --text-strong: #09090b;        /* Tiêu đề - Zinc 950 */
+  --text-main: #09090b;          /* Văn bản chính - Zinc 950 */
+  --text-strong: #000000;        /* Tiêu đề - Đen tuyệt đối */
   --text-muted: #71717a;         /* Phụ đề, ngày giờ - Zinc 500 */
   --text-subtle: #a1a1aa;        /* Placeholder, disabled - Zinc 400 */
-  --accent-blue: #2563eb;        /* Sự kiện (Event) / Focus / Action chính - Royal Cobalt */
+  --accent-blue: #2563eb;        /* Sự kiện (Event) - Royal Cobalt */
   --accent-sky: #0284c7;         /* Công việc (Task) - Sky Blue */
-  --accent-coral: #ef4444;       /* Hạn chót / Quá hạn / Cảnh báo - Crimson Coral */
-  --accent-mint: #10b981;        /* Hoàn thành / Success - Emerald Mint */
-  --accent-yellow: #f59e0b;      /* Sticky Note / Highlight - Amber */
-  --accent-lavender: #8b5cf6;    /* Phân nhóm phụ - Violet */
+  --accent-coral: #dc2626;       /* Hạn chót / Quá hạn - Crimson Coral */
+  --accent-mint: #16a34a;        /* Hoàn thành / Success - Emerald */
+  --accent-yellow: #ca8a04;      /* Highlight - Amber */
+  --accent-lavender: #7c3aed;    /* Phân nhóm phụ - Violet */
   --app-font-scale: 104%;
   /* One readable sans token for every shell; platform fonts keep the app usable offline. */
   --font-sans: "Inter", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -109,19 +109,19 @@ html:not(.dark) [class*="hover:bg-\[\#E7E5E4\]"]:hover {
 /* Layer 2: #1F1F23 (Popover/Modal Elevation) */
 /* ========================================== */
 .dark {
-  --bg-canvas: #09090b;          /* App shell / canvas: đen sâu Zinc-950 */
-  --bg-surface: #141417;         /* Main surface / card: Zinc-900 nâng tone */
-  --bg-surface-muted: #1f1f23;   /* Vùng phụ, gutter, input: Zinc-800 */
+  --bg-canvas: #09090b;          /* App shell / canvas: đen sâu OLED Zinc-950 */
+  --bg-surface: #141417;         /* Main surface / card: Zinc-900 sang trọng */
+  --bg-surface-muted: #1f1f23;   /* Vùng phụ, gutter, popover: Zinc-800 */
   --border-ink: #2e2e34;         /* Viền sáng rõ ràng, chống tệp màu */
   --border-ink-muted: #1e1e22;   /* Kẻ lưới mờ */
-  --text-main: #f4f4f5;          /* Văn bản chính - Zinc 100 sáng rõ */
+  --text-main: #ffffff;          /* Văn bản chính - Trắng tuyệt đối */
   --text-strong: #ffffff;        /* Tiêu đề - Trắng tuyệt đối */
   --text-muted: #a1a1aa;         /* Phụ đề, ngày giờ - Zinc 400 */
   --text-subtle: #71717a;        /* Placeholder, disabled - Zinc 500 */
   --accent-blue: #3b82f6;        /* Sự kiện (Event) - Bright Blue */
   --accent-sky: #38bdf8;         /* Công việc (Task) - Bright Sky */
-  --accent-coral: #f87171;       /* Hạn chót / Quá hạn - Bright Coral */
-  --accent-mint: #34d399;        /* Hoàn thành / Success - Bright Mint */
+  --accent-coral: #ef4444;       /* Hạn chót / Quá hạn - Bright Coral */
+  --accent-mint: #22c55e;        /* Hoàn thành / Success - Bright Mint */
   --accent-yellow: #fbbf24;      /* Highlight - Bright Amber */
   --accent-lavender: #a78bfa;    /* Phân nhóm phụ - Bright Violet */
   color-scheme: dark;
@@ -136,9 +136,11 @@ html:not(.dark) [class*="hover:bg-\[\#E7E5E4\]"]:hover {
 .dark header,
 .dark nav,
 .dark aside,
+.dark .bg-\[\#18181A\],
+.dark .bg-\[\#F2F2F7\],
 .dark .bg-\[\#FBF9F4\],
 .dark .bg-\[\#FAF8F3\] {
-  background-color: var(--bg-canvas) !important;
+  background-color: var(--bg-surface) !important;
 }
 
 .dark .bg-white:not([class*="dark:bg-white"]),

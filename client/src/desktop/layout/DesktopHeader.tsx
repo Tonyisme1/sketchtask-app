@@ -66,13 +66,13 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
     (activeTab === "tasks" && activeTaskSubTab !== "planner");
 
   return (
-    <header className="sticky top-0 z-50 shrink-0 flex h-[60px] items-center justify-between border-b border-[#E5E5EA] dark:border-[#262626] bg-[#F2F2F7] dark:bg-[#18181A] px-0 pr-6 lg:pr-8 xl:pr-10 select-none">
+    <header className="sticky top-0 z-50 shrink-0 flex h-[60px] items-center justify-between border-b border-[#E4E4E7] dark:border-[#2E2E34] bg-[#F8F9FA] dark:bg-[#141417] px-0 pr-6 lg:pr-8 xl:pr-10 select-none">
       <div className="flex min-w-0 shrink-0 items-center">
         <div className="flex w-[72px] shrink-0 items-center justify-center">
           <button
             type="button"
             onClick={toggleSidebar}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E5E5EA] dark:border-[#262626] bg-white dark:bg-black text-[#1C1917] dark:text-[#F2F2F7] shadow-[1.5px_1.5px_0px_#262626] transition-all hover:bg-[#E5E5EA] dark:hover:bg-[#242426] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#18181B] dark:border-[#2E2E34] bg-white dark:bg-[#1F1F23] text-[#09090B] dark:text-[#FFFFFF] shadow-[1.5px_1.5px_0px_#18181B] dark:shadow-none transition-all hover:bg-black/5 dark:hover:bg-[#2A2A30] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer"
             title="Mở / Thu gọn menu bên (Ctrl + B)"
             aria-label="Thanh menu"
           >
@@ -105,8 +105,8 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
               aria-current={isCalendarWorkspace ? "page" : undefined}
               className={`flex h-10 items-center gap-1.5 rounded-xl border-[1.5px] px-3 text-xs font-bold transition-all cursor-pointer active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
                 isCalendarWorkspace
-                  ? "border-[#262626] bg-[#1C1917] text-white shadow-none dark:border-[#E5E5EA] dark:bg-[#2C2C2E] dark:text-white"
-                  : "border-transparent text-[#78716C] hover:border-[#262626] hover:bg-white hover:text-[#1C1917] dark:text-[#A1A1AA] dark:hover:border-white dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                  ? "border-[#18181B] bg-[#09090B] text-white shadow-[1.5px_1.5px_0px_#18181B] dark:border-white dark:bg-white dark:text-[#09090B] dark:shadow-none"
+                  : "border-transparent text-[#71717A] hover:bg-black/5 hover:text-[#09090B] dark:text-[#A1A1AA] dark:hover:bg-white/10 dark:hover:text-white"
               }`}
             >
               <CalendarDays size={15} strokeWidth={2.3} />
@@ -118,8 +118,8 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
               aria-current={isTaskWorkspace ? "page" : undefined}
               className={`flex h-10 items-center gap-1.5 rounded-xl border-[1.5px] px-3 text-xs font-bold transition-all cursor-pointer active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
                 isTaskWorkspace
-                  ? "border-[#262626] bg-[#1C1917] text-white shadow-none dark:border-[#E5E5EA] dark:bg-[#2C2C2E] dark:text-white"
-                  : "border-transparent text-[#78716C] hover:border-[#262626] hover:bg-white hover:text-[#1C1917] dark:text-[#A1A1AA] dark:hover:border-white dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                  ? "border-[#18181B] bg-[#09090B] text-white shadow-[1.5px_1.5px_0px_#18181B] dark:border-white dark:bg-white dark:text-[#09090B] dark:shadow-none"
+                  : "border-transparent text-[#71717A] hover:bg-black/5 hover:text-[#09090B] dark:text-[#A1A1AA] dark:hover:bg-white/10 dark:hover:text-white"
               }`}
             >
               <CheckSquare size={15} strokeWidth={2.3} />
@@ -133,7 +133,7 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
             onClick={onOpenAIModal || (() => onTabChange("ai"))}
             title="Trợ lý AI Phác Thảo"
             aria-label="Trợ lý AI"
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#E5E5EA] dark:border-[#262626] bg-white hover:bg-[#F4F4F5] dark:bg-black dark:hover:bg-[#1C1C1E] text-[#1C1917] dark:text-[#F2F2F7] shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#18181B] dark:border-[#2E2E34] bg-white hover:bg-black/5 dark:bg-[#1F1F23] dark:hover:bg-[#2A2A30] text-[#09090B] dark:text-[#FFFFFF] shadow-[1.5px_1.5px_0px_#18181B] dark:shadow-none active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
           >
             <Sparkles size={18} strokeWidth={2.2} />
           </button>
@@ -146,15 +146,15 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
               title="Thông báo & Nhắc việc"
               aria-label="Thông báo & Nhắc việc"
               aria-expanded={isNotificationOpen}
-              className={`flex h-10 w-10 items-center justify-center rounded-xl border border-[#E5E5EA] dark:border-[#262626] transition-all cursor-pointer shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
+              className={`flex h-10 w-10 items-center justify-center rounded-xl border border-[#18181B] dark:border-[#2E2E34] transition-all cursor-pointer shadow-[1.5px_1.5px_0px_#18181B] dark:shadow-none active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
                 isNotificationOpen
-                  ? "bg-[#1C1917] text-white dark:bg-white dark:text-[#1C1917]"
-                  : "bg-white dark:bg-black text-[#1C1917] dark:text-[#F2F2F7] hover:bg-[#F4F4F5] dark:hover:bg-[#1C1C1E]"
+                  ? "bg-[#09090B] text-white dark:bg-white dark:text-[#09090B]"
+                  : "bg-white dark:bg-[#1F1F23] text-[#09090B] dark:text-[#FFFFFF] hover:bg-black/5 dark:hover:bg-[#2A2A30]"
               }`}
             >
               <Bell size={18} strokeWidth={2.2} />
               {alertCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4.5 min-w-[17px] items-center justify-center rounded-full bg-[#FF3B30] px-1 font-mono text-[10px] font-bold text-white shadow-xs">
+                <span className="absolute -right-1 -top-1 flex h-4.5 min-w-[17px] items-center justify-center rounded-full bg-[#DC2626] dark:bg-[#EF4444] px-1 font-mono text-[10px] font-bold text-white shadow-xs">
                   {alertCount > 9 ? "9+" : alertCount}
                 </span>
               )}

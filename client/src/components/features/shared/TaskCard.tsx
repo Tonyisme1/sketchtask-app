@@ -172,14 +172,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         marginLeft: indentPx > 0 ? `${indentPx}px` : undefined,
         width: indentPx > 0 ? `calc(100% - ${indentPx}px)` : undefined,
       }}
-      className={`task-card-shell relative overflow-hidden transition-all duration-200 rounded-none border-b border-[#E5E5EA] dark:border-[#2C2C2E] ${
-        indentLevel > 0 ? "bg-[#FAF8F3]/50 dark:bg-white/[0.02]" : "bg-white dark:bg-[#1C1C1E]"
+      className={`task-card-shell relative overflow-hidden transition-all duration-200 rounded-none border-b border-[#E4E4E7] dark:border-[#2E2E34] ${
+        indentLevel > 0 ? "bg-black/[0.02] dark:bg-white/[0.02]" : "bg-white dark:bg-[#141417]"
       } ${
         isSelected
-          ? "bg-[#FAF8F3] dark:bg-[#2C2C2E] border-b-[#1C1917]"
+          ? "bg-black/[0.05] dark:bg-white/[0.08] border-b-[#09090B] dark:border-b-white"
           : isEffectivelyCompleted
           ? "opacity-50 hover:opacity-75"
-          : "hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E]"
+          : "hover:bg-black/[0.02] dark:hover:bg-white/[0.03]"
       }`}
     >
       {/* 1. HÀNG CHÍNH (COMPACT SCAN-FRIENDLY TASK ROW) */}
@@ -189,14 +189,14 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         onClick={handleClickRow}
         className={`relative z-10 flex items-center justify-between gap-2.5 px-3 py-2 min-h-[42px] sm:min-h-[44px] cursor-pointer select-none transition-colors duration-150 ${
           isSelected
-            ? "bg-[#FAF8F3] dark:bg-[#2C2C2E]"
+            ? "bg-black/[0.04] dark:bg-white/[0.06]"
             : "bg-transparent"
         }`}
       >
         {/* KHỐI TRÁI: Checkbox sát tiêu đề, thời gian nằm ngay bên dưới */}
         <div className="flex items-start gap-2.5 min-w-0 flex-1">
           {isSubtask && (
-            <CornerDownRight size={12} className="text-[#78716C] dark:text-[#8E8E93] shrink-0 mt-0.5" strokeWidth={2.4} />
+            <CornerDownRight size={12} className="text-[#71717A] dark:text-[#A1A1AA] shrink-0 mt-0.5" strokeWidth={2.4} />
           )}
 
           {/* Event là lịch tham chiếu, không có trạng thái hoàn thành như task. */}
@@ -221,8 +221,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               <span
                 className={`text-[13.5px] sm:text-sm font-semibold line-clamp-2 break-words leading-snug transition-all duration-200 ${
                   isEffectivelyCompleted
-                    ? "text-[#78716C] dark:text-[#8E8E93] line-through opacity-80"
-                    : "text-[#1C1917] dark:text-[#F2F2F7]"
+                    ? "text-[#71717A] dark:text-[#A1A1AA] line-through opacity-80"
+                    : "text-[#09090B] dark:text-[#FFFFFF]"
                 }`}
               >
                 {task.title}
@@ -231,7 +231,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               {/* Điểm ưu tiên gấp (chỉ hiện khi gấp ●) */}
               {task.priority === "high" && !isEffectivelyCompleted && (
                 <span
-                  className="w-1.5 h-1.5 rounded-full bg-[#1C1917] dark:bg-[#FAFAFA] shrink-0"
+                  className="w-1.5 h-1.5 rounded-full bg-[#DC2626] dark:bg-[#EF4444] shrink-0"
                   title="Ưu tiên gấp"
                 />
               )}
@@ -244,7 +244,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     e.stopPropagation();
                     onToggleExpand?.();
                   }}
-                  className="flex items-center gap-1 px-1.5 py-0.25 rounded-[3px] border border-[#262626]/30 bg-[#FAF8F3] hover:bg-white text-[10px] font-sans text-[#78716C] shrink-0"
+                  className="flex items-center gap-1 px-1.5 py-0.25 rounded-[3px] border border-[#18181B]/20 dark:border-[#2E2E34] bg-white dark:bg-[#1F1F23] hover:bg-black/5 dark:hover:bg-white/10 text-[10px] font-sans text-[#71717A] dark:text-[#A1A1AA] shrink-0"
                   title={isExpanded ? "Thu gọn việc con" : "Mở rộng việc con"}
                 >
                   <Layers size={10} />

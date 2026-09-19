@@ -2,14 +2,14 @@
 // COMPONENT: PlannerDayTimeline (Desktop Day Timeline Grid & Task List)
 // ==========================================
 
-import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
-import {
-  Clock,
-  Hourglass,
-  Pin,
-  Plus,
-  X,
-} from "lucide-react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
+import { Clock, Hourglass, Pin, Plus, X } from "lucide-react";
 import { TaskDto, TaskItemType } from "../../../types";
 import {
   getTaskEffectiveTime,
@@ -95,7 +95,11 @@ const DayScheduledBlockCard: React.FC<{
     startM: number,
     offsetM: number,
   ) => void;
-  onStartResize: (event: React.PointerEvent<HTMLElement>, task: TaskDto, edge: "top" | "bottom") => void;
+  onStartResize: (
+    event: React.PointerEvent<HTMLElement>,
+    task: TaskDto,
+    edge: "top" | "bottom",
+  ) => void;
 }> = ({
   block,
   dateStr,
@@ -113,12 +117,20 @@ const DayScheduledBlockCard: React.FC<{
   const isCompleted = !isEvent && task.completed;
   const hasMultipleLanes = block.laneCount > 1;
 
-  const isBeingResized = Boolean(resizingState && resizingState.taskId === task.id);
+  const isBeingResized = Boolean(
+    resizingState && resizingState.taskId === task.id,
+  );
   const effectiveTop = isBeingResized
     ? (resizingState!.currentStartMinutes / 60) * HOUR_ROW_HEIGHT
     : block.top;
   const effectiveHeight = isBeingResized
-    ? Math.max(MIN_LANE_HEIGHT, ((resizingState!.currentEndMinutes - resizingState!.currentStartMinutes) / 60) * HOUR_ROW_HEIGHT)
+    ? Math.max(
+        MIN_LANE_HEIGHT,
+        ((resizingState!.currentEndMinutes -
+          resizingState!.currentStartMinutes) /
+          60) *
+          HOUR_ROW_HEIGHT,
+      )
     : block.height;
 
   const displayStart = isBeingResized
@@ -156,13 +168,22 @@ const DayScheduledBlockCard: React.FC<{
       >
         <div className="flex min-w-0 h-full overflow-hidden flex-col justify-between">
           <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
-            <Clock size={12} strokeWidth={2.2} className="shrink-0 text-current" />
+            <Clock
+              size={12}
+              strokeWidth={2.2}
+              className="shrink-0 text-current"
+            />
             <span className="truncate text-[10.5px] font-bold font-mono">
-              {time}{getTaskEffectiveEndTime(task) ? ` - ${getTaskEffectiveEndTime(task)}` : ""}
+              {time}
+              {getTaskEffectiveEndTime(task)
+                ? ` - ${getTaskEffectiveEndTime(task)}`
+                : ""}
             </span>
           </div>
           <div className="min-w-0 overflow-hidden mt-1 flex-1">
-            <p className="truncate text-xs font-bold leading-tight">{task.title}</p>
+            <p className="truncate text-xs font-bold leading-tight">
+              {task.title}
+            </p>
           </div>
         </div>
       </article>
@@ -184,7 +205,10 @@ const DayScheduledBlockCard: React.FC<{
           suppressClickRef.current = false;
           return;
         }
-        onOpenPopover(task, (e.currentTarget as HTMLElement).getBoundingClientRect());
+        onOpenPopover(
+          task,
+          (e.currentTarget as HTMLElement).getBoundingClientRect(),
+        );
       }}
       draggable={false}
       onDragStart={(e) => {
@@ -192,18 +216,36 @@ const DayScheduledBlockCard: React.FC<{
         e.stopPropagation();
       }}
       onPointerDown={(event) => {
-        if (event.button === 0 && !(event.target as HTMLElement).closest("button") && !(event.target as HTMLElement).closest("[data-resize-handle]")) {
-          const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-          const clickOffsetMinutes = Math.max(0, Math.min(duration, Math.round(((event.clientY - rect.top) / HOUR_ROW_HEIGHT) * 60)));
-          onStartPointerDrag(event, task, duration, (block.top / HOUR_ROW_HEIGHT) * 60, clickOffsetMinutes);
+        if (
+          event.button === 0 &&
+          !(event.target as HTMLElement).closest("button") &&
+          !(event.target as HTMLElement).closest("[data-resize-handle]")
+        ) {
+          const rect = (
+            event.currentTarget as HTMLElement
+          ).getBoundingClientRect();
+          const clickOffsetMinutes = Math.max(
+            0,
+            Math.min(
+              duration,
+              Math.round(((event.clientY - rect.top) / HOUR_ROW_HEIGHT) * 60),
+            ),
+          );
+          onStartPointerDrag(
+            event,
+            task,
+            duration,
+            (block.top / HOUR_ROW_HEIGHT) * 60,
+            clickOffsetMinutes,
+          );
         }
       }}
       title={`${isEvent ? "Sự kiện" : "Lịch hẹn"}: ${displayStart || ""}${displayEnd ? ` - ${displayEnd}` : ""} · ${task.title}`}
       className={`group absolute overflow-visible shadow-sm select-none transition-[box-shadow,opacity] cursor-grab active:cursor-grabbing ${
-        isBeingResized ? "ring-2 ring-[var(--accent-blue)] shadow-xl !z-50 cursor-ns-resize" : ""
-      } ${
-        isTight ? "px-1 py-0" : isCompact ? "px-1.5 py-1" : "p-2"
-      } ${
+        isBeingResized
+          ? "ring-2 ring-[var(--accent-blue)] shadow-xl !z-50 cursor-ns-resize"
+          : ""
+      } ${isTight ? "px-1 py-0" : isCompact ? "px-1.5 py-1" : "p-2"} ${
         isActive ? "ring-2 ring-[var(--accent-blue)] shadow-md !z-40" : ""
       } ${tone}`}
     >
@@ -211,8 +253,17 @@ const DayScheduledBlockCard: React.FC<{
       {isBeingResized && (
         <div className="absolute -top-7.5 left-1/2 -translate-x-1/2 z-50 bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold shadow-xl border border-white/20 flex items-center gap-1.5 pointer-events-none whitespace-nowrap animate-in fade-in duration-75">
           <Clock size={11} strokeWidth={2.4} />
-          <span>{displayStart} - {displayEnd}</span>
-          <span className="opacity-75">({formatDuration(resizingState!.currentStartMinutes, resizingState!.currentEndMinutes)})</span>
+          <span>
+            {displayStart} - {displayEnd}
+          </span>
+          <span className="opacity-75">
+            (
+            {formatDuration(
+              resizingState!.currentStartMinutes,
+              resizingState!.currentEndMinutes,
+            )}
+            )
+          </span>
         </div>
       )}
 
@@ -229,9 +280,11 @@ const DayScheduledBlockCard: React.FC<{
         />
       )}
 
-      <div className={`flex min-w-0 h-full overflow-hidden ${
-        isCompact ? "flex-row items-center gap-1" : "flex-col justify-between"
-      }`}>
+      <div
+        className={`flex min-w-0 h-full overflow-hidden ${
+          isCompact ? "flex-row items-center gap-1" : "flex-col justify-between"
+        }`}
+      >
         <div className="flex min-w-0 items-center gap-1.5 overflow-hidden">
           <Clock
             size={12}
@@ -239,16 +292,24 @@ const DayScheduledBlockCard: React.FC<{
             className={`shrink-0 ${isEvent ? "text-white" : "text-[var(--text-main)]"}`}
           />
 
-          <span className={`truncate text-[10.5px] font-bold font-mono ${isEvent ? "text-white" : "text-[var(--text-main)]"}`}>
+          <span
+            className={`truncate text-[10.5px] font-bold font-mono ${isEvent ? "text-white" : "text-[var(--text-main)]"}`}
+          >
             {displayStart}
             {displayEnd && ` - ${displayEnd}`}
           </span>
         </div>
 
-        <div className={`min-w-0 overflow-hidden ${isCompact ? "flex-1" : "mt-1 flex-1"}`}>
+        <div
+          className={`min-w-0 overflow-hidden ${isCompact ? "flex-1" : "mt-1 flex-1"}`}
+        >
           <p
             className={`truncate text-xs font-bold leading-tight ${
-              isCompleted ? "line-through text-[#8E8E93]" : isEvent ? "text-white" : "text-[var(--text-main)]"
+              isCompleted
+                ? "line-through text-[#8E8E93]"
+                : isEvent
+                  ? "text-white"
+                  : "text-[var(--text-main)]"
             }`}
           >
             {task.title}
@@ -290,7 +351,7 @@ const DayDeadlineMarkerCard: React.FC<{
   onStartResize?: (
     event: React.PointerEvent<HTMLElement>,
     task: TaskDto,
-    edge: "top" | "bottom"
+    edge: "top" | "bottom",
   ) => void;
 }> = ({
   marker,
@@ -324,9 +385,17 @@ const DayDeadlineMarkerCard: React.FC<{
         className={`group absolute flex items-center overflow-hidden ${tone} px-2 select-none pointer-events-none opacity-25 border-2 border-dashed border-[var(--accent-coral)]`}
       >
         <div className="flex min-w-0 items-center gap-1.5 flex-1 overflow-hidden">
-          <Hourglass size={11} strokeWidth={2.2} className="shrink-0 text-current" />
-          <span className="font-mono text-[10px] font-bold shrink-0">{marker.time}</span>
-          <span className="truncate text-xs font-bold leading-none">{task.title}</span>
+          <Hourglass
+            size={11}
+            strokeWidth={2.2}
+            className="shrink-0 text-current"
+          />
+          <span className="font-mono text-[10px] font-bold shrink-0">
+            {marker.time}
+          </span>
+          <span className="truncate text-xs font-bold leading-none">
+            {task.title}
+          </span>
         </div>
       </article>
     );
@@ -347,7 +416,10 @@ const DayDeadlineMarkerCard: React.FC<{
           suppressClickRef.current = false;
           return;
         }
-        onOpenPopover(task, (e.currentTarget as HTMLElement).getBoundingClientRect());
+        onOpenPopover(
+          task,
+          (e.currentTarget as HTMLElement).getBoundingClientRect(),
+        );
       }}
       draggable={false}
       onDragStart={(e) => {
@@ -360,7 +432,13 @@ const DayDeadlineMarkerCard: React.FC<{
           !(event.target as HTMLElement).closest("button") &&
           !(event.target as HTMLElement).closest("[data-resize-handle]")
         ) {
-          onStartPointerDrag(event, task, 30, (marker.top / HOUR_ROW_HEIGHT) * 60, 0);
+          onStartPointerDrag(
+            event,
+            task,
+            30,
+            (marker.top / HOUR_ROW_HEIGHT) * 60,
+            0,
+          );
         }
       }}
       title={`Hạn chót: ${marker.time} · ${task.title}${marker.overflowCount ? ` (+${marker.overflowCount} việc khác)` : ""}`}
@@ -370,7 +448,11 @@ const DayDeadlineMarkerCard: React.FC<{
     >
       <div className="flex min-w-0 items-center justify-between gap-1.5 w-full overflow-hidden">
         <div className="flex min-w-0 items-center gap-1.5 flex-1 overflow-hidden">
-          <Hourglass size={11} strokeWidth={2.2} className="shrink-0 text-[#1C1917]" />
+          <Hourglass
+            size={11}
+            strokeWidth={2.2}
+            className="shrink-0 text-[#1C1917]"
+          />
 
           <span className="font-mono text-[10px] font-bold text-[#1C1917] shrink-0">
             {marker.time}
@@ -391,7 +473,10 @@ const DayDeadlineMarkerCard: React.FC<{
             onClick={(event) => {
               event.stopPropagation();
               if (marker.hiddenTasks?.length && onOpenOverflow) {
-                onOpenOverflow(marker.hiddenTasks, (event.currentTarget as HTMLElement).getBoundingClientRect());
+                onOpenOverflow(
+                  marker.hiddenTasks,
+                  (event.currentTarget as HTMLElement).getBoundingClientRect(),
+                );
               }
             }}
             className="shrink-0 rounded-[6px] bg-[var(--accent-blue)] px-1.5 py-[1px] font-mono text-[9px] font-bold text-white shadow-sm"
@@ -429,10 +514,13 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
   const { addTask, openQuickTaskModal, openTaskDetail } = useAppStore();
   const timelineScrollRef = useRef<HTMLDivElement>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [draggingTaskState, setDraggingTaskState] = useState<PointerDragState | null>(null);
+  const [draggingTaskState, setDraggingTaskState] =
+    useState<PointerDragState | null>(null);
   const pointerDragRef = useRef<PointerDragState | null>(null);
 
-  const [resizingState, setResizingState] = useState<ResizingState | null>(null);
+  const [resizingState, setResizingState] = useState<ResizingState | null>(
+    null,
+  );
   const resizingStateRef = useRef<ResizingState | null>(null);
 
   const [overflowPopover, setOverflowPopover] = useState<{
@@ -457,7 +545,7 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
     if (!draftTask) return;
     if (draftTask.title.trim().length > 0) {
       const confirmDiscard = window.confirm(
-        "Bạn có nội dung chưa lưu. Bạn có chắc muốn hủy bỏ?"
+        "Bạn có nội dung chưa lưu. Bạn có chắc muốn hủy bỏ?",
       );
       if (!confirmDiscard) {
         return;
@@ -501,14 +589,14 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
 
   const handleHourCellClick = (
     event: React.MouseEvent<HTMLDivElement>,
-    hour: number
+    hour: number,
   ) => {
     if (draftTask && draftTask.title.trim().length > 0) {
       if (draftTask.hour === hour) {
         return;
       }
       const confirmDiscard = window.confirm(
-        "Bạn có nội dung chưa lưu. Bạn có chắc muốn hủy bỏ?"
+        "Bạn có nội dung chưa lưu. Bạn có chắc muốn hủy bỏ?",
       );
       if (!confirmDiscard) {
         return;
@@ -559,13 +647,17 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
     event.preventDefault();
     event.stopPropagation();
 
-    const block = timelineLayout.scheduledBlocks.find((b) => b.task.id === task.id);
-    const marker = timelineLayout.deadlineMarkers.find((m) => m.task.id === task.id);
+    const block = timelineLayout.scheduledBlocks.find(
+      (b) => b.task.id === task.id,
+    );
+    const marker = timelineLayout.deadlineMarkers.find(
+      (m) => m.task.id === task.id,
+    );
     const startM = block
       ? Math.round((block.top / HOUR_ROW_HEIGHT) * 60)
       : marker
-      ? Math.round((marker.top / HOUR_ROW_HEIGHT) * 60)
-      : 9 * 60;
+        ? Math.round((marker.top / HOUR_ROW_HEIGHT) * 60)
+        : 9 * 60;
     const duration = block?.durationMinutes || 15;
     const endM = startM + duration;
 
@@ -596,12 +688,27 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
         let nextEnd = r.originalEndMinutes;
 
         if (r.edge === "top") {
-          nextStart = Math.max(0, Math.min(r.originalEndMinutes - 15, r.originalStartMinutes + deltaMinutes));
+          nextStart = Math.max(
+            0,
+            Math.min(
+              r.originalEndMinutes - 15,
+              r.originalStartMinutes + deltaMinutes,
+            ),
+          );
         } else {
-          nextEnd = Math.min(24 * 60, Math.max(r.originalStartMinutes + 15, r.originalEndMinutes + deltaMinutes));
+          nextEnd = Math.min(
+            24 * 60,
+            Math.max(
+              r.originalStartMinutes + 15,
+              r.originalEndMinutes + deltaMinutes,
+            ),
+          );
         }
 
-        if (nextStart !== r.currentStartMinutes || nextEnd !== r.currentEndMinutes) {
+        if (
+          nextStart !== r.currentStartMinutes ||
+          nextEnd !== r.currentEndMinutes
+        ) {
           const updated = {
             ...r,
             currentStartMinutes: nextStart,
@@ -618,7 +725,10 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
       if (!drag) return;
 
       if (!drag.dragging) {
-        const distance = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
+        const distance = Math.hypot(
+          event.clientX - drag.startX,
+          event.clientY - drag.startY,
+        );
         if (distance < 4) return;
         drag.dragging = true;
       }
@@ -631,7 +741,10 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
         const rawMinutes = (mouseY / HOUR_ROW_HEIGHT) * 60 - drag.offsetMinutes;
         const snappedMinutes = Math.max(
           0,
-          Math.min(24 * 60 - drag.durationMinutes, Math.round(rawMinutes / 15) * 15)
+          Math.min(
+            24 * 60 - drag.durationMinutes,
+            Math.round(rawMinutes / 15) * 15,
+          ),
         );
 
         if (snappedMinutes !== drag.currentStartMinutes) {
@@ -652,8 +765,14 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
 
         const task = tasks.find((t) => t.id === r.taskId);
         if (task) {
-          const finalMinutes = r.edge === "top" ? r.currentStartMinutes : r.currentEndMinutes;
-          const updates = getTimelineResizeUpdates(task, effectiveDayDate, r.edge, finalMinutes);
+          const finalMinutes =
+            r.edge === "top" ? r.currentStartMinutes : r.currentEndMinutes;
+          const updates = getTimelineResizeUpdates(
+            task,
+            effectiveDayDate,
+            r.edge,
+            finalMinutes,
+          );
           onUpdateTask(task.id, updates);
         }
         return;
@@ -667,11 +786,20 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
       if (!drag?.dragging) return;
 
       if (drag.currentStartMinutes !== drag.originalStartMinutes) {
-        onUpdateTask(drag.task.id, getTimelineDropUpdates(drag.task, effectiveDayDate, drag.currentStartMinutes));
+        onUpdateTask(
+          drag.task.id,
+          getTimelineDropUpdates(
+            drag.task,
+            effectiveDayDate,
+            drag.currentStartMinutes,
+          ),
+        );
       }
     };
 
-    window.addEventListener("pointermove", handlePointerMove, { passive: false });
+    window.addEventListener("pointermove", handlePointerMove, {
+      passive: false,
+    });
     window.addEventListener("pointerup", handlePointerUp);
     window.addEventListener("pointercancel", handlePointerUp);
     return () => {
@@ -704,7 +832,10 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
     });
   };
 
-  const quarterSlots = Array.from({ length: END_HOUR * 4 }, (_, index) => index);
+  const quarterSlots = Array.from(
+    { length: END_HOUR * 4 },
+    (_, index) => index,
+  );
 
   return (
     <section className="w-full h-full flex-1 flex flex-col min-h-0 select-none animate-in fade-in duration-150">
@@ -720,7 +851,9 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                const rect = (
+                  e.currentTarget as HTMLElement
+                ).getBoundingClientRect();
                 if (onPreviewTask) {
                   onPreviewTask(task, rect);
                 } else {
@@ -768,7 +901,9 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
                   className="absolute left-0 right-0 flex items-start justify-end border-t border-[#C7C7CC] dark:border-[#48484A] pr-1.5 font-mono text-[10px] font-medium text-[#8E8E93] dark:text-[#8E8E93]"
                   style={{ top, height }}
                 >
-                  <span className="-translate-y-1/2">{formatTime(hour * 60)}</span>
+                  <span className="-translate-y-1/2">
+                    {formatTime(hour * 60)}
+                  </span>
                 </div>
               ))}
 
@@ -819,10 +954,16 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
                 >
                   <div className="flex items-center gap-1.5 font-mono text-[10.5px] font-bold">
                     <Clock size={12} strokeWidth={2.4} className="shrink-0" />
-                    <span>{formatTime(draftTask.startMinutes)} - {formatTime(draftTask.endMinutes)}</span>
+                    <span>
+                      {formatTime(draftTask.startMinutes)} -{" "}
+                      {formatTime(draftTask.endMinutes)}
+                    </span>
                   </div>
                   <p className="truncate text-xs font-bold leading-tight">
-                    {draftTask.title || (draftTask.itemType === "event" ? "(Sự kiện mới)" : "(Công việc mới)")}
+                    {draftTask.title ||
+                      (draftTask.itemType === "event"
+                        ? "(Sự kiện mới)"
+                        : "(Công việc mới)")}
                   </p>
                 </div>
               )}
@@ -839,7 +980,8 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
 
               {/* Scheduled Blocks */}
               {timelineLayout.scheduledBlocks.map((block, index) => {
-                const isBeingDragged = draggingTaskState?.taskId === block.task.id;
+                const isBeingDragged =
+                  draggingTaskState?.taskId === block.task.id;
                 return (
                   <React.Fragment key={`day-sched-${block.task.id}-${index}`}>
                     <DayScheduledBlockCard
@@ -847,7 +989,13 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
                       dateStr={effectiveDayDate}
                       isGhost={isBeingDragged}
                       resizingState={resizingState}
-                      onStartPointerDrag={(_, task, duration, startM, offsetM) => {
+                      onStartPointerDrag={(
+                        _,
+                        task,
+                        duration,
+                        startM,
+                        offsetM,
+                      ) => {
                         pointerDragRef.current = {
                           taskId: task.id,
                           task,
@@ -876,10 +1024,16 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
                     {isBeingDragged && draggingTaskState && (
                       <article
                         style={{
-                          top: (draggingTaskState.currentStartMinutes / 60) * HOUR_ROW_HEIGHT,
+                          top:
+                            (draggingTaskState.currentStartMinutes / 60) *
+                            HOUR_ROW_HEIGHT,
                           left: "1px",
                           width: "calc(100% - 2px)",
-                          height: Math.max(MIN_LANE_HEIGHT, (draggingTaskState.durationMinutes / 60) * HOUR_ROW_HEIGHT),
+                          height: Math.max(
+                            MIN_LANE_HEIGHT,
+                            (draggingTaskState.durationMinutes / 60) *
+                              HOUR_ROW_HEIGHT,
+                          ),
                           zIndex: 60,
                         }}
                         className={`group absolute overflow-visible shadow-2xl select-none ring-2 ring-[var(--accent-blue)] pointer-events-none p-2 ${
@@ -894,10 +1048,21 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
                         <div className="absolute -top-7.5 left-1/2 -translate-x-1/2 z-50 bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold shadow-xl border border-white/20 flex items-center gap-1.5 pointer-events-none whitespace-nowrap animate-in fade-in duration-75">
                           <Clock size={11} strokeWidth={2.4} />
                           <span>
-                            {formatTime(draggingTaskState.currentStartMinutes)} - {formatTime(draggingTaskState.currentStartMinutes + draggingTaskState.durationMinutes)}
+                            {formatTime(draggingTaskState.currentStartMinutes)}{" "}
+                            -{" "}
+                            {formatTime(
+                              draggingTaskState.currentStartMinutes +
+                                draggingTaskState.durationMinutes,
+                            )}
                           </span>
                           <span className="opacity-75">
-                            ({formatDuration(draggingTaskState.currentStartMinutes, draggingTaskState.currentStartMinutes + draggingTaskState.durationMinutes)})
+                            (
+                            {formatDuration(
+                              draggingTaskState.currentStartMinutes,
+                              draggingTaskState.currentStartMinutes +
+                                draggingTaskState.durationMinutes,
+                            )}
+                            )
                           </span>
                         </div>
 
@@ -908,15 +1073,28 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
                               strokeWidth={2.2}
                               className={`shrink-0 ${draggingTaskState.isEvent ? "text-white" : "text-[var(--text-main)]"}`}
                             />
-                            <span className={`truncate text-[10.5px] font-bold font-mono ${draggingTaskState.isEvent ? "text-white" : "text-[var(--text-main)]"}`}>
-                              {formatTime(draggingTaskState.currentStartMinutes)} - {formatTime(draggingTaskState.currentStartMinutes + draggingTaskState.durationMinutes)}
+                            <span
+                              className={`truncate text-[10.5px] font-bold font-mono ${draggingTaskState.isEvent ? "text-white" : "text-[var(--text-main)]"}`}
+                            >
+                              {formatTime(
+                                draggingTaskState.currentStartMinutes,
+                              )}{" "}
+                              -{" "}
+                              {formatTime(
+                                draggingTaskState.currentStartMinutes +
+                                  draggingTaskState.durationMinutes,
+                              )}
                             </span>
                           </div>
 
                           <div className="min-w-0 overflow-hidden mt-1 flex-1">
                             <p
                               className={`truncate text-xs font-bold leading-tight ${
-                                draggingTaskState.isCompleted ? "line-through text-[#8E8E93]" : draggingTaskState.isEvent ? "text-white" : "text-[var(--text-main)]"
+                                draggingTaskState.isCompleted
+                                  ? "line-through text-[#8E8E93]"
+                                  : draggingTaskState.isEvent
+                                    ? "text-white"
+                                    : "text-[var(--text-main)]"
                               }`}
                             >
                               {draggingTaskState.task.title}
@@ -931,14 +1109,21 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
 
               {/* Deadline Markers */}
               {timelineLayout.deadlineMarkers.map((marker, index) => {
-                const isBeingDragged = draggingTaskState?.taskId === marker.task.id;
+                const isBeingDragged =
+                  draggingTaskState?.taskId === marker.task.id;
                 return (
                   <React.Fragment key={`day-dead-${marker.task.id}-${index}`}>
                     <DayDeadlineMarkerCard
                       marker={marker}
                       dateStr={effectiveDayDate}
                       isGhost={isBeingDragged}
-                      onStartPointerDrag={(_, task, duration, startM, offsetM) => {
+                      onStartPointerDrag={(
+                        _,
+                        task,
+                        duration,
+                        startM,
+                        offsetM,
+                      ) => {
                         pointerDragRef.current = {
                           taskId: task.id,
                           task,
@@ -961,14 +1146,18 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
                           openTaskDetail(task.id);
                         }
                       }}
-                      onOpenOverflow={(tasks, rect) => setOverflowPopover({ tasks, anchorRect: rect })}
+                      onOpenOverflow={(tasks, rect) =>
+                        setOverflowPopover({ tasks, anchorRect: rect })
+                      }
                     />
 
                     {/* Deadline Marker đang được kéo */}
                     {isBeingDragged && draggingTaskState && (
                       <article
                         style={{
-                          top: (draggingTaskState.currentStartMinutes / 60) * HOUR_ROW_HEIGHT,
+                          top:
+                            (draggingTaskState.currentStartMinutes / 60) *
+                            HOUR_ROW_HEIGHT,
                           left: "1px",
                           width: "calc(100% - 2px)",
                           height: 25,
@@ -977,7 +1166,11 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
                         className="group absolute flex items-center overflow-hidden bg-[var(--accent-sky)] border border-[var(--accent-sky)] rounded-[8px] px-2 shadow-2xl select-none ring-2 ring-[var(--accent-blue)] pointer-events-none"
                       >
                         <div className="flex min-w-0 items-center gap-1.5 flex-1 overflow-hidden">
-                          <Hourglass size={11} strokeWidth={2.2} className="shrink-0 text-[var(--accent-blue)]" />
+                          <Hourglass
+                            size={11}
+                            strokeWidth={2.2}
+                            className="shrink-0 text-[var(--accent-blue)]"
+                          />
                           <span className="font-mono text-[10px] font-bold text-[var(--accent-blue)] shrink-0">
                             {formatTime(draggingTaskState.currentStartMinutes)}
                           </span>
@@ -1019,14 +1212,17 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
           title={draftTask.title}
           itemType={draftTask.itemType}
           anchorRect={draftTask.anchorRect}
-          onTitleChange={(title) => setDraftTask((prev) => (prev ? { ...prev, title } : null))}
-          onItemTypeChange={(itemType) => setDraftTask((prev) => (prev ? { ...prev, itemType } : null))}
+          onTitleChange={(title) =>
+            setDraftTask((prev) => (prev ? { ...prev, title } : null))
+          }
+          onItemTypeChange={(itemType) =>
+            setDraftTask((prev) => (prev ? { ...prev, itemType } : null))
+          }
           onSave={handleSaveDraft}
           onCancel={handleCancelDraft}
           onOpenFullDetail={handleOpenFullDetailFromDraft}
         />
       )}
-
     </section>
   );
 };

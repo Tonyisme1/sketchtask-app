@@ -150,16 +150,16 @@ export const DesktopAllTasksView: React.FC = () => {
   return (
     <div className="w-full min-w-0 space-y-5 select-none animate-in fade-in duration-150">
       {/* === PHẦN 2: Tiêu đề và thống kê chung === */}
-      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[#262626]/20 pb-4 dark:border-transparent">
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-[#18181B]/15 pb-4 dark:border-[#2E2E34]">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[var(--border-ink)] bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] dark:bg-[var(--accent-blue)]/20">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[#18181B] dark:border-[#2E2E34] bg-black/5 text-[#09090B] dark:bg-white/10 dark:text-white">
             <ListTodo size={22} strokeWidth={2.2} />
           </div>
           <div className="min-w-0">
-            <h1 className="truncate text-2xl font-black tracking-tight text-[#1C1917] dark:text-[#F2F2F7]">
+            <h1 className="truncate text-2xl font-black tracking-tight text-[#09090B] dark:text-[#FFFFFF]">
               Tất cả việc
             </h1>
-            <p className="mt-0.5 text-xs font-medium text-[#78716C] dark:text-[#A1A1AA]">
+            <p className="mt-0.5 text-xs font-medium text-[#71717A] dark:text-[#A1A1AA]">
               {activeCount} đang làm · {completed} đã hoàn thành · {taskItems.length} tổng cộng
             </p>
           </div>
@@ -167,10 +167,10 @@ export const DesktopAllTasksView: React.FC = () => {
 
         {total > 0 && (
           <div className="hidden items-center gap-2 sm:flex" title={`Tiến độ ${progress}%`}>
-            <div className="h-2 w-24 overflow-hidden rounded-full border border-[#262626] bg-[#F3EFE6] dark:border-[#48484A] dark:bg-[#2C2C2E]">
-              <div className="h-full bg-[var(--accent-blue)] transition-[width] duration-300" style={{ width: `${progress}%` }} />
+            <div className="h-2 w-24 overflow-hidden rounded-full border border-[#18181B] bg-[#E4E4E7] dark:border-[#3F3F46] dark:bg-[#2E2E34]">
+              <div className="h-full bg-[#09090B] dark:bg-white transition-[width] duration-300" style={{ width: `${progress}%` }} />
             </div>
-            <span className="font-mono text-xs font-bold text-[#78716C] dark:text-[#A1A1AA]">{progress}%</span>
+            <span className="font-mono text-xs font-bold text-[#71717A] dark:text-[#A1A1AA]">{progress}%</span>
           </div>
         )}
       </header>
@@ -178,11 +178,11 @@ export const DesktopAllTasksView: React.FC = () => {
       {/* === PHẦN 3: Danh sách task phân cấp theo ngày như lịch === */}
       {visibleTasks.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-[1.5px] border-[#262626] bg-[#FAF8F3] shadow-[2px_2px_0px_#262626] dark:bg-[#2C2C2E]">
-            <CheckCircle2 size={28} className="text-[#78716C] dark:text-[#A1A1AA]" strokeWidth={2} />
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-[1.5px] border-[#18181B] bg-white shadow-[2px_2px_0px_#18181B] dark:border-[#2E2E34] dark:bg-[#141417] dark:shadow-none">
+            <CheckCircle2 size={28} className="text-[#71717A] dark:text-[#A1A1AA]" strokeWidth={2} />
           </div>
-          <h2 className="mt-4 text-base font-bold text-[#1C1917] dark:text-[#F2F2F7]">Chưa có công việc nào</h2>
-          <p className="mt-1 max-w-sm text-xs text-[#78716C] dark:text-[#8E8E93]">
+          <h2 className="mt-4 text-base font-bold text-[#09090B] dark:text-[#FFFFFF]">Chưa có công việc nào</h2>
+          <p className="mt-1 max-w-sm text-xs text-[#71717A] dark:text-[#A1A1AA]">
             Tạo công việc đầu tiên để danh sách chung bắt đầu theo dõi tiến độ của bạn.
           </p>
         </div>
@@ -196,10 +196,10 @@ export const DesktopAllTasksView: React.FC = () => {
                   key={filter.key}
                   type="button"
                   onClick={() => setAgendaFilter(filter.key)}
-                  className={`min-h-8 rounded-lg px-2.5 text-xs font-semibold transition-colors ${
+                  className={`min-h-8 rounded-lg px-2.5 text-xs font-semibold transition-all ${
                     isActive
-                      ? "bg-[var(--accent-blue)] text-white"
-                      : "text-[var(--text-muted)] hover:bg-[var(--bg-surface-muted)] hover:text-[var(--text-main)]"
+                      ? "bg-[#09090B] text-white shadow-[1px_1px_0px_#18181B] dark:bg-white dark:text-[#09090B] dark:shadow-none"
+                      : "text-[#71717A] hover:bg-black/5 hover:text-[#09090B] dark:text-[#A1A1AA] dark:hover:bg-white/10 dark:hover:text-white"
                   }`}
                 >
                   {filter.label}

@@ -284,7 +284,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // ----------------------------------------------------
   if (!isSidebarOpen) {
     return (
-      <aside className="hidden md:flex flex-col items-center justify-between h-[calc(100vh-60px)] sticky top-[60px] bg-[#F2F2F7] dark:bg-[#18181A] border-r border-[#E5E5EA] dark:border-[#262626] select-none z-20 shrink-0 w-[72px] py-3 px-2 transition-all duration-200 ease-in-out">
+      <aside className="hidden md:flex flex-col items-center justify-between h-[calc(100vh-60px)] sticky top-[60px] bg-[#F8F9FA] dark:bg-[#141417] select-none z-20 shrink-0 w-[72px] py-3 px-2 transition-all duration-200 ease-in-out">
         <div className="flex flex-col items-center gap-1.5 w-full">
           {/* Quick Create Task Button */}
           {onCreateTask && (
@@ -300,20 +300,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }}
                 title={isCalendarWorkspace ? "Tạo mới (Sự kiện / Công việc)" : "Tạo công việc mới (N)"}
                 aria-label="Tạo mới"
-                className="w-10 h-10 mb-2 rounded-xl flex items-center justify-center bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] border-[1.5px] border-[#262626] shadow-[2px_2px_0px_#262626] hover:bg-black active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+                className="w-10 h-10 mb-2 rounded-xl flex items-center justify-center bg-[#09090B] dark:bg-white text-white dark:text-[#09090B] border-[1.5px] border-[#18181B] dark:border-white shadow-[2px_2px_0px_#18181B] dark:shadow-none hover:bg-black active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
               >
                 <Plus size={18} strokeWidth={2.6} />
               </button>
 
               {isCalendarWorkspace && isCalendarDropdownOpen && (
-                <div className="absolute left-[calc(100%+8px)] top-0 z-50 min-w-[160px] rounded-xl border-[1.5px] border-[#262626] bg-white dark:bg-[#1E1E20] shadow-[3px_3px_0px_#262626] p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute left-[calc(100%+8px)] top-0 z-50 min-w-[160px] rounded-xl border-[1.5px] border-[#18181B] dark:border-[#2E2E34] bg-white dark:bg-[#1F1F23] shadow-[3px_3px_0px_#18181B] dark:shadow-none p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-100">
                   <button
                     type="button"
                     onClick={() => {
                       setIsCalendarDropdownOpen(false);
                       openQuickTaskModal({ itemType: "event" });
                     }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7] hover:bg-[var(--accent-blue)] hover:text-white transition-colors cursor-pointer text-left"
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold text-[#09090B] dark:text-[#FFFFFF] hover:bg-[var(--accent-blue)] hover:text-white transition-colors cursor-pointer text-left"
                   >
                     <CalendarIcon size={14} strokeWidth={2.2} className="text-[var(--accent-blue)]" />
                     <span>Tạo sự kiện</span>
@@ -325,7 +325,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       setIsCalendarDropdownOpen(false);
                       openQuickTaskModal({ itemType: "task" });
                     }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7] hover:bg-[var(--accent-sky)] hover:text-[#1C1917] transition-colors cursor-pointer text-left"
+                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold text-[#09090B] dark:text-[#FFFFFF] hover:bg-[var(--accent-sky)] hover:text-[#09090B] transition-colors cursor-pointer text-left"
                   >
                     <Plus size={14} strokeWidth={2.4} className="text-[var(--accent-sky)]" />
                     <span>Tạo công việc</span>
@@ -345,8 +345,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   aria-current={desktopPlannerSurface === "calendar" ? "page" : undefined}
                   className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer ${
                     desktopPlannerSurface === "calendar"
-                      ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
-                      : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                      ? "bg-[#09090B] text-white border-[#09090B] shadow-[2px_2px_0px_#18181B] dark:bg-white dark:text-[#09090B] dark:border-white dark:shadow-none"
+                      : "border-transparent text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
                   } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
                 >
                   <CalendarIcon size={18} strokeWidth={2.2} />
@@ -358,8 +358,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   aria-current={desktopPlannerSurface === "list" ? "page" : undefined}
                   className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer ${
                     desktopPlannerSurface === "list"
-                      ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
-                      : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                      ? "bg-[#09090B] text-white border-[#09090B] shadow-[2px_2px_0px_#18181B] dark:bg-white dark:text-[#09090B] dark:border-white dark:shadow-none"
+                      : "border-transparent text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
                   } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
                 >
                   <List size={18} strokeWidth={2.2} />
@@ -375,8 +375,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title="Tất cả việc"
               className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer ${
                 isAllTasksActive
-                  ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
-                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                  ? "bg-[#09090B] text-white border-[#09090B] shadow-[2px_2px_0px_#18181B] dark:bg-white dark:text-[#09090B] dark:border-white dark:shadow-none"
+                  : "border-transparent text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
               } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
             >
               <ListTodo size={18} strokeWidth={2.2} />
@@ -387,8 +387,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title="Hôm nay"
               className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer ${
                 isTodayActive
-                  ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
-                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                  ? "bg-[#09090B] text-white border-[#09090B] shadow-[2px_2px_0px_#18181B] dark:bg-white dark:text-[#09090B] dark:border-white dark:shadow-none"
+                  : "border-transparent text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
               } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
             >
               <Sun size={18} strokeWidth={2.2} />
@@ -400,14 +400,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title="Hạn định & Quá hạn"
               className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer relative ${
                 isDeadlinesActive
-                  ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
-                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                  ? "bg-[#09090B] text-white border-[#09090B] shadow-[2px_2px_0px_#18181B] dark:bg-white dark:text-[#09090B] dark:border-white dark:shadow-none"
+                  : "border-transparent text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
               } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
             >
               <Hourglass size={18} strokeWidth={2.2} />
               {deadlineAlertTotal > 0 && (
                 <span className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
-                  isDeadlinesActive ? "bg-white dark:bg-[#1C1917]" : "bg-[#1C1917] dark:bg-white"
+                  isDeadlinesActive ? "bg-white dark:bg-[#09090B]" : "bg-[#DC2626] dark:bg-[#EF4444]"
                 }`} />
               )}
             </button>
@@ -418,8 +418,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title="Ghi chú phác thảo"
               className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer ${
                 isNotesActive
-                  ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
-                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                  ? "bg-[#09090B] text-white border-[#09090B] shadow-[2px_2px_0px_#18181B] dark:bg-white dark:text-[#09090B] dark:border-white dark:shadow-none"
+                  : "border-transparent text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
               } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
             >
               <FilePenLine size={18} strokeWidth={2.2} />
@@ -431,8 +431,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title="Sổ nhật ký"
               className={`w-11 h-11 rounded-xl flex items-center justify-center border-[1.5px] transition-all cursor-pointer ${
                 isJournalActive
-                  ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
-                  : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                  ? "bg-[#09090B] text-white border-[#09090B] shadow-[2px_2px_0px_#18181B] dark:bg-white dark:text-[#09090B] dark:border-white dark:shadow-none"
+                  : "border-transparent text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
               } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
             >
               <BookOpen size={18} strokeWidth={2.2} />
@@ -463,7 +463,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // EXPANDED MODE (Full 240px Navigation Sidebar)
   // ----------------------------------------------------
   return (
-    <aside className="hidden md:flex flex-col justify-between h-[calc(100vh-60px)] sticky top-[60px] bg-[#F2F2F7] dark:bg-[#18181A] border-r border-[#E5E5EA] dark:border-[#262626] select-none z-20 shrink-0 w-60 p-3 transition-all duration-200 ease-in-out">
+    <aside className="hidden md:flex flex-col justify-between h-[calc(100vh-60px)] sticky top-[60px] bg-[#F8F9FA] dark:bg-[#141417] select-none z-20 shrink-0 w-60 p-3 transition-all duration-200 ease-in-out">
       <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar">
         {/* Quick Create Task Button */}
         {onCreateTask && (
@@ -477,21 +477,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onCreateTask();
                 }
               }}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] border-[1.5px] border-[#262626] shadow-[2px_2px_0px_#262626] hover:bg-black active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold bg-[#09090B] dark:bg-white text-white dark:text-[#09090B] border-[1.5px] border-[#18181B] dark:border-white shadow-[2px_2px_0px_#18181B] dark:shadow-none hover:bg-black active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer"
             >
               <Plus size={16} strokeWidth={2.6} />
               <span>{isCalendarWorkspace ? "Tạo sự kiện hoặc việc" : "Tạo công việc mới"}</span>
             </button>
 
             {isCalendarWorkspace && isCalendarDropdownOpen && (
-              <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 rounded-xl border-[1.5px] border-[#262626] bg-white dark:bg-[#1E1E20] shadow-[3px_3px_0px_#262626] p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 rounded-xl border-[1.5px] border-[#18181B] dark:border-[#2E2E34] bg-white dark:bg-[#1F1F23] shadow-[3px_3px_0px_#18181B] dark:shadow-none p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-100">
                 <button
                   type="button"
                   onClick={() => {
                     setIsCalendarDropdownOpen(false);
                     openQuickTaskModal({ itemType: "event" });
                   }}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7] hover:bg-[var(--accent-blue)] hover:text-white transition-colors cursor-pointer text-left"
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold text-[#09090B] dark:text-[#FFFFFF] hover:bg-[var(--accent-blue)] hover:text-white transition-colors cursor-pointer text-left"
                 >
                   <CalendarIcon size={14} strokeWidth={2.2} className="text-[var(--accent-blue)]" />
                   <span>Tạo sự kiện</span>
@@ -503,7 +503,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     setIsCalendarDropdownOpen(false);
                     openQuickTaskModal({ itemType: "task" });
                   }}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7] hover:bg-[var(--accent-sky)] hover:text-[#1C1917] transition-colors cursor-pointer text-left"
+                  className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold text-[#09090B] dark:text-[#FFFFFF] hover:bg-[var(--accent-sky)] hover:text-[#09090B] transition-colors cursor-pointer text-left"
                 >
                   <Plus size={14} strokeWidth={2.4} className="text-[var(--accent-sky)]" />
                   <span>Tạo công việc</span>
@@ -514,7 +514,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         <div className="space-y-1">
-          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#78716C] dark:text-[#A1A1AA] px-2 py-1">
+          <p className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#71717A] dark:text-[#A1A1AA] px-2 py-1">
             {isCalendarWorkspace ? "Không gian lịch" : "Không gian công việc"}
           </p>
 
@@ -526,8 +526,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={handleSelectAllTasks}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
               isAllTasksActive
-                ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
-                : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                ? "bg-[#09090B] text-white border-[#09090B] shadow-[2px_2px_0px_#18181B] dark:bg-white dark:text-[#09090B] dark:border-white dark:shadow-none"
+                : "border-transparent text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
             } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
           >
             <div className="flex items-center gap-2.5">
@@ -535,7 +535,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className={isAllTasksActive ? "font-bold" : ""}>Tất cả việc</span>
             </div>
             <span className={`font-mono text-[10px] ${
-              isAllTasksActive ? "text-white/80 dark:text-[#1C1917]/80" : "text-[#78716C] dark:text-[#A1A1AA]"
+              isAllTasksActive ? "text-white/80 dark:text-[#09090B]/80" : "text-[#71717A] dark:text-[#A1A1AA]"
             }`}>
               {taskItems.length}
             </span>
@@ -546,8 +546,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={handleSelectToday}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
               isTodayActive
-                ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
-                : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                ? "bg-[#09090B] text-white border-[#09090B] shadow-[2px_2px_0px_#18181B] dark:bg-white dark:text-[#09090B] dark:border-white dark:shadow-none"
+                : "border-transparent text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
             } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
           >
             <div className="flex items-center gap-2.5">
@@ -557,8 +557,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {pendingTodayCount > 0 && (
               <span className={`font-mono text-[10px] px-2 py-0.5 rounded-full font-bold min-w-[20px] text-center ${
                 isTodayActive
-                  ? "bg-white text-[#1C1917] dark:bg-[#1C1917] dark:text-white"
-                  : "bg-[#E7E5E4] text-[#1C1917] dark:bg-[#2C2C2E] dark:text-[#F2F2F7]"
+                  ? "bg-white text-[#09090B] dark:bg-[#141417] dark:text-white"
+                  : "bg-black/10 text-[#09090B] dark:bg-white/15 dark:text-[#FFFFFF]"
               }`}>
                 {pendingTodayCount}
               </span>
@@ -576,8 +576,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 aria-current={desktopPlannerSurface === "calendar" ? "page" : undefined}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
                   desktopPlannerSurface === "calendar"
-                    ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
-                    : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                    ? "bg-[#09090B] text-white border-[#09090B] shadow-[2px_2px_0px_#18181B] dark:bg-white dark:text-[#09090B] dark:border-white dark:shadow-none"
+                    : "border-transparent text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
                 } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
               >
                 <CalendarIcon size={16} strokeWidth={2.2} />
@@ -589,8 +589,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 aria-current={desktopPlannerSurface === "list" ? "page" : undefined}
                 className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
                   desktopPlannerSurface === "list"
-                    ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
-                    : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                    ? "bg-[#09090B] text-white border-[#09090B] shadow-[2px_2px_0px_#18181B] dark:bg-white dark:text-[#09090B] dark:border-white dark:shadow-none"
+                    : "border-transparent text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
                 } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
               >
                 <List size={16} strokeWidth={2.2} />
@@ -607,8 +607,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={handleSelectDeadlines}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
               isDeadlinesActive
-                ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
-                : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                ? "bg-[#09090B] text-white border-[#09090B] shadow-[2px_2px_0px_#18181B] dark:bg-white dark:text-[#09090B] dark:border-white dark:shadow-none"
+                : "border-transparent text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
             } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
           >
             <div className="flex items-center gap-2.5">
@@ -618,8 +618,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {deadlineAlertTotal > 0 && (
               <span className={`font-mono text-[10px] px-2 py-0.5 rounded-full font-bold min-w-[20px] text-center ${
                 isDeadlinesActive
-                  ? "bg-white text-[#1C1917] dark:bg-[#1C1917] dark:text-white"
-                  : "bg-[#1C1917] text-white dark:bg-white dark:text-[#1C1917]"
+                  ? "bg-white text-[#09090B] dark:bg-[#141417] dark:text-white"
+                  : "bg-[#DC2626] text-white dark:bg-[#EF4444] dark:text-white"
               }`}>
                 {deadlineAlertTotal}
               </span>
@@ -632,8 +632,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={handleSelectNotes}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
               isNotesActive
-                ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
-                : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                ? "bg-[#09090B] text-white border-[#09090B] shadow-[2px_2px_0px_#18181B] dark:bg-white dark:text-[#09090B] dark:border-white dark:shadow-none"
+                : "border-transparent text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
             } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
           >
             <div className="flex items-center gap-2.5">
@@ -642,7 +642,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             {notesCount > 0 && (
               <span className={`font-mono text-[10px] ${
-                isNotesActive ? "text-white/80 dark:text-[#1C1917]/80" : "text-[#78716C] dark:text-[#A1A1AA]"
+                isNotesActive ? "text-white/80 dark:text-[#09090B]/80" : "text-[#71717A] dark:text-[#A1A1AA]"
               }`}>
                 {notesCount}
               </span>
@@ -655,8 +655,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={handleSelectJournal}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold border-[1.5px] transition-all cursor-pointer ${
               isJournalActive
-                ? "bg-[#1C1917] text-white border-[#1C1917] dark:bg-white dark:text-[#1C1917] dark:border-white shadow-none"
-                : "border-transparent text-[#78716C] dark:text-[#A1A1AA] hover:bg-[#E7E5E4] hover:text-[#1C1917] dark:hover:bg-[#2C2C2E] dark:hover:text-white"
+                ? "bg-[#09090B] text-white border-[#09090B] shadow-[2px_2px_0px_#18181B] dark:bg-white dark:text-[#09090B] dark:border-white dark:shadow-none"
+                : "border-transparent text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
             } active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none`}
           >
             <div className="flex items-center gap-2.5">
@@ -665,7 +665,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             {journalEntries.length > 0 && (
               <span className={`font-mono text-[10px] ${
-                isJournalActive ? "text-white/80 dark:text-[#1C1917]/80" : "text-[#78716C] dark:text-[#A1A1AA]"
+                isJournalActive ? "text-white/80 dark:text-[#09090B]/80" : "text-[#71717A] dark:text-[#A1A1AA]"
               }`}>
                 {journalEntries.length}
               </span>
@@ -757,11 +757,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* FOOTER ACTIONS (CÀI ĐẶT) */}
       {onOpenSettings && (
-        <div className="pt-2 border-t-[1.5px] border-[#262626]/20">
+        <div className="pt-2 border-t-[1.5px] border-[#18181B]/15 dark:border-[#2E2E34]">
           <button
             type="button"
             onClick={onOpenSettings}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#78716C] dark:text-[#A1A1AA] hover:text-[#1C1917] dark:hover:text-white hover:bg-white dark:hover:bg-[#2C2C2E] border-[1.5px] border-transparent hover:border-[#262626] transition-all cursor-pointer"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#71717A] dark:text-[#A1A1AA] hover:text-[#09090B] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 border-[1.5px] border-transparent hover:border-[#18181B] dark:hover:border-white shadow-none hover:shadow-[1.5px_1.5px_0px_#18181B] dark:hover:shadow-none transition-all cursor-pointer"
           >
             <Settings size={16} strokeWidth={2.2} />
             <span>Cài đặt</span>
@@ -771,4 +771,3 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </aside>
   );
 };
-
