@@ -181,7 +181,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
 
   return (
     <header
-      className={`sticky top-0 z-30 bg-white/92 dark:bg-[#1C1C1E]/92 backdrop-blur-xl border-b border-[#E5E5EA] dark:border-[#2C2C2E] px-3.5 sm:px-5 ${
+      className={`sticky top-0 z-30 bg-[#F2F2F7]/95 dark:bg-[#18181A]/95 backdrop-blur-xl border-b border-[#E5E5EA] dark:border-[#262626] px-3.5 sm:px-5 ${
         isNativePlatform()
           ? "pt-11 pb-2.5"
           : "pt-[max(env(safe-area-inset-top),12px)] pb-2.5"
@@ -245,7 +245,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             </button>
 
             {!isScrolled && isTaskDropdownOpen && (
-              <div className="absolute left-0 top-full mt-2 w-52 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in duration-150">
+              <div className="absolute left-0 top-full mt-2 w-52 bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#262626] rounded-2xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in duration-150">
                 {/* 1. Hôm nay */}
                 <button
                   type="button"
@@ -353,7 +353,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             </button>
 
             {!isScrolled && isNoteDropdownOpen && (
-              <div className="absolute left-0 top-full mt-2 w-48 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in duration-150">
+              <div className="absolute left-0 top-full mt-2 w-48 bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#262626] rounded-2xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in duration-150">
                 <button
                   type="button"
                   onClick={() => {
@@ -465,7 +465,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             </button>
 
             {isAccountDropdownOpen && (
-              <div className="absolute right-0 top-full mt-2 w-52 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in duration-150">
+              <div className="absolute right-0 top-full mt-2 w-52 bg-white/95 dark:bg-black/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#262626] rounded-2xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in duration-150">
                 <button
                   type="button"
                   onClick={() => {

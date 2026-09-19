@@ -8,6 +8,7 @@ import { Clock, X, Check } from "lucide-react";
 
 export interface TimePickerPopoverProps {
   value?: string;
+  minTime?: string;
   onChange: (timeStr: string) => void;
   placeholder?: string;
   className?: string;
@@ -38,6 +39,7 @@ type DrumWheelColumnProps = {
   listRef: React.RefObject<HTMLDivElement>;
   onSelect: (item: string) => void;
   onScroll: () => void;
+  isItemDisabled?: (item: string) => boolean;
 };
 
 const DrumWheelColumn: React.FC<DrumWheelColumnProps> = ({
@@ -47,6 +49,7 @@ const DrumWheelColumn: React.FC<DrumWheelColumnProps> = ({
   listRef,
   onSelect,
   onScroll,
+  isItemDisabled,
 }) => {
   const selectedIndex = items.indexOf(selected);
 
@@ -80,6 +83,7 @@ const DrumWheelColumn: React.FC<DrumWheelColumnProps> = ({
           {items.map((item, idx) => {
             const distance = Math.abs(idx - selectedIndex);
             const isSelected = idx === selectedIndex;
+            const isDisabled = isItemDisabled?.(item) ?? false;
 
             let fontClass = "text-sm text-[#A8A29E]/30 dark:text-[#636366]/40 font-semibold";
             if (distance === 0) {
@@ -94,8 +98,13 @@ const DrumWheelColumn: React.FC<DrumWheelColumnProps> = ({
               <button
                 key={item}
                 type="button"
-                onClick={() => onSelect(item)}
-                className={`relative z-20 block w-full h-[42px] snap-center font-mono text-center transition-all cursor-pointer flex items-center justify-center ${fontClass}`}
+                onClick={() => {
+                  if (!isDisabled) onSelect(item);
+                }}
+                disabled={isDisabled}
+                className={`relative z-20 block w-full h-[42px] snap-center font-mono text-center transition-all flex items-center justify-center ${
+                  isDisabled ? "cursor-not-allowed opacity-20" : "cursor-pointer"
+                } ${fontClass}`}
                 aria-selected={isSelected}
               >
                 <span>{item}</span>
@@ -110,6 +119,7 @@ const DrumWheelColumn: React.FC<DrumWheelColumnProps> = ({
 
 export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
   value = "",
+  minTime,
   onChange,
   placeholder = "Không đặt giờ",
   className = "",
@@ -131,9 +141,20 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
   const [currentHour, currentMinute] = value && value.includes(":")
     ? value.split(":")
     : ["09", "00"];
+  const minimumTotal = minTime && /^\d{2}:\d{2}$/.test(minTime)
+    ? Number(minTime.slice(0, 2)) * 60 + Number(minTime.slice(3, 5))
+    : undefined;
+  const clampParts = (hour: string, minute: string): [string, string] => {
+    const total = Number(hour) * 60 + Number(minute);
+    if (minimumTotal !== undefined && total < minimumTotal) {
+      return [minTime!.slice(0, 2), minTime!.slice(3, 5)];
+    }
+    return [hour, minute];
+  };
+  const [initialHour, initialMinute] = clampParts(currentHour || "09", currentMinute || "00");
 
-  const [selectedHour, setSelectedHour] = useState(currentHour || "09");
-  const [selectedMinute, setSelectedMinute] = useState(currentMinute || "00");
+  const [selectedHour, setSelectedHour] = useState(initialHour);
+  const [selectedMinute, setSelectedMinute] = useState(initialMinute);
   const selectedHourRef = useRef(selectedHour);
   const selectedMinuteRef = useRef(selectedMinute);
 
@@ -186,14 +207,13 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
   useEffect(() => {
     if (value && value.includes(":")) {
       const [h, m] = value.split(":");
-      const nextHour = h || "09";
-      const nextMinute = m || "00";
+      const [nextHour, nextMinute] = clampParts(h || "09", m || "00");
       selectedHourRef.current = nextHour;
       selectedMinuteRef.current = nextMinute;
       setSelectedHour(nextHour);
       setSelectedMinute(nextMinute);
     }
-  }, [value]);
+  }, [value, minTime]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -229,11 +249,12 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
   }, [isOpen]);
 
   const commitTime = (hour: string, minute: string) => {
-    selectedHourRef.current = hour;
-    selectedMinuteRef.current = minute;
-    setSelectedHour(hour);
-    setSelectedMinute(minute);
-    onChange(`${hour}:${minute}`);
+    const [safeHour, safeMinute] = clampParts(hour, minute);
+    selectedHourRef.current = safeHour;
+    selectedMinuteRef.current = safeMinute;
+    setSelectedHour(safeHour);
+    setSelectedMinute(safeMinute);
+    onChange(`${safeHour}:${safeMinute}`);
   };
 
   const getScrolledItem = (listRef: React.RefObject<HTMLDivElement>, items: string[]) => {
@@ -285,7 +306,13 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
   };
 
   const handleDone = () => {
-    if (!value) commitTime(selectedHourRef.current, selectedMinuteRef.current);
+    const [safeHour, safeMinute] = clampParts(
+      selectedHourRef.current,
+      selectedMinuteRef.current,
+    );
+    if (!value || value !== `${safeHour}:${safeMinute}`) {
+      commitTime(safeHour, safeMinute);
+    }
     setIsOpen(false);
   };
 
@@ -343,6 +370,9 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
             listRef={hoursListRef}
             onSelect={handleSelectHour}
             onScroll={handleHourScroll}
+            isItemDisabled={(hour) =>
+              minimumTotal !== undefined && Number(hour) * 60 + 59 < minimumTotal
+            }
           />
           <span className="font-mono text-xl font-black text-[#262626] dark:text-[#F2F2F7] pb-1">:</span>
           <DrumWheelColumn
@@ -352,6 +382,10 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
             listRef={minutesListRef}
             onSelect={handleSelectMinute}
             onScroll={handleMinuteScroll}
+            isItemDisabled={(minute) =>
+              minimumTotal !== undefined &&
+              Number(selectedHour) * 60 + Number(minute) < minimumTotal
+            }
           />
         </div>
 

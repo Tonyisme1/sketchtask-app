@@ -5,7 +5,9 @@
 export type TaskTag = "Công việc" | "Cá nhân" | "Ý tưởng" | "Học tập" | string;
 export type TaskPriority = "low" | "medium" | "high";
 export type TaskStatus = "todo" | "in_progress" | "completed" | "archived";
+export type TaskItemType = "task" | "event";
 export type TaskTimeType = "scheduled" | "deadline" | "event" | "task";
+export type TaskSubTab = "all" | "today" | "planner" | "deadlines";
 
 export interface TaskEditorInitialData {
   title?: string;
@@ -13,6 +15,7 @@ export interface TaskEditorInitialData {
   dueDate?: string;
   startDate?: string;
   endDate?: string;
+  itemType?: TaskItemType;
   tag?: string;
   timeType?: TaskTimeType;
   startTime?: string;
@@ -20,6 +23,7 @@ export interface TaskEditorInitialData {
   deadlineTime?: string;
   priority?: TaskPriority;
   tags?: string[];
+  mode?: "view" | "edit";
 }
 
 export interface TaskDto {
@@ -30,6 +34,7 @@ export interface TaskDto {
   dueDate?: string;
   startDate?: string;
   endDate?: string;
+  itemType?: TaskItemType;
   timeType?: TaskTimeType;
   startTime?: string;
   endTime?: string;

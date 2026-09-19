@@ -9,7 +9,7 @@ import {
   X,
   LucideIcon,
 } from "lucide-react";
-import { TabKey } from "../../types";
+import { TabKey, TaskSubTab } from "../../types";
 import { useAppStore } from "../../stores/appStore";
 import {
   getTaskTemporalState,
@@ -18,7 +18,7 @@ import {
 
 export interface MobileNavProps {
   activeTab: TabKey;
-  activeTaskSubTab: "today" | "planner" | "deadlines";
+  activeTaskSubTab: TaskSubTab;
   onTabChange: (tab: TabKey) => void;
   onOpenNotifications?: () => void;
   isNotificationOpen?: boolean;
@@ -179,12 +179,12 @@ export const MobileNav: React.FC<MobileNavProps> = ({
         <div className="fixed inset-0 z-50 bg-black/45 backdrop-blur-[3px] flex items-end justify-center animate-in fade-in duration-200 select-none">
           <div
             ref={createSheetRef}
-            className="w-full max-w-md bg-white dark:bg-[#1C1C1E] border-t border-[#E5E5EA] dark:border-[#2C2C2E] rounded-t-[24px] p-4 sm:p-5 pb-[max(env(safe-area-inset-bottom),24px)] shadow-2xl space-y-3.5 animate-in slide-in-from-bottom-6 duration-250"
+            className="w-full max-w-md bg-white dark:bg-[#121214] border-t border-[#E5E5EA] dark:border-[#262626] rounded-t-[24px] p-4 sm:p-5 pb-[max(env(safe-area-inset-bottom),24px)] shadow-2xl space-y-3.5 animate-in slide-in-from-bottom-6 duration-250"
           >
             {/* Grab Handle */}
             <div className="w-10 h-1.2 rounded-full bg-[#D1D1D6] dark:bg-[#3A3A3C] mx-auto mb-1" />
 
-            <div className="flex items-center justify-between pb-2 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E5E5EA] dark:border-[#262626]">
               <span className="text-xs font-bold uppercase tracking-wider text-[#8E8E93] dark:text-[#aeaeb2]">
                 Tạo mới
               </span>
@@ -228,7 +228,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
 
       {/* 2. THANH ĐIỀU HƯỚNG DƯỚI ĐÁY TỐI GIẢN */}
       <nav
-        className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/92 dark:bg-[#1C1C1E]/92 backdrop-blur-xl border-t border-[#E5E5EA] dark:border-[#2C2C2E] px-2 py-1 pb-[max(env(safe-area-inset-bottom),6px)] select-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform shadow-[0_-1px_10px_rgba(0,0,0,0.03)] ${
+        className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#F2F2F7]/95 dark:bg-[#18181A]/95 backdrop-blur-xl border-t border-[#E5E5EA] dark:border-[#262626] px-2 py-1 pb-[max(env(safe-area-inset-bottom),6px)] select-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform shadow-[0_-1px_10px_rgba(0,0,0,0.03)] ${
           shouldHideNav ? "translate-y-full pointer-events-none" : "translate-y-0"
         }`}
         aria-label="Điều hướng chính"

@@ -28,6 +28,7 @@ export interface TaskListProps {
   moveButtonTitle?: string;
   activeTaskId?: string | null;
   showQuickAdd?: boolean;
+  showEventTimeLabel?: boolean;
 }
 
 // Component Đệ Quy Render Từng Nhánh Trong Cây Phân Cấp Đa Tầng
@@ -47,6 +48,7 @@ const TaskTreeNodeItem: React.FC<{
   baseDateStr?: string;
   moveButtonTitle?: string;
   activeTaskId?: string | null;
+  showEventTimeLabel?: boolean;
 }> = ({
   node,
   index,
@@ -63,6 +65,7 @@ const TaskTreeNodeItem: React.FC<{
   baseDateStr,
   moveButtonTitle,
   activeTaskId,
+  showEventTimeLabel,
 }) => {
   // Mặc định thu gọn nhánh có việc con để danh sách không bị kéo quá dài.
   const isCollapsed = collapsedParents[node.task.id] ?? true;
@@ -96,6 +99,7 @@ const TaskTreeNodeItem: React.FC<{
         showParentBadge={node.isOrphanSubtask}
         isOutOfFilterContext={node.isOutOfFilterContext}
         isSelected={Boolean(activeTaskId && node.task.id === activeTaskId)}
+        showEventTimeLabel={showEventTimeLabel}
       />
 
       {/* 2. Danh Sách Con Trực Thuộc (nếu không bị gập) */}
@@ -119,6 +123,7 @@ const TaskTreeNodeItem: React.FC<{
                 baseDateStr={baseDateStr}
                 moveButtonTitle={moveButtonTitle}
                 activeTaskId={activeTaskId}
+                showEventTimeLabel={showEventTimeLabel}
               />
             </div>
           ))}
@@ -144,6 +149,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   moveButtonTitle,
   activeTaskId,
   showQuickAdd = true,
+  showEventTimeLabel = false,
 }) => {
   const { tasks: allTasks } = useAppStore();
   const [collapsedParents, setCollapsedParents] = useState<Record<string, boolean>>({});
@@ -207,6 +213,7 @@ export const TaskList: React.FC<TaskListProps> = ({
                 baseDateStr={baseDateStr}
                 moveButtonTitle={moveButtonTitle}
                 activeTaskId={activeTaskId}
+                showEventTimeLabel={showEventTimeLabel}
               />
             </React.Fragment>
           ))}

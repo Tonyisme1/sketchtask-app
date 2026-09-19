@@ -5,6 +5,7 @@ import { NoteMasterDetailView } from "./NoteMasterDetailView";
 import { useAppStore } from "../../../stores/appStore";
 import { NavigationTarget, TabKey } from "../../../types";
 import { loadNotesFromStorage, saveNotesToStorage } from "../../../utils/noteStorage";
+import { useResponsiveLayout } from "../../../shared/hooks";
 
 const stripHtml = (html: string) => {
   const tmp = document.createElement("DIV");
@@ -28,6 +29,8 @@ export const NotesTab: React.FC<NotesTabProps> = ({
   onClearNavigationTarget,
 }) => {
   const { isMobileNoteDetailOpen } = useAppStore();
+  const { isMobile } = useResponsiveLayout();
+  const isMobileEditorOpen = isMobile && isMobileNoteDetailOpen;
   const [notes, setNotes] = useState<NoteItem[]>(() => loadNotesFromStorage());
   const [searchQuery, setSearchQuery] = useState("");
   const [newlyCreatedId, setNewlyCreatedId] = useState<string | null>(null);
@@ -42,6 +45,17 @@ export const NotesTab: React.FC<NotesTabProps> = ({
   useEffect(() => {
     saveNotesToStorage(notes);
   }, [notes]);
+
+  useEffect(() => {
+    const reloadNotes = () => {
+      const nextNotes = loadNotesFromStorage();
+      setNotes((currentNotes) =>
+        JSON.stringify(currentNotes) === JSON.stringify(nextNotes) ? currentNotes : nextNotes,
+      );
+    };
+    window.addEventListener("sketchtask_notes_changed", reloadNotes);
+    return () => window.removeEventListener("sketchtask_notes_changed", reloadNotes);
+  }, []);
 
   const filteredNotes = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -99,9 +113,9 @@ export const NotesTab: React.FC<NotesTabProps> = ({
   };
 
   return (
-    <div className={`w-full min-w-0 select-none ${isMobileNoteDetailOpen ? "p-0" : "space-y-3.5 pb-12"}`}>
-      <div className={`items-center gap-2.5 border-b border-[#262626]/30 pb-3 ${isMobileNoteDetailOpen ? "hidden" : "flex"}`}>
-        <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-none border-[1.5px] border-[#262626] bg-white px-2.5 shadow-[1.5px_1.5px_0px_#262626]">
+    <div className={`w-full min-w-0 select-none ${isMobileEditorOpen ? "p-0" : "space-y-3.5 pb-12"}`}>
+      <div className={`items-center gap-2.5 border-b border-[#262626]/30 pb-3 ${isMobileEditorOpen ? "hidden" : "flex"}`}>
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-xl border-[1.5px] border-[#262626] bg-white px-2.5 shadow-[1.5px_1.5px_0px_#262626]">
           <Search size={14} strokeWidth={2.4} className="shrink-0 text-[#78716C]" />
           <input
             type="text"
@@ -118,7 +132,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
         </div>
       </div>
 
-      {needsReviewCount > 0 && !isMobileNoteDetailOpen && (
+      {needsReviewCount > 0 && !isMobileEditorOpen && (
         <div className="flex items-center justify-between gap-3 border-[1.5px] border-[#D4CEBF] bg-[#FAF8F3] px-3 py-2.5 text-xs">
           <div className="flex min-w-0 items-start gap-2 text-[#57534E]">
             <AlertTriangle size={15} className="mt-0.5 shrink-0 text-[#9F1239]" strokeWidth={2.2} />
@@ -134,7 +148,7 @@ export const NotesTab: React.FC<NotesTabProps> = ({
         </div>
       )}
 
-      <div className={isMobileNoteDetailOpen ? "p-0" : "pt-0.5"}>
+      <div className={isMobileEditorOpen ? "p-0" : "pt-0.5"}>
         <NoteMasterDetailView
           notes={filteredNotes}
           newlyCreatedId={newlyCreatedId}

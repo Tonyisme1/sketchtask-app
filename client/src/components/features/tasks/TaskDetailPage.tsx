@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAppStore } from "../../../stores/appStore";
-import { TaskDto, TaskPriority, TaskTimeType } from "../../../types";
+import { TaskDto, TaskItemType, TaskPriority, TaskTimeType } from "../../../types";
 import { getLocalTodayStr, getLocalTomorrowStr, formatFullDate, formatShortDayMonth } from "../../../utils/date";
-import { normalizeTaskTimeType, getTaskTags, extractTagsFromTitle, getTaskTemporalState, isTaskDueToday, getTaskEffectiveTime } from "../../../utils/taskSemantics";
+import { getTaskItemType, normalizeEndTimeForStart, getTaskTags, extractTagsFromTitle, getTaskTemporalState, isTaskDueToday, getTaskEffectiveTime } from "../../../utils/taskSemantics";
 import { useResponsiveLayout } from "../../../shared/hooks";
 import { isNativePlatform } from "../../../services/notificationService";
 import { dispatchToast } from "../../../utils/toast";
@@ -77,9 +77,8 @@ export interface TaskDetailPageProps {
   onBack: () => void;
 }
 
-const getEditorTimeType = (task: Parameters<typeof normalizeTaskTimeType>[0]): TaskTimeType => {
-  return normalizeTaskTimeType(task) === "scheduled" ? "scheduled" : "deadline";
-};
+const getEditorItemType = (task: Pick<TaskDto, "itemType" | "timeType">): TaskItemType =>
+  getTaskItemType(task);
 
 export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   taskId,
@@ -100,7 +99,9 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   const todayStr = getLocalTodayStr(new Date());
 
   // Chế độ: "view" (Chỉ xem) hoặc "edit" (Chỉnh sửa)
-  const [mode, setMode] = useState<"view" | "edit">(taskId === "new" ? "edit" : "view");
+  const [mode, setMode] = useState<"view" | "edit">(
+    taskId === "new" || activeTaskDetailInitialData?.mode === "edit" ? "edit" : "view"
+  );
 
   // Tìm task hiện tại nếu là task có sẵn
   const existingTask = taskId !== "new" ? tasks.find((t) => t.id === taskId) : null;
@@ -114,12 +115,21 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   const [isDateRange, setIsDateRange] = useState<boolean>(Boolean(existingTask?.startDate && existingTask?.endDate) || Boolean(activeTaskDetailInitialData?.startDate && activeTaskDetailInitialData?.endDate));
   const [startDate, setStartDate] = useState(existingTask?.startDate || activeTaskDetailInitialData?.startDate || existingTask?.dueDate || initialDate || todayStr);
   const [endDate, setEndDate] = useState(existingTask?.endDate || activeTaskDetailInitialData?.endDate || "");
-  const [timeType, setTimeType] = useState<TaskTimeType>(
-    existingTask ? getEditorTimeType(existingTask) : activeTaskDetailInitialData?.timeType || "deadline",
+  const [itemType, setItemType] = useState<TaskItemType>(
+    existingTask ? getEditorItemType(existingTask) : activeTaskDetailInitialData?.itemType || "task",
   );
-  const [startTime, setStartTime] = useState(existingTask?.startTime || activeTaskDetailInitialData?.startTime || "");
+  const [startTime, setStartTime] = useState(existingTask?.startTime || activeTaskDetailInitialData?.startTime || existingTask?.deadlineTime || activeTaskDetailInitialData?.deadlineTime || "");
   const [endTime, setEndTime] = useState(existingTask?.endTime || activeTaskDetailInitialData?.endTime || "");
-  const [deadlineTime, setDeadlineTime] = useState(existingTask?.deadlineTime || activeTaskDetailInitialData?.deadlineTime || "");
+  const [showEndTime, setShowEndTime] = useState<boolean>(
+    Boolean(
+      existingTask?.endTime ||
+      activeTaskDetailInitialData?.endTime ||
+      (existingTask?.timeType === "scheduled" && existingTask?.startTime) ||
+      (activeTaskDetailInitialData?.timeType === "scheduled" && activeTaskDetailInitialData?.startTime) ||
+      existingTask?.itemType === "event" ||
+      activeTaskDetailInitialData?.itemType === "event"
+    )
+  );
   const [priority, setPriority] = useState<TaskPriority>(existingTask?.priority || activeTaskDetailInitialData?.priority || "medium");
   const [selectedTags, setSelectedTags] = useState<string[]>(existingTask ? getTaskTags(existingTask) : activeTaskDetailInitialData?.tags || (activeTaskDetailInitialData?.tag ? [activeTaskDetailInitialData.tag] : []));
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
@@ -161,15 +171,23 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     setStartDate(task?.startDate || activeTaskDetailInitialData?.startDate || initialDue);
     setEndDate(task?.endDate || activeTaskDetailInitialData?.endDate || "");
     setIsDateRange(Boolean(task?.startDate && task?.endDate) || Boolean(activeTaskDetailInitialData?.startDate && activeTaskDetailInitialData?.endDate));
-    setTimeType(task ? getEditorTimeType(task) : activeTaskDetailInitialData?.timeType || "deadline");
-    setStartTime(task?.startTime || activeTaskDetailInitialData?.startTime || "");
-    setEndTime(task?.endTime || activeTaskDetailInitialData?.endTime || "");
-    setDeadlineTime(task?.deadlineTime || activeTaskDetailInitialData?.deadlineTime || "");
+    const initialItemType = task ? getEditorItemType(task) : activeTaskDetailInitialData?.itemType || (activeTaskDetailInitialData?.timeType === "event" ? "event" : "task");
+    setItemType(initialItemType);
+    const nextStartTime = task?.startTime || activeTaskDetailInitialData?.startTime || task?.deadlineTime || activeTaskDetailInitialData?.deadlineTime || "";
+    const nextEndTime = task?.endTime || activeTaskDetailInitialData?.endTime || "";
+    setStartTime(nextStartTime);
+    setEndTime(normalizeEndTimeForStart(nextStartTime, nextEndTime) || "");
+    setShowEndTime(
+      initialItemType === "event" ||
+      Boolean(nextEndTime) ||
+      task?.timeType === "scheduled" ||
+      activeTaskDetailInitialData?.timeType === "scheduled"
+    );
     setPriority(task?.priority || activeTaskDetailInitialData?.priority || "medium");
     setSelectedTags(task ? getTaskTags(task) : activeTaskDetailInitialData?.tags || (activeTaskDetailInitialData?.tag ? [activeTaskDetailInitialData.tag] : []));
     setSaveStatus("saved");
     setIsOptionsMenuOpen(false);
-    setMode(taskId === "new" ? "edit" : "view");
+    setMode(taskId === "new" || activeTaskDetailInitialData?.mode === "edit" ? "edit" : "view");
     setOpenSections({
       status: taskId !== "new",
       timing: true,
@@ -186,13 +204,17 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     }
   }, [mode]);
 
-  // Lắng nghe phím ESC
+  // Phím tắt ESC để thoát hoặc chuyển về chế độ view
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (isOptionsMenuOpen) {
           setIsOptionsMenuOpen(false);
-        } else if (mode === "edit" && taskId !== "new") {
+        } else if (
+          mode === "edit" &&
+          taskId !== "new" &&
+          activeTaskDetailInitialData?.mode !== "edit"
+        ) {
           setMode("view");
         } else {
           onBack();
@@ -201,20 +223,30 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onBack, isOptionsMenuOpen, mode, taskId]);
+  }, [onBack, isOptionsMenuOpen, mode, taskId, activeTaskDetailInitialData]);
 
   // Phân tích trạng thái thời gian theo ngữ cảnh
+  const editorTimeType: TaskTimeType =
+    itemType === "event"
+      ? "event"
+      : !isDateRange && startTime && showEndTime
+      ? "scheduled"
+      : !isDateRange && startTime
+      ? "deadline"
+      : "task";
+
   const taskForTemporal: TaskDto = existingTask || {
     id: currentTaskId || "temp",
     title,
     dueDate,
     startDate,
     endDate,
+    itemType,
     deadlineDate: dueDate,
-    timeType,
-    startTime,
-    endTime,
-    deadlineTime,
+    timeType: editorTimeType,
+    startTime: editorTimeType === "scheduled" || editorTimeType === "event" ? startTime : undefined,
+    endTime: editorTimeType === "scheduled" || editorTimeType === "event" ? endTime : undefined,
+    deadlineTime: editorTimeType === "deadline" ? startTime : undefined,
     completed,
     priority,
     status: completed ? "completed" : "todo",
@@ -240,22 +272,35 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     const combinedTags = Array.from(new Set([...selectedTags, ...extractedTags]));
 
     setSaveStatus("saving");
+    const resolvedStartTime = !isDateRange ? startTime : "";
+    const resolvedEndTime =
+      !isDateRange && (itemType === "event" || showEndTime)
+        ? normalizeEndTimeForStart(resolvedStartTime, endTime)
+        : undefined;
+
+    const resolvedTimeType = editorTimeType;
+
     const taskData = {
       title: cleanTitle || trimmedTitle,
       description: description.trim() || undefined,
       dueDate: isDateRange ? (startDate || dueDate) : (dueDate || undefined),
       startDate: isDateRange ? (startDate || dueDate) : undefined,
       endDate: isDateRange && endDate ? endDate : undefined,
+      itemType,
       deadlineDate:
-        timeType === "deadline"
-          ? isDateRange
-            ? endDate || startDate || dueDate || undefined
-            : dueDate || undefined
+        resolvedTimeType === "deadline"
+          ? (isDateRange ? endDate || startDate || dueDate || undefined : dueDate || undefined)
           : undefined,
-      timeType,
-      startTime: timeType === "scheduled" ? startTime || undefined : undefined,
-      endTime: timeType === "scheduled" ? endTime || undefined : undefined,
-      deadlineTime: timeType === "deadline" ? deadlineTime || undefined : undefined,
+      timeType: resolvedTimeType,
+      startTime:
+        resolvedTimeType === "scheduled" || resolvedTimeType === "event"
+          ? resolvedStartTime || undefined
+          : undefined,
+      endTime:
+        resolvedTimeType === "scheduled" || resolvedTimeType === "event"
+          ? resolvedEndTime
+          : undefined,
+      deadlineTime: resolvedTimeType === "deadline" ? resolvedStartTime || undefined : undefined,
       priority,
       tag: combinedTags[0] || undefined,
       tags: combinedTags.length > 0 ? combinedTags : undefined,
@@ -266,7 +311,10 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
       const created = addTask(taskData);
       setCurrentTaskId(created.id);
     } else {
-      updateTask(currentTaskId, taskData);
+      updateTask(currentTaskId, {
+        ...taskData,
+        completed: itemType === "event" ? false : completed,
+      });
     }
 
     setSaveStatus("saved");
@@ -284,7 +332,8 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
         dueDate: targetDate,
         startDate: isDateRange ? targetDate : undefined,
         endDate: isDateRange ? targetDate : undefined,
-        deadlineDate: timeType === "deadline" ? targetDate : undefined,
+        itemType,
+        deadlineDate: itemType === "task" && !startTime ? targetDate : undefined,
       });
     }
     markDraftChanged();
@@ -292,17 +341,23 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   };
 
   const handleDuplicateTask = () => {
+    const resolvedStartTime = !isDateRange ? startTime : "";
+    const resolvedEndTime = !isDateRange
+      ? normalizeEndTimeForStart(resolvedStartTime, endTime)
+      : undefined;
     addTask({
       title: `${title.trim() || "Công việc"} (Bản sao)`,
       description: description.trim() || undefined,
       dueDate: dueDate || todayStr,
       startDate: isDateRange ? startDate : undefined,
       endDate: isDateRange ? endDate : undefined,
-      deadlineDate: timeType === "deadline" ? dueDate : undefined,
-      timeType,
-      startTime: timeType === "scheduled" ? startTime : undefined,
-      endTime: timeType === "scheduled" ? endTime : undefined,
-      deadlineTime: timeType === "deadline" ? deadlineTime : undefined,
+      itemType,
+      deadlineDate: itemType === "task" && !resolvedStartTime
+        ? (isDateRange ? endDate || startDate || dueDate : dueDate)
+        : undefined,
+      timeType: editorTimeType,
+      startTime: resolvedStartTime || undefined,
+      endTime: resolvedEndTime,
       priority,
       tag: selectedTags[0] || undefined,
       tags: selectedTags.length > 0 ? selectedTags : undefined,
@@ -323,7 +378,8 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
       const parentCreated = addTask({
         title: title.trim() || "Công việc mới",
         dueDate: dueDate || todayStr,
-        timeType,
+        itemType,
+        timeType: editorTimeType,
         priority,
         tag: selectedTags[0] || undefined,
         tags: selectedTags.length > 0 ? selectedTags : undefined,
@@ -337,7 +393,8 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
       parentTaskId: parentId,
       dueDate: dueDate || todayStr,
       priority: "medium",
-      timeType: "deadline",
+      itemType: "task",
+      timeType: "task",
     });
 
     setNewSubtaskTitle("");
@@ -383,7 +440,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
           <button
             type="button"
             onClick={() => {
-              if (taskId === "new") {
+              if (taskId === "new" || activeTaskDetailInitialData?.mode === "edit") {
                 onBack();
               } else {
                 if (existingTask) {
@@ -392,21 +449,23 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                   setDueDate(existingTask.dueDate || todayStr);
                   setStartDate(existingTask.startDate || existingTask.dueDate || todayStr);
                   setEndDate(existingTask.endDate || "");
-                  setTimeType(getEditorTimeType(existingTask));
+                  setItemType(getEditorItemType(existingTask));
                   setStartTime(existingTask.startTime || "");
-                  setEndTime(existingTask.endTime || "");
-                  setDeadlineTime(existingTask.deadlineTime || "");
+                  setEndTime(
+                    normalizeEndTimeForStart(existingTask.startTime, existingTask.endTime) || "",
+                  );
+                  setCompleted(existingTask.completed);
                   setPriority(existingTask.priority || "medium");
                   setSelectedTags(getTaskTags(existingTask));
                 }
                 setMode("view");
               }
             }}
-            aria-label={taskId === "new" ? "Hủy" : "Quay lại"}
+            aria-label={taskId === "new" || activeTaskDetailInitialData?.mode === "edit" ? "Hủy" : "Quay lại"}
             className="mobile-back-button flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-[#2C2C2E] hover:bg-[#F2F2F7] dark:hover:bg-[#3A3A3C] border border-[#E5E5EA] dark:border-black text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] shadow-2xs active:scale-95 cursor-pointer transition-all"
           >
             <ArrowLeft size={14} strokeWidth={2.4} />
-            <span>{taskId === "new" ? "Hủy" : "Quay lại"}</span>
+            <span>{taskId === "new" || activeTaskDetailInitialData?.mode === "edit" ? "Hủy" : "Quay lại"}</span>
           </button>
         )}
 
@@ -540,18 +599,20 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
 
                 <div className="my-0.5 border-t border-[#E5E5EA] dark:border-black/40" />
 
-                {/* Đổi trạng thái */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsOptionsMenuOpen(false);
-                    handleToggleComplete();
-                  }}
-                  className="w-full px-3 py-1.5 text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] flex items-center gap-2 transition-colors cursor-pointer text-left"
-                >
-                  <CheckSquare size={13} className="text-[#8E8E93]" />
-                  <span>{completed ? "Đánh dấu chưa xong" : "Đánh dấu đã xong"}</span>
-                </button>
+                {/* Sự kiện không có trạng thái hoàn thành; chỉ công việc mới có checkbox. */}
+                {itemType === "task" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsOptionsMenuOpen(false);
+                      handleToggleComplete();
+                    }}
+                    className="w-full px-3 py-1.5 text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] flex items-center gap-2 transition-colors cursor-pointer text-left"
+                  >
+                    <CheckSquare size={13} className="text-[#8E8E93]" />
+                    <span>{completed ? "Đánh dấu chưa xong" : "Đánh dấu đã xong"}</span>
+                  </button>
+                )}
 
                 {/* Nhân bản */}
                 <button
@@ -588,10 +649,10 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             type="button"
             onClick={() => {
               handleSave();
-              if (taskId !== "new") {
-                setMode("view");
-              } else {
+              if (taskId === "new" || activeTaskDetailInitialData?.mode === "edit") {
                 onBack();
+              } else {
+                setMode("view");
               }
             }}
             disabled={!title.trim()}
@@ -609,13 +670,19 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
         <div className="flex-1 w-full px-3 py-2.5 sm:px-5 sm:py-3.5 pb-16 space-y-2.5 max-w-xl mx-auto">
           {/* Trạng thái & Ưu tiên */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className={`px-1.5 py-0.25 rounded text-[11px] font-bold border ${
-              completed
-                ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
-                : "bg-black/[0.04] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7] border-[#E5E5EA] dark:border-black"
-            }`}>
-              {completed ? "Đã xong" : "Cần làm"}
-            </span>
+            {itemType === "task" ? (
+              <span className={`px-1.5 py-0.25 rounded text-[11px] font-bold border ${
+                completed
+                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20"
+                  : "bg-black/[0.04] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7] border-[#E5E5EA] dark:border-black"
+              }`}>
+                {completed ? "Đã xong" : "Cần làm"}
+              </span>
+            ) : (
+              <span className="px-1.5 py-0.25 rounded text-[11px] font-bold border bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20">
+                Sự kiện
+              </span>
+            )}
 
             {isOverdue && !completed && (
               <span className="px-1.5 py-0.25 rounded bg-rose-500/10 text-[#FF3B30] dark:text-[#FF453A] border border-rose-500/20 text-[11px] font-bold">
@@ -623,13 +690,13 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               </span>
             )}
 
-            {isDueTodayTask && !completed && !isOverdue && (
+            {itemType === "task" && isDueTodayTask && !completed && !isOverdue && (
               <span className="px-1.5 py-0.25 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 text-[11px] font-bold">
                 Hôm nay
               </span>
             )}
 
-            {priority === "high" && (
+            {itemType === "task" && priority === "high" && (
               <span className="px-1.5 py-0.25 rounded bg-[#FFE4E6] dark:bg-rose-950/40 text-[#BE123C] dark:text-rose-400 border border-[#FDA4AF] dark:border-rose-900/40 text-[11px] font-bold">
                 Gấp
               </span>
@@ -655,7 +722,9 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                   : dueDate
                   ? formatFullDate(dueDate)
                   : "Chưa đặt ngày"}
-                {effectiveTime ? ` · ${timeType === "scheduled" ? `${startTime}${endTime ? `-${endTime}` : ""}` : effectiveTime}` : ""}
+                {!isDateRange && effectiveTime
+                  ? ` · ${startTime ? `${startTime}${endTime ? `-${endTime}` : ""}` : effectiveTime}`
+                  : ""}
               </span>
             </div>
 
@@ -744,8 +813,43 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             />
           </div>
 
+          {/* Chọn bản chất trước: form công việc và sự kiện dùng chung dữ liệu thời gian nhưng khác hành vi. */}
+          <div className="grid grid-cols-2 gap-2 rounded-xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-1">
+            <button
+              type="button"
+              onClick={() => {
+                setItemType("task");
+                markDraftChanged();
+              }}
+              className={`flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-all cursor-pointer ${
+                itemType === "task"
+                  ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-white shadow-xs"
+                  : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
+              }`}
+            >
+              <Check size={15} strokeWidth={2.4} />
+              <span>Công việc</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setItemType("event");
+                setCompleted(false);
+                markDraftChanged();
+              }}
+              className={`flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-all cursor-pointer ${
+                itemType === "event"
+                  ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-white shadow-xs"
+                  : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
+              }`}
+            >
+              <Calendar size={15} strokeWidth={2.4} />
+              <span>Sự kiện</span>
+            </button>
+          </div>
+
           {/* Mục 1: Trạng thái */}
-          {taskId !== "new" && (
+          {taskId !== "new" && itemType === "task" && (
             <CollapsibleTaskSection
               title="Trạng thái"
               open={openSections.status}
@@ -812,6 +916,8 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                   type="button"
                   onClick={() => {
                     setIsDateRange(true);
+                    setStartTime("");
+                    setEndTime("");
                     if (!endDate) {
                       const startVal = startDate || dueDate || todayStr;
                       setStartDate(startVal);
@@ -850,43 +956,87 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] font-medium text-[#8E8E93] dark:text-[#aeaeb2]">
-                    Giờ:
-                  </label>
-                  {timeType === "scheduled" ? (
-                    <div className="flex items-center gap-1.5">
+                  {itemType === "task" && !showEndTime ? (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-medium text-[#8E8E93] dark:text-[#aeaeb2]">
+                          Giờ hạn chót:
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowEndTime(true);
+                            if (!endTime) {
+                              setEndTime(normalizeEndTimeForStart(startTime, "") || "");
+                            }
+                            markDraftChanged();
+                          }}
+                          className="text-[10.5px] font-bold text-[var(--accent-blue)] hover:underline flex items-center gap-0.5 cursor-pointer"
+                        >
+                          <span>+ Thêm giờ kết thúc</span>
+                        </button>
+                      </div>
                       <TimePickerPopover
                         value={startTime}
                         onChange={(val) => {
                           setStartTime(val);
+                          setEndTime((currentEndTime) =>
+                            normalizeEndTimeForStart(val, currentEndTime) || "",
+                          );
                           markDraftChanged();
                         }}
-                        placeholder="Bắt đầu"
-                        className="flex-1 min-w-0"
+                        placeholder="Chọn giờ hạn chót"
+                        className="w-full"
                       />
-                      <span className="text-xs font-mono font-medium text-[#8E8E93]">-</span>
-                      <TimePickerPopover
-                        value={endTime}
-                        onChange={(val) => {
-                          setEndTime(val);
-                          markDraftChanged();
-                        }}
-                        placeholder="Kết thúc"
-                        align="right"
-                        className="flex-1 min-w-0"
-                      />
-                    </div>
+                    </>
                   ) : (
-                    <TimePickerPopover
-                      value={deadlineTime}
-                      onChange={(val) => {
-                        setDeadlineTime(val);
-                        markDraftChanged();
-                      }}
-                      placeholder="Cả ngày"
-                      align="right"
-                      className="w-full"
-                    />
+                    <>
+                      <div className="flex items-center justify-between">
+                        <label className="text-[11px] font-medium text-[#8E8E93] dark:text-[#aeaeb2]">
+                          Khung giờ:
+                        </label>
+                        {itemType === "task" && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowEndTime(false);
+                              setEndTime("");
+                              markDraftChanged();
+                            }}
+                            className="text-[10.5px] font-medium text-[#8E8E93] hover:text-[#FF3B30] flex items-center gap-0.5 cursor-pointer"
+                            title="Thu về một mốc hạn chót"
+                          >
+                            <span>✕ Bỏ giờ kết thúc</span>
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <TimePickerPopover
+                          value={startTime}
+                          onChange={(val) => {
+                            setStartTime(val);
+                            setEndTime((currentEndTime) =>
+                              normalizeEndTimeForStart(val, currentEndTime) || "",
+                            );
+                            markDraftChanged();
+                          }}
+                          placeholder="Bắt đầu"
+                          className="flex-1 min-w-0"
+                        />
+                        <span className="text-xs font-mono font-medium text-[#8E8E93]">-</span>
+                        <TimePickerPopover
+                          value={endTime}
+                          onChange={(val) => {
+                            setEndTime(normalizeEndTimeForStart(startTime, val) || "");
+                            markDraftChanged();
+                          }}
+                          minTime={startTime || undefined}
+                          placeholder="Kết thúc"
+                          align="right"
+                          className="flex-1 min-w-0"
+                        />
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -925,90 +1075,21 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[11px] font-medium text-[#8E8E93] dark:text-[#aeaeb2]">
-                    {timeType === "deadline" ? "Hạn chót:" : "Khung giờ:"}
-                  </label>
-                  {timeType === "scheduled" ? (
-                    <div className="flex items-center gap-1.5">
-                      <TimePickerPopover
-                        value={startTime}
-                        onChange={(val) => {
-                          setStartTime(val);
-                          markDraftChanged();
-                        }}
-                        placeholder="Bắt đầu"
-                        className="flex-1 min-w-0"
-                      />
-                      <span className="text-xs font-mono font-medium text-[#8E8E93]">-</span>
-                      <TimePickerPopover
-                        value={endTime}
-                        onChange={(val) => {
-                          setEndTime(val);
-                          markDraftChanged();
-                        }}
-                        placeholder="Kết thúc"
-                        align="right"
-                        className="flex-1 min-w-0"
-                      />
-                    </div>
-                  ) : (
-                    <TimePickerPopover
-                      value={deadlineTime}
-                      onChange={(val) => {
-                        setDeadlineTime(val);
-                        markDraftChanged();
-                      }}
-                      placeholder="Cả ngày"
-                      align="right"
-                      className="w-full"
-                    />
-                  )}
-                </div>
+                <p className="border-t border-[#E5E5EA] dark:border-[#2C2C2E] pt-2 text-[11px] font-medium text-[#8E8E93] dark:text-[#aeaeb2]">
+                  Khoảng ngày là lịch cả ngày, không dùng giờ bắt đầu và kết thúc.
+                </p>
               </div>
             )}
-
-            <div className="flex items-center gap-2 pt-1.5 border-t border-[#E5E5EA] dark:border-[#2C2C2E] text-xs">
-              <span className="text-[11px] font-medium text-[#8E8E93] dark:text-[#aeaeb2]">Loại:</span>
-              <div className="flex items-center gap-1 bg-[#F2F2F7] dark:bg-[#2C2C2E] p-0.5 rounded-lg">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTimeType("deadline");
-                    markDraftChanged();
-                  }}
-                  className={`px-2.5 py-0.5 rounded font-semibold text-[11px] cursor-pointer active:scale-95 transition-all ${
-                    timeType === "deadline"
-                      ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-white shadow-2xs"
-                      : "text-[#8E8E93] dark:text-[#aeaeb2] hover:text-[#1C1C1E] dark:hover:text-white"
-                  }`}
-                >
-                  Hạn chót
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTimeType("scheduled");
-                    markDraftChanged();
-                  }}
-                  className={`px-2.5 py-0.5 rounded font-semibold text-[11px] cursor-pointer active:scale-95 transition-all ${
-                    timeType === "scheduled"
-                      ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-white shadow-2xs"
-                      : "text-[#8E8E93] dark:text-[#aeaeb2] hover:text-[#1C1C1E] dark:hover:text-white"
-                  }`}
-                >
-                  Lịch hẹn
-                </button>
-              </div>
-            </div>
           </CollapsibleTaskSection>
 
-          {/* Mục 3: Phân loại */}
-          <CollapsibleTaskSection
-            title="Phân loại"
-            open={openSections.organize}
-            onToggle={() => toggleSection("organize")}
-          >
+          {itemType === "task" && (
+            <>
+              {/* Mục 3: Phân loại */}
+              <CollapsibleTaskSection
+                title="Phân loại"
+                open={openSections.organize}
+                onToggle={() => toggleSection("organize")}
+              >
             <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between gap-2">
                 <span className="font-medium text-[11px] text-[#8E8E93] dark:text-[#aeaeb2] shrink-0">
@@ -1055,7 +1136,9 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                 />
               </div>
             </div>
-          </CollapsibleTaskSection>
+              </CollapsibleTaskSection>
+            </>
+          )}
 
           {/* Mục 4: Ghi chú */}
           <CollapsibleTaskSection
@@ -1076,12 +1159,14 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             />
           </CollapsibleTaskSection>
 
-          {/* Mục 5: Việc con */}
-          <CollapsibleTaskSection
-            title={`Việc con (${childSubtasks.filter((c) => c.completed).length}/${childSubtasks.length})`}
-            open={openSections.subtasks}
-            onToggle={() => toggleSection("subtasks")}
-          >
+          {itemType === "task" && (
+            <>
+              {/* Mục 5: Việc con */}
+              <CollapsibleTaskSection
+                title={`Việc con (${childSubtasks.filter((c) => c.completed).length}/${childSubtasks.length})`}
+                open={openSections.subtasks}
+                onToggle={() => toggleSection("subtasks")}
+              >
             <div className="space-y-1">
               {childSubtasks.map((child) => (
                 <div
@@ -1128,7 +1213,9 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                 Thêm
               </button>
             </form>
-          </CollapsibleTaskSection>
+              </CollapsibleTaskSection>
+            </>
+          )}
         </div>
       )}
 

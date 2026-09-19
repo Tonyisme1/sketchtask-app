@@ -1,6 +1,31 @@
-import { TaskDto, TaskTimeType } from "../types";
+import { TaskDto, TaskItemType, TaskTimeType } from "../types";
 import { getLocalTodayStr } from "./date";
 
+export const getTaskItemType = (
+  task: Pick<TaskDto, "itemType" | "timeType">,
+): TaskItemType => task.itemType || (task.timeType === "event" ? "event" : "task");
+
+/** Give both calendar items a predictable one-hour slot when only a start is entered. */
+export const getDefaultEndTime = (startTime?: string): string | undefined => {
+  if (!startTime || !/^\d{2}:\d{2}$/.test(startTime)) return undefined;
+  const [hours, minutes] = startTime.split(":").map(Number);
+  const startTotal = hours * 60 + minutes;
+  const total = Math.min(startTotal + 60, 23 * 60 + 59);
+  if (total <= startTotal) return undefined;
+  return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
+};
+
+export const isTimeBefore = (time?: string, minimumTime?: string): boolean =>
+  Boolean(time && minimumTime && /^\d{2}:\d{2}$/.test(time) && /^\d{2}:\d{2}$/.test(minimumTime) && time <= minimumTime);
+
+/** Keep an explicitly chosen end time after the start without allowing a zero-length slot. */
+export const normalizeEndTimeForStart = (
+  startTime?: string,
+  endTime?: string,
+): string | undefined => {
+  if (!endTime) return undefined;
+  return isTimeBefore(endTime, startTime) ? getDefaultEndTime(startTime) : endTime;
+};
 export type NormalizedTaskTimeType = "scheduled" | "deadline" | "none";
 
 export type TaskParentScope = "today" | "planner" | "global";
@@ -61,9 +86,16 @@ const getDueDateParts = (dueDate?: string): TaskDateTime => {
   };
 };
 
-export const normalizeTaskTimeType = (task: Pick<TaskDto, "timeType" | "startTime" | "deadlineDate" | "deadlineTime">): NormalizedTaskTimeType => {
+export const normalizeTaskTimeType = (
+  task: Pick<TaskDto, "timeType" | "startTime" | "deadlineDate" | "deadlineTime"> & {
+    itemType?: TaskItemType;
+  },
+): NormalizedTaskTimeType => {
   const rawType = task.timeType as TaskTimeType | undefined;
 
+  if (task.itemType === "event" && !rawType) {
+    return "scheduled";
+  }
   if (rawType === "scheduled" || (rawType && LEGACY_TIME_TYPES[rawType] === "scheduled")) {
     return "scheduled";
   }
@@ -118,6 +150,11 @@ export const getTaskDeadlineDate = (task: TaskDto): string | undefined => {
 };
 
 export const getTaskEffectiveTime = (task: TaskDto): string | undefined => {
+  // Khoảng ngày là mục cả ngày; không để dữ liệu giờ cũ làm lịch hiện thành một slot giờ.
+  if (task.startDate && task.endDate && task.startDate < task.endDate) {
+    return undefined;
+  }
+
   const type = normalizeTaskTimeType(task);
   const { time: dueDateTime } = getDueDateParts(task.dueDate);
 
@@ -128,6 +165,15 @@ export const getTaskEffectiveTime = (task: TaskDto): string | undefined => {
     return task.deadlineTime || dueDateTime;
   }
   return dueDateTime;
+};
+
+/** Prevent invalid zero-length scheduled cards from displaying an equal start/end time. */
+export const getTaskEffectiveEndTime = (task: TaskDto): string | undefined => {
+  const startTime = getTaskEffectiveTime(task);
+  if (!startTime || getTaskItemType(task) === "event") return undefined;
+  return task.endTime && task.endTime > startTime
+    ? task.endTime
+    : getDefaultEndTime(startTime);
 };
 
 export const getTaskDateTime = (task: TaskDto): TaskDateTime => ({

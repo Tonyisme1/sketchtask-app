@@ -13,6 +13,7 @@ export interface SyncPayload {
     dueDate?: string | null;
     startDate?: string | null;
     endDate?: string | null;
+    itemType?: string | null;
     timeType?: string | null;
     startTime?: string | null;
     endTime?: string | null;
@@ -186,6 +187,7 @@ export class SyncService {
                 description: t.description || null,
                 completed: t.completed ?? false,
                 dueDate: t.dueDate || null,
+                itemType: t.itemType || (t.timeType === "event" ? "event" : "task"),
                 startDate: t.startDate || null,
                 endDate: t.endDate || null,
                 timeType: t.timeType || "deadline",
@@ -210,6 +212,7 @@ export class SyncService {
                 description: t.description !== undefined ? t.description : existing.description,
                 completed: t.completed !== undefined ? t.completed : existing.completed,
                 dueDate: t.dueDate !== undefined ? t.dueDate : existing.dueDate,
+                itemType: t.itemType !== undefined ? t.itemType : existing.itemType,
                 startDate: t.startDate !== undefined ? t.startDate : existing.startDate,
                 endDate: t.endDate !== undefined ? t.endDate : existing.endDate,
                 timeType: t.timeType !== undefined ? t.timeType : existing.timeType,

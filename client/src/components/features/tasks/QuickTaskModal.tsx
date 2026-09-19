@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAppStore } from "../../../stores/appStore";
-import { TaskPriority, TaskTimeType } from "../../../types";
+import { TaskItemType, TaskPriority } from "../../../types";
 import { getLocalTodayStr } from "../../../utils/date";
 import { TagInputSelector } from "../../ui/pickers/select/TagInputSelector";
 import { TimePickerPopover } from "../../ui/pickers/time/TimePickerPopover";
 import { DatePickerPopover } from "../../ui/pickers/time/DatePickerPopover";
 import { useScrollLock } from "../../../hooks/useScrollLock";
+import { normalizeEndTimeForStart } from "../../../utils/taskSemantics";
 import {
   X,
   Plus,
@@ -87,10 +88,10 @@ export const QuickTaskModal: React.FC = () => {
   const [isDateRange, setIsDateRange] = useState(false);
   const [startDate, setStartDate] = useState(todayStr);
   const [endDate, setEndDate] = useState("");
-  const [timeType, setTimeType] = useState<TaskTimeType>("deadline");
+  const [itemType, setItemType] = useState<TaskItemType>("task");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [deadlineTime, setDeadlineTime] = useState("");
+  const [showEndTime, setShowEndTime] = useState(false);
   const [priority, setPriority] = useState<TaskPriority>("medium");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showDetails, setShowDetails] = useState(false);
@@ -114,11 +115,19 @@ export const QuickTaskModal: React.FC = () => {
       setIsDateRange(false);
       setStartDate(initialDate);
       setEndDate("");
-      const initialTimeType = quickTaskInitialData?.timeType || "deadline";
-      setTimeType(initialTimeType);
-      setStartTime(quickTaskInitialData?.startTime || "");
-      setEndTime(quickTaskInitialData?.endTime || "");
-      setDeadlineTime(initialTimeType === "deadline" ? quickTaskInitialData?.startTime || "" : "");
+      const initialItemType =
+        quickTaskInitialData?.itemType ||
+        (quickTaskInitialData?.timeType === "event" ? "event" : "task");
+      setItemType(initialItemType);
+      const initialStartTime = quickTaskInitialData?.startTime || "";
+      const initialEndTime = quickTaskInitialData?.endTime || "";
+      setStartTime(initialStartTime);
+      setEndTime(normalizeEndTimeForStart(initialStartTime, initialEndTime) || "");
+      setShowEndTime(
+        initialItemType === "event" ||
+          Boolean(initialEndTime) ||
+          quickTaskInitialData?.timeType === "scheduled"
+      );
       setPriority("medium");
       setSelectedTags(quickTaskInitialData?.tag ? [quickTaskInitialData.tag] : []);
       setShowDetails(false);
@@ -152,22 +161,32 @@ export const QuickTaskModal: React.FC = () => {
     e.preventDefault();
     if (!title.trim()) return;
 
+    const resolvedStartTime = !isDateRange ? startTime : "";
+    const resolvedEndTime =
+      !isDateRange && (itemType === "event" || showEndTime)
+        ? normalizeEndTimeForStart(resolvedStartTime, endTime)
+        : undefined;
+
+    let resolvedTimeType: "event" | "scheduled" | "deadline" | "task" = "task";
+    if (itemType === "event") {
+      resolvedTimeType = "event";
+    } else if (showEndTime && resolvedStartTime && resolvedEndTime) {
+      resolvedTimeType = "scheduled";
+    } else if (resolvedStartTime) {
+      resolvedTimeType = "deadline";
+    }
+
     addTask({
       title: title.trim(),
       description: description.trim() || undefined,
       dueDate: isDateRange ? (startDate || todayStr) : (dueDate || todayStr),
       startDate: isDateRange ? (startDate || todayStr) : undefined,
       endDate: isDateRange ? (endDate || undefined) : undefined,
-      deadlineDate:
-        timeType === "deadline"
-          ? isDateRange
-            ? endDate || startDate || todayStr
-            : dueDate || todayStr
-          : undefined,
-      timeType,
-      startTime: timeType === "scheduled" ? startTime || undefined : undefined,
-      endTime: timeType === "scheduled" ? endTime || undefined : undefined,
-      deadlineTime: timeType === "deadline" ? deadlineTime || undefined : undefined,
+      itemType,
+      timeType: resolvedTimeType,
+      startTime: resolvedTimeType === "scheduled" || resolvedTimeType === "event" ? resolvedStartTime : undefined,
+      endTime: resolvedTimeType === "scheduled" || resolvedTimeType === "event" ? resolvedEndTime : undefined,
+      deadlineTime: resolvedTimeType === "deadline" ? resolvedStartTime : undefined,
       priority,
       tags: selectedTags,
     });
@@ -176,6 +195,21 @@ export const QuickTaskModal: React.FC = () => {
   };
 
   const handleOpenFullDetail = () => {
+    const resolvedStartTime = !isDateRange ? startTime : "";
+    const resolvedEndTime =
+      !isDateRange && (itemType === "event" || showEndTime)
+        ? normalizeEndTimeForStart(resolvedStartTime, endTime)
+        : undefined;
+
+    let resolvedTimeType: "event" | "scheduled" | "deadline" | "task" = "task";
+    if (itemType === "event") {
+      resolvedTimeType = "event";
+    } else if (showEndTime && resolvedStartTime && resolvedEndTime) {
+      resolvedTimeType = "scheduled";
+    } else if (resolvedStartTime) {
+      resolvedTimeType = "deadline";
+    }
+
     openTaskDetail("new", {
       title,
       description,
@@ -183,10 +217,11 @@ export const QuickTaskModal: React.FC = () => {
       startDate: isDateRange ? startDate || todayStr : undefined,
       endDate: isDateRange ? endDate || undefined : undefined,
       tag: selectedTags[0],
-      timeType,
-      startTime: timeType === "scheduled" ? startTime || undefined : undefined,
-      endTime: timeType === "scheduled" ? endTime || undefined : undefined,
-      deadlineTime: timeType === "deadline" ? deadlineTime || undefined : undefined,
+      itemType,
+      timeType: resolvedTimeType,
+      startTime: resolvedTimeType === "scheduled" || resolvedTimeType === "event" ? resolvedStartTime : undefined,
+      endTime: resolvedTimeType === "scheduled" || resolvedTimeType === "event" ? resolvedEndTime : undefined,
+      deadlineTime: resolvedTimeType === "deadline" ? resolvedStartTime : undefined,
       priority,
       tags: selectedTags,
     });
@@ -205,6 +240,8 @@ export const QuickTaskModal: React.FC = () => {
       ? "Kế hoạch"
       : activeTaskSubTab === "deadlines"
       ? "Hạn định"
+      : activeTaskSubTab === "all"
+      ? "Công việc"
       : "Công việc";
 
   return (
@@ -216,9 +253,9 @@ export const QuickTaskModal: React.FC = () => {
         aria-hidden="true"
       />
 
-      {/* Modal Box: Desktop/Tablet bo tròn 4 góc (md:rounded-2xl), Mobile không bo 4 góc (rounded-none) */}
+      {/* Bottom sheet mobile bo hai góc trên; desktop và tablet bo đủ bốn góc. */}
       <div
-        className="relative z-[1000000] w-full max-w-lg bg-white dark:bg-[#1C1C1E] border-t md:border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-none md:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] md:max-h-[82vh] my-0 md:my-auto"
+        className="relative z-[1000000] w-full max-w-lg bg-white dark:bg-[#1C1C1E] border-t md:border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-t-2xl md:rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] md:max-h-[82vh] my-0 md:my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -228,7 +265,7 @@ export const QuickTaskModal: React.FC = () => {
               {contextName}
             </span>
             <h2 className="text-lg font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight">
-              Tạo công việc
+              {itemType === "event" ? "Tạo sự kiện" : "Tạo công việc"}
             </h2>
           </div>
 
@@ -254,6 +291,34 @@ export const QuickTaskModal: React.FC = () => {
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
+          {/* Chọn bản chất trước khi nhập nội dung. */}
+          <div className="grid grid-cols-2 gap-2 rounded-xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-[#F2F2F7] dark:bg-[#2C2C2E] p-1">
+            <button
+              type="button"
+              onClick={() => setItemType("task")}
+              className={`flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-all cursor-pointer ${
+                itemType === "task"
+                  ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-white shadow-xs"
+                  : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
+              }`}
+            >
+              <Check size={15} strokeWidth={2.4} />
+              <span>Công việc</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setItemType("event")}
+              className={`flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold transition-all cursor-pointer ${
+                itemType === "event"
+                  ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-white shadow-xs"
+                  : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
+              }`}
+            >
+              <Calendar size={15} strokeWidth={2.4} />
+              <span>Sự kiện</span>
+            </button>
+          </div>
+
           {/* Main Title Input Row */}
           <div className="flex items-center gap-2 pb-2.5 border-b border-[#E5E5EA] dark:border-[#2C2C2E]">
             <div className="w-6 h-6 rounded-lg bg-[#007AFF] text-white flex items-center justify-center shrink-0">
@@ -264,15 +329,15 @@ export const QuickTaskModal: React.FC = () => {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Nhập tên việc..."
-              className="flex-1 min-w-0 bg-transparent px-1.5 text-sm sm:text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus:outline-none tracking-tight rounded-none"
+              placeholder={itemType === "event" ? "Nhập tên sự kiện..." : "Nhập tên việc..."}
+              className="flex-1 min-w-0 bg-transparent px-1.5 text-sm sm:text-base font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus:outline-none tracking-tight rounded-xl"
             />
             <button
               type="submit"
               disabled={!title.trim()}
               className="px-3 py-1.5 bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] disabled:opacity-30 disabled:cursor-not-allowed text-xs font-semibold rounded-xl shadow-xs active:scale-95 cursor-pointer transition-all shrink-0"
             >
-              Thêm
+              {itemType === "event" ? "Tạo" : "Thêm"}
             </button>
           </div>
 
@@ -324,6 +389,8 @@ export const QuickTaskModal: React.FC = () => {
                       type="button"
                       onClick={() => {
                         setIsDateRange(true);
+                        setStartTime("");
+                        setEndTime("");
                         if (!endDate) {
                           setStartDate(dueDate || todayStr);
                           const d = new Date(dueDate || todayStr);
@@ -358,37 +425,88 @@ export const QuickTaskModal: React.FC = () => {
                       />
                     </div>
 
-                    {/* Giờ hạn chót hoặc khung giờ */}
+                    {/* Bộ chọn giờ: Task mặc định 1 ô deadline + nút mở rộng; Event luôn là khung giờ */}
                     <div className="space-y-1">
-                      <label className="text-xs font-medium text-[#8E8E93] flex items-center gap-1.5">
-                        <Clock size={12} />
-                        <span>Giờ / Khung giờ:</span>
-                      </label>
-                      {timeType === "scheduled" ? (
-                        <div className="flex items-center gap-1">
+                      {itemType === "task" && !showEndTime ? (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-medium text-[#8E8E93] flex items-center gap-1.5">
+                              <Clock size={12} />
+                              <span>Giờ hạn chót:</span>
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowEndTime(true);
+                                if (!endTime) {
+                                  setEndTime(normalizeEndTimeForStart(startTime, "") || "");
+                                }
+                              }}
+                              className="text-[11px] font-bold text-[var(--accent-blue)] hover:underline flex items-center gap-1 cursor-pointer"
+                            >
+                              <Plus size={11} strokeWidth={2.6} />
+                              <span>Thêm giờ kết thúc</span>
+                            </button>
+                          </div>
                           <TimePickerPopover
                             value={startTime}
-                            onChange={setStartTime}
-                            placeholder="Bắt đầu"
-                            className="flex-1 min-w-0"
+                            onChange={(value) => {
+                              setStartTime(value);
+                              setEndTime((currentEndTime) =>
+                                normalizeEndTimeForStart(value, currentEndTime) || ""
+                              );
+                            }}
+                            placeholder="Chọn giờ hạn chót"
+                            className="w-full"
                           />
-                          <span className="text-xs font-medium text-[#8E8E93]">-</span>
-                          <TimePickerPopover
-                            value={endTime}
-                            onChange={setEndTime}
-                            placeholder="Kết thúc"
-                            align="right"
-                            className="flex-1 min-w-0"
-                          />
-                        </div>
+                        </>
                       ) : (
-                        <TimePickerPopover
-                          value={deadlineTime}
-                          onChange={setDeadlineTime}
-                          placeholder="Không đặt giờ (Cả ngày)"
-                          align="right"
-                          className="w-full"
-                        />
+                        <>
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-medium text-[#8E8E93] flex items-center gap-1.5">
+                              <Clock size={12} />
+                              <span>Khung giờ:</span>
+                            </label>
+                            {itemType === "task" && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setShowEndTime(false);
+                                  setEndTime("");
+                                }}
+                                className="text-[11px] font-medium text-[#8E8E93] hover:text-[#FF3B30] flex items-center gap-0.5 cursor-pointer"
+                                title="Thu về một mốc hạn chót"
+                              >
+                                <X size={11} strokeWidth={2.4} />
+                                <span>Bỏ giờ kết thúc</span>
+                              </button>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <TimePickerPopover
+                              value={startTime}
+                              onChange={(value) => {
+                                setStartTime(value);
+                                setEndTime((currentEndTime) =>
+                                  normalizeEndTimeForStart(value, currentEndTime) || ""
+                                );
+                              }}
+                              placeholder="Bắt đầu"
+                              className="flex-1 min-w-0"
+                            />
+                            <span className="text-xs font-medium text-[#8E8E93]">-</span>
+                            <TimePickerPopover
+                              value={endTime}
+                              onChange={(value) =>
+                                setEndTime(normalizeEndTimeForStart(startTime, value) || "")
+                              }
+                              minTime={startTime || undefined}
+                              placeholder="Kết thúc"
+                              align="right"
+                              className="flex-1 min-w-0"
+                            />
+                          </div>
+                        </>
                       )}
                     </div>
                   </div>
@@ -427,77 +545,18 @@ export const QuickTaskModal: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Giờ chót hoặc khung giờ trong khoảng ngày */}
-                    <div className="space-y-1">
-                      <label className="text-xs font-medium text-[#8E8E93] flex items-center gap-1.5">
-                        <Clock size={12} />
-                        <span>{timeType === "deadline" ? "Giờ chót (ngày kết thúc):" : "Khung giờ diễn ra:"}</span>
-                      </label>
-                      {timeType === "scheduled" ? (
-                        <div className="flex items-center gap-1">
-                          <TimePickerPopover
-                            value={startTime}
-                            onChange={setStartTime}
-                            placeholder="Bắt đầu"
-                            className="flex-1 min-w-0"
-                          />
-                          <span className="text-xs font-medium text-[#8E8E93]">-</span>
-                          <TimePickerPopover
-                            value={endTime}
-                            onChange={setEndTime}
-                            placeholder="Kết thúc"
-                            align="right"
-                            className="flex-1 min-w-0"
-                          />
-                        </div>
-                      ) : (
-                        <TimePickerPopover
-                          value={deadlineTime}
-                          onChange={setDeadlineTime}
-                          placeholder="Không đặt giờ (Cả ngày)"
-                          align="right"
-                          className="w-full"
-                        />
-                      )}
-                    </div>
+                    <p className="border-t border-[#E5E5EA] dark:border-[#2C2C2E] pt-2 text-xs font-medium text-[#8E8E93]">
+                      Khoảng ngày là lịch cả ngày, không dùng giờ bắt đầu và kết thúc.
+                    </p>
                   </div>
                 )}
 
-                {/* Chế độ thời gian */}
-                <div className="flex items-center justify-between pt-2 border-t border-[#E5E5EA] dark:border-[#2C2C2E] text-xs">
-                  <span className="font-medium text-[#8E8E93] flex items-center gap-1.5">
-                    <Clock size={13} />
-                    <span>Loại thời gian:</span>
-                  </span>
-                  <div className="flex items-center gap-1 p-0.5 bg-[#F2F2F7] dark:bg-[#2C2C2E] rounded-lg">
-                    <button
-                      type="button"
-                      onClick={() => setTimeType("deadline")}
-                      className={`px-2.5 py-1 rounded-md font-medium text-xs transition-all cursor-pointer ${
-                        timeType === "deadline"
-                          ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-white shadow-xs"
-                          : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
-                      }`}
-                    >
-                      Hạn chót
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTimeType("scheduled")}
-                      className={`px-2.5 py-1 rounded-md font-medium text-xs transition-all cursor-pointer ${
-                        timeType === "scheduled"
-                          ? "bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-white shadow-xs"
-                          : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
-                      }`}
-                    >
-                      Lịch hẹn
-                    </button>
-                  </div>
-                </div>
               </QuickTaskAccordion>
 
+              {itemType === "task" && (
+                <>
               {/* SECTION 2: PHÂN LOẠI & ƯU TIÊN */}
-              <QuickTaskAccordion
+                  <QuickTaskAccordion
                 title="Phân loại"
                 icon={<Sparkles size={13} />}
                 open={openSections.organize}
@@ -545,7 +604,9 @@ export const QuickTaskModal: React.FC = () => {
                     />
                   </div>
                 </div>
-              </QuickTaskAccordion>
+                  </QuickTaskAccordion>
+                </>
+              )}
 
               {/* SECTION 3: GHI CHÚ */}
               <QuickTaskAccordion
@@ -559,7 +620,7 @@ export const QuickTaskModal: React.FC = () => {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Thêm ghi chú chi tiết..."
-                  className="w-full p-2.5 bg-[#F2F2F7]/50 dark:bg-black/30 border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-none text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus:outline-none focus:border-[#007AFF] resize-none"
+                  className="w-full p-2.5 bg-[#F2F2F7]/50 dark:bg-black/30 border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-xl text-sm font-medium text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus:outline-none focus:border-[#007AFF] resize-none"
                 />
               </QuickTaskAccordion>
             </div>
@@ -583,7 +644,7 @@ export const QuickTaskModal: React.FC = () => {
             className="px-4 py-2 rounded-xl bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] disabled:opacity-30 disabled:cursor-not-allowed text-xs font-semibold shadow-sm hover:opacity-90 active:scale-95 cursor-pointer flex items-center gap-1.5 transition-all"
           >
             <Check size={14} strokeWidth={2.4} />
-            <span>Tạo công việc</span>
+            <span>{itemType === "event" ? "Tạo sự kiện" : "Tạo công việc"}</span>
           </button>
         </div>
       </div>

@@ -1,83 +1,117 @@
 # UI Components
 
-Đặc tả các component đang có trong `client/src`. Ưu tiên tái sử dụng component hiện có trước khi tạo component mới.
+Danh sách này mô tả component đang được mount hoặc được dùng chung trong `client/src`. Tái sử dụng component hiện có trước khi tạo component mới.
 
-## Core Components
+## 1. Platform shells
 
-### Button
+### `DesktopShell`
 
-- Dùng cho hành động chính/phụ và phải có tên dễ hiểu.
-- Primary dùng accent yellow; secondary dùng surface; danger dùng coral.
-- Có `focus-visible` và phản hồi active bằng hard shadow.
-- Vùng chạm mobile tối thiểu khoảng 36px.
+- Quản lý header, sidebar trái, workspace chính, AI side panel, settings dialog và các overlay toàn app.
+- Hỗ trợ shortcut desktop như `Ctrl+K`, `Ctrl+B`, `N` theo source hiện tại.
+- Không dùng shell desktop làm layout fallback cho tablet/mobile.
 
-### HandDrawnCheckbox
+### `TabletShell`
 
-- Dùng để hoàn thành task hoặc chọn trạng thái.
-- Viền mực, trạng thái checked rõ ràng, keyboard/touch được.
-- Không xoay checkbox hoặc container chứa checkbox.
+- Quản lý header tablet, workspace trung tâm, bottom dock, contextual FAB và các overlay.
+- Khi detail/settings mở, shell có thể ẩn header/dock theo state hiện tại để tránh chồng lớp.
 
-### TaskCard
+### `MobileShell`
 
-- Hiển thị title, checkbox, thời gian, priority, tag, notebook và thao tác.
-- Title có thể giới hạn dòng trên mobile nhưng nội dung đầy đủ phải xem được khi sửa.
-- Card có border/shadow cứng; rotation chỉ ở card độc lập và trong giới hạn token.
-- Trạng thái completed, hover, active và disabled phải dễ phân biệt.
+- Quản lý header mobile, bottom dock, full-screen detail và create sheet.
+- Khi keyboard mở hoặc người dùng cuộn, dock xử lý ẩn/hiện theo behavior hiện tại.
+- Task detail, note detail, journal book và AI standalone có thể chiếm toàn màn hình.
 
-### AutoResizeTextarea
+## 2. Navigation surfaces
 
-- Dùng cho quick add và nội dung dài.
-- Không khóa scroll trang khi keyboard mở.
-- Quick add phải có giới hạn chiều cao; nội dung vượt giới hạn được cuộn nội bộ.
-- Hành vi Enter/Ctrl+Enter phải được quyết định theo ngữ cảnh, không mặc định áp dụng mọi nơi.
+### `Sidebar`, `TabletNav`, `MobileNav`
 
-## Selection Components
+- Chỉ hiển thị destination đang được App mount.
+- Task navigation dùng `activeTaskSubTab`; không tạo tab mới cho từng biến thể filter.
+- `MobileNav` giữ nút `+` ở giữa để chọn tạo task hoặc note; không thêm quick-add thứ hai nếu flow đã có modal/FAB.
 
-### CustomSelect
+### `MobileHeader` và `mobile-back-button`
 
-- Dùng thay native select trong UI production.
-- Danh sách dài được cuộn trong panel riêng.
-- Có trạng thái mở, đóng, focus, keyboard, empty và disabled.
-- Không dùng cho lựa chọn cần lịch hoặc wheel picker.
+- Back button phải có aria-label, vùng chạm dễ bấm và gọi callback cấp màn hình.
+- Callback chỉ đóng child surface hoặc gọi navigation handler; không tự thao tác history riêng.
+- Header không được chiếm vùng status bar hoặc che nội dung khi detail mở.
 
-### CustomDuePicker
+## 3. Task components
 
-- Dùng chung logic `scheduled` và `deadline`.
-- Wheel picker chọn giờ/phút.
-- Variant theo ngữ cảnh là `Planned` nếu chưa có trong source:
-  - `today`: chỉ chọn giờ/phút cho hôm nay.
-  - `planner`: chọn ngày và giờ đầy đủ.
-  - `datetime`: dùng trong edit flow hoặc nơi cần ngày cụ thể.
-- Mobile là bottom sheet; desktop giữ nút đóng riêng.
-- Không dùng native date/time control.
+### `TaskCard`, `TaskList`, `HandDrawnCheckbox`
 
-## Layout Components
+- Hiển thị title, trạng thái, thời gian, deadline, priority, tags, notebook và quan hệ con khi dữ liệu có.
+- Completed/overdue/disabled/selected phải khác nhau bằng text/icon và token màu, không chỉ dựa vào opacity.
+- Card trong skin tối giản dùng surface và khoảng cách gọn; không tự thêm rotation hoặc hard shadow mới.
 
-### MobileNav
+### `TaskDetailPage`
 
-- Điều hướng cố định dưới màn hình trên mobile.
-- Ẩn khi keyboard mở hoặc khi người dùng cuộn xuống.
-- Không được che input, footer hoặc nội dung task.
+- Có view mode và edit mode cho cùng một task.
+- Hỗ trợ tạo mới, sửa, hoàn thành, xóa, dời lịch, parent/child, scheduled/deadline và metadata theo source.
+- Back khi edit task cũ quay về view; back khi task mới hủy flow tạo theo callback.
 
-### Bottom Sheet / Modal
+### `QuickTaskModal`
 
-- Mobile trượt từ dưới lên, có grab handle và vùng nội dung cuộn độc lập.
-- Desktop căn giữa và có nút đóng rõ ràng.
-- Khi mobile dùng grab handle để đóng thì phải có accessibility label và keyboard fallback.
-- Click vùng nền có thể đóng nếu không làm mất dữ liệu đang nhập.
+- Là flow tạo task nhanh dùng chung cho desktop/tablet/mobile theo cách mở của từng shell.
+- Ngày, giờ scheduled và giờ deadline là các lựa chọn riêng; không dùng native browser picker.
+- Khi đóng/hủy phải dọn state tạm và không tạo bản ghi rỗng.
 
-### Filter Toolbar
+## 4. Planner và time surfaces
 
-- Tầng chính chỉ giữ các filter thường dùng.
-- Filter nâng cao mở trong panel riêng và có thể cuộn trên mobile.
-- Phải hiển thị trạng thái active và nút xóa filter khi cần.
+### `PlannerTab`, `PlannerWeekView`, `PlannerTimeline`, `PlannerDayTimeline`, `PlannerCalendar`
 
-### EmptyStateDoodle
+- `PlannerTab` điều phối overview, day detail và các view planner đang được render.
+- Desktop có thể dùng weekly time chart; tablet/mobile ưu tiên danh sách ngày và day detail.
+- Timeline phải có vùng cuộn nội bộ, giữ mốc giờ dễ đọc và không để task đè ngoài container.
+- Calendar grid là core UI: thẳng, không xoay, không bị parent cắt.
 
-- Dùng cho danh sách rỗng.
-- Có hướng dẫn bước tiếp theo và CTA phù hợp.
-- Decoration không được lấn vào vùng thao tác chính.
+### `DatePickerPopover`, `TimePickerPopover`
 
-## States Và Accessibility
+- Là picker custom có placement theo viewport và z-index riêng.
+- Có trạng thái closed/open/focus/disabled và xử lý click ngoài theo flow hiện tại.
+- Không dùng `CustomDuePicker`, `WheelTimePicker`, `TodayTimeView`, `PlannerDateTimeView` hoặc `DateTimeView` như tên component mới nếu file đó không còn call-site.
 
-Component bất đồng bộ cần xử lý loading, empty, error và success. Mọi control tương tác cần tên accessible, focus-visible, keyboard support và trạng thái disabled rõ ràng.
+## 5. Notes và journal
+
+### `NotesTab`, `NoteMasterDetailView`
+
+- Notes dùng master/index trước, detail/editor sau.
+- Mobile editor giữ action row gọn: back, notebook selector, delete; không đưa toolbar thừa vào index.
+- Tablet/desktop dùng master-detail phù hợp chiều rộng, không ép mobile full-screen composition.
+
+### `JournalTab`, `JournalBook`, `JournalEntryCard`
+
+- Journal list và book detail là hai state của cùng feature.
+- Chọn ngày, chuyển ngày và back phải quay đúng từ book về journal list trước khi pop navigation ngoài.
+
+## 6. Overlay và system components
+
+### `GlobalSearchModal`, `NotificationDrawer`, `AuthModal`, `SettingsTab`, `AIAssistantTab`
+
+- Search và notification là overlay/system surface dùng chung cả ba shell, không lặp logic theo từng tab.
+- Settings: desktop dùng dialog/master-detail; tablet tùy orientation có master-detail hoặc drill-down; mobile dùng fullscreen category/detail flow.
+- AI: desktop/tablet có thể là workspace/panel; mobile có standalone detail với back rõ ràng.
+- AuthModal có login/register state và phải phù hợp viewport, không dùng kích thước desktop cho mobile.
+
+### Modal, sheet và feedback
+
+- Mobile modal ưu tiên bottom sheet hoặc full-screen detail tùy component; nội dung dài có vùng scroll độc lập.
+- Desktop dialog có close button rõ ràng; click ngoài chỉ đóng khi không làm mất dữ liệu.
+- `ConfirmModal`, `RescheduleDateModal`, `UpdateModal`, `ToastViewport` phải giữ loading/error/success và không tự thêm navigation.
+- `EmptyStateDoodle` chỉ là empty-state decoration, không được che CTA hoặc biến thành trang mới.
+
+## 7. Core input và states
+
+### `Button`, `TextInput`, `AutoResizeTextarea`, `CustomSelect`, `TagInputSelector`
+
+- Dùng label/aria, focus-visible, disabled và keyboard support.
+- `AutoResizeTextarea` không khóa scroll; quick add có giới hạn chiều cao và scroll nội bộ khi cần.
+- `CustomSelect` có open/closed/empty/disabled và panel cuộn riêng cho danh sách dài.
+- Control touch phải có vùng chạm khoảng 40px và không overflow khỏi viewport.
+
+## 8. Quy tắc khi tạo component mới
+
+1. Kiểm tra component hiện có và call-site trước.
+2. Xác định shell/platform nào thật sự cần component.
+3. Dùng token trong `TOKENS.md`, không tạo bảng màu/bo góc riêng.
+4. Bổ sung default, hover/focus, active, disabled, loading, empty và error phù hợp.
+5. Nếu component là ý tưởng chưa có trong source, ghi `Planned` trong tài liệu thay vì ngụy trang như runtime.

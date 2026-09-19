@@ -1,87 +1,66 @@
-# TOKENS.md
+# Design Tokens
 
-Source of truth cho toàn bộ giá trị biến giao diện (Design Tokens) của phong cách **Hand-Drawn Productivity / Digital Sketchbook**. Coding Agent bắt buộc sử dụng các biến/class dưới đây, không tự ý hardcode giá trị tùy tiện.
+Đây là token visual đang có trong `client/src/index.css`. Component mới phải ưu tiên CSS variable hoặc token semantic tương đương; không tạo bảng màu riêng theo từng tab.
 
----
+## 1. Màu nền và chữ
 
-## 1. Color Palette (Paper & Ink)
+| Token | Light | Dark | Dùng cho |
+| --- | --- | --- | --- |
+| `--bg-canvas` | `#F2F2F7` | `#121214` | Nền app và vùng trống chính |
+| `--bg-surface` | `#FFFFFF` | `#1C1C1E` | Card, dialog, header, sheet |
+| `--bg-surface-muted` | `#E5E5EA` | `#27272A` | Input, toolbar, vùng phụ |
+| `--border-ink` | `#E5E5EA` | `#000000` | Viền và divider chính của skin hiện tại |
+| `--border-ink-muted` | `#F2F2F7` | `#000000` | Divider/lưới nhẹ |
+| `--text-main` | `#1C1C1E` | `#F2F2F7` | Nội dung chính |
+| `--text-strong` | `#000000` | `#FFFFFF` | Heading hoặc emphasis mạnh |
+| `--text-muted` | `#8E8E93` | `#8E8E93` | Metadata, subtitle, ngày giờ |
+| `--text-subtle` | `#AEAEB2` | `#636366` | Placeholder, disabled, hint |
 
-### 1.1. Base Canvas (Giấy & Mực)
+Dark mode phải dùng cặp token trên theo ngữ cảnh. Không thay mọi `text-muted` thành `#FFFFFF`.
 
-| Token Name           | Light Mode (Hex) | Dark Mode (Hex) | Ý nghĩa / Ứng dụng                             |
-| :------------------- | :--------------- | :-------------- | :--------------------------------------------- |
-| `--bg-canvas`        | `#FBF9F4`        | `#18181B`       | Nền toàn trang (chất giấy ngà / giấy than tối) |
-| `--bg-surface`       | `#FFFFFF`        | `#27272A`       | Nền Card, Modal, Sheet                         |
-| `--bg-surface-muted` | `#F3EFE6`        | `#3F3F46`       | Nền Sidebar, Toolbar, Dropdown                 |
-| `--border-ink`       | `#262626`        | `#E4E4E7`       | Viền nét mực chính (Core UI & Card border)     |
-| `--border-ink-muted` | `#D4CEBF`        | `#52525B`       | Đường kẻ lưới calendar, divider phụ            |
-| `--text-main`        | `#1C1917`        | `#FAFAFA`       | Chữ chính (độ tương phản cao)                  |
-| `--text-muted`       | `#78716C`        | `#A1A1AA`       | Metadata, date, secondary labels               |
+## 2. Accent và trạng thái
 
-### 1.2. Mức Độ Ưu Tiên (Priority Tokens)
+| Token | Light | Dark/ghi chú | Ý nghĩa |
+| --- | --- | --- | --- |
+| `--accent-yellow` | `#FFCC00` | `#FFD60A` | Tạo mới, highlight, action chính |
+| `--accent-blue` | `#007AFF` | `#0A84FF` | Link, focus, thông tin |
+| `--accent-coral` | `#FF3B30` | dùng cùng semantic | Xóa, lỗi, quá hạn/cảnh báo |
+| `--accent-mint` | `#34C759` | dùng cùng semantic | Hoàn thành, success, kết nối |
+| `--accent-sky` | `#5AC8FA` | dùng cùng semantic | Lịch hẹn/scheduled |
+| `--accent-lavender` | `#AF52DE` | dùng cùng semantic | Nhóm/phân loại phụ |
 
-| Priority Level       | Background | Text Color | Border Color | Huy hiệu hiển thị |
-| :------------------- | :--------- | :--------- | :----------- | :---------------- |
-| `--priority-high`    | `#FFE4E6`  | `#BE123C`  | `#FDA4AF`    | `🔴 Gấp`         |
-| `--priority-medium`  | `#FEF3C7`  | `#92400E`  | `#FCD34D`    | `🟡 Vừa`         |
-| `--priority-low`     | `#D1FAE5`  | `#065F46`  | `#6EE7B7`    | `🟢 Thấp`        |
+Badge hoặc trạng thái phải kết hợp màu với text/icon. Không dùng chấm màu đơn độc cho thông tin quan trọng.
 
-### 1.3. Highlighter & Accent Palette (Màu bút dạ quang & Mực nhớ)
+## 3. Typography
 
-| Token Name          | Hex       | Class Gợi ý      | Ý nghĩa / Ứng dụng                         |
-| :------------------ | :-------- | :--------------- | :----------------------------------------- |
-| `--accent-yellow`   | `#FEF08A` | `bg-yellow-200`  | Highlight quan trọng, Sticky Note mặc định |
-| `--accent-coral`    | `#FECDD3` | `bg-rose-200`    | Task ưu tiên cao, cảnh báo nhẹ             |
-| `--accent-mint`     | `#BBF7D0` | `bg-emerald-200` | Task đã hoàn thành, tag tích cực           |
-| `--accent-sky`      | `#BAE6FD` | `bg-sky-200`     | Sự kiện Calendar, link, focus badge        |
-| `--accent-lavender` | `#DDD6FE` | `bg-violet-200`  | Project tag, category cá nhân              |
+- `--font-sans`: `Inter`, `Plus Jakarta Sans`, fallback `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `system-ui`, `sans-serif`.
+- `--font-mono` và `--font-hand` hiện trỏ về font sans chung để giữ cùng hình dáng chữ trong skin tối giản; không tự đưa font viết tay vào title hoặc dữ liệu.
+- Font family người dùng chọn: `inter`, `jakarta`, `system`.
+- Font size: `normal = 100%`, `large = 108%`, `xlarge = 116%`; mặc định hiện tại là `large` nếu chưa có preference lưu trên thiết bị.
+- Phân cấp đề xuất: heading > title/label > body > metadata. Dùng `font-weight` và token màu để tạo hierarchy trước khi tăng quá nhiều cỡ chữ.
 
----
+## 4. Góc bo, viền và elevation
 
-## 2. Typography
+Skin iOS hiện tại remap nhiều class legacy sang góc bo mềm hơn:
 
-### 2.1. Font Families
+- Control nhỏ/input: khoảng `12px`.
+- Card/section: khoảng `18px`.
+- Bottom sheet/top sheet: khoảng `22px` ở cạnh mở.
+- Badge có thể dùng pill; card và primary button không dùng pill toàn phần.
+- Border mặc định mảnh, ưu tiên `1px`; chỉ dùng nét dày hơn khi pattern cũ thật sự cần và phải được skin iOS xử lý nhất quán.
 
-- **`--font-sans` (Core UI):** `'Inter', 'Plus Jakarta Sans', system-ui, sans-serif`
-  - Dùng cho 90% nội dung: task title, navigation, bảng dữ liệu, form input.
-- **`--font-hand` (Handwritten Accent):** `'Caveat', 'Patrick Hand', cursive`
-  - **Chỉ dùng cho:** Sticky note, lời nhắn động viên, tooltip ghi chú, doodle text, empty state annotations.
-- **`--font-mono` (Data/Code):** `'JetBrains Mono', 'Fira Code', monospace`
-  - Dùng cho: thời gian (09:00 AM), timestamp, badge quá hạn, phiên bản app.
+Trong skin tối giản, shadow và rotation của lớp giấy được tắt. Hard offset shadow chỉ còn là compatibility behavior của các component/pattern giấy cũ; không dùng Gaussian blur cho component mới.
 
----
+## 5. Responsive và motion
 
-## 3. Elevation & Hard Shadows (Đổ bóng dứt khoát)
+- `mobile < 768px`, `tablet 768-1023px`, `desktop >= 1024px`.
+- Touch target chính khoảng `40px`; icon-only nhỏ hơn chỉ dùng cho action phụ và phải có label.
+- Animation ngắn, phục vụ mở/đóng hoặc đổi trạng thái; tôn trọng reduced motion.
+- Không dùng token transform để xoay lưới lịch, input, bảng hoặc vùng cuộn.
 
-Không dùng blur lan tỏa (`rgba(0,0,0,0.1)`). Mọi độ nổi đều sử dụng **Hard Offset Shadow** để giả lập các lớp giấy đặt lên nhau:
+## 6. Quy tắc sử dụng token
 
-| Token           | CSS Box-Shadow                  | Tailwind Class Quy ước         | Ứng dụng                        |
-| :-------------- | :------------------------------ | :----------------------------- | :------------------------------ |
-| `--shadow-none` | `none`                          | `shadow-none`                  | Trạng thái Active/Pressed       |
-| `--shadow-sm`   | `1px 1px 0px var(--border-ink)` | `shadow-[1px_1px_0px_#262626]` | Button nhỏ, Checkbox, Badge     |
-| `--shadow-md`   | `2px 2px 0px var(--border-ink)` | `shadow-[2px_2px_0px_#262626]` | Task Card, Sticky Note, Input   |
-| `--shadow-lg`   | `4px 4px 0px var(--border-ink)` | `shadow-[4px_4px_0px_#262626]` | Modal, Dialog, Floating Popover |
-
----
-
-## 4. Borders & Corner Radius
-
-- **Độ dày nét mực:** Cố định `border-width: 1.5px` (hoặc `1px` cho đường phân cách phụ).
-- **Border Radius Tokens:**
-  - `--radius-strict`: `4px` (Dùng cho Input, Checkbox, Data Grid).
-  - `--radius-card`: `6px` (Dùng cho Task Card, Button).
-  - `--radius-sheet`: `22px` (Bo góc trên của Mobile Bottom Sheet: `rounded-t-[22px]`).
-
----
-
-## 5. Rotation Tokens (Intentional Imperfection)
-
-Tuyệt đối không xoay text chính hoặc container cuộn. Chỉ áp dụng xoay nhẹ lên các container độc lập:
-
-| Token Name           | Value     | Class Gợi ý        | Ứng dụng                                             |
-| :------------------- | :-------- | :----------------- | :--------------------------------------------------- |
-| `--rot-flat`         | `0deg`    | `rotate-0`         | Bắt buộc cho toàn bộ Input, Grid, Table, Mobile view |
-| `--rot-subtle-left`  | `-0.5deg` | `-rotate-[0.5deg]` | Task Card xen kẽ, Tag                                |
-| `--rot-subtle-right` | `0.5deg`  | `rotate-[0.5deg]`  | Task Card xen kẽ                                     |
-| `--rot-tilt-left`    | `-1deg`   | `-rotate-1`        | Sticky Note, Pinned card                             |
-| `--rot-tilt-right`   | `1deg`    | `rotate-1`         | Sticky Note, Bookmark                                |
+1. Dùng semantic token trước màu literal.
+2. Khi thêm accent mới, chứng minh token hiện tại không đáp ứng được và cập nhật tài liệu trước.
+3. Light và dark phải được kiểm tra cùng một component; tránh tương phản ngược như chữ mờ trên nền active.
+4. Không tạo token chỉ phục vụ một màn hình nếu token đó không có ý nghĩa ở cấp hệ thống.

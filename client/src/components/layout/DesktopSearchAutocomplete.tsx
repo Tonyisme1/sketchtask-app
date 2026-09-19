@@ -12,6 +12,7 @@ import {
 import { useAppStore } from "../../stores/appStore";
 import { TabKey, NavigationTarget } from "../../types";
 import { loadNotesFromStorage } from "../../utils/noteStorage";
+import { getLocalTodayStr } from "../../utils/date";
 import { getTaskEffectiveDate, getTaskEffectiveTime } from "../../utils/taskSemantics";
 import { matchesQuery, stripHtmlText } from "../../utils/search";
 
@@ -114,25 +115,31 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
     searchResults.journal.length;
 
   const handleSelectTask = (taskId: string, date?: string) => {
-    onNavigateTab("today", { taskId, date });
+    // Desktop planner owns future dates directly. Routing those results straight
+    // there avoids a transient Today -> Planner handoff that could lose the target.
+    const isToday = !date || date === getLocalTodayStr(new Date());
+    onNavigateTab(isToday ? "tasks" : "planner", { taskId, date });
     setIsOpen(false);
+    setQuery("");
   };
 
   const handleSelectNote = (noteId: string) => {
     onNavigateTab("notes", { noteId });
     setIsOpen(false);
+    setQuery("");
   };
 
   const handleSelectJournal = (journalEntryId: string) => {
     onNavigateTab("journal", { journalEntryId });
     setIsOpen(false);
+    setQuery("");
   };
 
   return (
     <div ref={containerRef} className="relative w-full max-w-md lg:max-w-lg mx-3 select-none">
       {/* Search Input Box */}
       <div
-        className={`flex items-center justify-between px-3 py-2 bg-black/[0.04] dark:bg-white/[0.08] border border-transparent rounded-none transition-all ${
+        className={`flex items-center justify-between px-3 py-2 bg-black/[0.04] dark:bg-white/[0.08] border border-transparent rounded-xl transition-all ${
           isOpen
             ? "ring-2 ring-[#007AFF] bg-white dark:bg-[#2C2C2E] shadow-sm"
             : "hover:bg-black/[0.06] dark:hover:bg-white/[0.12]"
@@ -175,7 +182,7 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
 
       {/* DROPDOWN MENU SỔ XUỐNG DƯỚI THANH TÌM KIẾM */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-2xl shadow-2xl py-2.5 z-50 max-h-[380px] overflow-y-auto no-scrollbar animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] rounded-[10px] shadow-[3px_3px_0px_#262626] py-2.5 z-50 max-h-[380px] overflow-y-auto no-scrollbar animate-in fade-in slide-in-from-top-1 duration-150">
           {/* Header gợi ý */}
           <div className="px-3 pb-2 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-wider text-[#8E8E93] border-b border-[#E5E5EA] dark:border-[#2C2C2E] mb-1">
             <span>{searchResults.isSuggestion ? "Gợi ý gần đây" : `Kết quả (${totalResults})`}</span>

@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { App as CapacitorApp } from "@capacitor/app";
-import { NavigationTarget, TabKey } from "./shared/types";
+import { NavigationTarget, TabKey, TaskSubTab } from "./shared/types";
 import { AppProvider, useAppStore } from "./shared/stores";
 import { useResponsiveLayout } from "./shared/hooks";
 
 // 3 Dedicated Platform Shells & Workspaces
 import { DesktopShell, DesktopWorkspace } from "./desktop";
+import type { DesktopPlannerSurface } from "./components/features/planner/DesktopPlannerHeader";
 import { TabletShell, TabletWorkspace } from "./tablet";
 import { MobileShell, MobileWorkspace } from "./mobile";
 
@@ -29,8 +30,6 @@ interface MainAppContentProps {
   onNavigateRoute: (path: string) => void;
 }
 
-type TaskSubTab = "today" | "planner" | "deadlines";
-
 interface AppLocation {
   tab: TabKey;
   taskSubTab: TaskSubTab;
@@ -40,7 +39,11 @@ const getLocationKey = (location: AppLocation) =>
   `${location.tab}:${location.taskSubTab}`;
 
 const getLocationTab = (location: AppLocation): TabKey =>
-  location.tab === "tasks" ? location.taskSubTab : location.tab;
+  location.tab === "tasks"
+    ? location.taskSubTab === "all"
+      ? "tasks"
+      : location.taskSubTab
+    : location.tab;
 
 function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("tasks");
@@ -60,7 +63,14 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
   const { isDesktop, isTablet } = useResponsiveLayout();
 
   const [previousTab, setPreviousTab] = useState<TabKey>("today");
+  const [desktopPlannerSurface, setDesktopPlannerSurface] = useState<DesktopPlannerSurface>("calendar");
+  const [desktopPlannerSurfaceRevision, setDesktopPlannerSurfaceRevision] = useState(0);
   const appNavigationStackRef = useRef<AppLocation[]>([]);
+
+  const handleDesktopPlannerSurfaceChange = useCallback((surface: DesktopPlannerSurface) => {
+    setDesktopPlannerSurface(surface);
+    setDesktopPlannerSurfaceRevision((revision) => revision + 1);
+  }, []);
 
   const handleTabChange = useCallback((tab: TabKey | string, target?: NavigationTarget) => {
     const currentLocation: AppLocation = {
@@ -105,6 +115,32 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     setNavigationTarget(target);
     setActiveTaskSubTab(nextLocation.taskSubTab);
     setActiveTab(nextLocation.tab);
+  }, [activeTab, activeTaskSubTab, closeTaskDetail, setActiveTaskSubTab, setIsJournalBookOpen, setIsMobileNoteDetailOpen, setSettingsMobileSubView]);
+
+  // Desktop có thêm danh sách tổng; mobile/tablet vẫn giữ Công việc mở ở Hôm nay.
+  const handleDesktopTaskSubTabChange = useCallback((subTab: TaskSubTab) => {
+    const currentLocation: AppLocation = {
+      tab: activeTab,
+      taskSubTab: activeTaskSubTab,
+    };
+    const nextLocation: AppLocation = { tab: "tasks", taskSubTab: subTab };
+
+    if (getLocationKey(currentLocation) !== getLocationKey(nextLocation)) {
+      const stack = appNavigationStackRef.current;
+      const lastLocation = stack[stack.length - 1];
+      if (!lastLocation || getLocationKey(lastLocation) !== getLocationKey(currentLocation)) {
+        stack.push(currentLocation);
+      }
+      setPreviousTab(getLocationTab(currentLocation));
+    }
+
+    closeTaskDetail();
+    setIsMobileNoteDetailOpen(false);
+    setIsJournalBookOpen(false);
+    setSettingsMobileSubView(null);
+    setNavigationTarget(undefined);
+    setActiveTaskSubTab(subTab);
+    setActiveTab("tasks");
   }, [activeTab, activeTaskSubTab, closeTaskDetail, setActiveTaskSubTab, setIsJournalBookOpen, setIsMobileNoteDetailOpen, setSettingsMobileSubView]);
 
   const handleClearNavigationTarget = () => {
@@ -181,6 +217,9 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
         onTabChange={handleTabChange}
         onNavigateRoute={onNavigateRoute}
         previousTab={previousTab}
+        desktopPlannerSurface={desktopPlannerSurface}
+        onDesktopPlannerSurfaceChange={handleDesktopPlannerSurfaceChange}
+        onDesktopTaskSubTabChange={handleDesktopTaskSubTabChange}
       >
         <DesktopWorkspace
           activeTab={activeTab}
@@ -189,6 +228,8 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
           onNavigateTab={handleTabChange}
           onNavigateRoute={onNavigateRoute}
           previousTab={previousTab}
+          desktopPlannerSurface={desktopPlannerSurface}
+          desktopPlannerSurfaceRevision={desktopPlannerSurfaceRevision}
         />
       </DesktopShell>
     );

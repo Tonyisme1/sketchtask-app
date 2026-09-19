@@ -202,10 +202,10 @@ export const JournalBook: React.FC<JournalBookProps> = ({
             <ArrowLeft size={13} strokeWidth={2.4} /><span>Đóng</span>
           </button>
           <div className="flex items-center gap-0.5 rounded-[5px] border-[1.5px] border-[#262626] bg-white p-0.5 shadow-[1.5px_1.5px_0px_#262626]">
-            <button type="button" onClick={handlePrevDay} className="flex h-7 w-7 items-center justify-center rounded-[3px] text-[#1C1917] hover:bg-[#F3EFE6]" title="Ngày trước"><ChevronLeft size={14} strokeWidth={2.4} /></button>
-            {!isToday && <button type="button" onClick={handleGoToToday} className="flex h-7 items-center gap-1 rounded-[3px] bg-[#1C1917] px-2 text-xs font-bold text-white"><RotateCcw size={11} strokeWidth={2.4} /><span className="hidden sm:inline">Hôm nay</span></button>}
+            <button type="button" onClick={handlePrevDay} className="flex h-7 w-7 items-center justify-center rounded-xl text-[#1C1917] hover:bg-[#F3EFE6]" title="Ngày trước"><ChevronLeft size={14} strokeWidth={2.4} /></button>
+            {!isToday && <button type="button" onClick={handleGoToToday} className="flex h-7 items-center gap-1 rounded-xl bg-[#1C1917] px-2 text-xs font-bold text-white"><RotateCcw size={11} strokeWidth={2.4} /><span className="hidden sm:inline">Hôm nay</span></button>}
             <DatePickerPopover value={selectedDate} onChange={(date) => date && setSelectedDate(date)} placeholder="Chọn ngày" align="right" showClear={false} className="min-w-[8rem] sm:min-w-[9.5rem]" />
-            <button type="button" onClick={handleNextDay} className="flex h-7 w-7 items-center justify-center rounded-[3px] text-[#1C1917] hover:bg-[#F3EFE6]" title="Ngày sau"><ChevronRight size={14} strokeWidth={2.4} /></button>
+            <button type="button" onClick={handleNextDay} className="flex h-7 w-7 items-center justify-center rounded-xl text-[#1C1917] hover:bg-[#F3EFE6]" title="Ngày sau"><ChevronRight size={14} strokeWidth={2.4} /></button>
           </div>
         </div>
       </div>

@@ -22,12 +22,13 @@ import {
 } from "../../../services/aiAgentService";
 import { askGeminiAIAssistant } from "../../../services/geminiAiService";
 import { HandDrawnCheckbox } from "../../ui/core/HandDrawnCheckbox";
+import { AIActionProposalCard } from "./AIActionProposalCard";
 
 // ==========================================
 // CHAT MESSAGE TYPES & LOCAL STORAGE KEY
 // ==========================================
 
-const CHAT_STORAGE_KEY = "sketchtask_ai_chat_history";
+const CHAT_STORAGE_KEY = "sketchtask_ai_chat_history_v2";
 
 interface StoredChatMessage {
   id: string;
@@ -128,8 +129,6 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
         nextMessages.map((m) => ({ sender: m.sender, text: m.text })),
         {
           tasks,
-          addTask,
-          toggleTask,
         },
         new Date()
       );
@@ -327,6 +326,8 @@ export const AIAssistantTab: React.FC<AIAssistantTabProps> = ({
               >
                 {/* Nội dung text chính */}
                 <div className="whitespace-pre-line font-normal">{renderMessageContent(m.text)}</div>
+
+                {res?.proposal && <AIActionProposalCard proposal={res.proposal} />}
 
                 {/* CARD 1: TASK CREATED CARD (ĐƠN LẺ & BATCH) */}
                 {res && (res.type === "created_task" || res.type === "batch_created") && res.createdTasks && (

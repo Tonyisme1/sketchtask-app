@@ -206,7 +206,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
               onBlur={handleTimeBlur}
               onKeyDown={(e) => e.key === "Enter" && handleTimeBlur()}
               autoFocus
-              className="w-11 font-mono text-xs font-bold text-center bg-white border border-[#262626] rounded-none px-0.5 py-0 focus:outline-none focus:bg-[#FAF8F3]"
+              className="w-11 font-mono text-xs font-bold text-center bg-white border border-[#262626] rounded-xl px-0.5 py-0 focus:outline-none focus:bg-[#FAF8F3]"
             />
           ) : showTime ? (
             <button
@@ -265,7 +265,7 @@ export const JournalEntryCard: React.FC<JournalEntryCardProps> = ({
                 linkedTask ? (
                   <div
                     onClick={() => openTaskDetail(linkedTask.id)}
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#FAF8F3] hover:bg-[#F5F5F4] border border-[#262626] rounded-[3px] shadow-[0.5px_0.5px_0px_#262626] cursor-pointer transition-all active:translate-y-[0.5px] max-w-full text-[10px]"
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#FAF8F3] hover:bg-[#F5F5F4] border border-[#262626] rounded-full shadow-[0.5px_0.5px_0px_#262626] cursor-pointer transition-all active:translate-y-[0.5px] max-w-full text-[10px]"
                     title="Bấm để xem công việc liên kết"
                   >
                     <LinkIcon size={9} strokeWidth={2.4} className="text-[#78716C] shrink-0" />

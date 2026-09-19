@@ -3,7 +3,7 @@ import { Search, ArrowLeft, X, CheckSquare, FileText, BookOpen, Clock, Calendar,
 import { useAppStore } from "../../../stores/appStore";
 import { NavigationTarget, TaskDto, TabKey } from "../../../types";
 import { loadNotesFromStorage } from "../../../utils/noteStorage";
-import { getTaskEffectiveDate, getTaskEffectiveTime } from "../../../utils/taskSemantics";
+import { getTaskEffectiveDate, getTaskEffectiveTime, getTaskItemType } from "../../../utils/taskSemantics";
 import { matchesQuery, stripHtmlText } from "../../../utils/search";
 import { useScrollLock } from "../../../hooks/useScrollLock";
 import { registerBackHandler } from "../../../utils/backNavigation";
@@ -140,7 +140,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Tìm kiếm mọi thứ..."
-              className="w-full pl-9 pr-9 py-2 bg-white border-[1.5px] border-[#262626] rounded-none text-sm font-medium text-[#1C1917] placeholder:text-[#A8A29E] shadow-[1.5px_1.5px_0px_#262626] focus:outline-none focus:bg-[#FFFDF8]"
+              className="w-full pl-9 pr-9 py-2 bg-white border-[1.5px] border-[#262626] rounded-xl text-sm font-medium text-[#1C1917] placeholder:text-[#A8A29E] shadow-[1.5px_1.5px_0px_#262626] focus:outline-none focus:bg-[#FFFDF8]"
             />
             {query && (
               <button
@@ -210,22 +210,31 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                         onClick={() => {
                           if (onSelectTask) onSelectTask(task);
                           if (onNavigateTab) {
-                            onNavigateTab("today", { taskId: task.id, date: effectiveDate });
+                            // The task workspace decides whether the result belongs to Today or Planner.
+                            onNavigateTab("tasks", { taskId: task.id, date: effectiveDate });
                           }
                           onClose();
                         }}
                         className="bg-white border-[1.5px] border-[#262626] rounded-[6px] p-2.5 shadow-[1.5px_1.5px_0px_#262626] hover:bg-[#FFFDF8] cursor-pointer flex items-center justify-between gap-2 group transition-all"
                       >
                         <div className="min-w-0 flex items-center gap-2">
-                          <input
-                            type="checkbox"
-                            checked={task.completed}
-                            onChange={(e) => {
-                              e.stopPropagation();
-                              toggleTask(task.id);
-                            }}
-                            className="w-4 h-4 rounded border-[#262626] accent-[#1C1917] cursor-pointer shrink-0"
-                          />
+                          {getTaskItemType(task) === "event" ? (
+                            <span
+                              className="h-2.5 w-2.5 shrink-0 rounded-full border-2 border-sky-500 bg-sky-100"
+                              aria-label="Sự kiện"
+                              title="Sự kiện không có trạng thái hoàn thành"
+                            />
+                          ) : (
+                            <input
+                              type="checkbox"
+                              checked={task.completed}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                toggleTask(task.id);
+                              }}
+                              className="w-4 h-4 rounded border-[#262626] accent-[#1C1917] cursor-pointer shrink-0"
+                            />
+                          )}
                           <div className="min-w-0">
                             <p
                               className={`text-xs font-bold truncate leading-tight ${

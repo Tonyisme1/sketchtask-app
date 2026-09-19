@@ -93,7 +93,7 @@ export const HighlightText: React.FC<HighlightTextProps> = ({
   return (
     <span className={className}>
       {before}
-      <mark className="bg-[#FEF08A] text-[#1C1917] font-bold px-0.5 rounded-[2px] shadow-[0.5px_0.5px_0px_#262626]">
+      <mark className="bg-[#FEF08A] text-[#1C1917] font-bold px-0.5 rounded-md shadow-[0.5px_0.5px_0px_#262626]">
         {match}
       </mark>
       {after}

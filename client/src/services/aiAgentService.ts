@@ -25,6 +25,42 @@ export interface ParsedTaskIntent {
 export interface GoalPlanBreakdown {
   goalTitle: string;
   subtasks: ParsedTaskIntent[];
+  targetTaskId?: string;
+}
+
+export type AIProposalAction =
+  | {
+      type: "create_tasks";
+      tasks: ParsedTaskIntent[];
+    }
+  | {
+      type: "breakdown_goal";
+      plan: GoalPlanBreakdown;
+    }
+  | {
+      type: "complete_task";
+      taskId: string;
+    }
+  | {
+      type: "delete_task";
+      taskId: string;
+    }
+  | {
+      type: "create_journal_entry";
+      date: string;
+      time: string;
+      content: string;
+      linkedTaskId?: string;
+    }
+  | {
+      type: "create_note";
+      title: string;
+      content: string;
+    };
+
+export interface AIActionProposal {
+  id: string;
+  actions: AIProposalAction[];
 }
 
 export interface AIQueryResult {
@@ -33,6 +69,7 @@ export interface AIQueryResult {
     | "batch_created"
     | "goal_breakdown"
     | "task_action"
+    | "action_proposal"
     | "stats_progress"
     | "task_query"
     | "text_reply";
@@ -46,6 +83,7 @@ export interface AIQueryResult {
     dueDate?: string;
   }[];
   breakdownPlan?: GoalPlanBreakdown;
+  proposal?: AIActionProposal;
   queriedTasks?: {
     id: string;
     title: string;
@@ -75,25 +113,6 @@ export interface DynamicPromptChip {
 
 export interface AgentProcessContext {
   tasks: TaskDto[];
-  addTask: (task: {
-    title: string;
-    description?: string;
-    dueDate?: string;
-    startDate?: string;
-    endDate?: string;
-    timeType?: TaskTimeType;
-    startTime?: string;
-    endTime?: string;
-    deadlineDate?: string;
-    deadlineTime?: string;
-    tag?: string;
-    tags?: string[];
-    parentTaskId?: string;
-    priority?: TaskPriority;
-    [key: string]: any;
-  }) => TaskDto;
-  toggleTask: (taskId: string) => void;
-  deleteTask?: (taskId: string) => void;
 }
 
 // ==========================================

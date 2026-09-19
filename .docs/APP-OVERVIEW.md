@@ -1,70 +1,65 @@
 # SketchTask App
 
-Tài liệu tổng quan sản phẩm cho My_Task_App.
+Tài liệu tổng quan sản phẩm cho My_Task_App. Nội dung phải mô tả feature đang được mount trong `client/src`; ý tưởng chưa triển khai phải ghi rõ là `Planned`.
 
-## Mục Đích
+## Mục đích
 
-SketchTask là ứng dụng quản lý công việc và ghi chú theo phong cách sổ tay phác thảo. App ưu tiên việc tập trung vào công việc trong ngày, lập kế hoạch và ghi lại nội dung theo ngữ cảnh.
+SketchTask là app cá nhân để quản lý task, lịch hẹn, deadline, ghi chú và nhật ký. App ưu tiên xử lý công việc hôm nay, lập kế hoạch theo thời gian và ghi lại nội dung theo ngữ cảnh.
 
-## Cấu Trúc Khu Vực Chính
+## Phạm vi đang hoạt động
 
-1. **Dashboard**: Xem tổng quan tiến độ, lịch gần nhất và nhật ký gần đây.
-2. **Task**: Khu vực task với Hôm Nay, Kế Hoạch và Hạn Định.
-3. **Note**: Khu vực note với Ghi Chú thường và Nhật Ký.
-4. **Sổ Tay**: Phân loại task và note theo notebook hoặc chủ đề.
-5. **Cài Đặt**: Quản lý tài khoản, giao diện, thông báo và đồng bộ.
+1. **Task workspace:** Hôm nay, Kế hoạch và Hạn định.
+2. **Ghi chép:** Ghi chú và Nhật ký.
+3. **AI:** trợ lý AI theo platform.
+4. **Thông báo:** notification drawer/page và trạng thái permission.
+5. **Cài đặt:** tài khoản, giao diện, typography, thông báo, dữ liệu, bảo mật, shortcut và giới thiệu.
 
-`ReviewTab`/Tổng Kết hiện còn trong source legacy nhưng không được xem là tab đang hoạt động trong navigation.
+Notebook chỉ là dữ liệu phân loại trong task/note/journal. `Dashboard`, `Review/Tổng kết` và workspace `Sổ tay` riêng không phải navigation hiện hành.
 
-## Nguyên Tắc Sản Phẩm
+## Nguyên tắc sản phẩm
 
-- Tab Hôm Nay là nơi tập trung xử lý việc trong một ngày, không thay thế Planner.
-- Tính năng nâng cao được ẩn sau thao tác mở rộng để giảm tải giao diện.
-- Dữ liệu người dùng phải được phân quyền theo `userId`.
-- Đồng bộ dữ liệu phải merge an toàn, không xóa toàn bộ dữ liệu cục bộ.
-- Giao diện phải hoạt động tốt trên desktop, tablet và mobile.
-- Client và backend chạy độc lập trong môi trường phát triển localhost.
+- Hành vi và dữ liệu ổn định trước thay đổi visual.
+- Desktop, tablet và mobile dùng chung semantics/token nhưng được phép có composition khác nhau.
+- Back từ child detail phải đóng child trước, pop stack sau và cuối cùng quay về `Hôm nay`.
+- Dữ liệu local cập nhật nhanh; sync lỗi phải báo trạng thái/retry, không âm thầm xóa dữ liệu.
+- Dữ liệu theo user phải được bảo vệ ở backend bằng JWT/user context, không tin `userId` từ client.
+- Mọi thay đổi feature phải cập nhật source, contract liên quan và tài liệu trong cùng một change.
 
-## Mô Hình Thời Gian
+## Mô hình thời gian
 
-- `scheduled`: lịch làm việc hoặc cuộc hẹn, có ngày và giờ bắt đầu/kết thúc.
-- `deadline`: hạn chót, có ngày và giờ hoàn thành trước.
+- `scheduled`: lịch thực hiện/cuộc hẹn, có ngày và có thể có giờ.
+- `deadline`: hạn chót, có ngày và có thể có giờ.
 - `dueDate`: trường tương thích ngược với dữ liệu cũ.
-- `CustomDuePicker` dùng chung logic nhưng có giao diện theo ngữ cảnh:
-  - `today`: chỉ chọn giờ/phút cho hôm nay.
-  - `planner`: chọn ngày và giờ đầy đủ.
-  - `datetime`: dùng khi tạo/chỉnh sửa task cần ngày cụ thể.
+- `DatePickerPopover` và `TimePickerPopover` là picker custom dùng trong create/edit flow.
+- Scheduled không tự biến thành deadline overdue; trạng thái thời gian phải lấy từ logic task chung.
 
-## Kiến Trúc Chính
+## Kiến trúc chính
 
 - `client/`: React + Vite + TypeScript + PWA.
-- `server/`: Express + TypeScript + Prisma + SQLite.
-- `api-contract/`: Các DTO và hợp đồng dữ liệu dùng chung.
-- `.design/`: Design system và quy tắc UI/UX.
-- `.agents/`: Prompt, task và báo cáo giao tiếp với Antigravity.
-- `.agent/`: Checklist và log nghiệm thu của Codex.
-- `.docs/`: Tài liệu sản phẩm, kiến trúc và hướng dẫn sử dụng app.
+- `server/`: Express + TypeScript + Prisma + PostgreSQL.
+- `api-contract/`: DTO và hợp đồng dữ liệu dùng chung.
+- `.design/`: runtime UI state, principles, tokens và components.
+- `.docs/`: phạm vi feature, kiến trúc, dữ liệu, phát triển và kiểm thử.
 
-## Môi Trường Phát Triển
+## Môi trường phát triển
 
-- Client: `http://localhost:5173`
-- Backend: `http://localhost:5000`
-- Health check: `http://localhost:5000/health`
-- Client dùng Vite proxy để gọi API backend qua `/api/v1`.
+- Client: `http://localhost:5173`.
+- Backend: `http://localhost:5000`.
+- Health check: `http://localhost:5000/health`.
+- Client gọi API qua `/api/v1`; Vite proxy chuyển tiếp sang backend.
+- Backend đọc `DATABASE_URL`; Prisma migrations dùng `DIRECT_URL`. Local có thể trỏ tới PostgreSQL cục bộ hoặc project cloud tùy file môi trường, không dùng SQLite mặc định.
 
-## Phiên Bản
+## Phiên bản
 
-Phiên bản hiện tại: `1.6.0`.
+Version runtime phải lấy từ `client/src/services/updateService.ts`. Không hardcode version ở component hoặc tài liệu feature riêng.
 
-Nguồn version chuẩn: `client/src/services/updateService.ts`.
-
-## Tài Liệu Liên Quan
+## Tài liệu liên quan
 
 - `AGENTS.md`: chỉ thị bắt buộc cho coding agent.
-- `.design/DESIGN-PRINCIPLES.md`: định hướng thiết kế.
+- `.design/README.md`: cách đọc design rules.
+- `.design/CURRENT-STATE.md`: runtime UI và navigation.
+- `.design/PRINCIPLES.md`: nguyên tắc UX/UI.
 - `.design/TOKENS.md`: design tokens.
 - `.design/COMPONENTS.md`: component chuẩn.
-- `.design/FEATURES-AND-TABS.md`: chức năng từng tab.
-- `.agents/prompts/ANTIGRAVITY-TASK.md`: task/prompt hiện tại gửi Antigravity.
-- `.agents/reports/ANTIGRAVITY-REPORT.md`: báo cáo thực hiện của Antigravity.
-- `.agent/verification/VERIFICATION-LOG.md`: kết quả kiểm tra độc lập của Codex.
+- `.docs/FEATURES.md`: feature đang hoạt động và Planned.
+- `.docs/ARCHITECTURE.md`: cấu trúc client/backend và sync.

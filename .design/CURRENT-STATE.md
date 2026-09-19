@@ -1,76 +1,114 @@
-# Current UI State
+# Current Runtime UI State
 
-This document describes the runtime UI in `client/src`. Legacy feature files may remain for compatibility, but they are not part of the active navigation unless listed below.
+Tài liệu này là mô tả runtime của `client/src`. Khi tài liệu và source khác nhau, source hiện tại được ưu tiên và tài liệu phải được cập nhật ở cùng một thay đổi.
 
-## Platform shells
+## 1. Ngôn ngữ hình ảnh đang dùng
 
-- Desktop uses `DesktopShell`, `DesktopHeader`, `Sidebar`, and `DesktopWorkspace`.
-- Tablet uses `TabletShell`, `TabletHeader`, `TabletNav`, and `TabletWorkspace`.
-- Mobile uses `MobileShell`, `MobileHeader`, `MobileNav`, and `MobileWorkspace`.
-- All shells use the same paper background, ink borders, hard offset shadows, and context-aware creation action.
-- Mobile and tablet use the bottom dock. Desktop uses the left sidebar and a floating creation action.
+- Giao diện mặc định là phong cách phẳng, tối giản, gần với iOS: nền trung tính, surface rõ lớp, viền mảnh, góc bo và typography sans dễ đọc.
+- `appStore` khởi tạo `interfaceStyle` là `ios`; setter hiện giữ giá trị `ios` để toàn app dùng cùng một skin. Các lớp giấy/nét mực cũ vẫn có thể còn trong source để tương thích, nhưng không phải visual baseline mới.
+- Dark mode dùng nền graphite và phân cấp chữ theo ngữ cảnh. Không mặc định đổi toàn bộ chữ thành trắng; chữ phụ dùng token muted/subtle.
+- Font mặc định là Inter với fallback hệ điều hành. Người dùng có thể chọn family `Inter`, `Plus Jakarta Sans` hoặc system và cỡ `normal`, `large`, `xlarge`; lựa chọn áp dụng ở root cho cả ba shell.
 
-## Primary navigation
+## 2. Ba platform shell
 
-The active navigation has four workspaces:
+Breakpoint dùng chung trong `useResponsiveLayout`:
 
-1. `Hôm nay`: the current-day task list, schedule rows, and Today quick add. Habit data is retained for backward compatibility but is not part of the active UI.
-2. `Công việc`: the Planner workspace with `Lịch trình`, `Lịch tháng`, and `Hạn định` contexts.
-3. `Ghi chép`: regular notes and journal entries.
-4. `Sổ tay`: notebook-scoped work.
+- Mobile: `< 768px`.
+- Tablet: `768px - 1023px`.
+- Desktop: `>= 1024px`.
 
-Settings is opened from the account control in the header. The old Dashboard and Review/Tổng kết views are not active navigation destinations. `ReviewTab` can remain in source for compatibility, but active workspaces no longer render it.
+Mỗi shell có nhiệm vụ riêng, không được ép ba kích thước thành cùng một bố cục:
 
-## Task navigation
+- Desktop: `DesktopShell`, `DesktopHeader`, `DesktopSidebar`, `DesktopWorkspace`; sidebar trái, header đầy đủ, nội dung có thể dùng nhiều cột và task detail dạng panel/dock.
+- Tablet: `TabletShell`, `TabletHeader`, `TabletNav`, `TabletWorkspace`; nội dung tập trung trong vùng chính, điều hướng bằng dock dưới và contextual FAB khi phù hợp.
+- Mobile: `MobileShell`, `MobileHeader`, `MobileNav`, `MobileWorkspace`; nội dung một cột, dock dưới, modal dạng bottom sheet hoặc trang toàn màn hình tùy flow.
 
-- The app stores the task workspace as `activeTab = "tasks"` and uses `activeTaskSubTab` for `today`, `planner`, or `deadlines`.
-- Selecting `Hôm nay` maps to the task workspace with the `today` subtab.
-- Selecting `Công việc` maps to the task workspace with the Planner subtab.
-- Today has one inline quick-add row. The task list does not render a second quick-add row.
-- Planner has one creation action and does not add a second empty-state creation button.
-- Planner exposes only `Lịch trình` and `Lịch tháng`; the old year view is not rendered. Desktop `Lịch trình` uses a weekly time chart, while tablet/mobile use a seven-day list; tapping a day opens its day detail directly.
-- Task detail remains a side panel on desktop and a full-screen detail surface on tablet/mobile.
+Không thay đổi luồng thao tác mobile chỉ để làm desktop/tablet giống mobile. Có thể dùng chung token và component, nhưng composition, mật độ và vị trí điều hướng phải theo platform.
 
-## Today presentation
+## 3. Điều hướng đang hoạt động
 
-- Scheduled tasks are rendered in a compact flat schedule list.
-- Other tasks are rendered as flat list rows rather than large desktop cards.
-- Today shows a compact progress bar with completed and total task counts before the filters on desktop, tablet, and mobile.
-- Notes/sticky notes are not mixed into Today desktop; they belong to Ghi chép.
-- Habit tracking is currently omitted from active Today/Planner surfaces; legacy habit data remains stored for compatibility and future reactivation.
-- Completed tasks remain in the correct context and are filtered by the shared status controls.
+### Desktop
 
-## Notes and notebooks
+Sidebar chính gồm:
 
-- `Ghi chú` and `Nhật ký` are the two modes inside Ghi chép.
-- `Sổ tay` is a separate primary workspace, not a third mode inside Notes.
-- Notes and journal components must keep their own detail/editor behavior while sharing shell, header, spacing, and filter conventions.
-- On mobile, Ghi chú opens to a page index first; the full editor opens only after selecting a note and has an explicit back action to the index. The editor has a viewport-bounded card with an internal content scroll, and note switching is done from the index rather than inside the editor.
-- The note editor header is a single compact action row: back to note list, notebook dropdown, and delete; autosave status text is not rendered.
-- When the mobile/tablet keyboard toolbar is visible, its controls stay on one horizontal row and can be swiped horizontally; desktop keeps the wrapping toolbar layout.
+1. `Hôm nay`: task của ngày hiện tại.
+2. `Kế hoạch`: planner theo tuần/ngày.
+3. `Hạn định`: task theo deadline, gồm quá hạn và sắp đến.
+4. `Ghi chú`: danh sách và trình soạn thảo note.
+5. `Nhật ký`: danh sách ngày và sổ nhật ký đang mở.
+6. `AI`: trợ lý AI.
 
-## Time picker and task semantics
+Settings mở từ account control/header và hiển thị trong dialog có vùng cuộn riêng.
 
-- Scheduled time and deadline time are distinct task fields.
-- Shared task semantics determine the effective date and temporal state.
-- A scheduled task must not be interpreted as an overdue deadline.
-- A task without a date belongs in Planner backlog only when explicitly unscheduled.
-- Parent/child constraints are enforced through `parentTaskId` and shared task logic.
+### Tablet
 
-## Responsive constraints
+Dock dưới gồm `Hôm nay`, `Công việc`, `Ghi chép` và `Trợ lý AI`. `Công việc` vẫn dùng các subcontext task là `today`, `planner`, `deadlines`; không tạo thêm một tab dashboard trung gian.
 
-- Desktop can use multi-column content and a docked detail panel.
-- Tablet uses a centered full-width workspace with the bottom dock.
-- Mobile uses full-width content, bottom sheets for modal flows, and no desktop keyboard hints.
-- Mobile workspace tabs enter from below; detail panels enter from the right and return from the left/right according to navigation direction. Search, notifications, auth, settings drill-down, notes, and task detail use directional transitions.
-- Navigation and modal transitions must respect reduced-motion preferences.
+### Mobile
 
-## Known legacy files
+Dock dưới gồm:
 
-- `client/src/components/layout/AppShell.tsx` is a legacy shell and is not mounted by `App.tsx`.
-- `client/src/components/features/tasks/TasksTab.tsx` is a legacy task container and is not mounted by the platform workspaces.
-- `client/src/components/features/planner/PlannerYearView.tsx` is retained but is not rendered after the Planner mode reduction.
-- The shared account/auth modal exposes the Settings action. Desktop opens Settings in a contained dialog with its own scroll region; mobile and tablet open Settings fullscreen and hide the bottom dock and contextual FAB.
-- Mobile and tablet Settings keep their own header back navigation and do not reserve space for the hidden bottom dock.
-- Settings receives an explicit platform mode: desktop uses master-detail in a centered dialog, tablet uses master-detail in landscape and drill-down in portrait, and mobile uses a compact fullscreen category list without keyboard shortcuts.
-- Settings uses shorter category labels on tablet/mobile; the desktop-only paper tilt option is hidden on touch layouts.
+1. `Công việc` cho các subcontext hôm nay/kế hoạch/hạn định.
+2. `Ghi chép` cho ghi chú và nhật ký.
+3. Nút `+` mở create sheet để chọn thêm task hoặc note.
+4. `Thông báo` với badge khi có thông báo chưa đọc.
+5. `Cá nhân` để vào Settings.
+
+Dock tự ẩn khi bàn phím mở hoặc khi người dùng cuộn xuống, sau đó hiện lại theo hành vi của shell.
+
+Không có workspace active riêng tên `Sổ tay`, `Dashboard` hoặc `Review`. Notebook chỉ là dữ liệu phân loại được chọn trong note/task detail; các file legacy có thể tồn tại nhưng không được tự đưa vào navigation.
+
+## 4. Task workspace
+
+- Store giữ task workspace bằng `activeTab = "tasks"` và `activeTaskSubTab` là `today`, `planner` hoặc `deadlines`.
+- `Hôm nay` ưu tiên danh sách task hiện tại, progress và các thao tác nhanh phù hợp platform.
+- `Kế hoạch` có overview, day detail, lịch trình và lịch tháng theo những view mà `PlannerTab` đang render. Desktop có weekly time chart; tablet/mobile ưu tiên danh sách bảy ngày và day detail dễ cuộn.
+- `Hạn định` có nhóm `Quá hạn` và `Sắp đến`; đây là task subcontext, không phải app-level tab mới.
+- Task detail: desktop dùng panel/dock; tablet và mobile dùng detail surface toàn màn hình. Edit và view là hai trạng thái của cùng một detail flow.
+- Quick create không được nhân đôi trên cùng một màn hình: desktop mở `QuickTaskModal` từ sidebar/Today, tablet dùng contextual FAB, mobile dùng nút `+` và create sheet.
+
+## 5. Ghi chép và nhật ký
+
+- `Ghi chú` hiển thị index/list trước; khi chọn note mới mở editor. Mobile có back rõ ràng từ editor về index.
+- Note editor có một action row gọn: back, chọn notebook và xóa. Trạng thái autosave không chiếm thêm một control độc lập.
+- `Nhật ký` hiển thị danh sách ngày; chọn một ngày mở `JournalBook`. Trong book có chọn ngày và chuyển ngày theo component hiện tại.
+- Khi note editor hoặc journal book mở ở mobile, header/dock không được chồng lên nội dung; back phải quay về đúng index/list trước đó.
+
+## 6. Back và child surface
+
+`App.tsx` là nguồn chuẩn cho back:
+
+1. Đóng task detail đang mở.
+2. Đóng settings subview mobile.
+3. Đóng mobile note detail.
+4. Đóng journal book.
+5. Pop location gần nhất trong app navigation stack.
+6. Nếu đang ở task subcontext khác `today`, quay về `tasks/today`.
+7. Nếu đang ở khu vực khác task, quay về tab hôm nay.
+8. Chỉ khi đã ở `tasks/today` và không còn child surface mới cho phép browser/native back thoát app hoặc quay khỏi `/app`.
+
+Browser back, Android/Capacitor back và nút back trong UI phải đi qua cùng handler; không tạo logic back riêng theo từng màn hình.
+
+## 7. Modal, scroll và picker
+
+- Mobile modal ưu tiên bottom sheet hoặc full-screen detail tùy component; nội dung dài phải có vùng cuộn độc lập.
+- Desktop modal/dialog có nút đóng rõ ràng; không đưa hint bàn phím desktop lên mobile.
+- `DatePickerPopover` và `TimePickerPopover` là picker custom của app. Không thay bằng native browser control nếu chưa cập nhật design contract.
+- Picker/dropdown phải nằm trên lớp nội dung đúng z-index, không bị cắt bởi parent overflow và không đẩy layout làm che phần bên dưới.
+- Toolbar soạn thảo trên màn hình cảm ứng giữ một hàng cuộn ngang khi số lượng action vượt chiều rộng.
+
+## 8. Dữ liệu và trạng thái
+
+- `scheduled` và `deadline` là hai field thời gian khác nhau; không suy diễn scheduled thành overdue deadline.
+- `parentTaskId` là nguồn xác định task con; UI phải thụt cấp theo quan hệ dữ liệu, không chỉ dựa vào vị trí mảng.
+- Note, journal và task có thể dùng notebook để phân loại; notebook không được biến thành navigation surface riêng.
+- Mọi async surface cần có loading, empty, error và success phù hợp. Error phải có hành động khắc phục hoặc retry.
+
+## 9. Legacy và Planned
+
+Các file sau có thể còn để tương thích nhưng không phải luật runtime mới:
+
+- `AppShell` và `TasksTab` legacy không được mount bởi `App.tsx`.
+- `PlannerYearView` không được render trong flow planner hiện tại.
+- Dashboard/Review và workspace Sổ tay riêng không phải điểm đến navigation hiện hành.
+- Bất kỳ ý tưởng như thêm wheel picker mới, thêm dashboard, tách thêm tab hoặc đổi back flow chỉ là `Planned` cho đến khi source và tài liệu được cập nhật cùng nhau.

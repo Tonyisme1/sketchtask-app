@@ -12,6 +12,7 @@ import {
   TaskDetailPage,
 } from "../../features";
 import { useAppStore } from "../../shared/stores";
+import type { DesktopPlannerSurface } from "../../components/features/planner/DesktopPlannerHeader";
 
 export interface DesktopWorkspaceProps {
   activeTab: TabKey;
@@ -20,6 +21,8 @@ export interface DesktopWorkspaceProps {
   onNavigateTab: (tab: TabKey | string, target?: NavigationTarget) => void;
   onNavigateRoute: (path: string) => void;
   previousTab?: TabKey;
+  desktopPlannerSurface: DesktopPlannerSurface;
+  desktopPlannerSurfaceRevision: number;
 }
 
 export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
@@ -29,8 +32,10 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
   onNavigateTab,
   onNavigateRoute,
   previousTab,
+  desktopPlannerSurface,
+  desktopPlannerSurfaceRevision,
 }) => {
-  const { activeDetailTaskId, closeTaskDetail } = useAppStore();
+  const { activeDetailTaskId, closeTaskDetail, activeTaskSubTab } = useAppStore();
 
   const renderMainTab = () => {
     switch (activeTab) {
@@ -47,6 +52,8 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
             targetDateStr={navigationTarget?.date}
             targetTaskId={navigationTarget?.taskId}
             onClearTarget={onClearNavigationTarget}
+            desktopSurface={desktopPlannerSurface}
+            desktopSurfaceRevision={desktopPlannerSurfaceRevision}
           />
         );
       case "deadlines":
@@ -62,6 +69,8 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
           <DesktopTasksView
             navigationTarget={navigationTarget}
             onClearNavigationTarget={onClearNavigationTarget}
+            desktopPlannerSurface={desktopPlannerSurface}
+            desktopPlannerSurfaceRevision={desktopPlannerSurfaceRevision}
           />
         );
       case "notes":
@@ -102,6 +111,13 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
   };
 
   const isTaskDetailOpen = Boolean(activeDetailTaskId);
+  const [renderedTaskId, setRenderedTaskId] = React.useState<string | null>(activeDetailTaskId);
+
+  React.useEffect(() => {
+    if (activeDetailTaskId) {
+      setRenderedTaskId(activeDetailTaskId);
+    }
+  }, [activeDetailTaskId]);
 
   React.useEffect(() => {
     if (!isTaskDetailOpen) return;
@@ -114,28 +130,50 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isTaskDetailOpen, closeTaskDetail]);
 
+  const isPlannerView =
+    activeTab === "planner" ||
+    (activeTab === "tasks" && activeTaskSubTab === "planner");
+
   return (
     <div className="relative w-full flex-1 flex min-h-0 overflow-hidden">
-      {/* 1. Vùng Không Gian Chính (Căn giữa hoàn hảo, tự động co nhỏ khi mở chi tiết) */}
-      <div className="flex-1 min-w-0 px-6 lg:px-8 xl:px-12 py-5 pb-8 overflow-y-auto transition-all duration-200 flex justify-center">
-        <div className="w-full min-w-0 max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px]">
+      {/* 1. Vùng Không Gian Chính (Khung hiển thị Planner bo góc hiện đại, Căn giữa thoáng đãng cho các tab khác) */}
+      <div
+        className={`flex-1 min-w-0 transition-all duration-200 ease-in-out ${
+          isPlannerView
+            ? "p-3 lg:p-4 overflow-hidden flex flex-col h-full w-full"
+            : "px-6 lg:px-8 xl:px-12 py-5 pb-8 overflow-y-auto flex justify-center"
+        }`}
+      >
+        <div
+          className={`w-full min-w-0 ${
+            isPlannerView
+              ? "max-w-none h-full flex flex-col min-h-0 w-full rounded-2xl border border-[#E5E5EA] dark:border-[#262626] bg-white dark:bg-black shadow-sm overflow-hidden"
+              : "max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px]"
+          }`}
+        >
           {renderMainTab()}
         </div>
       </div>
 
-      {/* 2. Side Panel Chi Tiết Task: Hiển thị CÙNG CẤP bên phải (Đẩy danh sách co lại) */}
-      {isTaskDetailOpen && (
-        <aside
-          role="region"
-          aria-label="Chi tiết công việc"
-          className="w-[450px] lg:w-[500px] xl:w-[540px] shrink-0 border-l-[1.5px] border-[#262626] bg-[#FAF8F3] dark:bg-[#1C1C1E] flex flex-col min-h-0 animate-in slide-in-from-right-3 duration-200 overflow-hidden z-20"
-        >
-          <TaskDetailPage
-            taskId={activeDetailTaskId!}
-            onBack={closeTaskDetail}
-          />
-        </aside>
-      )}
+      {/* 2. Side Panel Chi Tiết Task: Hiển thị bên phải khi mở chỉnh sửa (áp dụng cho toàn app) với animation mượt mà đồng bộ */}
+      <aside
+        role="region"
+        aria-label="Chi tiết công việc"
+        className={`shrink-0 border-[#E5E5EA] dark:border-[#262626] bg-white dark:bg-black flex flex-col min-h-0 overflow-hidden z-20 transition-all duration-200 ease-in-out ${
+          isTaskDetailOpen
+            ? "w-[360px] lg:w-[400px] xl:w-[480px] 2xl:w-[520px] border-l opacity-100 translate-x-0"
+            : "w-0 border-l-0 opacity-0 translate-x-6 pointer-events-none"
+        }`}
+      >
+        <div className="w-[360px] lg:w-[400px] xl:w-[480px] 2xl:w-[520px] h-full flex flex-col min-h-0 shrink-0">
+          {renderedTaskId && (
+            <TaskDetailPage
+              taskId={renderedTaskId}
+              onBack={closeTaskDetail}
+            />
+          )}
+        </div>
+      </aside>
     </div>
   );
 };

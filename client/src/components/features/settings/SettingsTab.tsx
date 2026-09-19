@@ -594,7 +594,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
                     </p>
 
                     <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-[3px] border border-[#262626] dark:border-[#3A3A3C] bg-[#FAF8F3] dark:bg-[#2C2C2E] text-[#1C1917] dark:text-[#E5E5EA]">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-[#262626] dark:border-[#3A3A3C] bg-[#FAF8F3] dark:bg-[#2C2C2E] text-[#1C1917] dark:text-[#E5E5EA]">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                         {user.isSignedIn ? "Đã liên kết Google (Realtime)" : "Chế độ Offline"}
                       </span>
@@ -1205,7 +1205,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               </button>
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 {currentSection && (
-                  <span className={`w-6 h-6 rounded-[3px] border border-[#262626] flex items-center justify-center shrink-0 ${currentSection.iconTone}`}>
+                  <span className={`w-6 h-6 rounded-xl border border-[#262626] flex items-center justify-center shrink-0 ${currentSection.iconTone}`}>
                     <currentSection.icon size={13} strokeWidth={2.2} />
                   </span>
                 )}

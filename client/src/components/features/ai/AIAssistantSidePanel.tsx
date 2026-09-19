@@ -23,8 +23,9 @@ import {
 } from "../../../services/aiAgentService";
 import { askGeminiAIAssistant } from "../../../services/geminiAiService";
 import { HandDrawnCheckbox } from "../../ui/core/HandDrawnCheckbox";
+import { AIActionProposalCard } from "./AIActionProposalCard";
 
-const CHAT_STORAGE_KEY = "sketchtask_ai_chat_history";
+const CHAT_STORAGE_KEY = "sketchtask_ai_chat_history_v2";
 
 interface StoredChatMessage {
   id: string;
@@ -137,8 +138,6 @@ export const AIAssistantSidePanel: React.FC<AIAssistantSidePanelProps> = ({
         nextMessages.map((m) => ({ sender: m.sender, text: m.text })),
         {
           tasks,
-          addTask,
-          toggleTask,
         },
         new Date()
       );
@@ -253,14 +252,16 @@ export const AIAssistantSidePanel: React.FC<AIAssistantSidePanelProps> = ({
     return parts;
   };
 
-  if (!isOpen) return null;
-
   return (
     <div
       role="dialog"
       aria-modal="false"
       aria-label="Trợ lý AI Phác Thảo"
-      className="fixed top-[68px] right-4 bottom-4 w-[420px] sm:w-[460px] max-w-[calc(100vw-2rem)] z-40 flex flex-col rounded-2xl border-[1.5px] border-[#262626] dark:border-black bg-[#FBF9F4] dark:bg-[#18181B] shadow-[4px_4px_0px_#262626] dark:shadow-none overflow-hidden animate-in slide-in-from-right-4 duration-150 select-none"
+      className={`fixed top-[68px] right-4 bottom-4 w-[420px] sm:w-[460px] max-w-[calc(100vw-2rem)] z-40 flex flex-col rounded-2xl border-[1.5px] border-[#262626] dark:border-black bg-[#FBF9F4] dark:bg-[#18181B] shadow-[4px_4px_0px_#262626] dark:shadow-none overflow-hidden select-none transition-all duration-200 ease-in-out ${
+        isOpen
+          ? "opacity-100 translate-x-0 pointer-events-auto"
+          : "opacity-0 translate-x-8 pointer-events-none"
+      }`}
     >
       {/* 1. Header Cửa Sổ AI */}
       <header className="flex h-12 items-center justify-between border-b-[1.5px] border-[#262626] dark:border-black bg-white dark:bg-[#27272A] px-4 shrink-0">
@@ -323,6 +324,8 @@ export const AIAssistantSidePanel: React.FC<AIAssistantSidePanelProps> = ({
               >
                 {/* Nội dung text chính */}
                 <div className="whitespace-pre-line font-normal">{renderMessageContent(m.text)}</div>
+
+                {res?.proposal && <AIActionProposalCard proposal={res.proposal} />}
 
                 {/* CARD 1: TASK CREATED CARD */}
                 {res && (res.type === "created_task" || res.type === "batch_created") && res.createdTasks && (

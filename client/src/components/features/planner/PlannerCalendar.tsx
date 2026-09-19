@@ -179,7 +179,7 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
               {/* Header của ô: Số ngày + Tổng việc */}
               <div className="flex items-start justify-between gap-1 w-full">
                 <span
-                  className={`flex h-6 min-w-6 items-center justify-center rounded-[3px] font-mono text-xs sm:h-7 sm:min-w-7 sm:text-sm ${dayNumColor}`}
+                  className={`flex h-6 min-w-6 items-center justify-center rounded-full font-mono text-xs sm:h-7 sm:min-w-7 sm:text-sm ${dayNumColor}`}
                 >
                   {item.dayNum}
                 </span>

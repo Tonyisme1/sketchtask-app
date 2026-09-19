@@ -6,6 +6,7 @@ import { getLocalTodayStr } from "../../../utils/date";
 import {
   getTaskEffectiveDate,
   getTaskEffectiveTime,
+  getTaskItemType,
   getTaskTemporalState,
   normalizeTaskTimeType,
   isTaskForSpecificDate,
@@ -13,19 +14,39 @@ import {
   isTaskOccurringOnDate,
 } from "../../../utils/taskSemantics";
 import { PlannerHeader, PlannerViewMode } from "./PlannerHeader";
+import { DesktopPlannerHeader } from "./DesktopPlannerHeader";
+import type { DesktopPlannerSurface } from "./DesktopPlannerHeader";
 import { PlannerCalendar } from "./PlannerCalendar";
+import { DesktopPlannerCalendar } from "./DesktopPlannerCalendar";
+import { DesktopPlannerListView } from "./DesktopPlannerListView";
 import { PlannerWeekView } from "./PlannerWeekView";
 import {
   PlannerDayDisplayMode,
   PlannerDayTimeline,
 } from "./PlannerDayTimeline";
+import { PlannerTaskPreviewPopover } from "./PlannerTaskPreviewPopover";
 import { TodayScheduleNotes } from "../today/TodayScheduleNotes";
 import { TodayTaskList } from "../today/TodayTaskList";
 import { TaskList } from "../shared/TaskList";
+import { TaskListSection } from "../shared/TaskListSection";
 import { FilterBar } from "../shared/FilterBar";
 import { TodayProgressBar } from "../today/TodayProgressBar";
+import { getTaskProgress } from "../../../utils/taskHierarchy";
 import { registerBackHandler } from "../../../utils/backNavigation";
-import { ArrowLeft, CheckCircle2, Lock, ListTodo, Search, X } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarDays,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  CircleDot,
+  Clock,
+  Lock,
+  ListTodo,
+  Plus,
+  Search,
+  X,
+} from "lucide-react";
 
 const DAY_NAMES = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"];
 const SHORT_DAY_NAMES = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
@@ -36,6 +57,8 @@ export interface PlannerTabProps {
   fromTab?: "deadlines" | "overview";
   onBackToDeadlines?: () => void;
   onClearTarget?: () => void;
+  desktopSurface?: DesktopPlannerSurface;
+  desktopSurfaceRevision?: number;
 }
 
 export const PlannerTab: React.FC<PlannerTabProps> = ({
@@ -44,15 +67,19 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
   fromTab,
   onBackToDeadlines,
   onClearTarget,
+  desktopSurface: controlledDesktopSurface,
+  desktopSurfaceRevision,
 }) => {
   const {
     tasks,
     toggleTask,
     deleteTask,
+    updateTask,
     moveTaskToNextDay,
     hideCompletedTasks,
     setSelectedPlannerDate,
     openTaskDetail,
+    openQuickTaskModal,
   } = useAppStore();
   const { isMobile, isDesktop } = useResponsiveLayout();
 
@@ -62,6 +89,10 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
 
   // Chế độ xem: biểu đồ theo giờ hoặc lịch tháng.
   const [viewMode, setViewMode] = useState<PlannerViewMode>("agenda");
+  // Desktop tách workspace Lịch và Danh sách; mobile/tablet giữ flow hiện tại.
+  const desktopSurface: DesktopPlannerSurface = isDesktop && controlledDesktopSurface
+    ? controlledDesktopSurface
+    : "calendar";
 
   // Màn hình hiển thị: tổng quan theo tuần/tháng hoặc chi tiết ngày.
   const [plannerScreen, setPlannerScreen] = useState<"overview" | "day">("overview");
@@ -73,6 +104,26 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
   // Ngày đang được chọn để xem chi tiết trong DayPlanView
   const [selectedDateStr, setSelectedDateStr] = useState<string>(todayStr);
   const [dayDisplayMode, setDayDisplayMode] = useState<PlannerDayDisplayMode>("chart");
+  const [isCompletedSectionOpen, setIsCompletedSectionOpen] = useState<boolean>(true);
+
+  // Popover xem nhanh công việc trên lịch (Google Calendar Style)
+  const [previewTaskState, setPreviewTaskState] = useState<{
+    task: TaskDto;
+    anchorRect?: DOMRect | null;
+  } | null>(null);
+
+  const handleOpenTaskPreview = (task: TaskDto, anchorRect?: DOMRect | null) => {
+    setPreviewTaskState({ task, anchorRect });
+  };
+
+  const handleCloseTaskPreview = () => {
+    setPreviewTaskState(null);
+  };
+
+  const handleEditFromPreview = (task: TaskDto) => {
+    setPreviewTaskState(null);
+    openTaskDetail(task.id);
+  };
 
   // Đồng bộ ngày được chọn sang global store cho FAB thông minh
   React.useEffect(() => {
@@ -93,6 +144,15 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
     }
     onClearTarget?.();
   }, [targetDateStr, targetTaskId, openTaskDetail, onClearTarget]);
+
+  const desktopSurfaceRevisionRef = React.useRef(desktopSurfaceRevision);
+  React.useEffect(() => {
+    if (!isDesktop || desktopSurfaceRevision === undefined) return;
+    if (desktopSurfaceRevisionRef.current === desktopSurfaceRevision) return;
+
+    desktopSurfaceRevisionRef.current = desktopSurfaceRevision;
+    setPlannerScreen("overview");
+  }, [desktopSurfaceRevision, isDesktop]);
 
   React.useEffect(() => {
     if (plannerScreen !== "day") return;
@@ -212,7 +272,7 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
 
   // Tiêu đề Header phụ thuộc vào viewMode
   const currentTitleLabel =
-    viewMode === "agenda" ? weekLabel : monthLabel;
+    desktopSurface === "list" || viewMode === "agenda" ? weekLabel : monthLabel;
 
   // Lấy các task cho một ngày cụ thể (Hỗ trợ cả task liên ngày & qua đêm)
   const getTasksForDate = (dateStr: string): TaskDto[] => {
@@ -246,17 +306,17 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
 
   // Điều hướng Prev / Next / Today
   const handlePrev = () => {
-    if (viewMode === "agenda") setWeekOffset((prev) => prev - 1);
+    if (desktopSurface === "list" || viewMode === "agenda") setWeekOffset((prev) => prev - 1);
     else setMonthOffset((prev) => prev - 1);
   };
 
   const handleNext = () => {
-    if (viewMode === "agenda") setWeekOffset((prev) => prev + 1);
+    if (desktopSurface === "list" || viewMode === "agenda") setWeekOffset((prev) => prev + 1);
     else setMonthOffset((prev) => prev + 1);
   };
 
   const handleResetToCurrent = () => {
-    if (viewMode === "agenda") setWeekOffset(0);
+    if (desktopSurface === "list" || viewMode === "agenda") setWeekOffset(0);
     else setMonthOffset(0);
   };
 
@@ -264,6 +324,24 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
   const handleSelectDate = (dateStr: string) => {
     setSelectedDateStr(dateStr);
     setPlannerScreen("day");
+  };
+
+  const handlePrevDay = () => {
+    const parts = selectedDateStr.split("-").map(Number);
+    const d = new Date(parts[0], parts[1] - 1, parts[2]);
+    d.setDate(d.getDate() - 1);
+    setSelectedDateStr(getLocalTodayStr(d));
+  };
+
+  const handleNextDay = () => {
+    const parts = selectedDateStr.split("-").map(Number);
+    const d = new Date(parts[0], parts[1] - 1, parts[2]);
+    d.setDate(d.getDate() + 1);
+    setSelectedDateStr(getLocalTodayStr(d));
+  };
+
+  const handleTodayDay = () => {
+    setSelectedDateStr(todayStr);
   };
 
   // Danh sách công việc của ngày đang chọn trong DayPlanView
@@ -351,54 +429,93 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
     (tagFilter !== "all" ? 1 : 0);
 
   return (
-    <div className={`space-y-4 w-full min-w-0 pb-16 select-none ${
-      isMobile ? "" : "animate-in fade-in duration-150"
-    }`}>
+    <div
+      className={`w-full min-w-0 select-none ${
+        isDesktop ? "h-full w-full flex flex-col min-h-0 pb-0" : "space-y-4 pb-16"
+      } ${isMobile ? "" : "animate-in fade-in duration-150"}`}
+    >
       {/* ========================================== */}
       {/* MÀN HÌNH TỔNG QUAN (LỊCH TRÌNH / LỊCH THÁNG) */}
       {/* ========================================== */}
       {plannerScreen === "overview" && (
-        <div className={isMobile ? "space-y-3 mobile-tab-enter" : "space-y-3 animate-in fade-in duration-150"}>
-          {/* Header Planner điều hướng hai cách xem */}
-          <PlannerHeader
-            viewMode={viewMode}
-            onViewModeChange={setViewMode}
-            titleLabel={currentTitleLabel}
-            onPrev={handlePrev}
-            onNext={handleNext}
-            onToday={handleResetToCurrent}
-          />
-
-          {/* 1. LỊCH TRÌNH THEO TUẦN */}
-          {viewMode === "agenda" && (
-            <PlannerWeekView
-              weekDays={weekDays}
-              todayStr={todayStr}
-              selectedDateStr={selectedDateStr}
-              onPreviewDate={setSelectedDateStr}
-              getTasksForDate={getTasksForDate}
-              onSelectDate={handleSelectDate}
-              onSelectTask={(task) => {
-                const taskDate = getTaskEffectiveDate(task) || selectedDateStr;
-                setSelectedDateStr(taskDate);
-                setPlannerScreen("day");
-              }}
-              onToggleTask={toggleTask}
-              onDeleteTask={deleteTask}
-              onMoveTomorrow={moveTaskToNextDay}
+        <div
+          className={
+            isMobile
+              ? "space-y-3 mobile-tab-enter"
+              : isDesktop
+                ? "h-full w-full flex flex-col min-h-0"
+                : "space-y-3 animate-in fade-in duration-150"
+          }
+        >
+          {/* Header Planner điều hướng hai cách xem (Phân nhánh Desktop vs Mobile/Tablet) */}
+          {isDesktop ? (
+            <DesktopPlannerHeader
+              viewMode={viewMode}
+              surface={desktopSurface}
+              onViewModeChange={setViewMode}
+              titleLabel={currentTitleLabel}
+              onPrev={handlePrev}
+              onNext={handleNext}
+              onToday={handleResetToCurrent}
+            />
+          ) : (
+            <PlannerHeader
+              viewMode={viewMode}
+              onViewModeChange={setViewMode}
+              titleLabel={currentTitleLabel}
+              onPrev={handlePrev}
+              onNext={handleNext}
+              onToday={handleResetToCurrent}
             />
           )}
 
-          {/* 2. LỊCH THÁNG */}
-          {viewMode === "month" && (
-            <PlannerCalendar
-              selectedDateStr={selectedDateStr}
-              onSelectDate={handleSelectDate}
-              todayStr={todayStr}
-              monthMatrix={monthMatrix}
+          {/* 1. Danh sách desktop có workspace riêng, không lặp dưới biểu đồ. */}
+          {isDesktop && desktopSurface === "list" && (
+            <DesktopPlannerListView
+              weekDays={weekDays}
               getTasksForDate={getTasksForDate}
-              getTaskSummaryForDate={getTaskSummaryForDate}
+              onToggleTask={toggleTask}
+              onDeleteTask={deleteTask}
+              onOpenTask={(task) => handleOpenTaskPreview(task, null)}
             />
+          )}
+
+          {/* 2. LỊCH TRÌNH THEO TUẦN */}
+          {(!isDesktop || desktopSurface === "calendar") && viewMode === "agenda" && (
+            <PlannerWeekView
+              weekDays={weekDays}
+              selectedDateStr={selectedDateStr}
+              getTasksForDate={getTasksForDate}
+              onSelectDate={handleSelectDate}
+              onToggleTask={toggleTask}
+              onDeleteTask={deleteTask}
+              onUpdateTask={updateTask}
+              onPreviewTask={handleOpenTaskPreview}
+            />
+          )}
+
+          {/* 3. LỊCH THÁNG (Phân nhánh Desktop vs Mobile/Tablet) */}
+          {(!isDesktop || desktopSurface === "calendar") && viewMode === "month" && (
+            isDesktop ? (
+              <DesktopPlannerCalendar
+                selectedDateStr={selectedDateStr}
+                onSelectDate={handleSelectDate}
+                todayStr={todayStr}
+                monthMatrix={monthMatrix}
+                getTasksForDate={getTasksForDate}
+                getTaskSummaryForDate={getTaskSummaryForDate}
+                onPreviewTask={handleOpenTaskPreview}
+              />
+            ) : (
+              <PlannerCalendar
+                selectedDateStr={selectedDateStr}
+                onSelectDate={handleSelectDate}
+                todayStr={todayStr}
+                monthMatrix={monthMatrix}
+                getTasksForDate={getTasksForDate}
+                getTaskSummaryForDate={getTaskSummaryForDate}
+              />
+            )
           )}
 
         </div>
@@ -409,92 +526,133 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
       {/* ========================================== */}
       {plannerScreen === "day" && (() => {
         const isPastDate = selectedDateStr < todayStr;
-        const completedCount = selectedDayTasks.filter((t) => t.completed).length;
-        const totalCount = selectedDayTasks.length;
+        const { completed: completedCount, total: totalCount } = getTaskProgress(selectedDayTasks);
 
         if (isDesktop) {
+          const activeEventItems = selectedDayTasks.filter((task) => {
+            if (task.parentTaskId) return false;
+            if (task.completed) return false;
+            return getTaskItemType(task) === "event";
+          });
           const activeScheduledTasks = selectedDayTasks.filter((task) => {
             if (task.parentTaskId) return false;
             if (task.completed) return false;
-            return normalizeTaskTimeType(task) === "scheduled";
+            return normalizeTaskTimeType(task) === "scheduled" && getTaskItemType(task) !== "event";
           });
           const activeTaskListItems = selectedDayTasks.filter((task) => {
             if (task.completed) return false;
-            return normalizeTaskTimeType(task) !== "scheduled";
+            return getTaskItemType(task) !== "event" && normalizeTaskTimeType(task) !== "scheduled";
           });
           const completedDayTasks = hideCompletedTasks
             ? []
-            : selectedDayTasks.filter((task) => task.completed);
+            : selectedDayTasks.filter((task) => task.completed && getTaskItemType(task) !== "event");
 
           return (
-            <div className="space-y-4 w-full min-w-0 select-none animate-in fade-in duration-150">
-              {/* 1. Header Chi Tiết Ngày Chuẩn Mực (Đồng Bộ Tab Hôm Nay) */}
-              <div className="pb-3 border-b border-[#262626]/20 dark:border-transparent space-y-3">
-                <div className="flex items-center justify-between gap-3.5 flex-wrap">
-                  {/* Nhóm trái: Nút Quay Lại + Tiêu đề ngày + Badges + Tiến độ mini */}
-                  <div className="flex items-center gap-3.5 flex-wrap">
+            <div className="h-full min-h-0 w-full min-w-0 flex flex-col select-none animate-in fade-in duration-150">
+              {/* 1. Header Chi Tiết Ngày Chuẩn Desktop (Đồng bộ thiết kế & tỷ lệ chuẩn với DesktopPlannerHeader) */}
+              <header className="flex items-center justify-between gap-3 px-4 py-2 border-b border-[var(--border-ink)] bg-[var(--bg-surface)] select-none shrink-0 h-[54px]">
+                {/* Nhóm trái: Nút Quay Lại + Hôm nay + Prev/Next + Tiêu đề ngày & Badge */}
+                <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
+                  {/* Nút Quay Lại */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (fromTab === "deadlines" && onBackToDeadlines) {
+                        onBackToDeadlines();
+                      } else {
+                        setPlannerScreen("overview");
+                      }
+                    }}
+                    aria-label={fromTab === "deadlines" ? "Quay lại Hạn định" : "Quay lại lịch"}
+                    className="h-[34px] px-3 text-xs font-bold bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-muted)] border border-[var(--border-ink)] rounded-xl shadow-xs active:scale-95 text-[var(--text-main)] transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+                    title={fromTab === "deadlines" ? "Quay lại Hạn định" : `Quay lại ${viewMode === "agenda" ? "Lịch trình" : "Lịch tháng"}`}
+                  >
+                    <ArrowLeft size={14} strokeWidth={2.4} />
+                    <span>{fromTab === "deadlines" ? "Hạn định" : viewMode === "agenda" ? "Lịch trình" : "Lịch tháng"}</span>
+                  </button>
+
+                  <div className="h-4 w-[1px] bg-[var(--border-ink-muted)] mx-0.5" />
+
+                  {/* Nút Hôm nay */}
+                  <button
+                    type="button"
+                    onClick={handleTodayDay}
+                    className={`h-[34px] px-3.5 text-xs font-bold rounded-xl border shadow-xs active:scale-95 transition-all cursor-pointer shrink-0 ${
+                      selectedDateStr === todayStr
+                        ? "bg-[var(--accent-blue)] text-white border-[var(--accent-blue)]"
+                        : "bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-muted)] border-[var(--border-ink)] text-[var(--text-main)]"
+                    }`}
+                    title="Nhảy về ngày hôm nay"
+                  >
+                    Hôm nay
+                  </button>
+
+                  {/* Nút Ngày trước / Ngày sau */}
+                  <div className="flex items-center gap-1 shrink-0">
                     <button
                       type="button"
-                      onClick={() => {
-                        if (fromTab === "deadlines" && onBackToDeadlines) {
-                          onBackToDeadlines();
-                        } else {
-                          setPlannerScreen("overview");
-                        }
-                      }}
-                      aria-label={fromTab === "deadlines" ? "Quay lại Hạn định" : "Quay lại lịch"}
-                      className="flex shrink-0 items-center gap-1.5 whitespace-nowrap px-2.5 py-1 bg-[#FAF8F3] hover:bg-[#F3EFE6] dark:bg-[#2C2C2E] dark:hover:bg-[#3A3A3C] border-[1.5px] border-[#262626] dark:border-white/20 rounded-[5px] shadow-[1.5px_1.5px_0px_#262626] dark:shadow-none text-xs font-bold text-[#1C1917] dark:text-white active:translate-x-[0.5px] active:translate-y-[0.5px] transition-all cursor-pointer"
+                      onClick={handlePrevDay}
+                      className="w-8 h-[34px] rounded-xl border border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-muted)] flex items-center justify-center text-[var(--text-main)] active:scale-95 transition-all cursor-pointer shadow-xs"
+                      title="Ngày trước"
+                      aria-label="Ngày trước"
                     >
-                      <ArrowLeft size={13} strokeWidth={2.4} />
-                      <span>
-                        {fromTab === "deadlines"
-                          ? "Quay lại Hạn định"
-                          : `Quay lại ${viewMode === "agenda" ? "Lịch trình" : "Lịch tháng"}`}
-                      </span>
+                      <ChevronLeft size={16} strokeWidth={2.2} />
                     </button>
 
-                    <div className="h-4 w-[1.5px] bg-[#D4CEBF] dark:bg-[#3A3A3C] hidden sm:block" />
+                    <button
+                      type="button"
+                      onClick={handleNextDay}
+                      className="w-8 h-[34px] rounded-xl border border-[var(--border-ink)] bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-muted)] flex items-center justify-center text-[var(--text-main)] active:scale-95 transition-all cursor-pointer shadow-xs"
+                      title="Ngày sau"
+                      aria-label="Ngày sau"
+                    >
+                      <ChevronRight size={16} strokeWidth={2.2} />
+                    </button>
+                  </div>
 
-                    {/* Tên Ngày Tiêu Đề */}
-                    <h1 className="text-xl sm:text-2xl font-black text-[#1C1917] dark:text-[#F2F2F7] tracking-tight">
+                  {/* Tiêu đề ngày & Badges */}
+                  <div className="flex items-center gap-2 min-w-0 pl-1">
+                    <h2 className="text-base lg:text-lg font-extrabold text-[var(--text-main)] tracking-tight truncate">
                       {getDayFormattedTitle()}
-                    </h1>
+                    </h2>
 
-                    {/* Badges */}
                     {selectedDateStr === todayStr && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 bg-[#FEF08A] dark:bg-yellow-950/60 border border-[#262626] dark:border-yellow-700 rounded-full text-[#1C1917] dark:text-yellow-200">
+                      <span className="text-[10.5px] font-bold px-2 py-0.5 bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] dark:bg-[var(--accent-blue)]/20 border border-[var(--accent-blue)]/30 rounded-md shrink-0">
                         Hôm nay
                       </span>
                     )}
                     {isPastDate && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 bg-[#F3EFE6] dark:bg-[#2C2C2E] border border-[#D4CEBF] dark:border-[#3F3F46] rounded-full text-[#78716C] dark:text-[#A1A1AA] flex items-center gap-1">
+                      <span className="text-[10.5px] font-bold px-2 py-0.5 bg-[var(--bg-surface-muted)] border border-[var(--border-ink)] rounded-md text-[var(--text-muted)] flex items-center gap-1 shrink-0">
                         <Lock size={10} strokeWidth={2.4} />
                         <span>Quá khứ</span>
                       </span>
                     )}
-
-                    {/* Tiến độ mini đồng bộ 100% với Tab Hôm Nay */}
-                    {totalCount > 0 && (
-                      <div
-                        className="flex items-center gap-2 pl-1"
-                        title={`Đã hoàn thành ${completedCount}/${totalCount} việc (${Math.round((completedCount / totalCount) * 100)}%)`}
-                      >
-                        <div className="w-20 sm:w-28 h-2 bg-[#F3EFE6] dark:bg-[#2C2C2E] border border-[#262626] dark:border-[#48484A] rounded-[3px] overflow-hidden">
-                          <div
-                            className="h-full bg-[#1C1917] dark:bg-white transition-all duration-300"
-                            style={{ width: `${Math.round((completedCount / totalCount) * 100)}%` }}
-                          />
-                        </div>
-                        <span className="font-mono text-xs font-black text-[#1C1917] dark:text-[#F2F2F7]">
-                          {completedCount}/{totalCount}
-                        </span>
-                      </div>
-                    )}
                   </div>
+                </div>
 
-                  {/* Nhóm phải: Toggle Chuyển Đổi Biểu Đồ / Danh Sách */}
+                {/* Nhóm phải: Tiến độ + Toggle Chuyển Đổi Biểu Đồ / Danh Sách + Nút Thêm Việc */}
+                <div className="flex items-center gap-2.5 shrink-0">
+                  {/* Tiến độ mini tinh tế */}
+                  {totalCount > 0 && (
+                    <div
+                      className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-xl bg-[var(--bg-surface-muted)] border border-[var(--border-ink)]"
+                      title={`Tiến độ ngày: ${completedCount}/${totalCount} việc (${Math.round((completedCount / totalCount) * 100)}%)`}
+                    >
+                      <div className="w-16 h-1.5 bg-[var(--border-ink-muted)] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+                          style={{ width: `${Math.round((completedCount / totalCount) * 100)}%` }}
+                        />
+                      </div>
+                      <span className="font-mono text-[11px] font-bold text-[var(--text-muted)]">
+                        {completedCount}/{totalCount} việc
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Toggle Chuyển Đổi Biểu Đồ / Danh Sách */}
                   <div
-                    className="inline-flex items-center gap-0.5 rounded-[6px] border-[1.5px] border-[#262626] dark:border-white/30 bg-[#FAF8F3] dark:bg-[#2C2C2E] p-0.5 shadow-[1.5px_1.5px_0px_#262626] dark:shadow-none shrink-0"
+                    className="inline-flex h-[34px] p-0.5 bg-[var(--bg-surface-muted)] border border-[var(--border-ink)] rounded-xl shrink-0"
                     role="tablist"
                     aria-label="Kiểu hiển thị chi tiết ngày"
                   >
@@ -503,129 +661,220 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
                       role="tab"
                       aria-selected={dayDisplayMode === "chart"}
                       onClick={() => setDayDisplayMode("chart")}
-                      className={`rounded-[4px] px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
+                      className={`flex items-center gap-1.5 px-3 h-full rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         dayDisplayMode === "chart"
-                          ? "bg-[#1C1917] text-white dark:bg-white dark:text-[#1C1917] shadow-xs"
-                          : "text-[#57534E] dark:text-[#AEAEC2] hover:text-[#1C1917] dark:hover:text-white"
-                      }`}
+                          ? "bg-[var(--bg-surface)] text-[var(--text-main)] shadow-xs"
+                          : "bg-transparent text-[var(--text-muted)] hover:text-[var(--text-main)]"
+                      } active:scale-95`}
+                      title="Xem dạng biểu đồ 24 giờ"
                     >
-                      Biểu đồ
+                      <Clock size={13} strokeWidth={dayDisplayMode === "chart" ? 2.5 : 2} />
+                      <span>Biểu đồ</span>
                     </button>
                     <button
                       type="button"
                       role="tab"
                       aria-selected={dayDisplayMode === "list"}
                       onClick={() => setDayDisplayMode("list")}
-                      className={`rounded-[4px] px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
+                      className={`flex items-center gap-1.5 px-3 h-full rounded-lg text-xs font-bold transition-all cursor-pointer ${
                         dayDisplayMode === "list"
-                          ? "bg-[#1C1917] text-white dark:bg-white dark:text-[#1C1917] shadow-xs"
-                          : "text-[#57534E] dark:text-[#AEAEC2] hover:text-[#1C1917] dark:hover:text-white"
-                      }`}
+                          ? "bg-[var(--bg-surface)] text-[var(--text-main)] shadow-xs"
+                          : "bg-transparent text-[var(--text-muted)] hover:text-[var(--text-main)]"
+                      } active:scale-95`}
+                      title="Xem dạng danh sách việc"
                     >
-                      Danh sách
+                      <ListTodo size={13} strokeWidth={dayDisplayMode === "list" ? 2.5 : 2} />
+                      <span>Danh sách ({totalCount})</span>
                     </button>
                   </div>
-                </div>
-              </div>
 
-              {/* 2. Nội dung hiển thị theo chế độ đã chọn */}
-              {dayDisplayMode === "chart" ? (
-                <PlannerDayTimeline
-                  tasks={selectedDayTasks}
-                  listTasks={selectedDayTasks}
-                  displayMode="chart"
-                  onDisplayModeChange={setDayDisplayMode}
-                  onSelectTask={(task) => openTaskDetail(task.id)}
-                  onToggleTask={toggleTask}
-                  onDeleteTask={deleteTask}
-                  onMoveTomorrow={moveTaskToNextDay}
-                  dateStr={selectedDateStr}
-                  isToday={selectedDateStr === todayStr}
-                />
-              ) : selectedDayTasks.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 animate-in fade-in duration-200">
-                  <div className="w-16 h-16 rounded-2xl border-[1.5px] border-[#262626] bg-[#FAF8F3] dark:bg-[#2C2C2E] flex items-center justify-center shadow-[2px_2px_0px_#262626]">
-                    <ListTodo size={28} className="text-[#78716C] dark:text-[#A1A1AA]" strokeWidth={2} />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-base font-bold text-[#1C1917] dark:text-[#F2F2F7]">
-                      Chưa có công việc trong ngày này
-                    </h3>
-                  </div>
+                  {/* Nút Thêm Việc Nhanh */}
                   {!isPastDate && (
                     <button
                       type="button"
-                      onClick={() => openTaskDetail("new")}
-                      className="px-4 py-2 rounded-xl bg-[#1C1917] hover:bg-black dark:bg-white dark:hover:bg-[#F2F2F7] text-white dark:text-[#1C1917] text-xs font-bold shadow-[2px_2px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
+                      onClick={() => openQuickTaskModal({ dueDate: selectedDateStr })}
+                      className="h-[34px] px-3.5 rounded-xl bg-[var(--accent-blue)] hover:brightness-110 text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+                      title="Thêm công việc vào ngày này"
                     >
-                      + Thêm công việc mới
+                      <Plus size={14} strokeWidth={2.4} />
+                      <span className="hidden sm:inline">Thêm việc</span>
                     </button>
                   )}
                 </div>
-              ) : (
-                <div className="space-y-6 w-full animate-in fade-in duration-150">
-                  {/* Phần 1: Lịch hẹn theo giờ (nếu có) */}
-                  {activeScheduledTasks.length > 0 && (
-                    <div className="space-y-3">
-                      <TodayScheduleNotes
-                        scheduledTasks={activeScheduledTasks}
-                        onToggle={toggleTask}
-                        onEdit={(task) => openTaskDetail(task.id)}
-                        onDelete={deleteTask}
-                        onMoveTomorrow={moveTaskToNextDay}
-                        onClick={(task) => openTaskDetail(task.id)}
-                        activeTaskId={targetTaskId}
-                        title="Lịch hẹn"
-                      />
-                    </div>
-                  )}
+              </header>
 
-                  {/* Phần 2: Công việc cần làm */}
-                  {activeTaskListItems.length > 0 && (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20 dark:border-transparent">
-                        <div className="flex items-center gap-2 text-sm font-bold text-[#1C1917] dark:text-white">
-                          <ListTodo size={16} strokeWidth={2.4} className="text-[#1C1917] dark:text-white" />
-                          <span>Công việc cần làm ({activeTaskListItems.length})</span>
-                        </div>
-                      </div>
-
-                      <TodayTaskList
-                        tasks={activeTaskListItems}
-                        onToggle={toggleTask}
-                        onEdit={(task) => openTaskDetail(task.id)}
-                        onDelete={deleteTask}
-                        onMoveTomorrow={moveTaskToNextDay}
-                        onClick={(task) => openTaskDetail(task.id)}
-                        activeTaskId={targetTaskId}
-                        showQuickAdd={false}
-                      />
-                    </div>
-                  )}
-
-                  {/* Phần 3: Công việc đã hoàn thành */}
-                  {completedDayTasks.length > 0 && (
-                    <div className="pt-4 border-t border-[#262626]/15 dark:border-transparent space-y-3">
-                      <div className="flex items-center justify-between pb-2 border-b border-[#262626]/15 dark:border-transparent">
-                        <div className="flex items-center gap-2 text-sm font-bold text-[#78716C] dark:text-[#A1A1AA]">
-                          <CheckCircle2 size={16} strokeWidth={2.4} className="text-emerald-500 shrink-0" />
-                          <span>Đã hoàn thành ({completedDayTasks.length})</span>
-                        </div>
-                      </div>
-
-                      <TodayTaskList
-                        tasks={completedDayTasks}
-                        onToggle={toggleTask}
-                        onEdit={(task) => openTaskDetail(task.id)}
-                        onDelete={deleteTask}
-                        onMoveTomorrow={moveTaskToNextDay}
-                        onClick={(task) => openTaskDetail(task.id)}
-                        activeTaskId={targetTaskId}
-                        showQuickAdd={false}
-                      />
-                    </div>
-                  )}
+              {/* 2. Nội dung hiển thị theo chế độ đã chọn */}
+              {dayDisplayMode === "chart" ? (
+                <div className="flex-1 min-h-0 min-w-0">
+                  <PlannerDayTimeline
+                    tasks={selectedDayTasks}
+                    onToggleTask={toggleTask}
+                    onDeleteTask={deleteTask}
+                    onUpdateTask={updateTask}
+                    onPreviewTask={handleOpenTaskPreview}
+                    dateStr={selectedDateStr}
+                    isToday={selectedDateStr === todayStr}
+                  />
                 </div>
+              ) : (
+                <section className="flex-1 min-h-0 overflow-y-auto bg-[var(--bg-canvas)] px-5 py-5">
+                  <div className="mx-auto w-full max-w-4xl space-y-4 pb-12">
+                    {/* A. Thẻ Tóm Tắt Ngày & Hành Động */}
+                    <header className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--border-ink)] bg-[var(--bg-surface)] px-5 py-3.5 shadow-xs">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] dark:bg-[var(--accent-blue)]/20">
+                          <CalendarDays size={20} strokeWidth={2.2} />
+                        </span>
+                        <div className="min-w-0">
+                          <h2 className="truncate text-sm font-bold text-[var(--text-main)]">
+                            {getDayFormattedTitle()}
+                          </h2>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-[var(--text-muted)]">
+                            <span>{totalCount} công việc</span>
+                            <span>·</span>
+                            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                              {completedCount} đã hoàn thành
+                            </span>
+                            {activeEventItems.length > 0 && (
+                              <>
+                                <span>·</span>
+                                <span className="text-[var(--accent-blue)] font-semibold">
+                                  {activeEventItems.length} sự kiện
+                                </span>
+                              </>
+                            )}
+                            {activeScheduledTasks.length > 0 && (
+                              <>
+                                <span>·</span>
+                                <span>{activeScheduledTasks.length} lịch hẹn</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {!isPastDate && (
+                        <button
+                          type="button"
+                          onClick={() => openQuickTaskModal({ dueDate: selectedDateStr })}
+                          className="h-[34px] px-3.5 rounded-xl bg-[var(--accent-blue)] hover:brightness-110 text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+                        >
+                          <Plus size={14} strokeWidth={2.4} />
+                          <span>Thêm việc mới</span>
+                        </button>
+                      )}
+                    </header>
+
+                    {/* B. Trạng Thái Rỗng (Chưa có việc trong ngày) */}
+                    {selectedDayTasks.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center rounded-2xl border border-[var(--border-ink)] bg-[var(--bg-surface)] py-14 px-6 text-center shadow-xs">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] dark:bg-[var(--accent-blue)]/20 mb-3">
+                          <CalendarDays size={28} strokeWidth={1.8} />
+                        </div>
+                        <h3 className="text-sm font-bold text-[var(--text-main)]">
+                          Chưa có công việc trong ngày này
+                        </h3>
+                        <p className="mt-1 text-xs text-[var(--text-muted)] max-w-sm">
+                          Lên kế hoạch và thêm công việc để ngày làm việc của bạn trở nên khoa học và hiệu quả hơn.
+                        </p>
+                        {!isPastDate && (
+                          <button
+                            type="button"
+                            onClick={() => openQuickTaskModal({ dueDate: selectedDateStr })}
+                            className="mt-4 h-[36px] px-4 rounded-xl bg-[var(--accent-blue)] hover:brightness-110 text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer flex items-center gap-1.5"
+                          >
+                            <Plus size={15} strokeWidth={2.4} />
+                            <span>Thêm công việc đầu tiên</span>
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        <div className="space-y-3">
+                          {activeEventItems.length > 0 && (
+                            <TaskListSection
+                              title="Sự kiện"
+                              tasks={activeEventItems}
+                              icon={<CircleDot size={15} strokeWidth={2.3} />}
+                              tone="info"
+                              variant="planner"
+                              hideDate={true}
+                              baseDateStr={selectedDateStr}
+                              showEventTimeLabel={true}
+                              onToggle={toggleTask}
+                              onEdit={(task) => handleOpenTaskPreview(task, null)}
+                              onDelete={deleteTask}
+                              onMoveTomorrow={moveTaskToNextDay}
+                              onClick={(task) => handleOpenTaskPreview(task, null)}
+                              activeTaskId={targetTaskId}
+                              showQuickAdd={false}
+                            />
+                          )}
+
+                          {activeScheduledTasks.length > 0 && (
+                            <TaskListSection
+                              title="Lịch hẹn theo giờ"
+                              tasks={activeScheduledTasks}
+                              icon={<Clock size={15} strokeWidth={2.3} />}
+                              tone="info"
+                              variant="planner"
+                              hideDate={true}
+                              baseDateStr={selectedDateStr}
+                              showEventTimeLabel={true}
+                              onToggle={toggleTask}
+                              onEdit={(task) => handleOpenTaskPreview(task, null)}
+                              onDelete={deleteTask}
+                              onMoveTomorrow={moveTaskToNextDay}
+                              onClick={(task) => handleOpenTaskPreview(task, null)}
+                              activeTaskId={targetTaskId}
+                              showQuickAdd={false}
+                            />
+                          )}
+
+                          {activeTaskListItems.length > 0 && (
+                            <TaskListSection
+                              title="Công việc cần làm"
+                              tasks={activeTaskListItems}
+                              icon={<ListTodo size={15} strokeWidth={2.3} />}
+                              tone="neutral"
+                              variant="planner"
+                              hideDate={true}
+                              baseDateStr={selectedDateStr}
+                              onToggle={toggleTask}
+                              onEdit={(task) => handleOpenTaskPreview(task, null)}
+                              onDelete={deleteTask}
+                              onMoveTomorrow={moveTaskToNextDay}
+                              onClick={(task) => handleOpenTaskPreview(task, null)}
+                              activeTaskId={targetTaskId}
+                              showQuickAdd={false}
+                            />
+                          )}
+
+                          {completedDayTasks.length > 0 && (
+                            <TaskListSection
+                              title="Đã hoàn thành"
+                              tasks={completedDayTasks}
+                              icon={<CheckCircle2 size={15} strokeWidth={2.3} />}
+                              tone="success"
+                              collapsed={!isCompletedSectionOpen}
+                              onCollapsedChange={(collapsed) => setIsCompletedSectionOpen(!collapsed)}
+                              variant="planner"
+                              hideDate={true}
+                              baseDateStr={selectedDateStr}
+                              onToggle={toggleTask}
+                              onEdit={(task) => handleOpenTaskPreview(task, null)}
+                              onDelete={deleteTask}
+                              onMoveTomorrow={moveTaskToNextDay}
+                              onClick={(task) => handleOpenTaskPreview(task, null)}
+                              activeTaskId={targetTaskId}
+                              showQuickAdd={false}
+                            />
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </section>
               )}
             </div>
           );
@@ -695,7 +944,7 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
             </div>
 
             {/* 2. Thanh tìm kiếm trên cùng của ngày */}
-            <div className="flex min-w-0 items-center gap-1.5 rounded-none border-[1.5px] border-[#262626] bg-white px-2.5 shadow-[1.5px_1.5px_0px_#262626]">
+            <div className="flex min-w-0 items-center gap-1.5 rounded-xl border-[1.5px] border-[#262626] bg-white px-2.5 shadow-[1.5px_1.5px_0px_#262626]">
               <Search size={14} strokeWidth={2.4} className="shrink-0 text-[#78716C]" />
               <input
                 type="text"
@@ -801,6 +1050,18 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
           </div>
         );
       })()}
+
+      {/* 4. Popover xem nhanh Task trên lịch (Google Calendar Style) */}
+      {previewTaskState && (
+        <PlannerTaskPreviewPopover
+          task={previewTaskState.task}
+          anchorRect={previewTaskState.anchorRect}
+          onClose={handleCloseTaskPreview}
+          onEdit={handleEditFromPreview}
+          onDelete={deleteTask}
+          onToggleComplete={toggleTask}
+        />
+      )}
     </div>
   );
 };

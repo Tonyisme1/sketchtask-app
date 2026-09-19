@@ -1,41 +1,32 @@
-import { TaskPriority, TaskTimeType } from "../types";
+import { TaskDto, TaskPriority, TaskTimeType } from "../types";
 import { getLocalTodayStr } from "../utils/date";
-import {
-  isTaskDueToday,
-  getTaskTemporalState,
-} from "../utils/taskSemantics";
+import { getTaskItemType, getTaskTemporalState, isTaskDueToday } from "../utils/taskSemantics";
 import { AI_CONFIG, getEffectiveGeminiApiKey } from "../config/aiConfig";
-import { AIQueryResult, AgentProcessContext } from "./aiAgentService";
+import {
+  AIActionProposal,
+  AIProposalAction,
+  AIQueryResult,
+  AgentProcessContext,
+  GoalPlanBreakdown,
+  ParsedTaskIntent,
+} from "./aiAgentService";
 
-// ==========================================
-// GEMINI API CALLER & INTELLIGENT AGENT
-// ==========================================
+type GeminiAction =
+  | "create_tasks"
+  | "breakdown_plan"
+  | "complete_task"
+  | "delete_task"
+  | "create_journal_entry"
+  | "create_note"
+  | "none";
 
-interface GeminiActionPayload {
-  action?: "create_tasks" | "breakdown_plan" | "complete_task" | "none";
-  tasks?: {
-    title: string;
-    dueDate?: string;
-    timeType?: "scheduled" | "deadline" | "task";
-    startTime?: string;
-    deadlineTime?: string;
-    priority?: "high" | "medium" | "low";
-    tag?: string;
-    description?: string;
-  }[];
-  plan?: {
-    goalTitle: string;
-    steps: {
-      title: string;
-      dueDate?: string;
-      timeType?: "scheduled" | "deadline" | "task";
-      startTime?: string;
-      deadlineTime?: string;
-      priority?: "high" | "medium" | "low";
-      tag?: string;
-    }[];
-  };
-  completedTaskTitle?: string;
+interface GeminiPayload {
+  action?: GeminiAction;
+  tasks?: unknown;
+  plan?: unknown;
+  taskId?: unknown;
+  journal?: unknown;
+  note?: unknown;
 }
 
 const DAY_NAMES = [
@@ -48,278 +39,260 @@ const DAY_NAMES = [
   "Thứ bảy",
 ];
 
+const createProposalId = () => {
+  try {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      return `ai-proposal-${crypto.randomUUID()}`;
+    }
+  } catch {
+    // Fall through to a compatible identifier for older browsers.
+  }
+  return `ai-proposal-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+};
+
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  Boolean(value) && typeof value === "object" && !Array.isArray(value);
+
+const isValidDate = (value: unknown): value is string =>
+  typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+
+const isValidTime = (value: unknown): value is string =>
+  typeof value === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+
+const normalizePriority = (value: unknown): TaskPriority =>
+  value === "high" || value === "low" ? value : "medium";
+
+const normalizeTimeType = (value: unknown): TaskTimeType => {
+  if (value === "scheduled" || value === "deadline" || value === "event") return value;
+  return "task";
+};
+
+const parseTaskIntent = (value: unknown, todayStr: string): ParsedTaskIntent | null => {
+  if (!isObject(value) || typeof value.title !== "string" || !value.title.trim()) return null;
+
+  const timeType = normalizeTimeType(value.timeType);
+  const dueDate = isValidDate(value.dueDate) ? value.dueDate : todayStr;
+  const startTime = isValidTime(value.startTime) ? value.startTime : undefined;
+  const endTime = isValidTime(value.endTime) ? value.endTime : undefined;
+  const deadlineTime = isValidTime(value.deadlineTime) ? value.deadlineTime : undefined;
+  const deadlineDate = isValidDate(value.deadlineDate) ? value.deadlineDate : undefined;
+  const tags = Array.isArray(value.tags)
+    ? value.tags.filter((tag): tag is string => typeof tag === "string" && Boolean(tag.trim())).slice(0, 8)
+    : undefined;
+
+  return {
+    title: value.title.trim().slice(0, 240),
+    dueDate,
+    timeType,
+    startTime,
+    endTime,
+    deadlineTime,
+    deadlineDate,
+    priority: normalizePriority(value.priority),
+    tag: typeof value.tag === "string" ? value.tag.trim().slice(0, 64) || undefined : undefined,
+    tags,
+    description:
+      typeof value.description === "string" ? value.description.trim().slice(0, 2000) || undefined : undefined,
+  };
+};
+
+const taskExists = (tasks: TaskDto[], taskId: unknown) =>
+  typeof taskId === "string" && tasks.some((task) => task.id === taskId);
+
+const parseProposal = (
+  payload: GeminiPayload,
+  tasks: TaskDto[],
+  todayStr: string,
+): AIActionProposal | null => {
+  const actions: AIProposalAction[] = [];
+
+  if (payload.action === "create_tasks" && Array.isArray(payload.tasks)) {
+    const parsedTasks = payload.tasks
+      .map((task) => parseTaskIntent(task, todayStr))
+      .filter((task): task is ParsedTaskIntent => Boolean(task))
+      .slice(0, 20);
+    if (parsedTasks.length) actions.push({ type: "create_tasks", tasks: parsedTasks });
+  }
+
+  if (payload.action === "breakdown_plan" && isObject(payload.plan)) {
+    const steps = Array.isArray(payload.plan.steps)
+      ? payload.plan.steps
+          .map((step) => parseTaskIntent(step, todayStr))
+          .filter((step): step is ParsedTaskIntent => Boolean(step))
+          .slice(0, 20)
+      : [];
+    if (typeof payload.plan.goalTitle === "string" && payload.plan.goalTitle.trim() && steps.length) {
+      const plan: GoalPlanBreakdown = {
+        goalTitle: payload.plan.goalTitle.trim().slice(0, 240),
+        subtasks: steps,
+        targetTaskId: taskExists(tasks, payload.plan.targetTaskId) ? String(payload.plan.targetTaskId) : undefined,
+      };
+      actions.push({ type: "breakdown_goal", plan });
+    }
+  }
+
+  if (
+    (payload.action === "complete_task" || payload.action === "delete_task") &&
+    taskExists(tasks, payload.taskId)
+  ) {
+    const task = tasks.find((candidate) => candidate.id === payload.taskId);
+    if (task && getTaskItemType(task) !== "event") {
+      actions.push({ type: payload.action, taskId: String(payload.taskId) });
+    }
+  }
+
+  if (payload.action === "create_journal_entry" && isObject(payload.journal)) {
+    const date = isValidDate(payload.journal.date) ? payload.journal.date : todayStr;
+    const time = isValidTime(payload.journal.time) ? payload.journal.time : "09:00";
+    const content = typeof payload.journal.content === "string" ? payload.journal.content.trim().slice(0, 4000) : "";
+    if (content) {
+      actions.push({
+        type: "create_journal_entry",
+        date,
+        time,
+        content,
+        linkedTaskId: taskExists(tasks, payload.journal.linkedTaskId)
+          ? String(payload.journal.linkedTaskId)
+          : undefined,
+      });
+    }
+  }
+
+  if (payload.action === "create_note" && isObject(payload.note)) {
+    const title = typeof payload.note.title === "string" ? payload.note.title.trim().slice(0, 240) : "";
+    const content = typeof payload.note.content === "string" ? payload.note.content.trim().slice(0, 10000) : "";
+    if (title || content) {
+      actions.push({ type: "create_note", title: title || "Ghi chú không tiêu đề", content });
+    }
+  }
+
+  return actions.length ? { id: createProposalId(), actions } : null;
+};
+
+const extractAnswer = (rawAnswer: string) => {
+  const fenced = rawAnswer.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fenced) {
+    try {
+      return {
+        text: rawAnswer.replace(fenced[0], "").trim(),
+        payload: JSON.parse(fenced[1]) as GeminiPayload,
+      };
+    } catch {
+      // Keep the natural language answer when the model returned malformed JSON.
+    }
+  }
+
+  const firstBrace = rawAnswer.indexOf("{");
+  const lastBrace = rawAnswer.lastIndexOf("}");
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    try {
+      return {
+        text: rawAnswer.slice(0, firstBrace).trim(),
+        payload: JSON.parse(rawAnswer.slice(firstBrace, lastBrace + 1)) as GeminiPayload,
+      };
+    } catch {
+      // Not an action response.
+    }
+  }
+
+  return { text: rawAnswer.trim(), payload: null };
+};
+
+const getActionInstruction = () => `
+Nếu người dùng yêu cầu thay đổi dữ liệu, hãy trả lời ngắn gọn rồi thêm đúng một khối JSON ở cuối câu trả lời:
+{
+  "action": "create_tasks" | "breakdown_plan" | "complete_task" | "delete_task" | "create_journal_entry" | "create_note" | "none",
+  "tasks": [{ "title": "...", "dueDate": "YYYY-MM-DD", "timeType": "task|scheduled|deadline|event", "startTime": "HH:MM", "endTime": "HH:MM", "deadlineTime": "HH:MM", "priority": "high|medium|low", "tag": "...", "description": "..." }],
+  "plan": { "goalTitle": "...", "targetTaskId": "id chính xác nếu có", "steps": [{ "title": "...", "dueDate": "YYYY-MM-DD", "timeType": "task|scheduled|deadline", "startTime": "HH:MM", "endTime": "HH:MM", "deadlineTime": "HH:MM", "priority": "high|medium|low", "tag": "..." }] },
+  "taskId": "id chính xác từ danh mục công việc",
+  "journal": { "date": "YYYY-MM-DD", "time": "HH:MM", "content": "...", "linkedTaskId": "id chính xác nếu có" },
+  "note": { "title": "...", "content": "..." }
+}
+Chỉ dùng action khi người dùng thật sự yêu cầu thay đổi. Không tự nhận đã tạo, xóa hoặc hoàn thành dữ liệu. Event không có checkbox hoàn thành. Với hoàn thành/xóa, chỉ dùng taskId có trong danh mục, không đoán theo tên.
+`;
+
 export async function askGeminiAIAssistant(
   userQuery: string,
   history: { sender: "ai" | "user"; text: string }[],
   context: AgentProcessContext,
-  now: Date = new Date()
+  now: Date = new Date(),
 ): Promise<AIQueryResult> {
   const apiKey = getEffectiveGeminiApiKey();
-
   if (!apiKey) {
-    return {
-      type: "text_reply",
-      text: "Hệ thống AI hiện chưa sẵn sàng kết nối. Vui lòng thử lại sau.",
-    };
+    return { type: "text_reply", text: "Hệ thống AI hiện chưa sẵn sàng kết nối. Vui lòng thử lại sau." };
   }
 
   const todayStr = getLocalTodayStr(now);
-  const dayName = DAY_NAMES[now.getDay()];
-  const timeStr = now.toLocaleTimeString("vi-VN", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-  const { tasks, addTask, toggleTask } = context;
-
-  // Dữ liệu bối cảnh công việc thực tế
-  const todayTasks = tasks.filter((t) => isTaskDueToday(t, now));
-  const openToday = todayTasks.filter((t) => !t.completed);
-  const completedToday = todayTasks.filter((t) => t.completed);
-  const overdue = tasks.filter((t) => {
-    if (t.completed) return false;
-    const state = getTaskTemporalState(t, now);
+  const todayTasks = context.tasks.filter((task) => isTaskDueToday(task, now));
+  const overdueTasks = context.tasks.filter((task) => {
+    if (task.completed || getTaskItemType(task) === "event") return false;
+    const state = getTaskTemporalState(task, now);
     return state === "overdue" || state === "pastScheduled";
   });
-  const urgent = tasks.filter((t) => !t.completed && t.priority === "high");
-
-  const todaySummary =
-    todayTasks.length > 0
-      ? `Hôm nay có ${todayTasks.length} việc (${completedToday.length} đã xong, ${openToday.length} đang chờ: ${openToday
-          .slice(0, 5)
-          .map((t) => t.title)
-          .join(", ")})`
-      : "Hôm nay chưa có việc nào.";
-
-  const overdueSummary =
-    overdue.length > 0
-      ? `Có ${overdue.length} việc quá hạn: ${overdue
-          .slice(0, 4)
-          .map((t) => t.title)
-          .join(", ")}`
-      : "Không có việc quá hạn.";
-
-  const urgentSummary =
-    urgent.length > 0
-      ? `Có ${urgent.length} việc gấp: ${urgent
-          .slice(0, 4)
-          .map((t) => t.title)
-          .join(", ")}`
-      : "Không có việc gấp.";
-
-  // System Prompt thông minh
-  const systemInstruction = `Bạn là Trợ lý Quản lý Công việc & Đời sống Cá nhân Thông minh của ứng dụng SketchTask.
-
-BỐI CẢNH THỜI GIAN THỰC:
-- Hôm nay là: ${dayName}, ngày ${todayStr}, lúc ${timeStr}.
-- Tình trạng công việc của người dùng:
-  + ${todaySummary}
-  + ${overdueSummary}
-  + ${urgentSummary}
-
-QUY TẮC PHẢN HỒI:
-1. Giao tiếp tự nhiên, thông minh, ân cần, ngắn gọn và hữu ích bằng tiếng Việt. Dùng Markdown (in đậm, danh sách gạch đầu dòng) để trình bày đẹp mắt.
-2. Khi người dùng yêu cầu:
-   - Tạo việc (1 việc hoặc nhiều việc)
-   - Chia nhỏ kế hoạch / mục tiêu (Goal breakdown)
-   - Hoàn thành công việc
-   Bạn hãy trả lời giải thích tự nhiên bằng lời, và Ở CUỐI CÙNG của câu trả lời, hãy đính kèm MỘT khối JSON hành động đặc biệt theo định dạng chuẩn xác:
-
-\`\`\`json
-{
-  "action": "create_tasks" | "breakdown_plan" | "complete_task" | "none",
-  "tasks": [
-    {
-      "title": "Tên công việc",
-      "dueDate": "YYYY-MM-DD",
-      "timeType": "scheduled" | "deadline" | "task",
-      "startTime": "HH:MM",
-      "deadlineTime": "HH:MM",
-      "priority": "high" | "medium" | "low",
-      "tag": "TenTag"
-    }
-  ],
-  "plan": {
-    "goalTitle": "Tên kế hoạch/mục tiêu",
-    "steps": [
-      {
-        "title": "Tên bước hành động cụ thể",
-        "dueDate": "YYYY-MM-DD",
-        "timeType": "scheduled" | "deadline" | "task",
-        "startTime": "HH:MM",
-        "priority": "high" | "medium" | "low",
-        "tag": "TenTag"
-      }
-    ]
-  },
-  "completedTaskTitle": "Tên việc cần hoàn thành"
-}
-\`\`\`
-
-LƯU Ý QUAN TRỌNG:
-- Luôn tính toán ngày \`dueDate\` chính xác (hôm nay là ${todayStr}).
-- Nếu không có hành động nào cần thực thi (chỉ trò chuyện, tư vấn, hỏi mẹo), bạn chỉ cần trả lời bằng văn bản bình thường, không cần khối JSON.`;
-
-  // Xây dựng lịch sử chat gửi lên Gemini
-  const recentHistory = history.slice(-6).map((h) => ({
-    role: h.sender === "user" ? "user" : "model",
-    parts: [{ text: h.text }],
+  const taskCatalog = context.tasks.slice(0, 250).map((task) => ({
+    id: task.id,
+    title: task.title,
+    completed: task.completed,
+    timeType: task.timeType || "task",
+    dueDate: task.dueDate,
+    deadlineDate: task.deadlineDate,
+    startTime: task.startTime,
+    endTime: task.endTime,
+    deadlineTime: task.deadlineTime,
+    parentTaskId: task.parentTaskId,
   }));
 
-  const modelsToTry = AI_CONFIG.FALLBACK_MODELS || ["gemini-3-flash-preview", "gemini-3.6-flash"];
+  const contextText = JSON.stringify(taskCatalog);
+  const systemInstruction = `Bạn là trợ lý cá nhân của SketchTask. Trả lời bằng tiếng Việt, rõ ràng, thực tế và không dài dòng.
+Hôm nay: ${DAY_NAMES[now.getDay()]}, ${todayStr}; giờ hiện tại: ${now.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}.
+Hôm nay có ${todayTasks.length} việc, trong đó ${todayTasks.filter((task) => task.completed).length} đã xong. Có ${overdueTasks.length} việc quá hạn.
+Danh mục công việc hiện tại (ID là định danh duy nhất, phải dùng nguyên văn khi thao tác): ${contextText}
+${getActionInstruction()}`;
 
-  for (const model of modelsToTry) {
+  const recentHistory = history.slice(-8).map((message) => ({
+    role: message.sender === "user" ? "user" : "model",
+    parts: [{ text: message.text }],
+  }));
+  const models = AI_CONFIG.FALLBACK_MODELS?.length ? AI_CONFIG.FALLBACK_MODELS : [AI_CONFIG.DEFAULT_MODEL];
+
+  for (const model of models) {
     try {
-      const url = `${AI_CONFIG.BASE_URL}/models/${model}:generateContent?key=${apiKey}`;
-
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${AI_CONFIG.BASE_URL}/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemInstruction }] },
+            contents: [...recentHistory, { role: "user", parts: [{ text: userQuery }] }],
+            generationConfig: { temperature: 0.2, maxOutputTokens: 2200 },
+          }),
         },
-        body: JSON.stringify({
-          system_instruction: {
-            parts: [{ text: systemInstruction }],
-          },
-          contents: [
-            ...recentHistory,
-            {
-              role: "user",
-              parts: [{ text: userQuery }],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.8,
-            maxOutputTokens: 2048,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        continue;
-      }
+      );
+      if (!response.ok) continue;
 
       const data = await response.json();
-      const rawAnswer =
-        data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      const rawAnswer = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (typeof rawAnswer !== "string" || !rawAnswer.trim()) continue;
 
-      if (!rawAnswer.trim()) {
-        continue;
+      const { text: cleanText, payload } = extractAnswer(rawAnswer);
+      const proposal = payload ? parseProposal(payload, context.tasks, todayStr) : null;
+      if (proposal) {
+        return {
+          type: "action_proposal",
+          text: cleanText || "Mình đã chuẩn bị đề xuất để bạn xem lại trước khi áp dụng.",
+          proposal,
+        };
       }
 
-      // Bóc tách JSON Action block nếu có
-      let cleanText = rawAnswer;
-      let actionPayload: GeminiActionPayload | null = null;
-
-      const jsonMatch = rawAnswer.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-      if (jsonMatch) {
-        try {
-          actionPayload = JSON.parse(jsonMatch[1]);
-          // Loại bỏ khối JSON khỏi văn bản hiển thị cho người dùng
-          cleanText = rawAnswer.replace(/```(?:json)?\s*[\s\S]*?\s*```/, "").trim();
-        } catch {
-          // Parse JSON thất bại, giữ nguyên rawAnswer
-        }
-      }
-
-      // XỬ LÝ ACTION TỪ GEMINI
-      if (actionPayload) {
-        // 1. Tạo tasks
-        if (
-          actionPayload.action === "create_tasks" &&
-          actionPayload.tasks &&
-          actionPayload.tasks.length > 0
-        ) {
-          const createdList = [];
-          for (const t of actionPayload.tasks) {
-            const newTask = addTask({
-              title: t.title || "Công việc mới",
-              dueDate: t.dueDate || todayStr,
-              timeType: (t.timeType as TaskTimeType) || "task",
-              startTime: t.startTime,
-              deadlineTime: t.deadlineTime,
-              priority: (t.priority as TaskPriority) || "medium",
-              tag: t.tag,
-            });
-
-            const timeLabel = t.startTime
-              ? `⏰ ${t.startTime}`
-              : t.deadlineTime
-              ? `⏳ Hạn ${t.deadlineTime}`
-              : undefined;
-
-            createdList.push({
-              id: newTask.id,
-              title: t.title || "Công việc mới",
-              priority: (t.priority as TaskPriority) || "medium",
-              timeLabel,
-              tag: t.tag,
-              dueDate: t.dueDate || todayStr,
-            });
-          }
-
-          return {
-            type: createdList.length > 1 ? "batch_created" : "created_task",
-            text: cleanText || (createdList.length > 1 ? `✓ Đã tạo ${createdList.length} công việc mới vào danh sách:` : `✓ Đã tạo công việc mới:`),
-            createdTasks: createdList,
-          };
-        }
-
-        // 2. Chia nhỏ kế hoạch (Breakdown Plan)
-        if (
-          actionPayload.action === "breakdown_plan" &&
-          actionPayload.plan &&
-          actionPayload.plan.steps &&
-          actionPayload.plan.steps.length > 0
-        ) {
-          const formattedSubtasks = actionPayload.plan.steps.map((s) => ({
-            title: s.title,
-            dueDate: s.dueDate || todayStr,
-            timeType: (s.timeType as TaskTimeType) || "scheduled",
-            startTime: s.startTime,
-            deadlineTime: s.deadlineTime,
-            priority: (s.priority as TaskPriority) || "medium",
-            tag: s.tag || "KeHoach",
-          }));
-
-          return {
-            type: "goal_breakdown",
-            text: cleanText || `💡 Kế hoạch đề xuất cho: **"${actionPayload.plan.goalTitle}"**`,
-            breakdownPlan: {
-              goalTitle: actionPayload.plan.goalTitle,
-              subtasks: formattedSubtasks,
-            },
-          };
-        }
-
-        // 3. Hoàn thành việc
-        if (actionPayload.action === "complete_task" && actionPayload.completedTaskTitle) {
-          const match = tasks.find(
-            (t) =>
-              !t.completed &&
-              t.title.toLowerCase().includes(actionPayload!.completedTaskTitle!.toLowerCase())
-          );
-          if (match) {
-            toggleTask(match.id);
-          }
-          return {
-            type: "task_action",
-            text: cleanText || `✓ Đã đánh dấu hoàn thành công việc: **"${actionPayload.completedTaskTitle}"**!`,
-          };
-        }
-      }
-
-      return {
-        type: "text_reply",
-        text: cleanText || rawAnswer,
-      };
-    } catch (err) {
-      console.warn(`Gemini model ${model} error, trying next:`, err);
+      return { type: "text_reply", text: cleanText || rawAnswer.trim() };
+    } catch (error) {
+      console.warn(`Gemini model ${model} error, trying next model:`, error);
     }
   }
 
   return {
     type: "text_reply",
-    text: "Không thể kết nối đến máy chủ Google Gemini AI. Vui lòng kiểm tra lại kết nối mạng hoặc thử lại sau giây lát.",
+    text: "Không thể kết nối đến máy chủ Gemini. Vui lòng kiểm tra mạng hoặc thử lại sau.",
   };
 }

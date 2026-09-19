@@ -110,7 +110,7 @@ export const JournalTaskLinkPopover: React.FC<JournalTaskLinkPopoverProps> = ({
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Tìm task theo tên hoặc #tag..."
           autoFocus
-          className="w-full h-7 pl-6 pr-2 bg-white border border-[#262626] rounded-none text-xs text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:bg-[#FEF08A]/30 font-medium"
+          className="w-full h-7 pl-6 pr-2 bg-white border border-[#262626] rounded-xl text-xs text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none focus:bg-[#FEF08A]/30 font-medium"
         />
       </div>
 
@@ -125,7 +125,7 @@ export const JournalTaskLinkPopover: React.FC<JournalTaskLinkPopoverProps> = ({
             key={tab.key}
             type="button"
             onClick={() => setFilterType(tab.key as any)}
-            className={`flex-1 py-1 rounded-[3px] text-[10px] font-bold border transition-all cursor-pointer ${
+            className={`flex-1 py-1 rounded-xl text-[10px] font-bold border transition-all cursor-pointer ${
               filterType === tab.key
                 ? "bg-[#FEF08A] border-[#262626] shadow-[0.5px_0.5px_0px_#262626] text-[#1C1917]"
                 : "bg-white border-[#D4CEBF] text-[#78716C] hover:text-[#1C1917]"

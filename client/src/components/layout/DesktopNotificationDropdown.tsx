@@ -6,6 +6,7 @@ import { formatFullDate } from "../../utils/date";
 import {
   getTaskEffectiveDate,
   getTaskEffectiveTime,
+  getTaskItemType,
   getTaskTemporalState,
   isTaskDueToday,
 } from "../../utils/taskSemantics";
@@ -40,7 +41,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
   // 1. Quá hạn
   const overdueTasks = useMemo(() => {
     return tasks.filter((t) => {
-      if (t.completed) return false;
+      if (t.completed || getTaskItemType(t) === "event") return false;
       const state = getTaskTemporalState(t);
       return state === "overdue" || state === "pastScheduled";
     });
@@ -49,7 +50,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
   // 2. Việc đến hạn hôm nay
   const todayDueTasks = useMemo(() => {
     return tasks.filter((t) => {
-      if (t.completed) return false;
+      if (t.completed || getTaskItemType(t) === "event") return false;
       if (!isTaskDueToday(t)) return false;
       const state = getTaskTemporalState(t);
       return state !== "overdue" && state !== "pastScheduled";
@@ -131,7 +132,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
   return (
     <div
       ref={dropdownRef}
-      className="absolute right-0 top-full mt-2 w-[380px] max-w-[calc(100vw-32px)] bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border border-[#E5E5EA] dark:border-black rounded-2xl shadow-2xl z-50 overflow-hidden select-none flex flex-col max-h-[520px] animate-in fade-in duration-150"
+      className="absolute right-0 top-full mt-2 w-[380px] max-w-[calc(100vw-32px)] bg-white dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] rounded-[10px] shadow-[3px_3px_0px_#262626] z-50 overflow-hidden select-none flex flex-col max-h-[520px] animate-in fade-in duration-150"
     >
       {/* 1. Header Bar: Tiêu đề + Nút Cài Đặt */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E5EA] dark:border-black">
@@ -191,10 +192,11 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
                       <span>{group.tasks.length} thông báo</span>
                     </div>
                     {group.tasks.map((task) => (
-                      <div
+                      <button
                         key={task.id}
+                        type="button"
                         onClick={() => handleTaskClick(task)}
-                        className="p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] flex items-center justify-between gap-2.5 cursor-pointer transition-all group"
+                        className="w-full p-2.5 rounded-[8px] bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] flex items-center justify-between gap-2.5 cursor-pointer transition-all group text-left"
                       >
                         <div className="flex items-start gap-2.5 min-w-0 flex-1">
                           <div className="w-6 h-6 rounded-lg bg-black/[0.04] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-white flex items-center justify-center shrink-0 mt-0.5">
@@ -210,7 +212,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
                           </div>
                         </div>
                         <ChevronRight size={14} className="text-[#C7C7CC] group-hover:text-[#1C1C1E] dark:group-hover:text-white shrink-0" />
-                      </div>
+                      </button>
                     ))}
                   </div>
                 ))}
@@ -225,10 +227,11 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
                   <span>Đến hạn hôm nay ({todayDueTasks.length})</span>
                 </div>
                 {todayDueTasks.map((task) => (
-                  <div
+                  <button
                     key={task.id}
+                    type="button"
                     onClick={() => handleTaskClick(task)}
-                    className="p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] flex items-center justify-between gap-2.5 cursor-pointer transition-all group"
+                    className="w-full p-2.5 rounded-[8px] bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.05] dark:hover:bg-white/[0.08] flex items-center justify-between gap-2.5 cursor-pointer transition-all group text-left"
                   >
                     <div className="flex items-start gap-2.5 min-w-0 flex-1">
                       <div className="w-6 h-6 rounded-lg bg-black/[0.04] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-white flex items-center justify-center shrink-0 mt-0.5">
@@ -244,7 +247,7 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
                       </div>
                     </div>
                     <ChevronRight size={14} className="text-[#C7C7CC] group-hover:text-[#1C1C1E] dark:group-hover:text-white shrink-0" />
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -266,4 +269,3 @@ export const DesktopNotificationDropdown: React.FC<DesktopNotificationDropdownPr
     </div>
   );
 };
-

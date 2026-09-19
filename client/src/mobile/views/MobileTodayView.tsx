@@ -5,6 +5,7 @@ import { getLocalTodayStr, isTaskDueToday, normalizeTaskTimeType, getTaskTags } 
 import { TodayScheduleNotes } from "../../components/features/today/TodayScheduleNotes";
 import { TodayTaskList } from "../../components/features/today/TodayTaskList";
 import { TodayProgressBar } from "../../components/features/today/TodayProgressBar";
+import { getTaskProgress } from "../../utils/taskHierarchy";
 
 export interface MobileTodayViewProps {
   targetTaskId?: string;
@@ -63,13 +64,15 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
     return filteredTodayTasks.filter((task) => task.completed);
   }, [filteredTodayTasks, hideCompletedTasks]);
 
-  const completedTodayCount = todayList.filter((task) => task.completed).length;
-  const totalTodayCount = todayList.length;
+  const { completed: completedTodayCount, total: totalTodayCount } = useMemo(
+    () => getTaskProgress(todayList),
+    [todayList],
+  );
 
   return (
     <div className="w-full min-w-0 space-y-2.5 select-none pb-6">
       {/* 1. Thanh tìm kiếm trên cùng */}
-      <div className="flex min-w-0 items-center gap-1.5 rounded-none border-[1.5px] border-[#262626] bg-white px-2.5 shadow-[1.5px_1.5px_0px_#262626]">
+      <div className="flex min-w-0 items-center gap-1.5 rounded-xl border-[1.5px] border-[#262626] bg-white px-2.5 shadow-[1.5px_1.5px_0px_#262626]">
         <Search size={14} strokeWidth={2.4} className="shrink-0 text-[#78716C]" />
         <input
           type="text"

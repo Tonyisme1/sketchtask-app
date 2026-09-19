@@ -9,6 +9,7 @@ import {
   getTaskEffectiveDate,
   getTaskEffectiveTime,
   getTaskTemporalState,
+  getTaskItemType,
   normalizeTaskTimeType,
 } from "../../../utils/taskSemantics";
 import {
@@ -43,6 +44,7 @@ export interface TaskCardProps {
   showParentBadge?: boolean;
   isOutOfFilterContext?: boolean;
   isSelected?: boolean;
+  showEventTimeLabel?: boolean;
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({
@@ -59,6 +61,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   isExpanded = true,
   onToggleExpand,
   isSelected = false,
+  showEventTimeLabel = false,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -67,6 +70,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   const temporal = getTaskTemporalState(task, now);
   const normTime = normalizeTaskTimeType(task);
+  // Chỉ bật cách hiển thị Event riêng cho desktop; mobile giữ nguyên TaskCard hiện tại.
+  const isEvent = showEventTimeLabel && getTaskItemType(task) === "event";
   const effectiveTime = getTaskEffectiveTime(task);
   const effectiveDate = getTaskEffectiveDate(task);
 
@@ -85,8 +90,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         : formatShortDayMonth(effectiveDate)
       : null;
 
-  // Nhãn thời gian nằm dưới tiêu đề để phân biệt rõ lịch hẹn và hạn.
+  // Nhãn thời gian giữ rõ ba ngữ nghĩa: event, lịch hẹn của task và hạn.
   const timeLabel = React.useMemo(() => {
+    if (isEvent && showEventTimeLabel) {
+      if (effectiveTime) {
+        const range = task.endTime ? `${effectiveTime} – ${task.endTime}` : effectiveTime;
+        return `Sự kiện · ${range}`;
+      }
+      return "Sự kiện · Cả ngày";
+    }
     if (normTime === "scheduled" && effectiveTime) {
       const range = task.endTime ? `${effectiveTime} – ${task.endTime}` : effectiveTime;
       return `Lịch hẹn · ${range}`;
@@ -98,14 +110,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({
       return `Giờ · ${effectiveTime}`;
     }
     return null;
-  }, [normTime, effectiveTime, task.endTime]);
+  }, [isEvent, normTime, effectiveTime, task.endTime, showEventTimeLabel]);
 
-  const timeTone =
-    normTime === "scheduled"
+  const timeTone = showEventTimeLabel
+    ? "bg-[var(--bg-surface-muted)] text-[var(--text-main)] border-[var(--accent-blue)]"
+    : normTime === "scheduled"
       ? "bg-[#BAE6FD] text-[#1C1917] border-[#262626]"
       : normTime === "deadline"
-      ? "bg-[#FECDD3] text-[#9F1239] border-[#FDA4AF]"
-      : "bg-[#FAF8F3] text-[#78716C] border-[#D4CEBF]";
+        ? "bg-[#FECDD3] text-[#9F1239] border-[#FDA4AF]"
+        : "bg-[#FAF8F3] text-[#78716C] border-[#D4CEBF]";
 
   const hasChildren = childCount > 0;
   const indentLevel = Math.max(0, hierarchyDepth ?? (isSubtask ? 1 : 0));
@@ -145,7 +158,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     }
   };
 
-  const isEffectivelyCompleted = task.completed || isPendingComplete;
+  const isEffectivelyCompleted = !isEvent && (task.completed || isPendingComplete);
 
   const handleClickRow = () => {
     onClick?.(task);
@@ -186,13 +199,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             <CornerDownRight size={12} className="text-[#78716C] dark:text-[#8E8E93] shrink-0 mt-0.5" strokeWidth={2.4} />
           )}
 
-          {/* Checkbox Tròn (Min touch target) */}
-          <div className="shrink-0 flex items-center justify-center min-w-[22px] min-h-[22px]" onClick={(e) => e.stopPropagation()}>
-            <HandDrawnCheckbox
-              checked={isEffectivelyCompleted}
-              onChange={handleToggleCheckbox}
+          {/* Event là lịch tham chiếu, không có trạng thái hoàn thành như task. */}
+          {!isEvent ? (
+            <div className="shrink-0 flex items-center justify-center min-w-[22px] min-h-[22px]" onClick={(e) => e.stopPropagation()}>
+              <HandDrawnCheckbox
+                checked={isEffectivelyCompleted}
+                onChange={handleToggleCheckbox}
+              />
+            </div>
+          ) : (
+            <div
+              className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-[var(--accent-blue)] bg-[var(--bg-surface-muted)]"
+              aria-label="Sự kiện"
+              title="Sự kiện"
             />
-          </div>
+          )}
 
           {/* Nội dung Task: Tiêu đề + Metadata dòng 2 */}
           <div className="min-w-0 flex-1 flex flex-col justify-center">
@@ -238,7 +259,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             {(dateRangeLabel || singleDateLabel || timeLabel || (!task.completed && (temporal === "overdue" || temporal === "pastScheduled"))) && (
               <div className="flex flex-wrap items-center gap-1 mt-1 min-w-0">
                 {dateRangeLabel && (
-                  <span className="inline-flex items-center gap-1 rounded-[3px] border border-[#262626] bg-[#FEF08A] px-1.5 py-0.25 font-sans text-[10px] sm:text-[10.5px] font-semibold text-[#1C1917] leading-tight shadow-[0.5px_0.5px_0px_#262626]">
+                  <span className={`inline-flex items-center gap-1 rounded-[3px] border px-1.5 py-0.25 font-sans text-[10px] sm:text-[10.5px] font-semibold leading-tight ${
+                    showEventTimeLabel
+                      ? "border-[var(--accent-blue)] bg-[var(--bg-surface-muted)] text-[var(--text-main)]"
+                      : "border-[#262626] bg-[#FEF08A] text-[#1C1917] shadow-[0.5px_0.5px_0px_#262626]"
+                  }`}>
                     <Calendar size={10} className="shrink-0 text-[#1C1917]" />
                     <span>{dateRangeLabel}</span>
                   </span>
@@ -254,7 +279,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   </span>
                 )}
                 {!task.completed && (temporal === "overdue" || temporal === "pastScheduled") && (
-                  <span className="shrink-0 rounded-[3px] border border-[#FDA4AF] bg-[#FECDD3] px-1.5 py-0.25 font-sans text-[10px] sm:text-[10.5px] font-semibold text-[#9F1239]">
+                  <span className={`shrink-0 rounded-[3px] border px-1.5 py-0.25 font-sans text-[10px] sm:text-[10.5px] font-semibold ${
+                    showEventTimeLabel
+                      ? "border-[var(--accent-blue)] bg-[var(--bg-surface-muted)] text-[var(--text-main)]"
+                      : "border-[#FDA4AF] bg-[#FECDD3] text-[#9F1239]"
+                  }`}>
                     {temporal === "pastScheduled" ? "Đã qua" : "Quá hạn"}
                   </span>
                 )}

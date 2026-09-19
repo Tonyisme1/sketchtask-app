@@ -1,12 +1,12 @@
 import React from "react";
 import { Plus } from "lucide-react";
-import { TabKey } from "../../types";
+import { TabKey, TaskSubTab } from "../../types";
 
 type CreateAction = "task" | "note" | "journal";
 
 interface ContextAwareFabProps {
   activeTab: TabKey;
-  activeTaskSubTab?: "today" | "planner" | "deadlines";
+  activeTaskSubTab?: TaskSubTab;
   onCreateTask: () => void;
   showOnDesktop?: boolean;
   showOnTablet?: boolean;
@@ -45,6 +45,8 @@ export const ContextAwareFab: React.FC<ContextAwareFabProps> = ({
           ? "Tạo task trong kế hoạch"
           : activeTaskSubTab === "deadlines"
           ? "Tạo task có hạn"
+          : activeTaskSubTab === "all"
+          ? "Tạo task mới"
           : "Tạo task hôm nay",
     };
   } else if (activeTab === "today") {

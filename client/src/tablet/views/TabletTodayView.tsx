@@ -5,6 +5,7 @@ import { getLocalTodayStr, isTaskDueToday, normalizeTaskTimeType, getTaskTags } 
 import { TodayScheduleNotes } from "../../components/features/today/TodayScheduleNotes";
 import { TodayTaskList } from "../../components/features/today/TodayTaskList";
 import { TodayProgressBar } from "../../components/features/today/TodayProgressBar";
+import { getTaskProgress } from "../../utils/taskHierarchy";
 
 export interface TabletTodayViewProps {
   targetTaskId?: string;
@@ -63,8 +64,10 @@ export const TabletTodayView: React.FC<TabletTodayViewProps> = ({
     return filteredTodayTasks.filter((task) => task.completed);
   }, [filteredTodayTasks, hideCompletedTasks]);
 
-  const completedTodayCount = todayList.filter((task) => task.completed).length;
-  const totalTodayCount = todayList.length;
+  const { completed: completedTodayCount, total: totalTodayCount } = useMemo(
+    () => getTaskProgress(todayList),
+    [todayList],
+  );
 
   return (
     <div className="w-full min-w-0 space-y-3.5 select-none animate-in fade-in duration-150">
@@ -80,7 +83,7 @@ export const TabletTodayView: React.FC<TabletTodayViewProps> = ({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Tìm kiếm công việc hôm nay..."
-          className="w-full pl-10 pr-9 py-2.5 bg-white dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] rounded-none shadow-[1.5px_1.5px_0px_#262626] text-sm text-[#1C1917] dark:text-[#F2F2F7] placeholder:text-[#A8A29E] font-sans focus:outline-none focus:ring-1 focus:ring-[#262626] transition-all"
+          className="w-full pl-10 pr-9 py-2.5 bg-white dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] rounded-xl shadow-[1.5px_1.5px_0px_#262626] text-sm text-[#1C1917] dark:text-[#F2F2F7] placeholder:text-[#A8A29E] font-sans focus:outline-none focus:ring-1 focus:ring-[#262626] transition-all"
         />
         {searchQuery && (
           <button

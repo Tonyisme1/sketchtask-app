@@ -1,9 +1,10 @@
 import React from "react";
-import { ChevronRight, Clock } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { TaskDto } from "../../../types";
 import { normalizeTaskTimeType } from "../../../utils/taskSemantics";
 import { useResponsiveLayout } from "../../../shared/hooks";
 import { PlannerTimeline } from "./PlannerTimeline";
+import { getTaskProgress } from "../../../utils/taskHierarchy";
 
 interface DayColumn {
   dateStr: string;
@@ -14,21 +15,18 @@ interface DayColumn {
 
 interface PlannerWeekViewProps {
   weekDays: DayColumn[];
-  todayStr: string;
   selectedDateStr?: string;
-  onPreviewDate?: (dateStr: string) => void;
   getTasksForDate: (dateStr: string) => TaskDto[];
   onSelectDate: (dateStr: string) => void;
-  onSelectTask: (task: TaskDto) => void;
   onToggleTask: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
-  onMoveTomorrow?: (taskId: string) => void;
+  onUpdateTask: (taskId: string, updates: Partial<TaskDto>) => void;
+  onPreviewTask?: (task: TaskDto, anchorRect?: DOMRect | null) => void;
 }
 
 // === PHẦN 1: Danh sách 7 ngày cho mobile và tablet (Rõ ràng, dễ bấm, tỷ lệ cân đối) ===
 const TouchWeekList: React.FC<PlannerWeekViewProps> = ({
   weekDays,
-  todayStr,
   getTasksForDate,
   onSelectDate,
 }) => (
@@ -41,9 +39,9 @@ const TouchWeekList: React.FC<PlannerWeekViewProps> = ({
       const deadlineCount = dayTasks.filter(
         (task) => normalizeTaskTimeType(task) === "deadline",
       ).length;
-      const completedDayCount = dayTasks.filter((task) => task.completed).length;
-      const progressPercent = dayTasks.length > 0
-        ? Math.round((completedDayCount / dayTasks.length) * 100)
+      const { total: taskCount, completed: completedDayCount } = getTaskProgress(dayTasks);
+      const progressPercent = taskCount > 0
+        ? Math.round((completedDayCount / taskCount) * 100)
         : 0;
 
       return (
@@ -51,31 +49,31 @@ const TouchWeekList: React.FC<PlannerWeekViewProps> = ({
           key={day.dateStr}
           type="button"
           onClick={() => onSelectDate(day.dateStr)}
-          aria-label={`${day.dayName}, ngày ${day.dayNum}, ${dayTasks.length} việc`}
-          className={`w-full px-3.5 py-3 sm:py-3.5 rounded-xl border transition-all text-left flex items-center justify-between gap-2.5 shadow-2xs active:scale-[0.99] cursor-pointer min-h-[50px] ${
+          aria-label={`${day.dayName}, ngày ${day.dayNum}, ${taskCount} việc`}
+          className={`w-full px-3.5 py-3 sm:py-3.5 rounded-xl border transition-all text-left flex items-center justify-between gap-2.5 shadow-sm active:scale-[0.99] cursor-pointer min-h-[50px] ${
             day.isToday
-              ? "bg-[#FAF8F3] dark:bg-[#2C2C2E] border-[#1C1917] dark:border-white/50 ring-1 ring-[#1C1917]/10 dark:ring-white/10"
-              : "bg-white dark:bg-[#1C1C1E] border-[#E5E5EA] dark:border-black hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E]"
+              ? "bg-[#007AFF]/[0.04] dark:bg-[#0A84FF]/[0.08] border-[#007AFF]/30 dark:border-[#0A84FF]/40 ring-1 ring-[#007AFF]/10 dark:ring-[#0A84FF]/20"
+              : "bg-white dark:bg-[#1C1C1E] border-[#E5E5EA] dark:border-[#2C2C2E] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E]"
           }`}
         >
           {/* Cột 1: Thứ & Ngày */}
           <div className="flex items-center gap-1.5 min-w-[72px] sm:min-w-[84px] shrink-0">
             <span className={`text-[13.5px] sm:text-sm font-bold ${
               day.isToday
-                ? "text-[#1C1917] dark:text-white"
+                ? "text-[#007AFF] dark:text-[#0A84FF]"
                 : "text-[#1C1C1E] dark:text-[#F2F2F7]"
             }`}>
               {day.dayName}, {day.dayNum}
             </span>
             {day.isToday && (
-              <span className="px-1.5 py-0.5 rounded bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] text-[10px] font-bold leading-none shrink-0">
+              <span className="px-1.5 py-0.5 rounded bg-[#007AFF] dark:bg-[#0A84FF] text-white text-[10px] font-bold leading-none shrink-0">
                 Nay
               </span>
             )}
           </div>
 
           {/* Cột 2: Thông tin tóm tắt công việc */}
-          <div className="flex-1 min-w-0 flex items-center gap-1.5 text-xs text-[#8E8E93] dark:text-[#AEAEC2] truncate">
+          <div className="flex-1 min-w-0 flex items-center gap-1.5 text-xs text-[#8E8E93] dark:text-[#8E8E93] truncate">
             {dayTasks.length > 0 ? (
               <div className="flex items-center gap-1.5 truncate">
                 <span className="font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{dayTasks.length} việc</span>
@@ -95,7 +93,7 @@ const TouchWeekList: React.FC<PlannerWeekViewProps> = ({
                 )}
               </div>
             ) : (
-              <span className="text-[#8E8E93] dark:text-[#AEAEC2] text-xs">Trống</span>
+              <span className="text-[#8E8E93] dark:text-[#8E8E93] text-xs">Trống</span>
             )}
           </div>
 
@@ -105,7 +103,7 @@ const TouchWeekList: React.FC<PlannerWeekViewProps> = ({
               <div className="flex items-center gap-1.5">
                 <div className="w-12 sm:w-14 h-1.5 rounded-full bg-[#E5E5EA] dark:bg-[#3A3A3C] overflow-hidden">
                   <div
-                    className="h-full bg-[#1C1917] dark:bg-white rounded-full transition-all"
+                    className="h-full bg-[#007AFF] dark:bg-[#0A84FF] rounded-full transition-all"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>

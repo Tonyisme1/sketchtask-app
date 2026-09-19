@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --bg-canvas: #f2f2f7;
-  --bg-surface: #ffffff;
+  --bg-canvas: #f2f2f7;          /* App shell / background: xám trắng nhẹ */
+  --bg-surface: #ffffff;         /* Main content surface: trắng */
   --bg-surface-muted: #e5e5ea;
   --border-ink: #e5e5ea;
   --border-ink-muted: #f2f2f7;
@@ -72,93 +72,109 @@ body.paper-grid,
 }
 
 /* ========================================== */
+/* LIGHT MODE: Shell #F2F2F7 & Surface #FFFFFF */
 /* ========================================== */
-/* DARK MODE (NỀN TỐI TỐI GIẢN GRAPHITE / OLED) */
+html:not(.dark) body,
+html:not(.dark) #root {
+  background-color: var(--bg-canvas) !important;
+  color: #1c1c1e !important;
+}
+
+html:not(.dark) header,
+html:not(.dark) nav,
+html:not(.dark) aside,
+html:not(.dark) .bg-\[\#FBF9F4\],
+html:not(.dark) .bg-\[\#FAF8F3\] {
+  background-color: var(--bg-canvas) !important;
+}
+
+html:not(.dark) .bg-white,
+html:not(.dark) .bg-\[\#FFFFFF\],
+html:not(.dark) .bg-\[\#FFFDF8\],
+html:not(.dark) .bg-\[\#FCFBF9\] {
+  background-color: var(--bg-surface) !important;
+}
+
+html:not(.dark) [class*="hover:bg-\[\#FAF8F3\]"]:hover,
+html:not(.dark) [class*="hover:bg-\[\#F2F2F7\]"]:hover,
+html:not(.dark) [class*="hover:bg-\[\#E5E5EA\]"]:hover,
+html:not(.dark) [class*="hover:bg-\[\#E7E5E4\]"]:hover {
+  background-color: #e5e5ea !important;
+}
+
+/* ========================================== */
+/* DARK MODE: Shell #18181A & Surface #000000 */
 /* ========================================== */
 .dark {
-  --bg-canvas: #121214;
-  --bg-surface: #1c1c1e;
-  --bg-surface-muted: #27272a;
-  --border-ink: #000000;
-  --border-ink-muted: #000000;
-  --text-main: #f2f2f7;
+  --bg-canvas: #18181a;          /* App shell / background: xám đen */
+  --bg-surface: #000000;         /* Main content surface: đen */
+  --bg-surface-muted: #242426;   /* Subtle background / gutters */
+  --border-ink: #2c2c2e;         /* Clean dark border */
+  --border-ink-muted: #1f1f21;
+  --text-main: #f2f2f7;          /* Context primary text */
   --text-strong: #ffffff;
-  --text-muted: #8e8e93;
-  --text-subtle: #636366;
+  --text-muted: #8e8e93;          /* Context secondary/muted text */
+  --text-subtle: #636366;        /* Context subtle text */
   --accent-yellow: #ffd60a;
   --accent-blue: #0a84ff;
+  --accent-coral: #ff453a;
+  --accent-mint: #30d158;
+  --accent-sky: #64d2ff;
   color-scheme: dark;
 }
 
-.dark body {
+.dark body,
+.dark #root {
   background-color: var(--bg-canvas) !important;
   color: var(--text-main) !important;
 }
 
-/* Common paper & surface colors used across Tailwind classes */
 .dark header,
-.dark nav {
-  background-color: var(--bg-surface) !important;
-  border-color: #000000 !important;
-}
-
-.dark .bg-white,
-.dark .bg-\[\#FFFFFF\],
-.dark .bg-\[\#FFFDF8\],
-.dark .bg-\[\#FCFBF9\] {
-  background-color: var(--bg-surface) !important;
-}
-
-.dark .bg-\[\#FBF9F4\] {
+.dark nav,
+.dark aside,
+.dark .bg-\[\#FBF9F4\],
+.dark .bg-\[\#FAF8F3\] {
   background-color: var(--bg-canvas) !important;
 }
 
-.dark .bg-\[\#F2F2F7\],
-.dark .bg-\[\#E5E5EA\],
-.dark .bg-\[\#FAF8F3\],
-.dark .bg-\[\#F5F5F4\],
-.dark .bg-\[\#F5F3EF\],
-.dark .bg-\[\#F5F2EA\],
-.dark .bg-\[\#F3EFE6\],
-.dark .bg-\[\#F0ECE1\],
-.dark .bg-\[\#E7E5E4\],
-.dark .bg-\[\#D4CEBF\] {
-  background-color: var(--bg-surface-muted) !important;
+.dark .bg-white:not([class*="dark:bg-white"]),
+.dark .bg-\[\#FFFFFF\]:not([class*="dark:bg-white"]),
+.dark .bg-\[\#FFFDF8\],
+.dark .bg-\[\#FCFBF9\],
+.dark .task-card-shell,
+.dark .modal-content,
+.dark .popover-content,
+.dark .bottom-sheet {
+  background-color: var(--bg-surface) !important;
 }
 
-.dark .text-\[\#1C1917\],
-.dark .text-\[\#1C1C1E\],
-.dark .text-\[\#262626\],
-.dark .text-\[\#000000\],
-.dark .text-black {
-  color: var(--text-main) !important;
+/* Nền mờ sâu trong suốt tối */
+.dark [class*="dark:bg-\[\#1C1C1E\]/"],
+.dark [class*="dark:bg-\[\#1c1c1e\]/"],
+.dark [class*="dark:bg-\[\#2C2C2E\]/"],
+.dark [class*="dark:bg-\[\#121214\]/"],
+.dark [class*="dark:bg-black/"],
+.dark [class*="bg-\[\#FAF8F3\]/"],
+.dark [class*="bg-\[\#F5F2EA\]/"],
+.dark [class*="bg-\[\#F2F2F7\]/"] {
+  background-color: rgba(24, 24, 26, 0.95) !important;
 }
 
-.dark .text-\[\#57534E\],
-.dark .text-\[\#78716C\],
-.dark .text-\[\#8E8E93\],
-.dark .text-\[\#A8A29E\],
-.dark .text-\[\#44403C\],
-.dark .text-\[\#D4CEBF\] {
-  color: var(--text-muted) !important;
+/* NÚT CTA CHÍNH / ACTIVE TABS */
+.dark [class*="dark:bg-white"],
+.dark [class*="dark:bg-\[\#FFFFFF\]"],
+.dark [class*="dark:bg-\[\#ffffff\]"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
 }
 
-/* Context hierarchy: regular content is softer than headings and controls */
-.dark h1,
-.dark h2,
-.dark h3,
-.dark h4 {
-  color: var(--text-strong);
+.dark [class*="dark:bg-white"] *,
+.dark [class*="dark:bg-\[\#FFFFFF\]"] *,
+.dark [class*="dark:bg-\[\#ffffff\]"] * {
+  color: #000000 !important;
 }
 
-.dark small,
-.dark kbd {
-  color: var(--text-subtle);
-}
-
-/* ======================================================== */
-/* 1. BORDER TRONG DARK MODE: ĐEN THUẦN (KHÔNG CHÓI / SÁNG) */
-/* ======================================================== */
+/* VIỀN TRONG DARK MODE */
 .dark .border,
 .dark .border-\[\#262626\],
 .dark .border-\[\#1C1917\],
@@ -167,151 +183,59 @@ body.paper-grid,
 .dark .border-\[\#D4CEBF\],
 .dark .border-\[\#E7E5E4\],
 .dark .border-\[\#D6D3D1\],
-.dark .border-\[\#A8A29E\],
-.dark .border-\[\#44403C\],
 .dark .border-\[\#2C2C2E\],
 .dark .border-\[\#3A3A3C\],
-.dark .border-\[\#52525B\],
-.dark .border-\[\#404040\],
-.dark [class*="dark:border-[#"],
-.dark [class*="dark:border-white"],
-.dark [class*="dark:border-zinc"],
-.dark [class*="dark:border-neutral"],
-.dark [class*="dark:border-gray"] {
-  border-color: #000000 !important;
+.dark [class*="dark:border-\[\#262626\]"],
+.dark [class*="dark:border-\#262626"] {
+  border-color: #2c2c2e !important;
 }
 
-/* ======================================================== */
-/* 2. LOẠI BỎ HOÀN TOÀN CÁC ĐƯỜNG KẺ GẠCH NGANG TRONG DARK MODE */
-/* ======================================================== */
-.dark hr {
-  display: none !important;
-}
-
-.dark .divide-y > *,
-.dark .divide-y-reverse > *,
-.dark [class*="divide-y"] > * {
-  border-top-color: transparent !important;
-  border-bottom-color: transparent !important;
-}
-
-/* Toàn bộ đường kẻ phân cách ngang (border-b / border-t phụ) ẩn đi trong Dark Mode */
-.dark .task-card-shell,
-.dark [class*="border-b"][class*="border-[#262626]"],
-.dark [class*="border-t"][class*="border-[#262626]"],
-.dark [class*="border-b"][class*="border-[#D4CEBF]"],
-.dark [class*="border-t"][class*="border-[#D4CEBF]"],
-.dark [class*="border-b"][class*="border-[#E5E5EA]"],
-.dark [class*="border-t"][class*="border-[#E5E5EA]"],
-.dark [class*="border-b"][class*="border-[#2C2C2E]"],
-.dark [class*="border-t"][class*="border-[#2C2C2E]"],
-.dark [class*="border-b"][class*="dark:border-white"],
-.dark [class*="border-t"][class*="dark:border-white"] {
-  border-bottom-color: transparent !important;
-  border-top-color: transparent !important;
-}
-
-/* Bảo toàn viền đen hoàn chỉnh cho hộp bao 4 cạnh (Card, Input, Button, Modal, Popover) */
-.dark [class*="border-[1.5px]"],
-.dark [class*="border-[2px]"],
-.dark [class*="border-2"],
-.dark input,
-.dark textarea,
-.dark select,
-.dark button[class*="border-"],
-.dark [role="dialog"],
-.dark [class*="rounded-["] {
-  border-color: #000000 !important;
-}
-
-.dark [class*="bg-[#FAF8F3]/"],
-.dark [class*="bg-[#F5F2EA]/"],
-.dark [class*="bg-[#F2F2F7]/"] {
-  background-color: color-mix(in srgb, var(--bg-surface-muted) 75%, transparent) !important;
-}
-
-.dark [class*="text-[#262626]/"],
-.dark [class*="text-[#1C1917]/"],
-.dark [class*="text-[#1C1C1E]/"] {
-  color: color-mix(in srgb, var(--text-main) 90%, transparent) !important;
-}
-
-.dark [class*="text-[#78716C]/"],
-.dark [class*="text-[#8E8E93]/"] {
-  color: color-mix(in srgb, var(--text-muted) 90%, transparent) !important;
-}
-
+/* HOVER / ACTIVE TRONG DARK MODE */
 .dark [class*="hover:bg-white"]:hover,
-.dark [class*="hover:bg-[#FFFDF8]"]:hover,
-.dark [class*="hover:bg-[#FAF8F3]"]:hover,
-.dark [class*="hover:bg-[#F2F2F7]"]:hover,
-.dark [class*="hover:bg-[#E5E5EA]"]:hover,
-.dark [class*="hover:bg-slate-100"]:hover,
-.dark [class*="focus:bg-[#FFFDF8]"]:focus {
-  background-color: var(--bg-surface-muted) !important;
+.dark [class*="hover:bg-\[\#FFFDF8\]"]:hover,
+.dark [class*="hover:bg-\[\#FAF8F3\]"]:hover,
+.dark [class*="hover:bg-\[\#F2F2F7\]"]:hover,
+.dark [class*="hover:bg-\[\#E5E5EA\]"]:hover,
+.dark [class*="dark:hover:bg-\[\#3A3A3C\]"]:hover,
+.dark [class*="dark:hover:bg-\[\#2C2C2E\]"]:hover,
+.dark [class*="dark:hover:bg-white/10"]:hover,
+.dark [class*="dark:hover:bg-white/5"]:hover {
+  background-color: #242426 !important;
 }
 
-.dark input,
+.dark [class*="active:bg-black/"]:active,
+.dark [class*="dark:active:bg-white/"]:active,
+.dark [class*="dark:active:bg-\[\#3A3A3C\]"]:active {
+  background-color: #2c2c2e !important;
+}
+
+/* Ô NHẬP LIỆU TRONG DARK MODE */
+.dark input:not([class*="dark:bg-white"]),
 .dark textarea,
 .dark select,
 .dark [contenteditable="true"] {
   background-color: var(--bg-surface) !important;
   color: var(--text-main) !important;
-  border-color: var(--border-ink) !important;
-  caret-color: var(--text-main);
+  border-color: #2c2c2e !important;
+  caret-color: #ffffff !important;
+}
+
+.dark input.bg-transparent,
+.dark textarea.bg-transparent,
+.dark select.bg-transparent {
+  background-color: transparent !important;
 }
 
 .dark input::placeholder,
 .dark textarea::placeholder,
 .dark [contenteditable="true"]::placeholder {
-  color: var(--text-muted) !important;
+  color: #71717a !important;
   opacity: 1;
 }
 
 .dark option {
-  background-color: var(--bg-surface);
-  color: var(--text-main);
-}
-
-.dark ::selection {
-  background-color: var(--accent-yellow);
-  color: #121214;
-}
-
-.dark ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: var(--bg-canvas);
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: var(--border-ink);
-  border: 2px solid var(--bg-canvas);
-  border-radius: 6px;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
-}
-
-.dark :focus-visible {
-  outline: 2px solid var(--accent-yellow);
-  outline-offset: 2px;
-}
-
-.dark .shadow-\[2px_2px_0px_\#262626\],
-.dark .shadow-\[1\.5px_1\.5px_0px_\#262626\],
-.dark .shadow-\[1px_1px_0px_\#262626\],
-.dark .shadow-\[0\.5px_0\.5px_0px_\#262626\],
-.dark .shadow-\[2\.5px_2\.5px_0px_\#262626\],
-.dark .shadow-\[3px_3px_0px_\#262626\],
-.dark .shadow-\[3\.5px_3\.5px_0px_\#262626\],
-.dark .shadow-\[4px_4px_0px_\#262626\],
-.dark .shadow-\[6px_6px_0px_\#262626\] {
-  box-shadow: 2px 2px 0px #000000 !important;
+  background-color: #18181a !important;
+  color: #f2f2f7 !important;
 }
 
 /* ========================================== */
@@ -332,11 +256,11 @@ html[data-interface-style="ios"] {
 }
 
 html.dark[data-interface-style="ios"] {
-  --bg-canvas: #121214;
-  --bg-surface: #1c1c1e;
-  --bg-surface-muted: #27272a;
-  --border-ink: #000000;
-  --border-ink-muted: #000000;
+  --bg-canvas: #18181a;
+  --bg-surface: #000000;
+  --bg-surface-muted: #242426;
+  --border-ink: #2c2c2e;
+  --border-ink-muted: #1f1f21;
   --text-main: #f2f2f7;
   --text-strong: #ffffff;
   --text-muted: #8e8e93;
@@ -414,24 +338,24 @@ html[data-interface-style="ios"] .border-\[\#44403C\] {
   border-color: var(--border-ink) !important;
 }
 
-html[data-interface-style="ios"] [class*="border-[#262626]/"],
-html[data-interface-style="ios"] [class*="border-[#D4CEBF]/"] {
+html[data-interface-style="ios"] [class*="border-\[\#262626\]/"],
+html[data-interface-style="ios"] [class*="border-\[\#D4CEBF\]/"] {
   border-color: var(--border-ink-muted) !important;
 }
 
 html[data-interface-style="ios"] [class*="hover:bg-white"]:hover,
-html[data-interface-style="ios"] [class*="hover:bg-[#FFFDF8]"]:hover,
-html[data-interface-style="ios"] [class*="hover:bg-[#FAF8F3]"]:hover {
+html[data-interface-style="ios"] [class*="hover:bg-\[\#FFFDF8\]"]:hover,
+html[data-interface-style="ios"] [class*="hover:bg-\[\#FAF8F3\]"]:hover {
   background-color: var(--bg-surface-muted) !important;
 }
 
 /* The iOS skin is intentionally quiet: thin borders and no tactile offsets. */
-html[data-interface-style="ios"] [class*="shadow-["] {
+html[data-interface-style="ios"] [class*="shadow-\["] {
   box-shadow: none !important;
 }
 
-html[data-interface-style="ios"] [class*="border-[1.5px]"],
-html[data-interface-style="ios"] [class*="border-[2px]"] {
+html[data-interface-style="ios"] [class*="border-\[1.5px\]"],
+html[data-interface-style="ios"] [class*="border-\[2px\]"] {
   border-width: 1px !important;
 }
 
@@ -441,15 +365,15 @@ html[data-interface-style="ios"] [class*="-rotate-"] {
   rotate: 0deg !important;
 }
 
-html[data-interface-style="ios"] [class*="rounded-[4px]"],
-html[data-interface-style="ios"] [class*="rounded-[5px]"],
-html[data-interface-style="ios"] [class*="rounded-[6px]"] {
+html[data-interface-style="ios"] [class*="rounded-\[4px\]"],
+html[data-interface-style="ios"] [class*="rounded-\[5px\]"],
+html[data-interface-style="ios"] [class*="rounded-\[6px\]"] {
   border-radius: 14px !important;
 }
 
-html[data-interface-style="ios"] [class*="rounded-[8px]"],
-html[data-interface-style="ios"] [class*="rounded-[18px]"],
-html[data-interface-style="ios"] [class*="rounded-[22px]"] {
+html[data-interface-style="ios"] [class*="rounded-\[8px\]"],
+html[data-interface-style="ios"] [class*="rounded-\[18px\]"],
+html[data-interface-style="ios"] [class*="rounded-\[22px\]"] {
   border-radius: 18px !important;
 }
 
@@ -501,9 +425,9 @@ html[data-interface-style="ios"] .task-card-shell {
 }
 
 html.dark[data-interface-style="ios"] .context-checkbox[data-checked="true"] {
-  background-color: var(--text-main) !important;
-  border-color: var(--text-main) !important;
-  color: #18181b !important;
+  background-color: #ffffff !important;
+  border-color: #ffffff !important;
+  color: #000000 !important;
 }
 
 html[data-interface-style="ios"]:not(.dark)
@@ -526,6 +450,20 @@ html[data-interface-style="ios"] body.paper-lined,
 html[data-interface-style="ios"] body.paper-dots,
 html[data-interface-style="ios"] body.paper-grid {
   background-image: none !important;
+}
+
+/* Keep dark-mode contrast when the iOS skin rewrites the base ink colors. */
+html.dark[data-interface-style="ios"] [class~="dark:bg-white"],
+html.dark[data-interface-style="ios"] [class~="dark:bg-\[\#FAFAFA\]"],
+html.dark[data-interface-style="ios"] [class~="dark:bg-\[\#F2F2F7\]"],
+html.dark[data-interface-style="ios"] [class~="dark:bg-\[\#E4E4E7\]"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+html.dark[data-interface-style="ios"] [class~="dark:text-\[\#1C1917\]"],
+html.dark[data-interface-style="ios"] [class~="dark:text-\[\#18181B\]"] {
+  color: #000000 !important;
 }
 
 * {
@@ -580,12 +518,12 @@ body {
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: var(--bg-surface-muted);
-  border-color: var(--border-ink-muted);
+  background: #27272a;
+  border-color: #000000;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: var(--border-ink);
+  background: #3f3f46;
 }
 
 .no-scrollbar::-webkit-scrollbar {
@@ -615,8 +553,6 @@ body {
   animation: drawCheck 0.22s cubic-bezier(0.65, 0, 0.45, 1) forwards;
 }
 
-
-
 .mobile-tab-enter,
 .mobile-tab-slide-left,
 .mobile-tab-slide-right,
@@ -636,8 +572,6 @@ body {
     animation: uiFadeIn 180ms ease-out;
   }
 }
-
-
 
 /* 8. Hiệu ứng ô xem chi tiết trượt từ ngoài vào trong (Slide In Right) */
 @keyframes detailSlideInRight {
@@ -672,7 +606,6 @@ body {
 .animate-in.fade-in {
   animation: uiFadeIn 150ms ease-out forwards;
 }
-
 
 /* Một kiểu nút quay lại duy nhất trên mobile; callback của từng màn hình giữ nguyên. */
 @media (max-width: 767px) {
@@ -713,12 +646,12 @@ body {
   }
 
   .dark .mobile-back-button {
-    background: #2c2c2e !important;
-    color: #f2f2f7 !important;
+    background: #141416 !important;
+    color: #ffffff !important;
   }
 
   .dark .mobile-back-button:hover {
-    background: #3a3a3c !important;
+    background: #27272a !important;
   }
 }
 

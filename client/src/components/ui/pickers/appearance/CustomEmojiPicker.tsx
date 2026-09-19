@@ -197,7 +197,7 @@ export const CustomEmojiPicker: React.FC<CustomEmojiPickerProps> = ({
                   type="button"
                   onClick={() => setActiveTabId(tab.id)}
                   title={tab.label}
-                  className={`py-1 rounded-[2px] text-xs font-bold flex items-center justify-center transition-all ${
+                  className={`py-1 rounded-xl text-xs font-bold flex items-center justify-center transition-all ${
                     activeTabId === tab.id
                       ? "bg-[#FEF08A] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
                       : "text-[#78716C] hover:bg-[#F3EFE6]"

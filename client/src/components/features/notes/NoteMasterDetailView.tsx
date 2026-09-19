@@ -12,6 +12,16 @@ import {
   ChevronRight,
   Pin,
   Check,
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  Heading1,
+  Heading2,
+  List,
+  ListOrdered,
+  Quote,
+  RemoveFormatting,
 } from "lucide-react";
 
 export interface NoteMasterDetailViewProps {
@@ -73,7 +83,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
     if (initialNoteId && notes.some((note) => note.id === initialNoteId)) {
       setMobileNoteTransition("forward");
       setSelectedNoteId(initialNoteId);
-      setIsMobileNoteDetailOpen(true);
+      if (isMobile) setIsMobileNoteDetailOpen(true);
     }
   }, [initialNoteId, isMobile, notes, setIsMobileNoteDetailOpen]);
 
@@ -82,7 +92,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
       prevNewlyCreatedIdRef.current = newlyCreatedId;
       setMobileNoteTransition("forward");
       setSelectedNoteId(newlyCreatedId);
-      setIsMobileNoteDetailOpen(true);
+      if (isMobile) setIsMobileNoteDetailOpen(true);
       setTimeout(() => {
         titleInputRef.current?.focus();
       }, 80);
@@ -95,6 +105,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   const [title, setTitle] = useState(selectedNote?.title || "");
   const [isSaved, setIsSaved] = useState(true);
   const [expandedNoteIds, setExpandedNoteIds] = useState<Set<string>>(new Set());
+  const [activeFormats, setActiveFormats] = useState<Record<string, boolean>>({});
 
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -167,7 +178,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   const handleOpenNote = (targetId: string) => {
     setMobileNoteTransition("forward");
     setSelectedNoteId(targetId);
-    setIsMobileNoteDetailOpen(true);
+    if (isMobile) setIsMobileNoteDetailOpen(true);
   };
 
   const handleCloseNoteEditor = () => {
@@ -179,7 +190,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
     }
     setMobileNoteTransition("back");
     setSelectedNoteId(null);
-    setIsMobileNoteDetailOpen(false);
+    if (isMobile) setIsMobileNoteDetailOpen(false);
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -200,12 +211,36 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
     const contentHtml = editorRef.current ? editorRef.current.innerHTML : (selectedNote?.content || "");
     flushSave(title, contentHtml);
   };
+
+  const syncActiveFormats = () => {
+    if (!editorRef.current || !editorRef.current.contains(document.activeElement)) return;
+    const commands = ["bold", "italic", "underline", "strikeThrough", "insertUnorderedList", "insertOrderedList"];
+    setActiveFormats(
+      commands.reduce<Record<string, boolean>>((formats, command) => {
+        formats[command] = document.queryCommandState(command);
+        return formats;
+      }, {}),
+    );
+  };
+
+  const runEditorCommand = (command: string, value?: string) => {
+    editorRef.current?.focus();
+    document.execCommand(command, false, value);
+    handleEditorInput();
+    syncActiveFormats();
+  };
+
+  useEffect(() => {
+    const handleSelectionChange = () => syncActiveFormats();
+    document.addEventListener("selectionchange", handleSelectionChange);
+    return () => document.removeEventListener("selectionchange", handleSelectionChange);
+  }, []);
   const contentCharacterCount = stripHtml(selectedNote?.content || "").length;
 
   // =========================================================================
   // DANH SÁCH GHI CHÚ: CHỈ MỞ EDITOR SAU KHI NGƯỜI DÙNG CHỌN NOTE
   // =========================================================================
-  if ((!selectedNote || !isMobileNoteDetailOpen) && notes.length > 0) {
+  if ((!selectedNote || (isMobile && !isMobileNoteDetailOpen)) && notes.length > 0) {
     return (
       <div className={`w-full min-w-0 space-y-3 select-none ${
         mobileNoteTransition === "back" ? "mobile-panel-back-enter" : "mobile-tab-enter"
@@ -385,7 +420,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
             onClick={() => {
               onDeleteNote(selectedNote.id);
               setSelectedNoteId(null);
-              setIsMobileNoteDetailOpen(false);
+              if (isMobile) setIsMobileNoteDetailOpen(false);
             }}
             className="w-9 h-9 rounded-xl flex items-center justify-center text-[#78716C] hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer active:scale-95"
             title="Xóa trang ghi chú này"
@@ -443,7 +478,47 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
           </div>
         </div>
 
-        {/* Khung nhập nội dung ghi chú, không có thanh công cụ kiểu Word */}
+        {/* Thanh công cụ gọn, trượt ngang trên mobile và giữ cố định chiều cao trên desktop */}
+        <div
+          className="note-editor-toolbar flex shrink-0 items-center gap-1 overflow-x-auto border-y border-[#D4CEBF] bg-[#FAF8F3] px-1 py-1.5 dark:border-[#3A3A3C] dark:bg-[#202023]"
+          role="toolbar"
+          aria-label="Định dạng nội dung ghi chú"
+          onMouseDown={(event) => event.preventDefault()}
+        >
+          {[
+            { command: "bold", label: "Đậm", icon: <Bold size={15} strokeWidth={2.6} /> },
+            { command: "italic", label: "Nghiêng", icon: <Italic size={15} strokeWidth={2.4} /> },
+            { command: "underline", label: "Gạch chân", icon: <Underline size={15} strokeWidth={2.4} /> },
+            { command: "strikeThrough", label: "Gạch ngang", icon: <Strikethrough size={15} strokeWidth={2.4} /> },
+            { command: "formatBlock", value: "<h1>", label: "Tiêu đề 1", icon: <Heading1 size={15} strokeWidth={2.2} /> },
+            { command: "formatBlock", value: "<h2>", label: "Tiêu đề 2", icon: <Heading2 size={15} strokeWidth={2.2} /> },
+            { command: "insertUnorderedList", label: "Danh sách", icon: <List size={15} strokeWidth={2.2} /> },
+            { command: "insertOrderedList", label: "Danh sách số", icon: <ListOrdered size={15} strokeWidth={2.2} /> },
+            { command: "formatBlock", value: "<blockquote>", label: "Trích dẫn", icon: <Quote size={15} strokeWidth={2.2} /> },
+            { command: "removeFormat", label: "Xóa định dạng", icon: <RemoveFormatting size={15} strokeWidth={2.2} /> },
+          ].map((tool, index) => {
+            const isActive = Boolean(activeFormats[tool.command]);
+            return (
+              <button
+                key={`${tool.command}-${tool.value || index}`}
+                type="button"
+                onClick={() => runEditorCommand(tool.command, tool.value)}
+                title={tool.label}
+                aria-label={tool.label}
+                aria-pressed={isActive}
+                className={`flex h-8 w-8 shrink-0 items-center justify-center border-[1.5px] text-[#57534E] transition-colors active:translate-x-[0.5px] active:translate-y-[0.5px] dark:text-[#D4D4D8] ${
+                  isActive
+                    ? "border-[#262626] bg-[#262626] text-white dark:border-[#FAFAFA] dark:bg-[#FAFAFA] dark:text-[#18181B]"
+                    : "border-transparent hover:border-[#262626]/40 hover:bg-white dark:hover:border-[#D4D4D8]/40 dark:hover:bg-[#2C2C2E]"
+                }`}
+              >
+                {tool.icon}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Khung nhập nội dung ghi chú */}
         <div className="flex min-h-0 flex-1 flex-col py-2">
           <div
             ref={editorRef}

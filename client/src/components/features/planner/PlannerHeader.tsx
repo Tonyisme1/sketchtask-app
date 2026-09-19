@@ -28,7 +28,7 @@ export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
       {/* 1. Bộ điều hướng thời gian */}
       <div className="flex items-center gap-1.5 min-w-0">
         {/* Nút Chuyển Mốc Thời Gian (< Label >) */}
-        <div className="flex items-center bg-white dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] dark:border-black rounded-[6px] shadow-[1px_1px_0px_#262626] h-8 sm:h-8.5">
+        <div className="flex items-center bg-white dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] dark:border-black rounded-[6px] shadow-[1px_1px_0px_#262626] h-8 sm:h-[34px]">
           <button
             type="button"
             onClick={onPrev}
@@ -58,7 +58,7 @@ export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
         <button
           type="button"
           onClick={onToday}
-          className="h-8 sm:h-8.5 px-2 sm:px-2.5 text-xs font-bold bg-[#FAF8F3] dark:bg-[#2C2C2E] hover:bg-[#F3EFE6] dark:hover:bg-[#3A3A3C] border-[1.5px] border-[#262626] dark:border-black rounded-[6px] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none text-[#1C1917] dark:text-white transition-all cursor-pointer shrink-0"
+          className="h-8 sm:h-[34px] px-2 sm:px-2.5 text-xs font-bold bg-[#FAF8F3] dark:bg-[#2C2C2E] hover:bg-[#F3EFE6] dark:hover:bg-[#3A3A3C] border-[1.5px] border-[#262626] dark:border-black rounded-[6px] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none text-[#1C1917] dark:text-white transition-all cursor-pointer shrink-0"
           title="Nhảy về mốc hiện tại"
         >
           Nay
@@ -67,7 +67,7 @@ export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
 
       {/* 2. Chuyển giữa 7 ngày và Lịch tháng */}
       <div className="flex items-center shrink-0">
-        <div className="inline-flex h-8 sm:h-8.5 p-0.5 bg-[#FAF8F3] dark:bg-[#2C2C2E] border-[1.5px] border-[#262626] dark:border-black rounded-[6px] shadow-[1px_1px_0px_#262626]">
+        <div className="inline-flex h-8 sm:h-[34px] p-0.5 bg-[#FAF8F3] dark:bg-[#2C2C2E] border-[1.5px] border-[#262626] dark:border-black rounded-[6px] shadow-[1px_1px_0px_#262626]">
           <button
             type="button"
             onClick={() => onViewModeChange("agenda")}

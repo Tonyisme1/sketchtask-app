@@ -6,7 +6,7 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { TaskDto, HabitDto, TaskStatus, TaskPriority, TaskTimeType, JournalEntryDto, SettingsSectionKey, DeletedEntityIds, TaskEditorInitialData } from "../types";
+import { TaskDto, HabitDto, TaskStatus, TaskPriority, TaskItemType, TaskTimeType, TaskSubTab, JournalEntryDto, SettingsSectionKey, DeletedEntityIds, TaskEditorInitialData } from "../types";
 import { api, authStorage } from "../services/api";
 import { syncSocket } from "../services/syncSocket";
 import { smartMergeAppData } from "../utils/syncMerge";
@@ -18,13 +18,14 @@ import { dispatchToast } from "../utils/toast";
 import {
   constrainTaskToParent,
   getInheritedParentSchedule,
+  getTaskItemType,
   getTaskEffectiveDate,
   moveTaskToDate,
   wouldCreateTaskCycle,
 } from "../utils/taskSemantics";
 import { calculateConsecutiveStreak } from "../utils/habitSemantics";
 
-export type { TaskDto, TaskPriority, HabitDto, TaskStatus, TaskTimeType, JournalEntryDto, SettingsSectionKey, DeletedEntityIds, TaskEditorInitialData };
+export type { TaskDto, TaskPriority, HabitDto, TaskStatus, TaskItemType, TaskTimeType, TaskSubTab, JournalEntryDto, SettingsSectionKey, DeletedEntityIds, TaskEditorInitialData };
 
 // ==========================================
 // STORE: AppStore (Offline-First + Realtime WebSocket Sync Engine)
@@ -149,11 +150,14 @@ export interface AppContextType {
     dueDate?: string;
     startDate?: string;
     endDate?: string;
+    itemType?: TaskItemType;
     timeType?: TaskTimeType;
+    completed?: boolean;
     startTime?: string;
     endTime?: string;
     deadlineDate?: string;
     deadlineTime?: string;
+    status?: TaskStatus;
     tag?: string;
     tags?: string[];
     parentTaskId?: string;
@@ -209,9 +213,9 @@ export interface AppContextType {
   completedTaskPrompt: TaskDto | null;
   dismissCompletedTaskPrompt: () => void;
 
-  // Active Task SubTab (Hôm nay | Kế hoạch | Hạn định)
-  activeTaskSubTab: "today" | "planner" | "deadlines";
-  setActiveTaskSubTab: (subTab: "today" | "planner" | "deadlines") => void;
+  // Active Task SubTab (Tất cả | Hôm nay | Kế hoạch | Hạn định)
+  activeTaskSubTab: TaskSubTab;
+  setActiveTaskSubTab: (subTab: TaskSubTab) => void;
   selectedPlannerDate: string;
   setSelectedPlannerDate: (date: string) => void;
 
@@ -226,6 +230,7 @@ export interface AppContextType {
   quickTaskInitialData: {
     dueDate?: string;
     tag?: string;
+    itemType?: TaskItemType;
     timeType?: TaskTimeType;
     startTime?: string;
     endTime?: string;
@@ -233,6 +238,7 @@ export interface AppContextType {
   openQuickTaskModal: (initialData?: {
     dueDate?: string;
     tag?: string;
+    itemType?: TaskItemType;
     timeType?: TaskTimeType;
     startTime?: string;
     endTime?: string;
@@ -258,6 +264,13 @@ export interface AppContextType {
 
 export const APP_STORAGE_KEY = "sketchtask_local_storage_v2";
 const STORAGE_KEY = APP_STORAGE_KEY;
+
+const createLocalEntityId = (prefix: string): string => {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `${prefix}-${crypto.randomUUID()}`;
+  }
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+};
 
 const EMPTY_DELETED_ENTITY_IDS: DeletedEntityIds = {
   tasks: [],
@@ -587,7 +600,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       if (metaThemeColor) {
         metaThemeColor.setAttribute(
           "content",
-          isDarkMode ? "#121214" : "#FBF9F4",
+          isDarkMode ? "#18181A" : "#F2F2F7",
         );
       }
     }
@@ -616,9 +629,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.setItem(`${STORAGE_KEY}_sidebar_open`, JSON.stringify(open));
   };
 
-  // --- Active Task SubTab (Hôm nay | Kế hoạch | Hạn định) ---
-  const [activeTaskSubTab, setActiveTaskSubTabState] = useState<"today" | "planner" | "deadlines">("today");
-  const setActiveTaskSubTab = useCallback((subTab: "today" | "planner" | "deadlines") => {
+  // --- Active Task SubTab (Tất cả | Hôm nay | Kế hoạch | Hạn định) ---
+  const [activeTaskSubTab, setActiveTaskSubTabState] = useState<TaskSubTab>("today");
+  const setActiveTaskSubTab = useCallback((subTab: TaskSubTab) => {
     setActiveTaskSubTabState(subTab);
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -1466,10 +1479,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     endTime?: string;
     deadlineDate?: string;
     deadlineTime?: string;
+    completed?: boolean;
+    status?: TaskStatus;
     tag?: string;
     tags?: string[];
     startDate?: string;
     endDate?: string;
+    itemType?: TaskItemType;
     parentTaskId?: string;
     priority?: TaskPriority;
   }) => {
@@ -1486,14 +1502,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       if (clean && !taskTagsList.includes(clean)) taskTagsList.push(clean);
     }
 
+    const resolvedTimeType = taskData.timeType || (taskData.itemType === "event" ? "event" : undefined);
     const newTask: TaskDto = {
-      id: `task-${Date.now()}`,
+      id: createLocalEntityId("task"),
       title: taskData.title,
       description: taskData.description,
       dueDate: taskData.dueDate,
       startDate: taskData.startDate,
       endDate: taskData.endDate,
-      timeType: taskData.timeType,
+      itemType: taskData.itemType || (resolvedTimeType === "event" ? "event" : "task"),
+      timeType: resolvedTimeType,
       startTime: taskData.startTime,
       endTime: taskData.endTime,
       deadlineDate: taskData.deadlineDate,
@@ -1501,8 +1519,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       tag: taskTagsList[0] || undefined,
       tags: taskTagsList.length > 0 ? taskTagsList : undefined,
       parentTaskId: taskData.parentTaskId,
-      completed: false,
-      status: "todo",
+      completed: taskData.completed ?? false,
+      status: taskData.status || (taskData.completed ? "completed" : "todo"),
       priority: taskData.priority || "medium",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -1547,6 +1565,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     setTasks((prev) => {
       const next = prev.map((t) => {
         if (t.id !== id) return t;
+        // Event là lịch hẹn, không phải task có trạng thái hoàn thành.
+        if (getTaskItemType(t) === "event") return t;
         const newCompleted = !t.completed;
         const newStatus: TaskStatus = newCompleted ? "completed" : "todo";
         const updatedTask = {
@@ -1951,7 +1971,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [activeDetailTaskId, setActiveDetailTaskId] = useState<string | null>(null);
   const [activeTaskDetailInitialData, setActiveTaskDetailInitialData] = useState<TaskEditorInitialData | null>(null);
   const openTaskDetail = useCallback((taskId?: string, initialData?: TaskEditorInitialData) => {
-    setActiveTaskDetailInitialData(taskId === "new" || !taskId ? initialData || null : null);
+    setActiveTaskDetailInitialData(initialData || null);
     setActiveDetailTaskId(taskId || "new");
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -1974,6 +1994,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [quickTaskInitialData, setQuickTaskInitialData] = useState<{
     dueDate?: string;
     tag?: string;
+    itemType?: TaskItemType;
     timeType?: TaskTimeType;
     startTime?: string;
     endTime?: string;
@@ -1981,9 +2002,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const openQuickTaskModal = useCallback(
     (initialData?: {
-      dueDate?: string;
-      tag?: string;
-      timeType?: TaskTimeType;
+    dueDate?: string;
+    tag?: string;
+    itemType?: TaskItemType;
+    timeType?: TaskTimeType;
       startTime?: string;
       endTime?: string;
     }) => {

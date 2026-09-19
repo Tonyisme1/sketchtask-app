@@ -119,7 +119,7 @@ export const CustomAvatarPicker: React.FC<CustomAvatarPickerProps> = ({
                     type="button"
                     onClick={() => onChange(item.id, avatarBg)}
                     title={item.label}
-                    className={`h-9 rounded-[3px] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] flex items-center justify-center transition-all cursor-pointer ${
+                    className={`h-9 rounded-xl border-[1.5px] border-[#262626] dark:border-[#3A3A3C] flex items-center justify-center transition-all cursor-pointer ${
                       isSelected
                         ? "bg-[#FEF08A] dark:bg-white/20 shadow-[1.5px_1.5px_0px_#262626] -translate-y-[0.5px] font-bold ring-1 ring-[#262626] dark:ring-white"
                         : "bg-[#FBF9F4] dark:bg-[#1C1C1E] hover:bg-white dark:hover:bg-[#3A3A3C] active:translate-y-[0.5px]"
@@ -152,7 +152,7 @@ export const CustomAvatarPicker: React.FC<CustomAvatarPickerProps> = ({
                     type="button"
                     onClick={() => onChange(avatar, color.hex)}
                     title={color.name}
-                    className={`h-6 rounded-[2px] border border-[#262626] dark:border-[#3A3A3C] flex items-center justify-center transition-all cursor-pointer ${
+                    className={`h-6 rounded-full border border-[#262626] dark:border-[#3A3A3C] flex items-center justify-center transition-all cursor-pointer ${
                       isSelected
                         ? "shadow-[1.5px_1.5px_0px_#262626] scale-110 ring-1 ring-[#262626] dark:ring-white font-bold"
                         : "hover:scale-105"
@@ -186,7 +186,7 @@ export const CustomAvatarPicker: React.FC<CustomAvatarPickerProps> = ({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="px-3 py-1 bg-[#1C1917] dark:bg-white hover:bg-[#262626] dark:hover:bg-[#F2F2F7] text-white dark:text-[#1C1917] text-[11px] font-bold rounded-[3px] border border-[#1C1917] dark:border-white shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
+              className="px-3 py-1 bg-[#1C1917] dark:bg-white hover:bg-[#262626] dark:hover:bg-[#F2F2F7] text-white dark:text-[#1C1917] text-[11px] font-bold rounded-xl border border-[#1C1917] dark:border-white shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
             >
               Xong
             </button>

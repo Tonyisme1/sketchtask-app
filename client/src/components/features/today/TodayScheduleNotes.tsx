@@ -4,6 +4,7 @@ import { Clock } from "lucide-react";
 import { getTaskEffectiveTime } from "../../../utils/taskSemantics";
 import { useResponsiveLayout } from "../../../shared/hooks";
 import { TaskList } from "../shared/TaskList";
+import { TaskListSection } from "../shared/TaskListSection";
 
 interface TodayScheduleNotesProps {
   scheduledTasks: TaskDto[];
@@ -16,6 +17,7 @@ interface TodayScheduleNotesProps {
   activeTaskId?: string | null;
   title?: string;
   hideHeader?: boolean;
+  showEventTimeLabel?: boolean;
 }
 
 export const TodayScheduleNotes: React.FC<TodayScheduleNotesProps> = ({
@@ -29,6 +31,7 @@ export const TodayScheduleNotes: React.FC<TodayScheduleNotesProps> = ({
   activeTaskId,
   title = "Lịch hẹn",
   hideHeader = false,
+  showEventTimeLabel = false,
 }) => {
   const { isMobile } = useResponsiveLayout();
   if (scheduledTasks.length === 0) {
@@ -42,20 +45,44 @@ export const TodayScheduleNotes: React.FC<TodayScheduleNotesProps> = ({
     return timeA.localeCompare(timeB);
   });
 
-  return (
-    <section className={`space-y-3 select-none ${isMobile ? "" : "animate-in fade-in duration-150"}`}>
-      {!hideHeader && (
-        <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20">
-          <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917]">
-            <Clock size={16} className="text-[#1C1917]" strokeWidth={2.2} />
-            <span>{title} ({sortedTasks.length})</span>
+  // Giữ nguyên luồng hiển thị mobile; pattern section chung áp dụng cho desktop.
+  if (isMobile) {
+    return (
+      <section className="space-y-3 select-none">
+        {!hideHeader && (
+          <div className="flex items-center justify-between border-b border-[#262626]/20 pb-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917]">
+              <Clock size={16} className="text-[#1C1917]" strokeWidth={2.2} />
+              <span>{title} ({sortedTasks.length})</span>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+        <TaskList
+          tasks={sortedTasks}
+          onToggle={onToggle}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onMoveTomorrow={onMoveTomorrow}
+          onAddSubtask={onAddSubtask}
+          onClick={onClick}
+          variant="today"
+          hideDate={true}
+          activeTaskId={activeTaskId}
+          showQuickAdd={false}
+          showEventTimeLabel={showEventTimeLabel}
+        />
+      </section>
+    );
+  }
 
-      {/* Dùng TaskList để lịch hẹn cũng hiển thị đúng cây cha/con. */}
-      <TaskList
+  return (
+    <div className="select-none animate-in fade-in duration-150">
+      <TaskListSection
+        title={title}
         tasks={sortedTasks}
+        icon={<Clock size={16} strokeWidth={2.2} />}
+        tone="info"
+        hideHeader={hideHeader}
         onToggle={onToggle}
         onEdit={onEdit}
         onDelete={onDelete}
@@ -66,7 +93,8 @@ export const TodayScheduleNotes: React.FC<TodayScheduleNotesProps> = ({
         hideDate={true}
         activeTaskId={activeTaskId}
         showQuickAdd={false}
+        showEventTimeLabel={showEventTimeLabel}
       />
-    </section>
+    </div>
   );
 };

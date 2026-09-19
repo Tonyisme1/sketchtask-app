@@ -68,7 +68,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               key={f.key}
               type="button"
               onClick={() => onStatusChange(f.key as any)}
-              className={`h-7 px-2.5 rounded-[3px] border text-xs font-bold transition-all whitespace-nowrap shrink-0 flex items-center justify-center active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
+              className={`h-7 px-2.5 rounded-xl border text-xs font-bold transition-all whitespace-nowrap shrink-0 flex items-center justify-center active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
                 statusFilter === f.key
                   ? "bg-[#262626] text-white border-[#262626] shadow-[0.5px_0.5px_0px_#262626]"
                   : "bg-[#FBF9F4] text-[#78716C] border-[#D4CEBF] hover:text-[#1C1917]"
@@ -83,7 +83,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         <div className="flex items-center gap-1 shrink-0">
           {onSearchChange && (
             isSearchOpen || Boolean(searchQuery) ? (
-              <div className="flex items-center gap-1 h-7 px-1.5 bg-[#FAF8F3] border border-[#262626] rounded-none text-xs">
+              <div className="flex items-center gap-1 h-7 px-1.5 bg-[#FAF8F3] border border-[#262626] rounded-xl text-xs">
                 <Search size={11} className="text-[#78716C] shrink-0" strokeWidth={2.4} />
                 <input
                   type="text"
@@ -118,7 +118,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               <button
                 type="button"
                 onClick={() => setIsSearchOpen(true)}
-                className="h-7 px-2 rounded-[3px] border border-[#D4CEBF] bg-white hover:border-[#1C1917] text-[#78716C] hover:text-[#1C1917] text-xs font-bold flex items-center gap-1 active:translate-x-[0.5px] active:translate-y-[0.5px] transition-all cursor-pointer"
+                className="h-7 px-2 rounded-xl border border-[#D4CEBF] bg-white hover:border-[#1C1917] text-[#78716C] hover:text-[#1C1917] text-xs font-bold flex items-center gap-1 active:translate-x-[0.5px] active:translate-y-[0.5px] transition-all cursor-pointer"
                 title="Tìm kiếm trong danh sách này"
               >
                 <Search size={12} strokeWidth={2.4} />
@@ -134,7 +134,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
               type="button"
               onClick={onResetFilters}
               title="Xóa bộ lọc"
-              className="h-7 px-2 rounded-[3px] bg-[#FAF8F3] border border-[#262626] text-[#1C1917] text-[11px] font-bold flex items-center gap-1 hover:bg-[#E7E5E4] active:translate-x-[0.5px] active:translate-y-[0.5px] whitespace-nowrap shrink-0 cursor-pointer"
+              className="h-7 px-2 rounded-xl bg-[#FAF8F3] border border-[#262626] text-[#1C1917] text-[11px] font-bold flex items-center gap-1 hover:bg-[#E7E5E4] active:translate-x-[0.5px] active:translate-y-[0.5px] whitespace-nowrap shrink-0 cursor-pointer"
             >
               <X size={11} strokeWidth={2.5} />
               <span className="hidden xs:inline">Xóa</span>
@@ -144,7 +144,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <button
             type="button"
             onClick={onToggleDrawer}
-            className={`h-7 px-2.5 rounded-[3px] border text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 active:translate-x-[0.5px] active:translate-y-[0.5px] cursor-pointer ${
+            className={`h-7 px-2.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap shrink-0 active:translate-x-[0.5px] active:translate-y-[0.5px] cursor-pointer ${
               isDrawerOpen || activeFilterCount > 0
                 ? "bg-[#1C1917] border-[#1C1917] text-white shadow-none"
                 : "bg-white border-[#D4CEBF] text-[#78716C] hover:text-[#1C1917] hover:border-[#1C1917]"

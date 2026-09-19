@@ -5,8 +5,6 @@ import {
   BellRing,
   CalendarPlus,
   CheckCheck,
-  ChevronDown,
-  ChevronUp,
   Hourglass,
   Trash2,
   Search,
@@ -30,6 +28,7 @@ import {
   getTaskTags,
 } from "../../../utils/taskSemantics";
 import { TaskList } from "../shared/TaskList";
+import { TaskListSection } from "../shared/TaskListSection";
 
 export interface DeadlinesTabProps {
   onNavigateToTaskDate?: (dateStr: string, taskId: string) => void;
@@ -232,7 +231,6 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
           (() => {
             const groupKey = `${view}:${group.dateStr}`;
             const isCollapsed = collapsedGroups[groupKey] ?? group.tasks.length > 8;
-            const completedCount = group.tasks.filter((task) => task.completed).length;
             const scheduledCount = group.tasks.filter(
               (task) => normalizeTaskTimeType(task) === "scheduled",
             ).length;
@@ -241,97 +239,66 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
             ).length;
 
             return (
-              <section key={group.dateStr} className="space-y-2">
-                <div className="flex items-center justify-between gap-2 border-b border-[#E5E5EA] dark:border-transparent pb-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCollapsedGroups((previous) => ({
-                        ...previous,
-                        [groupKey]: !isCollapsed,
-                      }));
-                    }}
-                    aria-expanded={!isCollapsed}
-                    aria-label={`${isCollapsed ? "Mở" : "Thu gọn"} nhóm ${formatFullDate(group.dateStr)}`}
-                    className="flex min-h-[40px] min-w-0 flex-1 items-center gap-2 text-left active:scale-[0.98] transition-all cursor-pointer"
-                  >
-                    {isCollapsed ? <ChevronDown size={16} strokeWidth={2.4} /> : <ChevronUp size={16} strokeWidth={2.4} />}
-                    <span className="h-2 w-2 shrink-0 rounded-full bg-[#1C1C1E] dark:bg-white" />
-                    <span className="min-w-0 truncate text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                      {formatFullDate(group.dateStr)}
-                    </span>
-                    <span className="text-[11px] font-mono text-[#8E8E93] dark:text-[#aeaeb2] shrink-0">
-                      ({group.tasks.length})
-                    </span>
-                  </button>
-
-                  {/* Nút thao tác riêng cho nhóm ngày này */}
-                  <div className="flex items-center gap-1.5 shrink-0">
+              <TaskListSection
+                key={group.dateStr}
+                title={formatFullDate(group.dateStr)}
+                subtitle={`${scheduledCount} lịch · ${deadlineCount} hạn`}
+                tasks={group.tasks}
+                tone={variant === "overdue" ? "danger" : "info"}
+                icon={<Hourglass size={15} strokeWidth={2.2} />}
+                collapsed={isCollapsed}
+                onCollapsedChange={(nextCollapsed) => {
+                  setCollapsedGroups((previous) => ({
+                    ...previous,
+                    [groupKey]: nextCollapsed,
+                  }));
+                }}
+                headerAction={(
+                  <>
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onClick={() => {
                         setRescheduleModalState({
                           isOpen: true,
                           tasks: group.tasks.filter((t) => !t.completed),
                           taskTitle: `Nhóm ${formatFullDate(group.dateStr)}`,
                         });
                       }}
-                      className="px-2 py-1 rounded-lg bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-[#1C1C1E] dark:text-[#F2F2F7] text-[11px] font-semibold active:scale-95 transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                      className="inline-flex h-7 items-center gap-1 rounded-lg bg-black/[0.04] px-2 text-[11px] font-semibold text-[#1C1C1E] transition-colors hover:bg-black/[0.08] dark:bg-white/[0.08] dark:text-[#F2F2F7] dark:hover:bg-white/[0.12]"
                       title={`Dời tất cả việc của ngày ${formatFullDate(group.dateStr)}`}
                     >
                       <CalendarPlus size={12} strokeWidth={2.2} />
-                      <span>Dời nhóm</span>
+                      <span className="hidden sm:inline">Dời nhóm</span>
                     </button>
-
                     {group.tasks.some((t) => !t.completed) && (
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
+                        onClick={() =>
                           requestBulkAction(
                             "complete",
                             group.tasks.filter((t) => !t.completed),
-                          );
-                        }}
-                        className="px-2 py-1 rounded-lg bg-[#34C759]/15 hover:bg-[#34C759]/25 text-[#34C759] dark:text-[#30D158] text-[11px] font-semibold active:scale-95 transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                          )
+                        }
+                        className="inline-flex h-7 items-center gap-1 rounded-lg bg-[#34C759]/15 px-2 text-[11px] font-semibold text-[#34C759] transition-colors hover:bg-[#34C759]/25 dark:text-[#30D158]"
                         title={`Hoàn thành tất cả việc của ngày ${formatFullDate(group.dateStr)}`}
                       >
                         <CheckCheck size={12} strokeWidth={2.2} />
-                        <span>Xong nhóm</span>
+                        <span className="hidden sm:inline">Xong nhóm</span>
                       </button>
                     )}
-                  </div>
-                </div>
-
-                {isCollapsed ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCollapsedGroups((previous) => ({ ...previous, [groupKey]: false }));
-                    }}
-                    className="w-full rounded-xl border border-dashed border-[#E5E5EA] dark:border-black bg-black/[0.02] dark:bg-white/[0.04] px-3.5 py-2.5 text-left text-xs text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7] cursor-pointer transition-colors"
-                  >
-                    Nhóm đang thu gọn. Chạm để xem {group.tasks.length} việc.
-                  </button>
-                ) : (
-                  <TaskList
-                    tasks={group.tasks}
-                    emptyMessage=""
-                    emptySubMessage=""
-                    onToggle={toggleTask}
-                    onEdit={handleTaskClick}
-                    onDelete={deleteTask}
-                    onMoveTomorrow={handleSmartReschedule}
-                    onAddSubtask={handleTaskClick}
-                    onClick={handleTaskClick}
-                    variant={variant}
-                    hideDate={true}
-                    baseDateStr={group.dateStr}
-                    showQuickAdd={false}
-                  />
+                  </>
                 )}
-              </section>
+                onToggle={toggleTask}
+                onEdit={handleTaskClick}
+                onDelete={deleteTask}
+                onMoveTomorrow={handleSmartReschedule}
+                onAddSubtask={handleTaskClick}
+                onClick={handleTaskClick}
+                variant={variant}
+                hideDate={true}
+                baseDateStr={group.dateStr}
+                showQuickAdd={false}
+              />
             );
           })()
         ))}

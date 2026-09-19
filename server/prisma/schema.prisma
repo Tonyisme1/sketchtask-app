@@ -39,6 +39,7 @@ model Task {
   dueDate      String?
   startDate    String?
   endDate      String?
+  itemType     String?   @default("task") // "task" | "event"
   timeType     String?   @default("deadline") // "scheduled" | "deadline"
   startTime    String?
   endTime      String?

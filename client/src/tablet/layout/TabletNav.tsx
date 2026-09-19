@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { CheckSquare, FilePenLine, Sun, LucideIcon } from "lucide-react";
-import { TabKey } from "../../shared/types";
+import { TabKey, TaskSubTab } from "../../shared/types";
 
 export interface TabletNavProps {
   activeTab: TabKey;
-  activeTaskSubTab: "today" | "planner" | "deadlines";
+  activeTaskSubTab: TaskSubTab;
   onTabChange: (tab: TabKey) => void;
 }
 
@@ -112,7 +112,7 @@ export const TabletNav: React.FC<TabletNavProps> = ({
       }`}
       aria-label="Điều hướng chính Tablet"
     >
-      <div className="pointer-events-auto bg-white/92 dark:bg-[#1C1C1E]/92 backdrop-blur-2xl border border-[#E5E5EA] dark:border-[#2C2C2E] rounded-full p-1.5 shadow-2xl shadow-black/10 flex items-center gap-1">
+      <div className="pointer-events-auto bg-[#F2F2F7]/95 dark:bg-[#18181A]/95 backdrop-blur-2xl border border-[#E5E5EA] dark:border-[#262626] rounded-full p-1.5 shadow-2xl shadow-black/10 flex items-center gap-1">
         {navItems.map(({ key, label, shortLabel, icon: Icon }) => {
           const isActive = isNavItemActive(activeTab, activeTaskSubTab, key);
           return (

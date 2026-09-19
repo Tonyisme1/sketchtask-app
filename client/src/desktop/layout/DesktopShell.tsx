@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { TabKey, NavigationTarget } from "../../shared/types";
+import { TabKey, NavigationTarget, TaskSubTab } from "../../shared/types";
 import { useAppStore } from "../../shared/stores";
 import { DesktopHeader } from "./DesktopHeader";
 import { DesktopSidebar } from "./DesktopSidebar";
@@ -15,12 +15,16 @@ import {
 } from "../../shared/ui";
 import { Settings, X } from "lucide-react";
 import { useModalBackClose } from "../../hooks/useModalBackClose";
+import type { DesktopPlannerSurface } from "../../components/features/planner/DesktopPlannerHeader";
 
 export interface DesktopShellProps {
   activeTab: TabKey;
   onTabChange: (tab: TabKey, target?: NavigationTarget) => void;
   onNavigateRoute: (path: string) => void;
   previousTab?: TabKey;
+  desktopPlannerSurface: DesktopPlannerSurface;
+  onDesktopPlannerSurfaceChange: (surface: DesktopPlannerSurface) => void;
+  onDesktopTaskSubTabChange: (subTab: TaskSubTab) => void;
   children: React.ReactNode;
 }
 
@@ -28,6 +32,9 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
   activeTab,
   onTabChange,
   onNavigateRoute,
+  desktopPlannerSurface,
+  onDesktopPlannerSurfaceChange,
+  onDesktopTaskSubTabChange,
   children,
 }) => {
   const {
@@ -42,8 +49,6 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
     setSettingsMobileSubView,
     openQuickTaskModal,
     logout,
-    isMobileNoteDetailOpen,
-    isJournalBookOpen,
   } = useAppStore();
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -58,10 +63,6 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
   }, [activeTab, activeTaskSubTab, activeDetailTaskId]);
-
-  const isDetailOpen =
-    (activeTab === "notes" && Boolean(isMobileNoteDetailOpen)) ||
-    (activeTab === "journal" && Boolean(isJournalBookOpen));
 
   // Desktop Global keyboard shortcuts: Ctrl+B (Sidebar), Ctrl+K (Search), N (New Task Modal)
   useEffect(() => {
@@ -125,38 +126,38 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
 
   return (
     <div
-      className="min-h-screen bg-[#FBF9F4] dark:bg-[#121214] text-[#1C1917] dark:text-[#FAFAFA] font-sans flex flex-col selection:bg-[#FEF08A] selection:text-[#1C1917]"
+      className="h-screen max-h-screen overflow-hidden bg-[#F2F2F7] dark:bg-[#18181A] text-[#1C1917] dark:text-[#F2F2F7] font-sans flex flex-col selection:bg-[#FEF08A] selection:text-[#1C1917]"
     >
-      {/* 1. Desktop Topbar Header (Ẩn khi mở nội dung chi tiết) */}
-      {!isDetailOpen && (
-        <DesktopHeader
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          onNavigateRoute={onNavigateRoute}
-          onOpenSettings={handleOpenDesktopSettings}
-          onOpenLogin={() => onNavigateRoute("/login")}
-          onLogout={logout}
-          onOpenAIModal={() => setIsAIModalOpen((prev) => !prev)}
-        />
-      )}
+      {/* 1. Desktop luôn giữ topbar để editor không mất ngữ cảnh workspace. */}
+      <DesktopHeader
+        activeTab={activeTab}
+        activeTaskSubTab={activeTaskSubTab}
+        onTabChange={handleTabChange}
+        onNavigateRoute={onNavigateRoute}
+        onOpenSettings={handleOpenDesktopSettings}
+        onOpenLogin={() => onNavigateRoute("/login")}
+        onLogout={logout}
+        onOpenAIModal={() => setIsAIModalOpen((prev) => !prev)}
+      />
 
       {/* 2. Main Workspace Layout */}
-      <div className="flex-1 flex min-h-0 w-full">
-        {/* Desktop Left Sidebar (Ẩn khi mở nội dung chi tiết) */}
-        {!isDetailOpen && (
-          <DesktopSidebar
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            onCreateTask={openQuickTaskModal}
-            onOpenSettings={handleOpenDesktopSettings}
-            onOpenAIModal={() => setIsAIModalOpen((prev) => !prev)}
-          />
-        )}
+      <div className="flex-1 flex min-h-0 w-full overflow-hidden">
+        {/* Desktop giữ sidebar khi mở note hoặc nhật ký. */}
+        <DesktopSidebar
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          onCreateTask={openQuickTaskModal}
+          onOpenSettings={handleOpenDesktopSettings}
+          onOpenAIModal={() => setIsAIModalOpen((prev) => !prev)}
+          desktopPlannerSurface={desktopPlannerSurface}
+          onDesktopPlannerSurfaceChange={onDesktopPlannerSurfaceChange}
+          onDesktopTaskSubTabChange={onDesktopTaskSubTabChange}
+        />
 
         {/* Main Content Area (Thoáng đãng & Tối đa hoá không gian làm việc) */}
         <main
           key={`desktop-${activeTab}-${activeTaskSubTab}`}
-          className="flex-1 min-w-0 flex flex-col w-full overflow-x-hidden"
+          className="flex-1 min-w-0 flex flex-col w-full h-full min-h-0 overflow-hidden"
         >
           {children}
         </main>
@@ -182,14 +183,14 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
           aria-modal="true"
           aria-label="Cài đặt"
           onClick={() => setIsSettingsPopupOpen(false)}
-          className="fixed inset-0 z-[999998] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 lg:p-8 animate-in fade-in duration-150"
+          className="fixed inset-0 z-[999998] flex items-center justify-center bg-black/50 p-4 lg:p-8"
         >
           <section
             role="document"
             onClick={(event) => event.stopPropagation()}
-            className="flex h-[min(90dvh,840px)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border-[1.5px] border-[#262626] bg-[#FAF8F3] dark:bg-[#1C1C1E] shadow-[4px_4px_0px_#262626]"
+            className="flex h-[min(90dvh,840px)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border-[1.5px] border-[#262626] bg-white dark:bg-[#121214] shadow-[4px_4px_0px_#262626]"
           >
-            <header className="flex min-h-[56px] items-center justify-between border-b-[1.5px] border-[#262626] bg-[#FFFDF8] dark:bg-[#2C2C2E] px-5 lg:px-6 shrink-0">
+            <header className="flex min-h-[56px] items-center justify-between border-b-[1.5px] border-[#262626] bg-white dark:bg-[#1C1C1E] px-5 lg:px-6 shrink-0">
               <div className="flex items-center gap-2.5">
                 <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#262626] bg-[#1C1917] text-white dark:bg-white dark:text-[#1C1917]">
                   <Settings size={16} strokeWidth={2.2} />
@@ -206,7 +207,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
                 <X size={15} strokeWidth={2.4} />
               </button>
             </header>
-            <div className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-6 bg-[#FBF9F4] dark:bg-black/30">
+            <div className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-6 bg-[#FAFAFA] dark:bg-black">
               <SettingsTab
                 onNavigateTab={handleTabChange}
                 onNavigateRoute={onNavigateRoute}

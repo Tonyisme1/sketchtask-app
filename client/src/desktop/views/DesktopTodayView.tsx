@@ -1,9 +1,10 @@
 import React, { useMemo } from "react";
 import { CheckCircle2, ListTodo } from "lucide-react";
 import { useAppStore } from "../../shared/stores";
-import { getLocalTodayStr, isTaskDueToday, normalizeTaskTimeType } from "../../shared/utils";
+import { getLocalTodayStr, getTaskItemType, isTaskDueToday, normalizeTaskTimeType } from "../../shared/utils";
 import { TodayScheduleNotes } from "../../components/features/today/TodayScheduleNotes";
-import { TodayTaskList } from "../../components/features/today/TodayTaskList";
+import { TaskListSection } from "../../components/features/shared/TaskListSection";
+import { getTaskProgress } from "../../utils/taskHierarchy";
 
 export interface DesktopTodayViewProps {
   targetTaskId?: string;
@@ -26,17 +27,18 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
   const now = new Date();
   const todayStr = getLocalTodayStr(now);
 
-  // Phân loại Task Hôm Nay
+  // Tab Công việc chỉ nhận Task; Event thuộc workspace Lịch.
   const todayList = useMemo(() => {
-    return tasks.filter((task) => isTaskDueToday(task, now));
+    return tasks.filter(
+      (task) => getTaskItemType(task) !== "event" && isTaskDueToday(task, now),
+    );
   }, [tasks, todayStr]);
 
-  // Lịch hẹn hôm nay (Chưa hoàn thành)
   const activeScheduledTasks = useMemo(() => {
     return todayList.filter((task) => {
       if (task.parentTaskId) return false;
       if (task.completed) return false;
-      return normalizeTaskTimeType(task) === "scheduled";
+      return normalizeTaskTimeType(task) === "scheduled" && getTaskItemType(task) !== "event";
     });
   }, [todayList]);
 
@@ -44,19 +46,21 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
   const activeTaskListItems = useMemo(() => {
     return todayList.filter((task) => {
       if (task.completed) return false;
-      return normalizeTaskTimeType(task) !== "scheduled";
+      return getTaskItemType(task) !== "event" && normalizeTaskTimeType(task) !== "scheduled";
     });
   }, [todayList]);
 
   // Toàn bộ công việc đã hoàn thành hôm nay
   const completedTodayTasks = useMemo(() => {
     if (hideCompletedTasks) return [];
-    return todayList.filter((task) => task.completed);
+    return todayList.filter((task) => task.completed && getTaskItemType(task) !== "event");
   }, [todayList, hideCompletedTasks]);
 
   // Thống kê
-  const completedTodayCount = todayList.filter((t) => t.completed).length;
-  const totalTodayCount = todayList.length;
+  const { completed: completedTodayCount, total: totalTodayCount } = useMemo(
+    () => getTaskProgress(todayList),
+    [todayList],
+  );
 
   return (
     <div className="w-full min-w-0 space-y-6 select-none animate-in fade-in duration-150">
@@ -75,7 +79,7 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
               className="flex items-center gap-2 pl-1"
               title={`Đã hoàn thành ${completedTodayCount}/${totalTodayCount} việc (${Math.round((completedTodayCount / totalTodayCount) * 100)}%)`}
             >
-              <div className="w-20 sm:w-28 h-2 bg-[#F3EFE6] dark:bg-[#2C2C2E] border border-[#262626] dark:border-[#48484A] rounded-[3px] overflow-hidden">
+              <div className="w-20 sm:w-28 h-2 bg-[#F3EFE6] dark:bg-[#2C2C2E] border border-[#262626] dark:border-[#48484A] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[#1C1917] dark:bg-white transition-all duration-300"
                   style={{ width: `${Math.round((completedTodayCount / totalTodayCount) * 100)}%` }}
@@ -115,7 +119,7 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
       ) : (
         /* Luồng công việc thống nhất */
         <div className="space-y-6 w-full">
-          {/* Phần 1: Lịch hẹn theo giờ (nếu có) */}
+          {/* Phần 1: Lịch hẹn theo giờ của task */}
           {activeScheduledTasks.length > 0 && (
             <div className="space-y-3">
               <TodayScheduleNotes
@@ -126,55 +130,48 @@ export const DesktopTodayView: React.FC<DesktopTodayViewProps> = ({
                 onMoveTomorrow={moveTaskToTomorrow}
                 onClick={(task) => openTaskDetail(task.id)}
                 activeTaskId={targetTaskId}
+                showEventTimeLabel
               />
             </div>
           )}
 
           {/* Phần 2: Công việc cần làm */}
           {activeTaskListItems.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-[#262626]/20 dark:border-transparent">
-                <div className="flex items-center gap-2 text-sm font-bold text-[#1C1917] dark:text-white">
-                  <ListTodo size={16} strokeWidth={2.4} className="text-[#1C1917] dark:text-white" />
-                  <span>Công việc cần làm ({activeTaskListItems.length})</span>
-                </div>
-              </div>
-
-              <TodayTaskList
-                tasks={activeTaskListItems}
-                onToggle={toggleTask}
-                onEdit={(task) => openTaskDetail(task.id)}
-                onDelete={deleteTask}
-                onMoveTomorrow={moveTaskToTomorrow}
-                onClick={(task) => openTaskDetail(task.id)}
-                activeTaskId={targetTaskId}
-                showQuickAdd={false}
-                onEmptyAction={() => openQuickTaskModal({ dueDate: todayStr })}
-              />
-            </div>
+            <TaskListSection
+              title="Công việc cần làm"
+              tasks={activeTaskListItems}
+              icon={<ListTodo size={16} strokeWidth={2.4} />}
+              tone="info"
+              onToggle={toggleTask}
+              onEdit={(task) => openTaskDetail(task.id)}
+              onDelete={deleteTask}
+              onMoveTomorrow={moveTaskToTomorrow}
+              onClick={(task) => openTaskDetail(task.id)}
+              activeTaskId={targetTaskId}
+              variant="today"
+              hideDate={true}
+              showQuickAdd={false}
+            />
           )}
 
           {/* Phần 3: Công việc đã hoàn thành */}
           {completedTodayTasks.length > 0 && (
-            <div className="pt-4 border-t border-[#262626]/15 dark:border-transparent space-y-3">
-              <div className="flex items-center justify-between pb-2 border-b border-[#262626]/15 dark:border-transparent">
-                <div className="flex items-center gap-2 text-sm font-bold text-[#78716C] dark:text-[#A1A1AA]">
-                  <CheckCircle2 size={16} strokeWidth={2.4} className="text-emerald-500 shrink-0" />
-                  <span>Đã hoàn thành ({completedTodayTasks.length})</span>
-                </div>
-              </div>
-
-              <TodayTaskList
-                tasks={completedTodayTasks}
-                onToggle={toggleTask}
-                onEdit={(task) => openTaskDetail(task.id)}
-                onDelete={deleteTask}
-                onMoveTomorrow={moveTaskToTomorrow}
-                onClick={(task) => openTaskDetail(task.id)}
-                activeTaskId={targetTaskId}
-                showQuickAdd={false}
-              />
-            </div>
+            <TaskListSection
+              title="Đã hoàn thành"
+              tasks={completedTodayTasks}
+              icon={<CheckCircle2 size={16} strokeWidth={2.4} />}
+              tone="success"
+              defaultCollapsed
+              onToggle={toggleTask}
+              onEdit={(task) => openTaskDetail(task.id)}
+              onDelete={deleteTask}
+              onMoveTomorrow={moveTaskToTomorrow}
+              onClick={(task) => openTaskDetail(task.id)}
+              activeTaskId={targetTaskId}
+              variant="today"
+              hideDate={true}
+              showQuickAdd={false}
+            />
           )}
         </div>
       )}

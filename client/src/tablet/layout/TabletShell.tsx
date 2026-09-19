@@ -104,7 +104,7 @@ export const TabletShell: React.FC<TabletShellProps> = ({
 
   return (
     <div
-      className={`min-h-screen bg-[#FBF9F4] text-[#1C1917] font-sans flex flex-col selection:bg-[#FEF08A] selection:text-[#1C1917] ${
+      className={`min-h-screen bg-[#F2F2F7] dark:bg-[#18181A] text-[#1C1C1E] dark:text-[#F2F2F7] font-sans flex flex-col selection:bg-[#FEF08A] selection:text-[#1C1917] ${
         !isTiltEnabled ? "no-tilt" : ""
       } ${paperStyle && paperStyle !== "blank" ? `paper-${paperStyle}` : ""}`}
     >
