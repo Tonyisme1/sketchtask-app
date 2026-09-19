@@ -10,9 +10,6 @@ import {
   SettingsTab,
   AIAssistantSidePanel,
 } from "../../features";
-import {
-  GlobalSearchModal,
-} from "../../shared/ui";
 import { Settings, X } from "lucide-react";
 import { useModalBackClose } from "../../hooks/useModalBackClose";
 import type { DesktopPlannerSurface } from "../../components/features/planner/DesktopPlannerHeader";
@@ -51,7 +48,6 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
     logout,
   } = useAppStore();
 
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSettingsPopupOpen, setIsSettingsPopupOpen] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
@@ -77,9 +73,6 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "b") {
         e.preventDefault();
         toggleSidebar();
-      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setIsSearchOpen(true);
       } else if (
         !e.ctrlKey &&
         !e.metaKey &&
@@ -228,13 +221,6 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
           onSuccess={unlockWithPin}
         />
       )}
-
-      <GlobalSearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-        onNavigateTab={onTabChange}
-      />
-
     </div>
   );
 };

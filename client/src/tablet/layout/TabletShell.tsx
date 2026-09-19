@@ -10,7 +10,6 @@ import {
   QuickTaskModal,
 } from "../../features";
 import {
-  GlobalSearchModal,
   NotificationDrawer,
 } from "../../shared/ui";
 import { NotesSectionTabs } from "../../components/layout/NotesSectionTabs";
@@ -47,7 +46,6 @@ export const TabletShell: React.FC<TabletShellProps> = ({
     openQuickTaskModal,
   } = useAppStore();
 
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   useEffect(() => {
@@ -163,12 +161,6 @@ export const TabletShell: React.FC<TabletShellProps> = ({
           onSuccess={unlockWithPin}
         />
       )}
-
-      <GlobalSearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-        onNavigateTab={onTabChange}
-      />
 
       <NotificationDrawer
         isOpen={isNotificationOpen}
