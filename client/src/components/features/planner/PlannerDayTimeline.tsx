@@ -146,8 +146,8 @@ const DayScheduledBlockCard: React.FC<{
   const tone = isCompleted
     ? "bg-[var(--bg-surface-muted)] border border-[var(--border-ink)] opacity-60 rounded-[8px]"
     : isEvent
-      ? "bg-[var(--accent-blue)] border border-[#1D4ED8] dark:border-[#3B82F6] dark:bg-[#1E3A8A]/50 text-white rounded-[8px] hover:brightness-105"
-      : "bg-[#E0F2FE] border border-[#0284C7] text-[#0C4A6E] dark:bg-[#0F172A] dark:border-[#38BDF8] dark:text-[#F0F9FF] rounded-[8px] hover:brightness-105";
+      ? "bg-[var(--accent-blue)] border border-[#1D4ED8] dark:border-[#60A5FA] dark:bg-[#60A5FA]/15 dark:text-[#93C5FD] text-white rounded-[8px] hover:brightness-105"
+      : "bg-[#E0F2FE] border border-[#0284C7] text-[#0C4A6E] dark:bg-[#38BDF8]/15 dark:border-[#38BDF8] dark:text-[#BAE6FD] rounded-[8px] hover:brightness-105";
 
   // Calculate task duration in minutes
   const duration = block.durationMinutes || 60;
@@ -370,7 +370,7 @@ const DayDeadlineMarkerCard: React.FC<{
 
   const tone = isCompleted
     ? "bg-[var(--bg-surface-muted)] border border-[var(--border-ink)] opacity-60 rounded-[8px]"
-    : "bg-[#FEE2E2] border border-[#DC2626] text-[#991B1B] dark:bg-[#450A0A]/60 dark:border-[#EF4444] dark:text-[#FECDD3] rounded-[8px] hover:brightness-105";
+    : "bg-[#FEE2E2] border border-[#DC2626] text-[#991B1B] dark:bg-[#F87171]/15 dark:border-[#F87171] dark:text-[#FECDD3] rounded-[8px] hover:brightness-105";
 
   if (isGhost) {
     return (

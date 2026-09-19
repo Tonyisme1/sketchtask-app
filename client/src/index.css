@@ -103,27 +103,27 @@ html:not(.dark) [class*="hover:bg-\[\#E7E5E4\]"]:hover {
 }
 
 /* ========================================== */
-/* DARK MODE: 3-Tier Surface Elevation        */
-/* Layer 0: #09090B (Canvas OLED)             */
-/* Layer 1: #141417 (Card Surface)            */
-/* Layer 2: #1F1F23 (Popover/Modal Elevation) */
+/* DARK MODE: Ergonomic Material Elevation   */
+/* Layer 0: #121214 (Canvas Deep Dark Gray)   */
+/* Layer 1: #1C1C20 (Card & Surface)          */
+/* Layer 2: #25252A (Elevated Modal/Popover)  */
 /* ========================================== */
 .dark {
-  --bg-canvas: #09090b;          /* App shell / canvas: đen sâu OLED Zinc-950 */
-  --bg-surface: #141417;         /* Main surface / card: Zinc-900 sang trọng */
-  --bg-surface-muted: #1f1f23;   /* Vùng phụ, gutter, popover: Zinc-800 */
-  --border-ink: #2e2e34;         /* Viền sáng rõ ràng, chống tệp màu */
-  --border-ink-muted: #1e1e22;   /* Kẻ lưới mờ */
-  --text-main: #ffffff;          /* Văn bản chính - Trắng tuyệt đối */
-  --text-strong: #ffffff;        /* Tiêu đề - Trắng tuyệt đối */
-  --text-muted: #a1a1aa;         /* Phụ đề, ngày giờ - Zinc 400 */
-  --text-subtle: #71717a;        /* Placeholder, disabled - Zinc 500 */
-  --accent-blue: #3b82f6;        /* Sự kiện (Event) - Bright Blue */
-  --accent-sky: #38bdf8;         /* Công việc (Task) - Bright Sky */
-  --accent-coral: #ef4444;       /* Hạn chót / Quá hạn - Bright Coral */
-  --accent-mint: #22c55e;        /* Hoàn thành / Success - Bright Mint */
-  --accent-yellow: #fbbf24;      /* Highlight - Bright Amber */
-  --accent-lavender: #a78bfa;    /* Phân nhóm phụ - Bright Violet */
+  --bg-canvas: #121214;          /* Canvas: xám tối sâu chuẩn Material Design, chống nhòe (smearing) */
+  --bg-surface: #1c1c20;         /* Surface: bề mặt thẻ & thanh điều hướng */
+  --bg-surface-muted: #25252a;   /* Elevated: ô nhập liệu, popover, modal nổi */
+  --border-ink: #2e2e36;         /* Viền nét mực tối êm dịu, không gắt */
+  --border-ink-muted: #222228;   /* Đường kẻ lưới mờ */
+  --text-main: #ececf1;          /* Văn bản chính - Xám sáng 87% chống chói mắt */
+  --text-strong: #ffffff;        /* Tiêu đề - Trắng rõ ràng */
+  --text-muted: #a1a1aa;         /* Phụ đề, ngày giờ - Xám 60% đạt chuẩn WCAG */
+  --text-subtle: #71717a;        /* Placeholder, disabled - Xám 40% */
+  --accent-blue: #60a5fa;        /* Sự kiện (Event) - Soft Cobalt dịu mắt */
+  --accent-sky: #38bdf8;         /* Công việc (Task) - Soft Sky */
+  --accent-coral: #f87171;       /* Hạn chót / Quá hạn - Soft Coral */
+  --accent-mint: #4ade80;        /* Hoàn thành / Success - Soft Mint */
+  --accent-yellow: #fcd34d;      /* Highlight - Soft Amber */
+  --accent-lavender: #c084fc;    /* Phân nhóm phụ - Soft Violet */
   color-scheme: dark;
 }
 
@@ -163,21 +163,21 @@ html:not(.dark) [class*="hover:bg-\[\#E7E5E4\]"]:hover {
 .dark [class*="bg-\[\#FAF8F3\]/"],
 .dark [class*="bg-\[\#F5F2EA\]/"],
 .dark [class*="bg-\[\#F2F2F7\]/"] {
-  background-color: rgba(20, 20, 23, 0.95) !important;
+  background-color: rgba(28, 28, 32, 0.95) !important;
 }
 
 /* NÚT CTA CHÍNH / ACTIVE TABS */
 .dark [class*="dark:bg-white"],
 .dark [class*="dark:bg-\[\#FFFFFF\]"],
 .dark [class*="dark:bg-\[\#ffffff\]"] {
-  background-color: #ffffff !important;
-  color: #000000 !important;
+  background-color: #ececf1 !important;
+  color: #121214 !important;
 }
 
 .dark [class*="dark:bg-white"] *,
 .dark [class*="dark:bg-\[\#FFFFFF\]"] *,
 .dark [class*="dark:bg-\[\#ffffff\]"] * {
-  color: #000000 !important;
+  color: #121214 !important;
 }
 
 /* VIỀN TRONG DARK MODE */
@@ -193,7 +193,7 @@ html:not(.dark) [class*="hover:bg-\[\#E7E5E4\]"]:hover {
 .dark .border-\[\#3A3A3C\],
 .dark [class*="dark:border-\[\#262626\]"],
 .dark [class*="dark:border-\#262626"] {
-  border-color: #2e2e34 !important;
+  border-color: #2e2e36 !important;
 }
 
 /* HOVER / ACTIVE TRONG DARK MODE */
@@ -206,13 +206,13 @@ html:not(.dark) [class*="hover:bg-\[\#E7E5E4\]"]:hover {
 .dark [class*="dark:hover:bg-\[\#2C2C2E\]"]:hover,
 .dark [class*="dark:hover:bg-white/10"]:hover,
 .dark [class*="dark:hover:bg-white/5"]:hover {
-  background-color: #1f1f23 !important;
+  background-color: #25252a !important;
 }
 
 .dark [class*="active:bg-black/"]:active,
 .dark [class*="dark:active:bg-white/"]:active,
 .dark [class*="dark:active:bg-\[\#3A3A3C\]"]:active {
-  background-color: #2a2a30 !important;
+  background-color: #323238 !important;
 }
 
 /* Ô NHẬP LIỆU TRONG DARK MODE */
@@ -220,10 +220,10 @@ html:not(.dark) [class*="hover:bg-\[\#E7E5E4\]"]:hover {
 .dark textarea,
 .dark select,
 .dark [contenteditable="true"] {
-  background-color: var(--bg-surface) !important;
+  background-color: var(--bg-surface-muted) !important;
   color: var(--text-main) !important;
-  border-color: #2e2e34 !important;
-  caret-color: #ffffff !important;
+  border-color: #2e2e36 !important;
+  caret-color: #60a5fa !important;
 }
 
 .dark input.bg-transparent,
@@ -240,8 +240,8 @@ html:not(.dark) [class*="hover:bg-\[\#E7E5E4\]"]:hover {
 }
 
 .dark option {
-  background-color: #141417 !important;
-  color: #f4f4f5 !important;
+  background-color: #1c1c20 !important;
+  color: #ececf1 !important;
 }
 
 /* ========================================== */
