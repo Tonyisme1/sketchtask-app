@@ -898,10 +898,10 @@ export const PlannerDayTimeline: React.FC<PlannerDayTimelineProps> = ({
               {timelineLayout.hours.map(({ hour, top, height }) => (
                 <div
                   key={hour}
-                  className="absolute left-0 right-0 flex items-start justify-end border-t border-[#C7C7CC] dark:border-[#48484A] pr-1.5 font-mono text-[10px] font-medium text-[#8E8E93] dark:text-[#8E8E93]"
+                  className="absolute left-0 right-0 flex items-start justify-end pr-2 font-mono text-[10px] font-medium text-[#71717A] dark:text-[#A1A1AA]"
                   style={{ top, height }}
                 >
-                  <span className="-translate-y-1/2">
+                  <span className="-translate-y-1/2 select-none">
                     {formatTime(hour * 60)}
                   </span>
                 </div>

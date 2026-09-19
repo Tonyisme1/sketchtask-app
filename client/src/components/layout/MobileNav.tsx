@@ -36,12 +36,14 @@ const leftNavItems: NavTabItem[] = [
   { key: "notes", label: "Ghi chép", shortLabel: "Ghi", icon: FilePenLine },
 ];
 
-const isNavItemActive = (
-  activeTab: TabKey,
-  key: TabKey,
-) => {
+const isNavItemActive = (activeTab: TabKey, key: TabKey) => {
   if (key === "tasks") {
-    return activeTab === "tasks" || activeTab === "today" || activeTab === "planner" || activeTab === "deadlines";
+    return (
+      activeTab === "tasks" ||
+      activeTab === "today" ||
+      activeTab === "planner" ||
+      activeTab === "deadlines"
+    );
   }
   if (key === "notes") return activeTab === "notes" || activeTab === "journal";
   if (key === "settings") return activeTab === "settings";
@@ -79,7 +81,10 @@ export const MobileNav: React.FC<MobileNavProps> = ({
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (createSheetRef.current && !createSheetRef.current.contains(e.target as Node)) {
+      if (
+        createSheetRef.current &&
+        !createSheetRef.current.contains(e.target as Node)
+      ) {
         setIsCreateSheetOpen(false);
       }
     };
@@ -97,12 +102,19 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     const initialHeight = window.visualViewport?.height || window.innerHeight;
     const handleViewportChange = () => {
       const currentHeight = window.visualViewport?.height || window.innerHeight;
-      setIsKeyboardOpen(currentHeight < initialHeight - 100 || currentHeight < window.innerHeight * 0.82);
+      setIsKeyboardOpen(
+        currentHeight < initialHeight - 100 ||
+          currentHeight < window.innerHeight * 0.82,
+      );
     };
 
     const handleFocusIn = (event: FocusEvent) => {
       const target = event.target as HTMLElement | null;
-      if (target?.tagName === "INPUT" || target?.tagName === "TEXTAREA" || target?.isContentEditable) {
+      if (
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.isContentEditable
+      ) {
         setIsKeyboardOpen(true);
       }
     };
@@ -110,7 +122,10 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     const handleFocusOut = () => {
       window.setTimeout(() => {
         const active = document.activeElement as HTMLElement | null;
-        const isTextTarget = active?.tagName === "INPUT" || active?.tagName === "TEXTAREA" || active?.isContentEditable;
+        const isTextTarget =
+          active?.tagName === "INPUT" ||
+          active?.tagName === "TEXTAREA" ||
+          active?.isContentEditable;
         if (!isTextTarget) setIsKeyboardOpen(false);
       }, 150);
     };
@@ -121,7 +136,10 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     document.addEventListener("focusout", handleFocusOut);
 
     return () => {
-      window.visualViewport?.removeEventListener("resize", handleViewportChange);
+      window.visualViewport?.removeEventListener(
+        "resize",
+        handleViewportChange,
+      );
       window.removeEventListener("resize", handleViewportChange);
       document.removeEventListener("focusin", handleFocusIn);
       document.removeEventListener("focusout", handleFocusOut);
@@ -165,7 +183,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
       window.dispatchEvent(
         new CustomEvent("sketchtask:create", {
           detail: { type: "note" },
-        })
+        }),
       );
     }, 80);
   };
@@ -208,7 +226,9 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                 <div className="w-10 h-10 rounded-xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
                   <CheckSquare size={18} strokeWidth={2.2} />
                 </div>
-                <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Công việc</p>
+                <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                  Công việc
+                </p>
               </button>
 
               <button
@@ -219,7 +239,9 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                 <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#3A3A3C] text-[#1C1C1E] dark:text-white border border-[#E5E5EA] dark:border-[#48484A] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
                   <FileText size={18} strokeWidth={2.2} />
                 </div>
-                <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Ghi chú</p>
+                <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                  Ghi chú
+                </p>
               </button>
             </div>
           </div>
@@ -229,7 +251,9 @@ export const MobileNav: React.FC<MobileNavProps> = ({
       {/* 2. THANH ĐIỀU HƯỚNG DƯỚI ĐÁY TỐI GIẢN */}
       <nav
         className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#F8F9FA]/95 dark:bg-[#141417]/95 backdrop-blur-xl border-t border-[#E4E4E7] dark:border-[#2E2E34] px-2 py-1 pb-[max(env(safe-area-inset-bottom),6px)] select-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform shadow-[0_-1px_10px_rgba(0,0,0,0.03)] ${
-          shouldHideNav ? "translate-y-full pointer-events-none" : "translate-y-0"
+          shouldHideNav
+            ? "translate-y-full pointer-events-none"
+            : "translate-y-0"
         }`}
         aria-label="Điều hướng chính"
       >
@@ -284,7 +308,12 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             } active:scale-95`}
           >
             <div className="relative">
-              <Bell size={19} strokeWidth={isNavItemActive(activeTab, "notifications") ? 2.4 : 1.9} />
+              <Bell
+                size={19}
+                strokeWidth={
+                  isNavItemActive(activeTab, "notifications") ? 2.4 : 1.9
+                }
+              />
               {alertCount > 0 && (
                 <span className="absolute -top-1 -right-1.5 min-w-[15px] h-3.5 px-0.5 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold flex items-center justify-center border border-white dark:border-[#1C1C1E]">
                   {alertCount > 9 ? "9+" : alertCount}
@@ -308,7 +337,10 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                 : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
             } active:scale-95`}
           >
-            <UserRound size={19} strokeWidth={isNavItemActive(activeTab, "settings") ? 2.4 : 1.9} />
+            <UserRound
+              size={19}
+              strokeWidth={isNavItemActive(activeTab, "settings") ? 2.4 : 1.9}
+            />
             <span className="text-[11px] leading-tight whitespace-nowrap">
               Cá nhân
             </span>
