@@ -113,12 +113,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   }, [isEvent, normTime, effectiveTime, task.endTime, showEventTimeLabel]);
 
   const timeTone = showEventTimeLabel
-    ? "bg-[var(--bg-surface-muted)] text-[var(--text-main)] border-[var(--accent-blue)]"
+    ? "bg-[var(--accent-blue)] text-white border-[#1D4ED8] dark:border-[#3B82F6]"
     : normTime === "scheduled"
-      ? "bg-[#BAE6FD] text-[#1C1917] border-[#262626]"
+      ? "bg-[#E0F2FE] text-[#0C4A6E] border-[#0284C7] dark:bg-[#0F172A] dark:text-[#38BDF8] dark:border-[#38BDF8]"
       : normTime === "deadline"
-        ? "bg-[#FECDD3] text-[#9F1239] border-[#FDA4AF]"
-        : "bg-[#FAF8F3] text-[#78716C] border-[#D4CEBF]";
+        ? "bg-[#FEE2E2] text-[#991B1B] border-[#DC2626] dark:bg-[#450A0A] dark:text-[#FECDD3] dark:border-[#EF4444]"
+        : "bg-[var(--bg-surface-muted)] text-[var(--text-muted)] border-[var(--border-ink)]";
 
   const hasChildren = childCount > 0;
   const indentLevel = Math.max(0, hierarchyDepth ?? (isSubtask ? 1 : 0));
@@ -274,7 +274,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   </span>
                 )}
                 {singleDateLabel && (
-                  <span className="font-sans text-[10px] sm:text-[10.5px] text-[#78716C]">
+                  <span className="font-sans text-[10px] sm:text-[10.5px] text-[#78716C] dark:text-[#A1A1AA]">
                     {singleDateLabel}
                   </span>
                 )}
@@ -282,7 +282,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   <span className={`shrink-0 rounded-[3px] border px-1.5 py-0.25 font-sans text-[10px] sm:text-[10.5px] font-semibold ${
                     showEventTimeLabel
                       ? "border-[var(--accent-blue)] bg-[var(--bg-surface-muted)] text-[var(--text-main)]"
-                      : "border-[#FDA4AF] bg-[#FECDD3] text-[#9F1239]"
+                      : "border-[#DC2626] bg-[#FEE2E2] text-[#991B1B] dark:border-[#EF4444] dark:bg-[#450A0A] dark:text-[#FECDD3]"
                   }`}>
                     {temporal === "pastScheduled" ? "Đã qua" : "Quá hạn"}
                   </span>
@@ -292,8 +292,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
             {/* Dòng metadata phụ (Tag nếu có) */}
             {task.tag && (
-              <div className="flex items-center gap-1 text-[10px] sm:text-[10.5px] font-normal text-[#78716C] truncate mt-0.5">
-                <span className="font-sans text-[#57534E]">#{task.tag}</span>
+              <div className="flex items-center gap-1 text-[10px] sm:text-[10.5px] font-normal text-[#78716C] dark:text-[#A1A1AA] truncate mt-0.5">
+                <span className="font-sans text-[#57534E] dark:text-[#D4D4D8]">#{task.tag}</span>
               </div>
             )}
           </div>
@@ -315,7 +315,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   e.stopPropagation();
                   onAddSubtask(task);
                 }}
-                className="w-7 h-7 rounded flex items-center justify-center text-[#78716C] hover:text-[#1C1917] hover:bg-[#FAF8F3]"
+                className="w-7 h-7 rounded flex items-center justify-center text-[#78716C] hover:text-[#1C1917] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E]"
                 title="Thêm việc con"
               >
                 <Plus size={14} strokeWidth={2.4} />

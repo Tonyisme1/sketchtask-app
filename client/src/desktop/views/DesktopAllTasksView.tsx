@@ -1,15 +1,34 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { CalendarDays, CheckCircle2, Inbox, ListTodo } from "lucide-react";
 import { useAppStore } from "../../shared/stores";
+import { TaskDto } from "../../types";
 import {
   getLocalTodayStr,
   getTaskEffectiveDate,
   getTaskEffectiveTime,
   getTaskItemType,
 } from "../../shared/utils";
-import { TaskListSection } from "../../components/features/shared/TaskListSection";
+import { TaskList } from "../../components/features/shared/TaskList";
 import { getTaskProgress } from "../../utils/taskHierarchy";
 import { formatFullDate } from "../../utils/date";
+
+type AgendaFilter = "all" | "today" | "week" | "unscheduled";
+
+interface AgendaGroup {
+  key: string;
+  date?: string;
+  title: string;
+  subtitle: string;
+  icon: React.ReactNode;
+  tasks: TaskDto[];
+  tone: "info" | "neutral";
+}
+
+const shiftIsoDate = (dateStr: string, days: number): string => {
+  const date = new Date(`${dateStr}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+};
 
 // === COMPONENT: Desktop All Tasks View (Danh sách chung của workspace Công việc) ===
 
@@ -24,6 +43,7 @@ export const DesktopAllTasksView: React.FC = () => {
   } = useAppStore();
 
   const todayStr = getLocalTodayStr(new Date());
+  const [agendaFilter, setAgendaFilter] = useState<AgendaFilter>("all");
   const taskItems = useMemo(
     () => tasks.filter((task) => getTaskItemType(task) !== "event"),
     [tasks],
@@ -68,32 +88,46 @@ export const DesktopAllTasksView: React.FC = () => {
       byDate.set(date, dateTasks);
     });
 
-    const dateGroups = [...byDate.entries()]
+    const dateGroups: AgendaGroup[] = [...byDate.entries()]
       .sort(([firstDate], [secondDate]) => firstDate.localeCompare(secondDate))
       .map(([date, dateTasks]) => ({
         key: `date-${date}`,
+        date,
         title: date === todayStr ? "Hôm nay" : formatFullDate(date),
         subtitle: `${dateTasks.filter((task) => !task.completed).length} cần làm · ${dateTasks.filter((task) => task.completed).length} đã xong`,
         icon: <CalendarDays size={15} strokeWidth={2.2} />,
         tasks: dateTasks,
         tone: date === todayStr ? ("info" as const) : ("neutral" as const),
-        defaultCollapsed: date !== todayStr && dateTasks.length > 8,
       }));
 
     if (unscheduledTasks.length > 0) {
       dateGroups.push({
         key: "unscheduled",
+        date: undefined,
         title: "Chưa đặt ngày",
         subtitle: `${unscheduledTasks.filter((task) => !task.completed).length} cần sắp xếp`,
         icon: <Inbox size={15} strokeWidth={2.2} />,
         tasks: unscheduledTasks,
         tone: "neutral" as const,
-        defaultCollapsed: false,
       });
     }
 
     return dateGroups;
   }, [todayStr, visibleTasks]);
+
+  const weekEndStr = shiftIsoDate(todayStr, 6);
+  const filteredAgendaGroups = useMemo(() => {
+    if (agendaFilter === "all") return taskGroups;
+    if (agendaFilter === "today") {
+      return taskGroups.filter((group) => group.date === todayStr);
+    }
+    if (agendaFilter === "week") {
+      return taskGroups.filter(
+        (group) => Boolean(group.date && group.date >= todayStr && group.date <= weekEndStr),
+      );
+    }
+    return taskGroups.filter((group) => !group.date);
+  }, [agendaFilter, taskGroups, todayStr, weekEndStr]);
 
   const listProps = {
     onToggle: toggleTask,
@@ -105,6 +139,13 @@ export const DesktopAllTasksView: React.FC = () => {
     hideDate: false,
     showQuickAdd: false,
   };
+
+  const agendaFilters: Array<{ key: AgendaFilter; label: string }> = [
+    { key: "all", label: "Tất cả" },
+    { key: "today", label: "Hôm nay" },
+    { key: "week", label: "Tuần này" },
+    { key: "unscheduled", label: "Chưa đặt ngày" },
+  ];
 
   return (
     <div className="w-full min-w-0 space-y-5 select-none animate-in fade-in duration-150">
@@ -146,22 +187,60 @@ export const DesktopAllTasksView: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {taskGroups.map((group) => (
-            <TaskListSection
-              key={group.key}
-              title={group.title}
-              subtitle={group.subtitle}
-              icon={group.icon}
-              tasks={group.tasks}
-              tone={group.tone}
-              defaultCollapsed={group.defaultCollapsed}
-              emptyMessage="Chưa có công việc nào"
-              {...listProps}
-            />
-          ))}
+        <div className="overflow-hidden rounded-2xl border border-[var(--border-ink)] bg-[var(--bg-surface)]">
+          <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--border-ink-muted)] px-3 py-2">
+            {agendaFilters.map((filter) => {
+              const isActive = agendaFilter === filter.key;
+              return (
+                <button
+                  key={filter.key}
+                  type="button"
+                  onClick={() => setAgendaFilter(filter.key)}
+                  className={`min-h-8 rounded-lg px-2.5 text-xs font-semibold transition-colors ${
+                    isActive
+                      ? "bg-[var(--accent-blue)] text-white"
+                      : "text-[var(--text-muted)] hover:bg-[var(--bg-surface-muted)] hover:text-[var(--text-main)]"
+                  }`}
+                >
+                  {filter.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {filteredAgendaGroups.length === 0 ? (
+            <div className="px-4 py-10 text-center text-xs text-[var(--text-muted)]">
+              Không có công việc trong phạm vi này.
+            </div>
+          ) : (
+            <div className="divide-y divide-[var(--border-ink-muted)]">
+              {filteredAgendaGroups.map((group) => (
+                <div key={group.key} className="grid grid-cols-[108px_minmax(0,1fr)]">
+                  <div className={`flex min-w-0 flex-col gap-1 border-r border-[var(--border-ink-muted)] px-3 py-3 ${
+                    group.tone === "info" ? "bg-[var(--accent-blue)]/[0.06]" : "bg-[var(--bg-surface-muted)]/[0.35]"
+                  }`}>
+                    <div className={`flex items-center gap-1.5 text-xs font-bold ${
+                      group.tone === "info" ? "text-[var(--accent-blue)]" : "text-[var(--text-main)]"
+                    }`}>
+                      <span className="shrink-0">{group.icon}</span>
+                      <span className="min-w-0 truncate">{group.title}</span>
+                    </div>
+                    <span className="text-[10px] leading-tight text-[var(--text-muted)]">{group.subtitle}</span>
+                  </div>
+                  <div className="min-w-0 px-3 py-1">
+                    <TaskList
+                      tasks={group.tasks}
+                      emptyMessage="Chưa có công việc nào"
+                      {...listProps}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {hideCompletedTasks && completed > 0 && (
-            <p className="mt-3 border-t border-[var(--border-ink-muted)] pt-3 text-center text-[11px] text-[var(--text-muted)]">
+            <p className="border-t border-[var(--border-ink-muted)] px-3 py-3 text-center text-[11px] text-[var(--text-muted)]">
               Việc đã hoàn thành đang được ẩn theo cài đặt.
             </p>
           )}

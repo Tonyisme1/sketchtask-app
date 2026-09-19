@@ -2,32 +2,29 @@
 
 Đây là token visual đang có trong `client/src/index.css`. Component mới phải ưu tiên CSS variable hoặc token semantic tương đương; không tạo bảng màu riêng theo từng tab.
 
-## 1. Màu nền và chữ
+## 1. Màu nền và chữ (3-Tier Surface Elevation)
 
 | Token | Light | Dark | Dùng cho |
 | --- | --- | --- | --- |
-| `--bg-canvas` | `#F2F2F7` | `#121214` | Nền app và vùng trống chính |
-| `--bg-surface` | `#FFFFFF` | `#1C1C1E` | Card, dialog, header, sheet |
-| `--bg-surface-muted` | `#E5E5EA` | `#27272A` | Input, toolbar, vùng phụ |
-| `--border-ink` | `#E5E5EA` | `#000000` | Viền và divider chính của skin hiện tại |
-| `--border-ink-muted` | `#F2F2F7` | `#000000` | Divider/lưới nhẹ |
-| `--text-main` | `#1C1C1E` | `#F2F2F7` | Nội dung chính |
-| `--text-strong` | `#000000` | `#FFFFFF` | Heading hoặc emphasis mạnh |
-| `--text-muted` | `#8E8E93` | `#8E8E93` | Metadata, subtitle, ngày giờ |
-| `--text-subtle` | `#AEAEB2` | `#636366` | Placeholder, disabled, hint |
+| `--bg-canvas` | `#F4F4F6` | `#09090B` | Nền app (Canvas OLED), vùng trống chính |
+| `--bg-surface` | `#FFFFFF` | `#141417` | Card, dialog, header, bottom sheet |
+| `--bg-surface-muted` | `#EAEBEE` | `#1F1F23` | Input, toolbar, vùng phụ, gutter |
+| `--border-ink` | `#262626` | `#2E2E34` | Viền nét mực chính của card, nút bấm, divider |
+| `--border-ink-muted` | `#E4E4E7` | `#1E1E22` | Divider/lưới nhẹ |
+| `--text-main` | `#18181B` | `#F4F4F5` | Nội dung chính, tiêu đề task |
+| `--text-strong` | `#09090B` | `#FFFFFF` | Heading hoặc emphasis mạnh |
+| `--text-muted` | `#71717A` | `#A1A1AA` | Metadata, subtitle, ngày giờ |
+| `--text-subtle` | `#A1A1AA` | `#71717A` | Placeholder, disabled, hint |
 
-Dark mode phải dùng cặp token trên theo ngữ cảnh. Không thay mọi `text-muted` thành `#FFFFFF`.
+## 2. Hệ 4 Màu Ngữ Nghĩa Độc Quyền (Exclusive Semantic Palette)
 
-## 2. Accent và trạng thái
-
-| Token | Light | Dark/ghi chú | Ý nghĩa |
-| --- | --- | --- | --- |
-| `--accent-yellow` | `#FFCC00` | `#FFD60A` | Tạo mới, highlight, action chính |
-| `--accent-blue` | `#007AFF` | `#0A84FF` | Link, focus, thông tin |
-| `--accent-coral` | `#FF3B30` | dùng cùng semantic | Xóa, lỗi, quá hạn/cảnh báo |
-| `--accent-mint` | `#34C759` | dùng cùng semantic | Hoàn thành, success, kết nối |
-| `--accent-sky` | `#5AC8FA` | dùng cùng semantic | Lịch hẹn/scheduled |
-| `--accent-lavender` | `#AF52DE` | dùng cùng semantic | Nhóm/phân loại phụ |
+| Ngữ Nghĩa | Token CSS | Light Mode | Dark Mode | Ý nghĩa & Vị trí sử dụng |
+| :--- | :--- | :--- | :--- | :--- |
+| **Sự kiện (Event)** | `--accent-blue` | `#2563EB` | `#3B82F6` | Sự kiện trên lịch, tab active, link, focus |
+| **Công việc (Task)** | `--accent-sky` | `#0284C7` / `#E0F2FE` | `#38BDF8` / `#0F172A` | Thẻ công việc trên lịch, khung giờ làm việc |
+| **Hạn chót / Quá hạn**| `--accent-coral` | `#EF4444` / `#FEE2E2` | `#F87171` / `#450A0A` | Quá hạn, mốc hạn chót, lỗi, cảnh báo đỏ |
+| **Hoàn thành / Success**| `--accent-mint` | `#10B981` | `#34D399` | Trạng thái đã xong, kết nối thành công |
+| **Highlight phụ** | `--accent-yellow` | `#F59E0B` | `#FBBF24` | Sticky note, điểm nhấn ghi chú |
 
 Badge hoặc trạng thái phải kết hợp màu với text/icon. Không dùng chấm màu đơn độc cho thông tin quan trọng.
 

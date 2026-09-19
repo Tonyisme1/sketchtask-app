@@ -141,8 +141,8 @@ const ScheduledBlockCard: React.FC<{
   const tone = isCompleted
     ? "bg-[var(--bg-surface-muted)] border border-[var(--border-ink)] opacity-60 rounded-[8px]"
     : isEvent
-      ? "bg-[var(--accent-blue)] border border-[var(--accent-blue)] rounded-[8px] hover:brightness-95 dark:hover:brightness-110"
-      : "bg-[var(--accent-sky)] border border-[var(--accent-sky)] rounded-[8px] hover:brightness-95 dark:hover:brightness-110";
+      ? "bg-[var(--accent-blue)] border border-[#1D4ED8] dark:border-[#3B82F6] dark:bg-[#1E3A8A]/50 text-white rounded-[8px] hover:brightness-105"
+      : "bg-[#E0F2FE] border border-[#0284C7] text-[#0C4A6E] dark:bg-[#0F172A] dark:border-[#38BDF8] dark:text-[#F0F9FF] rounded-[8px] hover:brightness-105";
 
   const duration = block.durationMinutes || 60;
 
@@ -315,8 +315,8 @@ const DeadlineMarkerCard: React.FC<{
   const hasMultipleLanes = marker.laneCount > 1;
 
   const tone = isCompleted
-    ? "bg-[var(--accent-sky)] border border-[var(--accent-sky)] opacity-60 rounded-[8px]"
-    : "bg-[var(--accent-sky)] border border-[#262626] rounded-[8px] hover:brightness-95 dark:hover:brightness-110";
+    ? "bg-[var(--bg-surface-muted)] border border-[var(--border-ink)] opacity-60 rounded-[8px]"
+    : "bg-[#FEE2E2] border border-[#DC2626] text-[#991B1B] dark:bg-[#450A0A]/60 dark:border-[#EF4444] dark:text-[#FECDD3] rounded-[8px] hover:brightness-105";
 
   if (isGhost) {
     return (
@@ -328,12 +328,12 @@ const DeadlineMarkerCard: React.FC<{
           height: 25,
           zIndex: 10,
         }}
-        className={`group absolute flex items-center overflow-hidden ${tone} px-2 select-none pointer-events-none opacity-25 border-2 border-dashed border-[var(--accent-blue)]`}
+        className={`group absolute flex items-center overflow-hidden ${tone} px-2 select-none pointer-events-none opacity-25 border-2 border-dashed border-[var(--accent-coral)]`}
       >
         <div className="flex min-w-0 items-center gap-1.5 flex-1 overflow-hidden">
-          <Hourglass size={11} strokeWidth={2.2} className="shrink-0 text-[#1C1917]" />
-          <span className="font-mono text-[10px] font-bold text-[#1C1917] shrink-0">{marker.time}</span>
-          <span className="truncate text-xs font-bold leading-none text-[#1C1917]">{task.title}</span>
+          <Hourglass size={11} strokeWidth={2.2} className="shrink-0 text-current" />
+          <span className="font-mono text-[10px] font-bold shrink-0">{marker.time}</span>
+          <span className="truncate text-xs font-bold leading-none">{task.title}</span>
         </div>
       </article>
     );
@@ -942,10 +942,10 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
                         width: "calc(100% - 2px)",
                         height: HOUR_HEIGHT,
                       }}
-                      className={`absolute z-30 rounded-[8px] border-[1.5px] border-[#262626] shadow-[2px_2px_0px_#262626] p-2 flex flex-col justify-between select-none animate-in fade-in zoom-in-95 duration-100 ${
+                      className={`absolute z-30 rounded-[8px] border-[1.5px] p-2 flex flex-col justify-between select-none animate-in fade-in zoom-in-95 duration-100 ${
                         draftTask.itemType === "event"
-                          ? "bg-[var(--accent-blue)] text-white"
-                          : "bg-[var(--accent-sky)] text-[#1C1917]"
+                          ? "bg-[var(--accent-blue)] border-[#1D4ED8] dark:border-[#3B82F6] dark:bg-[#1E3A8A]/60 text-white shadow-[2px_2px_0px_#1D4ED8] dark:shadow-[2px_2px_0px_#3B82F6]"
+                          : "bg-[#E0F2FE] border-[#0284C7] text-[#0C4A6E] dark:bg-[#0F172A] dark:border-[#38BDF8] dark:text-[#F0F9FF] shadow-[2px_2px_0px_#0284C7] dark:shadow-[2px_2px_0px_#38BDF8]"
                       }`}
                     >
                       <div className="flex items-center gap-1.5 font-mono text-[10.5px] font-bold">
@@ -1060,8 +1060,8 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
                         draggingTaskState.isCompleted
                           ? "bg-[var(--bg-surface-muted)] border border-[var(--border-ink)] rounded-[8px]"
                           : draggingTaskState.isEvent
-                            ? "bg-[var(--accent-blue)] border border-[var(--accent-blue)] rounded-[8px]"
-                            : "bg-[var(--accent-sky)] border border-[var(--accent-sky)] rounded-[8px]"
+                            ? "bg-[var(--accent-blue)] border border-[#1D4ED8] dark:border-[#3B82F6] dark:bg-[#1E3A8A]/60 text-white rounded-[8px]"
+                            : "bg-[#E0F2FE] border border-[#0284C7] text-[#0C4A6E] dark:bg-[#0F172A] dark:border-[#38BDF8] dark:text-[#F0F9FF] rounded-[8px]"
                       }`}
                     >
                       {/* Live Dragging Tooltip Time Indicator */}
