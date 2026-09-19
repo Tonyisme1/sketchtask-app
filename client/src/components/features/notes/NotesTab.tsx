@@ -115,17 +115,17 @@ export const NotesTab: React.FC<NotesTabProps> = ({
   return (
     <div className={`w-full min-w-0 select-none ${isMobileEditorOpen ? "p-0" : "space-y-3.5 pb-12"}`}>
       <div className={`items-center gap-2.5 border-b border-[#262626]/30 pb-3 ${isMobileEditorOpen ? "hidden" : "flex"}`}>
-        <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-xl border-[1.5px] border-[#262626] bg-white px-2.5 shadow-[1.5px_1.5px_0px_#262626]">
-          <Search size={14} strokeWidth={2.4} className="shrink-0 text-[#78716C]" />
+        <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl border-[1.5px] border-[#262626] dark:border-[#2E2E36] bg-white dark:bg-[#1C1C20] px-3 shadow-[1.5px_1.5px_0px_#262626] dark:shadow-none">
+          <Search size={14} strokeWidth={2.4} className="shrink-0 text-[#78716C] dark:text-[#A1A1AA]" />
           <input
             type="text"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Tìm ghi chú..."
-            className="w-full bg-transparent py-2 text-xs text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none sm:text-sm"
+            className="w-full bg-transparent py-2 pl-1 text-xs text-[#1C1917] dark:text-[#ECECF1] placeholder:text-[#A8A29E] dark:placeholder:text-[#71717A] focus:outline-none sm:text-sm"
           />
           {searchQuery && (
-            <button type="button" onClick={() => setSearchQuery("")} className="shrink-0 text-[#78716C]" title="Xóa tìm kiếm">
+            <button type="button" onClick={() => setSearchQuery("")} className="shrink-0 text-[#78716C] dark:text-[#A1A1AA] hover:text-[#1C1917] dark:hover:text-[#ECECF1] cursor-pointer" title="Xóa tìm kiếm">
               <X size={13} strokeWidth={2.4} />
             </button>
           )}

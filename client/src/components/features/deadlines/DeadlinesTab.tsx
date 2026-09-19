@@ -349,14 +349,14 @@ export const DeadlinesTab: React.FC<DeadlinesTabProps> = ({
           />
 
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 h-9 px-3 bg-black/[0.04] dark:bg-white/[0.08] rounded-xl border border-transparent focus-within:ring-1 focus-within:ring-[#007AFF] focus-within:bg-white dark:focus-within:bg-[#2C2C2E] transition-all flex-1">
-              <Search size={14} strokeWidth={2.2} className="text-[#8E8E93] shrink-0" />
+            <div className="flex items-center gap-2.5 h-9 px-3 bg-black/[0.04] dark:bg-[#1C1C20] rounded-xl border border-black/10 dark:border-[#2E2E36] focus-within:ring-1 focus-within:ring-[#18181B] dark:focus-within:ring-[#60A5FA] focus-within:bg-white dark:focus-within:bg-[#25252A] transition-all flex-1">
+              <Search size={14} strokeWidth={2.2} className="text-[#71717A] dark:text-[#A1A1AA] shrink-0" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={`Tìm việc ${isOverdueView ? "quá hạn" : "sắp đến"}...`}
-                className="bg-transparent text-xs text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus:outline-none w-full font-sans"
+                className="bg-transparent pl-1 text-xs text-[#18181B] dark:text-[#ECECF1] placeholder:text-[#71717A] dark:placeholder:text-[#71717A] focus:outline-none w-full font-sans"
               />
               {searchQuery && (
                 <button

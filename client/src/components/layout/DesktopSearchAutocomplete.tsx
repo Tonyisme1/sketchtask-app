@@ -139,14 +139,14 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
     <div ref={containerRef} className="relative w-full max-w-md lg:max-w-lg mx-3 select-none">
       {/* Search Input Box */}
       <div
-        className={`flex items-center justify-between px-3 py-2 bg-black/[0.04] dark:bg-white/[0.08] border border-transparent rounded-xl transition-all ${
+        className={`flex items-center justify-between px-3.5 py-1.5 bg-black/[0.04] dark:bg-[#1C1C20] border border-black/10 dark:border-[#2E2E36] rounded-xl transition-all ${
           isOpen
-            ? "ring-2 ring-[#007AFF] bg-white dark:bg-[#2C2C2E] shadow-sm"
-            : "hover:bg-black/[0.06] dark:hover:bg-white/[0.12]"
+            ? "ring-2 ring-[#18181B] dark:ring-[#60A5FA] bg-white dark:bg-[#25252A] shadow-sm"
+            : "hover:bg-black/[0.06] dark:hover:bg-[#25252A]"
         }`}
       >
-        <div className="flex items-center gap-2.5 flex-1 min-w-0">
-          <Search size={15} strokeWidth={2.2} className="shrink-0 text-[#8E8E93]" />
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <Search size={15} strokeWidth={2.2} className="shrink-0 text-[#71717A] dark:text-[#A1A1AA] ml-0.5" />
           <input
             ref={inputRef}
             type="text"
@@ -157,7 +157,7 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
             }}
             onFocus={() => setIsOpen(true)}
             placeholder="Tìm kiếm việc, ghi chú, nhật ký... (Ctrl + K)"
-            className="w-full bg-transparent text-xs font-medium text-[#1C1C1E] dark:text-[#F2F2F7] placeholder:text-[#8E8E93] focus:outline-none"
+            className="w-full bg-transparent pl-1.5 text-xs font-medium leading-normal text-[#18181B] dark:text-[#ECECF1] placeholder:text-[#71717A] dark:placeholder:text-[#71717A] focus:outline-none"
           />
         </div>
 
@@ -168,13 +168,13 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
               setQuery("");
               inputRef.current?.focus();
             }}
-            className="p-1 text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7] cursor-pointer shrink-0 rounded-md hover:bg-black/[0.05] dark:hover:bg-white/[0.1]"
+            className="p-1 text-[#71717A] dark:text-[#A1A1AA] hover:text-[#18181B] dark:hover:text-[#ECECF1] cursor-pointer shrink-0 rounded-md hover:bg-black/[0.05] dark:hover:bg-white/[0.1]"
             title="Xóa"
           >
             <X size={14} strokeWidth={2.2} />
           </button>
         ) : (
-          <kbd className="font-mono text-[10px] font-semibold text-[#8E8E93] bg-black/[0.05] dark:bg-white/[0.1] px-1.5 py-0.5 rounded-md shrink-0 ml-1">
+          <kbd className="font-mono text-[10px] font-semibold text-[#71717A] dark:text-[#A1A1AA] bg-black/[0.05] dark:bg-white/[0.1] px-1.5 py-0.5 rounded-md shrink-0 ml-1">
             Ctrl + K
           </kbd>
         )}
@@ -182,15 +182,15 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
 
       {/* DROPDOWN MENU SỔ XUỐNG DƯỚI THANH TÌM KIẾM */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] rounded-[10px] shadow-[3px_3px_0px_#262626] py-2.5 z-50 max-h-[380px] overflow-y-auto no-scrollbar animate-in fade-in slide-in-from-top-1 duration-150">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1C1C20] border-[1.5px] border-[#262626] dark:border-[#2E2E36] rounded-[10px] shadow-[3px_3px_0px_#262626] dark:shadow-none py-2.5 z-50 max-h-[380px] overflow-y-auto no-scrollbar animate-in fade-in slide-in-from-top-1 duration-150">
           {/* Header gợi ý */}
-          <div className="px-3 pb-2 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-wider text-[#8E8E93] border-b border-[#E5E5EA] dark:border-[#2C2C2E] mb-1">
+          <div className="px-3 pb-2 flex items-center justify-between text-[10px] font-mono font-semibold uppercase tracking-wider text-[#71717A] dark:text-[#A1A1AA] border-b border-[#E5E5EA] dark:border-[#2E2E36] mb-1">
             <span>{searchResults.isSuggestion ? "Gợi ý gần đây" : `Kết quả (${totalResults})`}</span>
-            <span className="text-[#8E8E93]/70">ESC để đóng</span>
+            <span className="text-[#71717A]/70 dark:text-[#A1A1AA]/70">ESC để đóng</span>
           </div>
 
           {totalResults === 0 ? (
-            <div className="py-8 text-center text-xs text-[#8E8E93] font-mono">
+            <div className="py-8 text-center text-xs text-[#71717A] dark:text-[#A1A1AA] font-mono">
               Không tìm thấy kết quả nào cho &quot;{query}&quot;
             </div>
           ) : (
@@ -198,8 +198,8 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
               {/* 1. Công việc (Tasks) */}
               {searchResults.tasks.length > 0 && (
                 <div>
-                  <div className="px-2.5 py-1 text-[10px] font-semibold font-mono text-[#8E8E93] uppercase flex items-center gap-1.5">
-                    <CheckSquare size={11} className="text-[#007AFF]" />
+                  <div className="px-2.5 py-1 text-[10px] font-semibold font-mono text-[#71717A] dark:text-[#A1A1AA] uppercase flex items-center gap-1.5">
+                    <CheckSquare size={11} className="text-[#60A5FA]" />
                     <span>Việc cần làm</span>
                   </div>
                   <div className="space-y-0.5 mt-0.5">
@@ -211,20 +211,20 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
                           key={task.id}
                           type="button"
                           onClick={() => handleSelectTask(task.id, effectiveDate)}
-                          className="w-full px-2.5 py-2 rounded-xl text-left flex items-center justify-between gap-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer group"
+                          className="w-full px-2.5 py-2 rounded-xl text-left flex items-center justify-between gap-2 hover:bg-black/[0.04] dark:hover:bg-[#25252A] transition-colors cursor-pointer group"
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
                             {searchResults.isSuggestion ? (
-                              <Clock size={13} className="text-[#8E8E93] shrink-0" />
+                              <Clock size={13} className="text-[#71717A] dark:text-[#A1A1AA] shrink-0" />
                             ) : (
-                              <CheckSquare size={13} className="text-[#007AFF] shrink-0" />
+                              <CheckSquare size={13} className="text-[#60A5FA] shrink-0" />
                             )}
                             <div className="min-w-0">
-                              <p className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate leading-tight">
+                              <p className="text-xs font-semibold text-[#18181B] dark:text-[#ECECF1] truncate leading-tight">
                                 {task.title}
                               </p>
                               {(effectiveDate || effectiveTime) && (
-                                <p className="text-[10px] text-[#8E8E93] font-mono truncate flex items-center gap-1 mt-0.5">
+                                <p className="text-[10px] text-[#71717A] dark:text-[#A1A1AA] font-mono truncate flex items-center gap-1 mt-0.5">
                                   {effectiveDate && (
                                     <span className="flex items-center gap-0.5">
                                       <Calendar size={9} /> {effectiveDate}
@@ -236,7 +236,7 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
                             </div>
                           </div>
 
-                          <ArrowRight size={12} className="text-[#8E8E93] group-hover:text-[#007AFF] shrink-0 transition-colors" />
+                          <ArrowRight size={12} className="text-[#71717A] dark:text-[#A1A1AA] group-hover:text-[#60A5FA] shrink-0 transition-colors" />
                         </button>
                       );
                     })}
@@ -247,8 +247,8 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
               {/* 2. Ghi chú (Notes) */}
               {searchResults.notes.length > 0 && (
                 <div className="pt-1">
-                  <div className="px-2.5 py-1 text-[10px] font-semibold font-mono text-[#8E8E93] uppercase flex items-center gap-1.5">
-                    <FileText size={11} className="text-[#FF9500]" />
+                  <div className="px-2.5 py-1 text-[10px] font-semibold font-mono text-[#71717A] dark:text-[#A1A1AA] uppercase flex items-center gap-1.5">
+                    <FileText size={11} className="text-[#FCD34D]" />
                     <span>Ghi chú</span>
                   </div>
                   <div className="space-y-0.5 mt-0.5">
@@ -257,21 +257,21 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
                         key={note.id}
                         type="button"
                         onClick={() => handleSelectNote(note.id)}
-                        className="w-full px-2.5 py-2 rounded-xl text-left flex items-center justify-between gap-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer group"
+                        className="w-full px-2.5 py-2 rounded-xl text-left flex items-center justify-between gap-2 hover:bg-black/[0.04] dark:hover:bg-[#25252A] transition-colors cursor-pointer group"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <FileText size={13} className="text-[#FF9500] shrink-0" />
+                          <FileText size={13} className="text-[#FCD34D] shrink-0" />
                           <div className="min-w-0">
-                            <p className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate leading-tight">
+                            <p className="text-xs font-semibold text-[#18181B] dark:text-[#ECECF1] truncate leading-tight">
                               {note.title || "Ghi chú không tên"}
                             </p>
-                            <p className="text-[10px] text-[#8E8E93] truncate mt-0.5">
+                            <p className="text-[10px] text-[#71717A] dark:text-[#A1A1AA] truncate mt-0.5">
                               {stripHtmlText(note.content)}
                             </p>
                           </div>
                         </div>
 
-                        <ArrowRight size={12} className="text-[#8E8E93] group-hover:text-[#FF9500] shrink-0 transition-colors" />
+                        <ArrowRight size={12} className="text-[#71717A] dark:text-[#A1A1AA] group-hover:text-[#FCD34D] shrink-0 transition-colors" />
                       </button>
                     ))}
                   </div>
@@ -281,8 +281,8 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
               {/* 3. Nhật ký (Journal) */}
               {searchResults.journal.length > 0 && (
                 <div className="pt-1">
-                  <div className="px-2.5 py-1 text-[10px] font-semibold font-mono text-[#8E8E93] uppercase flex items-center gap-1.5">
-                    <BookOpen size={11} className="text-[#AF52DE]" />
+                  <div className="px-2.5 py-1 text-[10px] font-semibold font-mono text-[#71717A] dark:text-[#A1A1AA] uppercase flex items-center gap-1.5">
+                    <BookOpen size={11} className="text-[#C084FC]" />
                     <span>Nhật ký</span>
                   </div>
                   <div className="space-y-0.5 mt-0.5">
@@ -291,21 +291,21 @@ export const DesktopSearchAutocomplete: React.FC<DesktopSearchAutocompleteProps>
                         key={journal.id}
                         type="button"
                         onClick={() => handleSelectJournal(journal.id)}
-                        className="w-full px-2.5 py-2 rounded-xl text-left flex items-center justify-between gap-2 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer group"
+                        className="w-full px-2.5 py-2 rounded-xl text-left flex items-center justify-between gap-2 hover:bg-black/[0.04] dark:hover:bg-[#25252A] transition-colors cursor-pointer group"
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
-                          <BookOpen size={13} className="text-[#AF52DE] shrink-0" />
+                          <BookOpen size={13} className="text-[#C084FC] shrink-0" />
                           <div className="min-w-0">
-                            <p className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate leading-tight">
+                            <p className="text-xs font-semibold text-[#18181B] dark:text-[#ECECF1] truncate leading-tight">
                               Nhật ký ngày {journal.date}
                             </p>
-                            <p className="text-[10px] text-[#8E8E93] truncate mt-0.5">
+                            <p className="text-[10px] text-[#71717A] dark:text-[#A1A1AA] truncate mt-0.5">
                               {stripHtmlText(journal.content)}
                             </p>
                           </div>
                         </div>
 
-                        <ArrowRight size={12} className="text-[#8E8E93] group-hover:text-[#AF52DE] shrink-0 transition-colors" />
+                        <ArrowRight size={12} className="text-[#71717A] dark:text-[#A1A1AA] group-hover:text-[#C084FC] shrink-0 transition-colors" />
                       </button>
                     ))}
                   </div>

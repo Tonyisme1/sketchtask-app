@@ -83,14 +83,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         <div className="flex items-center gap-1 shrink-0">
           {onSearchChange && (
             isSearchOpen || Boolean(searchQuery) ? (
-              <div className="flex items-center gap-1 h-7 px-1.5 bg-[#FAF8F3] border border-[#262626] rounded-xl text-xs">
-                <Search size={11} className="text-[#78716C] shrink-0" strokeWidth={2.4} />
+              <div className="flex items-center gap-2 h-7 px-2 bg-[#FAF8F3] dark:bg-[#1C1C20] border border-[#262626] dark:border-[#2E2E36] rounded-xl text-xs">
+                <Search size={12} className="text-[#78716C] dark:text-[#A1A1AA] shrink-0" strokeWidth={2.4} />
                 <input
                   type="text"
                   value={searchQuery || ""}
                   onChange={(e) => onSearchChange(e.target.value)}
                   placeholder="Tìm việc..."
-                  className="bg-transparent text-[11px] text-[#1C1917] placeholder:text-[#A8A29E] focus:outline-none w-20 sm:w-28 font-sans"
+                  className="bg-transparent pl-0.5 text-[11px] text-[#1C1917] dark:text-[#ECECF1] placeholder:text-[#A8A29E] dark:placeholder:text-[#71717A] focus:outline-none w-20 sm:w-28 font-sans"
                   autoFocus
                 />
                 {searchQuery && (
