@@ -1,6 +1,10 @@
 import React from "react";
-import { ChevronLeft, ChevronRight, Calendar, CalendarDays, Plus } from "lucide-react";
-import { useAppStore } from "../../../stores/appStore";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  CalendarDays,
+} from "lucide-react";
 
 export type PlannerViewMode = "agenda" | "month";
 export type DesktopPlannerSurface = "calendar" | "list";
@@ -24,8 +28,6 @@ export const DesktopPlannerHeader: React.FC<DesktopPlannerHeaderProps> = ({
   onNext,
   onToday,
 }) => {
-  const { openQuickTaskModal } = useAppStore();
-
   return (
     <header className="flex items-center justify-between gap-3 px-4 py-2 border-b border-[var(--border-ink)] bg-[var(--bg-surface)] select-none shrink-0 h-[54px]">
       {/* 1. Bộ điều hướng thời gian chuẩn Desktop (Hôm nay + Prev/Next + Tiêu đề lớn) */}
@@ -81,7 +83,10 @@ export const DesktopPlannerHeader: React.FC<DesktopPlannerHeaderProps> = ({
             } active:scale-95`}
             title="Xem 7 ngày theo giờ"
           >
-            <CalendarDays size={14} strokeWidth={viewMode === "agenda" ? 2.5 : 2} />
+            <CalendarDays
+              size={14}
+              strokeWidth={viewMode === "agenda" ? 2.5 : 2}
+            />
             <span>Tuần</span>
           </button>
 
@@ -99,70 +104,7 @@ export const DesktopPlannerHeader: React.FC<DesktopPlannerHeaderProps> = ({
             <span>Lịch tháng</span>
           </button>
         </div>
-
-        {/* Nút Tạo mới có Dropdown chọn Sự kiện / Công việc */}
-        <PlannerCreateDropdownButton />
       </div>
     </header>
-  );
-};
-
-// Component Dropdown Nút Thêm Mới Chuẩn Lịch
-const PlannerCreateDropdownButton: React.FC = () => {
-  const { openQuickTaskModal } = useAppStore();
-  const [isOpen, setIsOpen] = React.useState(false);
-  const menuRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (!isOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
-
-  return (
-    <div ref={menuRef} className="relative inline-block">
-      <button
-        type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="h-[34px] px-3 rounded-xl bg-[var(--accent-blue)] hover:brightness-110 text-white text-xs font-bold shadow-[2px_2px_0px_#262626] border-[1.5px] border-[#262626] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all cursor-pointer flex items-center gap-1.5"
-        title="Thêm mới sự kiện hoặc công việc"
-      >
-        <Plus size={14} strokeWidth={2.4} />
-        <span>Thêm</span>
-      </button>
-
-      {isOpen && (
-        <div className="absolute right-0 top-[calc(100%+6px)] z-50 min-w-[160px] rounded-xl border-[1.5px] border-[#262626] bg-white dark:bg-[#1E1E20] shadow-[3px_3px_0px_#262626] p-1.5 space-y-1 animate-in fade-in zoom-in-95 duration-100">
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              openQuickTaskModal({ itemType: "event" });
-            }}
-            className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7] hover:bg-[var(--accent-blue)] hover:text-white transition-colors cursor-pointer text-left"
-          >
-            <Calendar size={14} strokeWidth={2.2} className="text-[var(--accent-blue)] group-hover:text-white" />
-            <span>Tạo sự kiện</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              openQuickTaskModal({ itemType: "task" });
-            }}
-            className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7] hover:bg-[var(--accent-sky)] hover:text-[#1C1917] transition-colors cursor-pointer text-left"
-          >
-            <Plus size={14} strokeWidth={2.4} className="text-[var(--accent-sky)]" />
-            <span>Tạo công việc</span>
-          </button>
-        </div>
-      )}
-    </div>
   );
 };

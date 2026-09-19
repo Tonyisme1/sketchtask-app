@@ -687,19 +687,6 @@ export const PlannerTab: React.FC<PlannerTabProps> = ({
                       <span>Danh sách ({totalCount})</span>
                     </button>
                   </div>
-
-                  {/* Nút Thêm Việc Nhanh */}
-                  {!isPastDate && (
-                    <button
-                      type="button"
-                      onClick={() => openQuickTaskModal({ dueDate: selectedDateStr })}
-                      className="h-[34px] px-3.5 rounded-xl bg-[var(--accent-blue)] hover:brightness-110 text-white text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
-                      title="Thêm công việc vào ngày này"
-                    >
-                      <Plus size={14} strokeWidth={2.4} />
-                      <span className="hidden sm:inline">Thêm việc</span>
-                    </button>
-                  )}
                 </div>
               </header>
 
