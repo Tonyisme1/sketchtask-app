@@ -77,7 +77,7 @@ export const ContextAwareFab: React.FC<ContextAwareFabProps> = ({
       onClick={handleClick}
       aria-label={action.label}
       title={action.label}
-      className={`${positionClass} z-40 w-12 h-12 bg-[#1C1917] hover:bg-[#262626] text-white border-[1.5px] border-[#1C1917] rounded-[8px] shadow-[2.5px_2.5px_0px_#262626] flex items-center justify-center active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all duration-150 motion-reduce:transition-none cursor-pointer`}
+      className={`${positionClass} z-40 w-12 h-12 bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-all duration-150 motion-reduce:transition-none cursor-pointer border-none`}
     >
       <Plus size={22} strokeWidth={2.8} />
     </button>

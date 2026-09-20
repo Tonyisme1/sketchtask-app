@@ -1,4 +1,4 @@
-import { NoteItem } from "../components/features/notes/NoteTypes";
+import { NoteItem } from "../components/shared/notes/NoteTypes";
 
 const NOTES_STORAGE_KEY = "sketchtask_notes_v1";
 

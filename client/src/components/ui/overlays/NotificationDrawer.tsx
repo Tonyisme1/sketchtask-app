@@ -150,7 +150,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
       onClick={onClose}
     >
       <div
-        className={`relative w-full max-w-lg bg-white dark:bg-[#1C1C1E] rounded-t-[24px] sm:rounded-2xl border border-[#E5E5EA] dark:border-black shadow-2xl max-h-[90dvh] sm:max-h-[85vh] flex flex-col overflow-hidden transition-all duration-200 ${
+        className={`relative w-full max-w-lg bg-white dark:bg-[#1C1C1E] rounded-t-[32px] sm:rounded-3xl border-none shadow-2xl max-h-[90dvh] sm:max-h-[85vh] flex flex-col overflow-hidden transition-all duration-200 ${
           isClosing
             ? "translate-y-full sm:translate-y-4 sm:scale-95 opacity-0"
             : "translate-y-0 sm:scale-100 opacity-100"
@@ -158,16 +158,16 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Mobile Grab Handle */}
-        <div className="w-10 h-1.2 rounded-full bg-black/20 dark:bg-white/20 mx-auto mt-2.5 mb-1 sm:hidden shrink-0" />
+        <div className="w-10 h-1 rounded-full bg-black/20 dark:bg-white/20 mx-auto mt-2.5 mb-1 sm:hidden shrink-0" />
 
         {/* 1. Header */}
-        <div className="px-4 py-2.5 border-b border-[#E5E5EA] dark:border-black flex items-center justify-between shrink-0">
+        <div className="px-4 py-3 border-b border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-black/[0.04] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7] flex items-center justify-center">
               <Bell size={15} strokeWidth={2.2} />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+              <h2 className="text-sm font-bold text-[#1C1917] dark:text-[#F2F2F7]">
                 Thông báo
               </h2>
             </div>
@@ -176,7 +176,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-7 h-7 rounded-lg hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-full hover:bg-black/[0.05] dark:hover:bg-white/[0.08] text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
             aria-label="Đóng"
           >
             <X size={15} strokeWidth={2.2} />
@@ -185,14 +185,14 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
 
         {/* 2. Filter Pills */}
         {totalAlerts > 0 && (
-          <div className="px-4 py-1.5 border-b border-[#E5E5EA] dark:border-black shrink-0">
-            <div className="grid grid-cols-3 gap-1 bg-black/[0.04] dark:bg-white/[0.06] p-0.5 rounded-lg">
+          <div className="px-4 py-2 border-b border-black/[0.04] dark:border-white/[0.06] shrink-0">
+            <div className="grid grid-cols-3 gap-1 bg-black/[0.04] dark:bg-white/[0.06] p-1 rounded-2xl">
               <button
                 type="button"
                 onClick={() => setFilter("all")}
-                className={`py-1 px-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
+                className={`py-1.5 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
                   filter === "all"
-                    ? "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-2xs font-bold"
+                    ? "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs font-bold"
                     : "text-[#8E8E93] dark:text-[#AEAEC2] hover:text-[#1C1C1E]"
                 }`}
               >
@@ -203,9 +203,9 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
               <button
                 type="button"
                 onClick={() => setFilter("overdue")}
-                className={`py-1 px-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
+                className={`py-1.5 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
                   filter === "overdue"
-                    ? "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-2xs font-bold"
+                    ? "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs font-bold"
                     : "text-[#8E8E93] dark:text-[#AEAEC2] hover:text-[#1C1C1E]"
                 }`}
               >
@@ -217,9 +217,9 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
               <button
                 type="button"
                 onClick={() => setFilter("today")}
-                className={`py-1 px-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
+                className={`py-1.5 px-2 rounded-xl text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 ${
                   filter === "today"
-                    ? "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-2xs font-bold"
+                    ? "bg-white dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs font-bold"
                     : "text-[#8E8E93] dark:text-[#AEAEC2] hover:text-[#1C1C1E]"
                 }`}
               >
@@ -232,10 +232,10 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
         )}
 
         {/* 3. Notification Feed Content */}
-        <div className="flex-1 overflow-y-auto px-4 py-2.5 space-y-2 min-h-0">
+        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2.5 min-h-0">
           {totalAlerts === 0 ? (
-            <div className="text-center py-8 px-3 space-y-1.5 rounded-xl border border-dashed border-[#E5E5EA] dark:border-black">
-              <div className="w-9 h-9 rounded-xl bg-black/[0.04] dark:bg-white/[0.06] text-[#8E8E93] flex items-center justify-center mx-auto">
+            <div className="text-center py-8 px-3 space-y-2 rounded-3xl bg-black/[0.02] dark:bg-white/[0.03]">
+              <div className="w-10 h-10 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[#8E8E93] flex items-center justify-center mx-auto">
                 <Bell size={18} strokeWidth={1.8} />
               </div>
               <div className="space-y-0.5">
@@ -251,17 +251,17 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
             <>
               {/* Overdue Section */}
               {(filter === "all" || filter === "overdue") && overdueGroups.length > 0 && (
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between px-0.5 text-[11px] font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1.5">
                       <AlertTriangle size={12} strokeWidth={2.2} className="text-[#FF3B30] dark:text-[#FF453A]" />
                       <span>Quá hạn ({overdueTasks.length})</span>
                     </span>
                   </div>
 
                   {overdueGroups.map((group) => (
-                    <div key={group.dateStr} className="space-y-1">
-                      <div className="flex items-center justify-between text-[10px] font-medium text-[#8E8E93] dark:text-[#AEAEC2] px-0.5">
+                    <div key={group.dateStr} className="space-y-1.5">
+                      <div className="flex items-center justify-between text-[10px] font-medium text-[#8E8E93] dark:text-[#AEAEC2] px-1">
                         <span>Hạn: {formatFullDate(group.dateStr)}</span>
                         <span className="font-mono">{group.tasks.length}</span>
                       </div>
@@ -270,11 +270,11 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                         <div
                           key={task.id}
                           onClick={() => handleTaskClick(task)}
-                          className="rounded-xl border border-[#E5E5EA] dark:border-black bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] p-2.5 transition-all cursor-pointer flex items-center justify-between gap-2.5 group"
+                          className="rounded-2xl border-none shadow-xs bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] p-3 transition-all cursor-pointer flex items-center justify-between gap-2.5 group active:scale-[0.99]"
                         >
                           <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                            <div className="w-6 h-6 rounded-md bg-rose-500/10 text-[#FF3B30] dark:text-[#FF453A] flex items-center justify-center shrink-0">
-                              <AlertTriangle size={12} strokeWidth={2.2} />
+                            <div className="w-7 h-7 rounded-full bg-rose-500/10 text-[#FF3B30] dark:text-[#FF453A] flex items-center justify-center shrink-0">
+                              <AlertTriangle size={13} strokeWidth={2.2} />
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate group-hover:opacity-80 transition-opacity">
@@ -302,24 +302,24 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
 
               {/* Today Due Section */}
               {(filter === "all" || filter === "today") && todayDueTasks.length > 0 && (
-                <div className="space-y-1.5 pt-0.5">
+                <div className="space-y-2 pt-1">
                   <div className="flex items-center justify-between px-0.5 text-[11px] font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1.5">
                       <Clock size={12} strokeWidth={2.2} className="text-blue-500" />
                       <span>Đến hạn hôm nay ({todayDueTasks.length})</span>
                     </span>
                   </div>
 
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     {todayDueTasks.map((task) => (
                       <div
                         key={task.id}
                         onClick={() => handleTaskClick(task)}
-                        className="rounded-xl border border-[#E5E5EA] dark:border-black bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.04] dark:hover:bg-white/[0.08] p-2.5 transition-all cursor-pointer flex items-center justify-between gap-2.5 group"
+                        className="rounded-2xl border-none shadow-xs bg-black/[0.03] dark:bg-white/[0.05] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] p-3 transition-all cursor-pointer flex items-center justify-between gap-2.5 group active:scale-[0.99]"
                       >
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                          <div className="w-6 h-6 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                            <Clock size={12} strokeWidth={2.2} />
+                          <div className="w-7 h-7 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                            <Clock size={13} strokeWidth={2.2} />
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate group-hover:opacity-80 transition-opacity">
@@ -346,7 +346,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
 
               {/* Filter Empty States */}
               {filter === "overdue" && overdueTasks.length === 0 && (
-                <div className="rounded-xl border border-dashed border-[#E5E5EA] dark:border-black py-6 text-center space-y-0.5">
+                <div className="rounded-3xl bg-black/[0.02] dark:bg-white/[0.03] py-6 text-center space-y-0.5">
                   <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
                     Không có việc quá hạn
                   </p>
@@ -357,7 +357,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
               )}
 
               {filter === "today" && todayDueTasks.length === 0 && (
-                <div className="rounded-xl border border-dashed border-[#E5E5EA] dark:border-black py-6 text-center space-y-0.5">
+                <div className="rounded-3xl bg-black/[0.02] dark:bg-white/[0.03] py-6 text-center space-y-0.5">
                   <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
                     Không có việc đến hạn hôm nay
                   </p>
@@ -371,15 +371,15 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
         </div>
 
         {/* 4. Footer Quick Action */}
-        <div className="px-4 py-2 bg-black/[0.02] dark:bg-white/[0.02] border-t border-[#E5E5EA] dark:border-black flex items-center justify-between shrink-0">
+        <div className="px-4 py-2.5 bg-black/[0.02] dark:bg-white/[0.02] border-t border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between shrink-0">
           <span className="text-[11px] font-medium text-[#8E8E93] dark:text-[#AEAEC2]">
-            Tổng: <strong className="text-[#1C1C1E] dark:text-white font-mono">{totalAlerts}</strong>
+            Tổng: <strong className="text-[#1C1917] dark:text-white font-mono">{totalAlerts}</strong>
           </span>
 
           <button
             type="button"
             onClick={handleNavigateToDeadlines}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] text-xs font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] text-xs font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs"
           >
             <span>Quản lý Hạn định</span>
             <ArrowRight size={12} strokeWidth={2.4} />

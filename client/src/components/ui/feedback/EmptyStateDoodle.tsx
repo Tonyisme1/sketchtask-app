@@ -24,20 +24,20 @@ export const EmptyStateDoodle: React.FC<EmptyStateDoodleProps> = ({
 }) => {
   return (
     <div
-      className={`py-7 px-4 sm:py-8 sm:px-5 text-center border-[1.5px] border-dashed border-[#D4CEBF] rounded-[8px] bg-[#FAF8F3]/60 ${className}`}
+      className={`py-8 px-5 sm:py-10 sm:px-6 text-center border-none rounded-3xl bg-black/[0.02] dark:bg-white/[0.03] shadow-xs ${className}`}
     >
-      <div className="inline-flex items-center justify-center w-10 h-10 bg-[#FEF08A] border-[1.5px] border-[#262626] shadow-[1.5px_1.5px_0px_#262626] rounded-[6px] -rotate-1 mb-2.5">
-        <DynamicIcon name={icon} size={20} strokeWidth={2.2} />
+      <div className="inline-flex items-center justify-center w-12 h-12 bg-[#FEF08A] dark:bg-[#3A3A3C] shadow-xs rounded-2xl mb-3">
+        <DynamicIcon name={icon} size={22} strokeWidth={2.2} className="text-[#1C1917] dark:text-[#F2F2F7]" />
       </div>
-      <h3 className="text-xs sm:text-sm font-bold text-[#1C1917] mb-1">{title}</h3>
-      <p className="text-[11px] text-[#78716C] max-w-sm mx-auto leading-relaxed mb-3">
+      <h3 className="text-sm font-bold text-[#1C1917] dark:text-[#F2F2F7] mb-1">{title}</h3>
+      <p className="text-xs text-[#78716C] dark:text-[#8E8E93] max-w-sm mx-auto leading-relaxed mb-4">
         {message}
       </p>
       {actionText && onAction && (
         <button
           type="button"
           onClick={onAction}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FEF08A] hover:bg-[#FDE047] border-[1.5px] border-[#262626] rounded-[5px] text-xs font-bold text-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] hover:-translate-y-[0.5px] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#1C1917] dark:bg-white hover:bg-black dark:hover:bg-[#F2F2F7] border-none rounded-2xl text-xs font-bold text-white dark:text-[#1C1917] shadow-xs active:scale-95 transition-all cursor-pointer"
         >
           {actionText}
         </button>

@@ -216,6 +216,9 @@ export interface AppContextType {
   // Active Task SubTab (Tất cả | Hôm nay | Kế hoạch | Hạn định)
   activeTaskSubTab: TaskSubTab;
   setActiveTaskSubTab: (subTab: TaskSubTab) => void;
+  activeTaskListTags: string[];
+  setActiveTaskListTags: (tags: string[]) => void;
+  toggleActiveTaskListTag: (tag: string) => void;
   selectedPlannerDate: string;
   setSelectedPlannerDate: (date: string) => void;
 
@@ -234,6 +237,7 @@ export interface AppContextType {
     timeType?: TaskTimeType;
     startTime?: string;
     endTime?: string;
+    lockItemType?: boolean;
   } | null;
   openQuickTaskModal: (initialData?: {
     dueDate?: string;
@@ -242,6 +246,7 @@ export interface AppContextType {
     timeType?: TaskTimeType;
     startTime?: string;
     endTime?: string;
+    lockItemType?: boolean;
   }) => void;
   closeQuickTaskModal: () => void;
 
@@ -638,6 +643,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
     }
+  }, []);
+  const [activeTaskListTags, setActiveTaskListTags] = useState<string[]>([]);
+  const toggleActiveTaskListTag = useCallback((tag: string) => {
+    setActiveTaskListTags((currentTags) =>
+      currentTags.includes(tag)
+        ? currentTags.filter((currentTag) => currentTag !== tag)
+        : [...currentTags, tag],
+    );
   }, []);
   const [selectedPlannerDate, setSelectedPlannerDate] = useState<string>(() => getLocalTodayStr());
 
@@ -1440,7 +1453,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
-  // Nạp lại toàn bộ dữ liệu mẫu lớn thử tải với 50 task phong phú
+  // Nạp bộ dữ liệu mẫu gồm task và event để kiểm tra đầy đủ các workspace.
   const loadSampleData = () => {
     const sampleTasks = generateSample50Tasks();
 
@@ -1998,16 +2011,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     timeType?: TaskTimeType;
     startTime?: string;
     endTime?: string;
+    lockItemType?: boolean;
   } | null>(null);
 
   const openQuickTaskModal = useCallback(
     (initialData?: {
     dueDate?: string;
     tag?: string;
-    itemType?: TaskItemType;
-    timeType?: TaskTimeType;
+      itemType?: TaskItemType;
+      timeType?: TaskTimeType;
       startTime?: string;
       endTime?: string;
+      lockItemType?: boolean;
     }) => {
       setQuickTaskInitialData(initialData || null);
       setIsQuickTaskModalOpen(true);
@@ -2111,6 +2126,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         dismissCompletedTaskPrompt,
         activeTaskSubTab,
         setActiveTaskSubTab,
+        activeTaskListTags,
+        setActiveTaskListTags,
+        toggleActiveTaskListTag,
         selectedPlannerDate,
         setSelectedPlannerDate,
         activeDetailTaskId,

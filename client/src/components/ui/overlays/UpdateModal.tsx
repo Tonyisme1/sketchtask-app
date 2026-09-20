@@ -78,16 +78,13 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-sm bg-[#FBF9F4] dark:bg-[#262626] border-[2px] border-[#262626] dark:border-[#57534E] rounded-[8px] shadow-[6px_6px_0px_#262626] p-4 sm:p-5 flex flex-col space-y-3.5"
+        className="relative w-full max-w-sm bg-white dark:bg-[#1E1E22] rounded-3xl shadow-2xl p-5 flex flex-col space-y-4"
       >
-        {/* Paper Tape Effect */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-28 h-5 bg-[#FAF8F3] border-x border-[#262626]/40 rotate-1 shadow-[1px_1px_0px_#262626] pointer-events-none" />
-
         {/* Header */}
-        <div className="flex items-center justify-between pb-2 border-b border-[#262626] dark:border-[#57534E]">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#1C1917] border border-[#262626] rounded-[4px] flex items-center justify-center shadow-[1px_1px_0px_#262626]">
-              <Sparkles size={16} className="text-white" />
+        <div className="flex items-center justify-between pb-1">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 bg-[var(--accent-blue)] text-white rounded-2xl flex items-center justify-center shadow-xs">
+              <Sparkles size={18} strokeWidth={2.4} />
             </div>
             <div>
               <h3 className="font-bold text-sm text-[#1C1917] dark:text-[#FBF9F4]">
@@ -107,17 +104,17 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
             <button
               type="button"
               onClick={handleDismiss}
-              className="text-[#78716C] hover:text-[#1C1917] dark:text-[#A8A29E] dark:hover:text-white p-1"
+              className="text-[#78716C] hover:text-[#1C1917] dark:text-[#A8A29E] dark:hover:text-white p-1.5 rounded-xl hover:bg-black/[0.04] dark:hover:bg-white/[0.08] transition-colors"
             >
-              <X size={15} strokeWidth={2.5} />
+              <X size={16} strokeWidth={2.4} />
             </button>
           )}
         </div>
 
         {/* Changelog Content */}
-        <div className="p-3 bg-white dark:bg-[#1C1917] border border-[#D4CEBF] dark:border-[#44403C] rounded-[6px] space-y-1 text-xs">
-          <p className="font-bold text-[11px] text-[#1C1917] dark:text-[#FBF9F4] flex items-center gap-1">
-            <Sparkles size={12} className="text-[#1C1917] dark:text-white" />
+        <div className="p-3.5 bg-black/[0.03] dark:bg-white/[0.04] rounded-2xl space-y-1.5 text-xs">
+          <p className="font-bold text-[11px] text-[#1C1917] dark:text-[#FBF9F4] flex items-center gap-1.5">
+            <Sparkles size={13} className="text-[var(--accent-blue)]" />
             <span>Có gì mới trong bản này:</span>
           </p>
           <p className="text-[11px] text-[#78716C] dark:text-[#A8A29E] leading-relaxed">
@@ -132,7 +129,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
             <button
               type="button"
               onClick={handleDismiss}
-              className="flex-1 py-2 bg-[#F3EFE6] dark:bg-[#2E2A27] hover:bg-white dark:hover:bg-[#3D3834] border border-[#262626] dark:border-[#57534E] rounded-[4px] text-xs font-bold text-[#78716C] dark:text-[#A8A29E] transition-all"
+              className="flex-1 py-2.5 bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] rounded-2xl text-xs font-bold text-[#78716C] dark:text-[#A8A29E] transition-all cursor-pointer"
             >
               Để sau
             </button>
@@ -141,7 +138,7 @@ export const UpdateModal: React.FC<UpdateModalProps> = ({
           <button
             type="button"
             onClick={handleApplyUpdate}
-            className="flex-1 py-2 bg-[#1C1917] hover:bg-[#262626] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold text-white flex items-center justify-center gap-1.5 active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all select-none"
+            className="flex-1 py-2.5 bg-[#1C1917] hover:bg-[#262626] dark:bg-white dark:hover:bg-[#F2F2F7] dark:text-[#1C1917] rounded-2xl shadow-xs text-xs font-bold text-white flex items-center justify-center gap-1.5 active:scale-95 transition-all select-none cursor-pointer"
           >
             <RefreshCw size={13} strokeWidth={2.5} />
             <span>{Capacitor.isNativePlatform() ? "Mở nơi tải APK" : "Cập nhật ngay"}</span>

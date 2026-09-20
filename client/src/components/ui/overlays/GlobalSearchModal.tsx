@@ -115,15 +115,15 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
       onClick={onClose}
     >
       <div
-        className={`relative w-full h-[100dvh] sm:h-auto sm:max-w-xl bg-[#FBF9F4] border-none sm:border-[2px] sm:border-[#262626] rounded-none sm:rounded-[8px] shadow-none sm:shadow-[4px_4px_0px_#262626] p-3.5 sm:p-5 pt-[max(env(safe-area-inset-top),16px)] sm:pt-5 pb-[max(env(safe-area-inset-bottom),16px)] sm:pb-5 space-y-3.5 sm:my-auto max-h-[100dvh] sm:max-h-[85vh] flex flex-col ${isClosing ? "mobile-panel-exit" : "mobile-panel-enter"}`}
+        className={`relative w-full h-[100dvh] sm:h-auto sm:max-w-xl bg-[#FBF9F4] dark:bg-[#1C1C1E] rounded-t-[32px] sm:rounded-3xl shadow-none sm:shadow-2xl p-4 sm:p-6 pt-[max(env(safe-area-inset-top),16px)] sm:pt-6 pb-[max(env(safe-area-inset-bottom),16px)] sm:pb-6 space-y-4 sm:my-auto max-h-[100dvh] sm:max-h-[85vh] flex flex-col ${isClosing ? "mobile-panel-exit" : "mobile-panel-enter"}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Search Input with Back Arrow */}
-        <div className="flex items-center gap-2 pb-2.5 border-b border-[#262626]/20">
+        <div className="flex items-center gap-2 pb-2.5">
           <button
             type="button"
             onClick={onClose}
-            className="p-2 bg-white hover:bg-[#FAF8F3] border-[1.5px] border-[#262626] rounded-[6px] shadow-[1.5px_1.5px_0px_#262626] text-[#1C1917] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer shrink-0"
+            className="p-2.5 bg-white dark:bg-[#2C2C2E] rounded-2xl shadow-xs text-[#1C1917] dark:text-[#F2F2F7] hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 cursor-pointer shrink-0 transition-all"
             title="Quay lại"
           >
             <ArrowLeft size={17} strokeWidth={2.4} />
@@ -132,7 +132,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
             <Search
               size={18}
               strokeWidth={2.4}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#78716C]"
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#78716C] dark:text-[#8E8E93]"
             />
             <input
               ref={inputRef}
@@ -140,13 +140,13 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Tìm kiếm mọi thứ..."
-              className="w-full pl-9 pr-9 py-2 bg-white border-[1.5px] border-[#262626] rounded-xl text-sm font-medium text-[#1C1917] placeholder:text-[#A8A29E] shadow-[1.5px_1.5px_0px_#262626] focus:outline-none focus:bg-[#FFFDF8]"
+              className="w-full pl-10 pr-9 py-2.5 bg-white dark:bg-[#2C2C2E] rounded-2xl text-sm font-medium text-[#1C1917] dark:text-[#F2F2F7] placeholder:text-[#A8A29E] dark:placeholder:text-[#71717A] shadow-xs focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30"
             />
             {query && (
               <button
                 type="button"
                 onClick={() => setQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#78716C] hover:text-[#1C1917] p-1 cursor-pointer"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#78716C] hover:text-[#1C1917] dark:hover:text-white p-1 cursor-pointer"
                 title="Xóa tìm kiếm"
               >
                 <X size={14} strokeWidth={2.4} />
@@ -169,10 +169,10 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               key={item.key}
               type="button"
               onClick={() => setFilterType(item.key)}
-              className={`px-2.5 py-1 rounded-[4px] border text-xs font-bold transition-all cursor-pointer shrink-0 ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0 ${
                 filterType === item.key
-                  ? "bg-[#1C1917] text-white border-[#1C1917] shadow-[1px_1px_0px_#262626]"
-                  : "bg-white text-[#78716C] border-[#D4CEBF] hover:bg-[#FAF8F3]"
+                  ? "bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] shadow-xs"
+                  : "bg-white dark:bg-[#2C2C2E] text-[#78716C] dark:text-[#A1A1AA] hover:bg-black/5 dark:hover:bg-white/10"
               }`}
             >
               {item.label}
@@ -183,13 +183,13 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
         {/* Results List */}
         <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 min-h-0 sm:max-h-[50vh]">
           {!query.trim() ? (
-            <div className="text-center py-8 text-[#78716C] space-y-1">
-              <Search size={28} className="mx-auto opacity-40 text-[#78716C]" />
+            <div className="text-center py-8 text-[#78716C] dark:text-[#8E8E93] space-y-1">
+              <Search size={28} className="mx-auto opacity-40" />
               <p className="text-xs font-mono font-medium">Nhập từ khóa để tra cứu toàn bộ ứng dụng</p>
             </div>
           ) : totalMatches === 0 ? (
-            <div className="text-center py-8 text-[#78716C] space-y-1">
-              <p className="text-sm font-bold text-[#1C1917]">Không tìm thấy kết quả</p>
+            <div className="text-center py-8 text-[#78716C] dark:text-[#8E8E93] space-y-1">
+              <p className="text-sm font-bold text-[#1C1917] dark:text-[#F2F2F7]">Không tìm thấy kết quả</p>
               <p className="text-xs font-mono">Thử tìm bằng từ khóa hoặc tên thẻ khác xem sao</p>
             </div>
           ) : (
@@ -197,8 +197,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               {/* 1. Tasks Results */}
               {(filterType === "all" || filterType === "tasks") && searchResults.tasks.length > 0 && (
                 <div className="space-y-1.5">
-                  <div className="text-[11px] font-bold text-[#1C1917] font-mono uppercase tracking-wider flex items-center gap-1.5">
-                    <CheckSquare size={13} className="text-[#1C1917]" />
+                  <div className="text-[11px] font-bold text-[#1C1917] dark:text-[#F2F2F7] font-mono uppercase tracking-wider flex items-center gap-1.5">
+                    <CheckSquare size={13} className="text-[#1C1917] dark:text-white" />
                     <span>Công việc ({searchResults.tasks.length})</span>
                   </div>
                   {searchResults.tasks.map((task) => {
@@ -210,17 +210,16 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                         onClick={() => {
                           if (onSelectTask) onSelectTask(task);
                           if (onNavigateTab) {
-                            // The task workspace decides whether the result belongs to Today or Planner.
                             onNavigateTab("tasks", { taskId: task.id, date: effectiveDate });
                           }
                           onClose();
                         }}
-                        className="bg-white border-[1.5px] border-[#262626] rounded-[6px] p-2.5 shadow-[1.5px_1.5px_0px_#262626] hover:bg-[#FFFDF8] cursor-pointer flex items-center justify-between gap-2 group transition-all"
+                        className="bg-white dark:bg-[#2C2C2E] rounded-2xl p-3 shadow-xs hover:bg-[#FFFDF8] dark:hover:bg-[#3A3A3C] cursor-pointer flex items-center justify-between gap-2 group transition-all"
                       >
-                        <div className="min-w-0 flex items-center gap-2">
+                        <div className="min-w-0 flex items-center gap-2.5">
                           {getTaskItemType(task) === "event" ? (
                             <span
-                              className="h-2.5 w-2.5 shrink-0 rounded-full border-2 border-sky-500 bg-sky-100"
+                              className="h-2.5 w-2.5 shrink-0 rounded-full bg-sky-500 shadow-2xs"
                               aria-label="Sự kiện"
                               title="Sự kiện không có trạng thái hoàn thành"
                             />
@@ -232,18 +231,18 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                                 e.stopPropagation();
                                 toggleTask(task.id);
                               }}
-                              className="w-4 h-4 rounded border-[#262626] accent-[#1C1917] cursor-pointer shrink-0"
+                              className="w-4 h-4 rounded-full border-none accent-[#1C1917] cursor-pointer shrink-0"
                             />
                           )}
                           <div className="min-w-0">
                             <p
                               className={`text-xs font-bold truncate leading-tight ${
-                                task.completed ? "line-through text-[#78716C]" : "text-[#1C1917]"
+                                task.completed ? "line-through text-[#78716C] dark:text-[#8E8E93]" : "text-[#1C1917] dark:text-[#F2F2F7]"
                               }`}
                             >
                               {task.title}
                             </p>
-                            <div className="flex items-center gap-2 mt-0.5 text-[10px] text-[#78716C] font-mono truncate">
+                            <div className="flex items-center gap-2 mt-0.5 text-[10px] text-[#78716C] dark:text-[#8E8E93] font-mono truncate">
                               {effectiveDate && (
                                 <span className="flex items-center gap-0.5">
                                   <Calendar size={10} /> {effectiveDate}
@@ -257,7 +256,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                             </div>
                           </div>
                         </div>
-                        <ArrowRight size={13} className="text-[#A8A29E] group-hover:text-[#1C1917] shrink-0" />
+                        <ArrowRight size={13} className="text-[#A8A29E] group-hover:text-[#1C1917] dark:group-hover:text-white shrink-0" />
                       </div>
                     );
                   })}
@@ -267,8 +266,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               {/* 2. Notes Results */}
               {(filterType === "all" || filterType === "notes") && searchResults.notes.length > 0 && (
                 <div className="space-y-1.5 pt-1">
-                  <div className="text-[11px] font-bold text-[#1C1917] font-mono uppercase tracking-wider flex items-center gap-1.5">
-                    <FileText size={13} className="text-[#1C1917]" />
+                  <div className="text-[11px] font-bold text-[#1C1917] dark:text-[#F2F2F7] font-mono uppercase tracking-wider flex items-center gap-1.5">
+                    <FileText size={13} className="text-[#1C1917] dark:text-white" />
                     <span>Ghi chú ({searchResults.notes.length})</span>
                   </div>
                   {searchResults.notes.map((note) => (
@@ -278,13 +277,13 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                         if (onNavigateTab) onNavigateTab("notes", { noteId: note.id });
                         onClose();
                       }}
-                      className="bg-white border-[1.5px] border-[#262626] rounded-[6px] p-2.5 shadow-[1.5px_1.5px_0px_#262626] hover:bg-[#FFFDF8] cursor-pointer flex items-center justify-between gap-2 group transition-all"
+                      className="bg-white dark:bg-[#2C2C2E] rounded-2xl p-3 shadow-xs hover:bg-[#FFFDF8] dark:hover:bg-[#3A3A3C] cursor-pointer flex items-center justify-between gap-2 group transition-all"
                     >
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-[#1C1917] truncate">{note.title || "Ghi chú không tên"}</p>
-                      <p className="text-[11px] text-[#78716C] truncate mt-0.5 line-clamp-1">{stripHtmlText(note.content)}</p>
+                        <p className="text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7] truncate">{note.title || "Ghi chú không tên"}</p>
+                        <p className="text-[11px] text-[#78716C] dark:text-[#8E8E93] truncate mt-0.5 line-clamp-1">{stripHtmlText(note.content)}</p>
                       </div>
-                      <ArrowRight size={13} className="text-[#A8A29E] group-hover:text-[#1C1917] shrink-0" />
+                      <ArrowRight size={13} className="text-[#A8A29E] group-hover:text-[#1C1917] dark:group-hover:text-white shrink-0" />
                     </div>
                   ))}
                 </div>
@@ -293,8 +292,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               {/* 3. Journal Results */}
               {(filterType === "all" || filterType === "journal") && searchResults.journal.length > 0 && (
                 <div className="space-y-1.5 pt-1">
-                  <div className="text-[11px] font-bold text-[#1C1917] font-mono uppercase tracking-wider flex items-center gap-1.5">
-                    <BookOpen size={13} className="text-[#1C1917]" />
+                  <div className="text-[11px] font-bold text-[#1C1917] dark:text-[#F2F2F7] font-mono uppercase tracking-wider flex items-center gap-1.5">
+                    <BookOpen size={13} className="text-[#1C1917] dark:text-white" />
                     <span>Nhật ký ({searchResults.journal.length})</span>
                   </div>
                   {searchResults.journal.map((journal) => (
@@ -304,15 +303,15 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                         if (onNavigateTab) onNavigateTab("journal", { journalEntryId: journal.id });
                         onClose();
                       }}
-                      className="bg-white border-[1.5px] border-[#262626] rounded-[6px] p-2.5 shadow-[1.5px_1.5px_0px_#262626] hover:bg-[#FFFDF8] cursor-pointer flex items-center justify-between gap-2 group transition-all"
+                      className="bg-white dark:bg-[#2C2C2E] rounded-2xl p-3 shadow-xs hover:bg-[#FFFDF8] dark:hover:bg-[#3A3A3C] cursor-pointer flex items-center justify-between gap-2 group transition-all"
                     >
                       <div className="min-w-0">
-                        <p className="text-xs font-bold text-[#1C1917] truncate">
+                        <p className="text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7] truncate">
                           {`Nhật ký ${journal.date}`}
                         </p>
-                        <p className="text-[11px] text-[#78716C] truncate mt-0.5 line-clamp-1">{journal.content}</p>
+                        <p className="text-[11px] text-[#78716C] dark:text-[#8E8E93] truncate mt-0.5 line-clamp-1">{journal.content}</p>
                       </div>
-                      <ArrowRight size={13} className="text-[#A8A29E] group-hover:text-[#1C1917] shrink-0" />
+                      <ArrowRight size={13} className="text-[#A8A29E] group-hover:text-[#1C1917] dark:group-hover:text-white shrink-0" />
                     </div>
                   ))}
                 </div>

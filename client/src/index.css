@@ -170,14 +170,14 @@ html:not(.dark) [class*="hover:bg-\[\#E7E5E4\]"]:hover {
 .dark [class*="dark:bg-white"],
 .dark [class*="dark:bg-\[\#FFFFFF\]"],
 .dark [class*="dark:bg-\[\#ffffff\]"] {
-  background-color: #ececf1 !important;
-  color: #121214 !important;
+  background-color: var(--bg-surface-muted) !important;
+  color: var(--text-main) !important;
 }
 
 .dark [class*="dark:bg-white"] *,
 .dark [class*="dark:bg-\[\#FFFFFF\]"] *,
 .dark [class*="dark:bg-\[\#ffffff\]"] * {
-  color: #121214 !important;
+  color: var(--text-main) !important;
 }
 
 /* VIỀN TRONG DARK MODE */
@@ -431,9 +431,9 @@ html[data-interface-style="ios"] .task-card-shell {
 }
 
 html.dark[data-interface-style="ios"] .context-checkbox[data-checked="true"] {
-  background-color: #ffffff !important;
-  border-color: #ffffff !important;
-  color: #000000 !important;
+  background-color: var(--border-ink) !important;
+  border-color: var(--border-ink) !important;
+  color: var(--text-main) !important;
 }
 
 html[data-interface-style="ios"]:not(.dark)
@@ -463,13 +463,13 @@ html.dark[data-interface-style="ios"] [class~="dark:bg-white"],
 html.dark[data-interface-style="ios"] [class~="dark:bg-\[\#FAFAFA\]"],
 html.dark[data-interface-style="ios"] [class~="dark:bg-\[\#F2F2F7\]"],
 html.dark[data-interface-style="ios"] [class~="dark:bg-\[\#E4E4E7\]"] {
-  background-color: #ffffff !important;
-  color: #000000 !important;
+  background-color: var(--bg-surface-muted) !important;
+  color: var(--text-main) !important;
 }
 
 html.dark[data-interface-style="ios"] [class~="dark:text-\[\#1C1917\]"],
 html.dark[data-interface-style="ios"] [class~="dark:text-\[\#18181B\]"] {
-  color: #000000 !important;
+  color: var(--text-main) !important;
 }
 
 * {
@@ -516,8 +516,7 @@ body {
 }
 ::-webkit-scrollbar-thumb {
   background: #d4cebf;
-  border-radius: 3px;
-  border: 1px solid #262626;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: #78716c;
@@ -525,7 +524,7 @@ body {
 
 .dark ::-webkit-scrollbar-thumb {
   background: #27272a;
-  border-color: #000000;
+  border-radius: 9999px;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
@@ -670,5 +669,180 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ========================================== */
+/* DARK PALETTE: GOOGLE CALENDAR REFERENCE    */
+/* ========================================== */
+/* Keep the app chrome, working surface, and dividers as separate layers. */
+html.dark {
+  --bg-canvas: #202124;
+  --bg-surface: #121212;
+  --bg-surface-muted: #303134;
+  --border-ink: #3c4043;
+  --border-ink-muted: #303134;
+  --text-main: #e8eaed;
+  --text-strong: #f8f9fa;
+  --text-muted: #bdc1c6;
+  --text-subtle: #9aa0a6;
+  --accent-blue: #8ab4f8;
+  --accent-sky: #8ab4f8;
+  --accent-coral: #f28b82;
+  --accent-mint: #81c995;
+  --accent-yellow: #fdd663;
+}
+
+html.dark header,
+html.dark nav,
+html.dark aside {
+  background-color: var(--bg-canvas) !important;
+}
+
+/* The Settings master navigation is a list, not an elevated surface. */
+html.dark .desktop-settings-navigation {
+  background-color: transparent !important;
+}
+
+html.dark .desktop-settings-navigation .settings-navigation-label {
+  color: var(--text-main) !important;
+}
+
+/* Legacy Tailwind dark surfaces map to the same three-level palette. */
+html.dark [class~="dark:bg-black"],
+html.dark [class~="dark:bg-[#121214]"] {
+  background-color: var(--bg-surface) !important;
+}
+
+html.dark [class~="dark:bg-[#141416]"],
+html.dark [class~="dark:bg-[#18181A]"],
+html.dark [class~="dark:bg-[#1C1C1E]"],
+html.dark [class~="dark:bg-[#1C1C20]"],
+html.dark [class~="dark:bg-[#1E1E20]"],
+html.dark [class~="dark:bg-[#1E1E22]"],
+html.dark [class~="dark:bg-[#1F1F23]"],
+html.dark [class~="dark:bg-[#202023]"],
+html.dark [class~="dark:bg-[#242426]"],
+html.dark [class~="dark:bg-[#27272A]"],
+html.dark [class~="dark:bg-[#2C2C2E]"] {
+  background-color: var(--bg-canvas) !important;
+}
+
+html.dark [class~="dark:bg-[#09090B]"],
+html.dark [class~="dark:bg-[#3A3A3C]"],
+html.dark [class~="dark:bg-[#3F3F46]"] {
+  background-color: var(--border-ink-muted) !important;
+}
+
+/* Dark mode never uses white as a surface, including active and hover states. */
+html.dark [class*="dark:bg-white"],
+html.dark [class~="dark:bg-[#FFFFFF]"],
+html.dark [class~="dark:bg-[#ffffff]"],
+html.dark [class~="dark:bg-[#FAFAFA]"],
+html.dark [class~="dark:bg-[#F2F2F7]"],
+html.dark [class~="dark:bg-[#E4E4E7]"],
+html.dark [class*="bg-white/"]:not([class*="hover:bg-white/"]):not([class*="focus:bg-white/"]):not([class*="active:bg-white/"]) {
+  background-color: var(--bg-surface-muted) !important;
+  color: var(--text-main) !important;
+}
+
+html.dark [class*="dark:bg-white"] *,
+html.dark [class~="dark:bg-[#FFFFFF]"] *,
+html.dark [class~="dark:bg-[#ffffff]"] *,
+html.dark [class~="dark:bg-[#FAFAFA]"] *,
+html.dark [class~="dark:bg-[#F2F2F7]"] *,
+html.dark [class~="dark:bg-[#E4E4E7]"] *,
+html.dark [class*="bg-white/"]:not([class*="hover:bg-white/"]):not([class*="focus:bg-white/"]):not([class*="active:bg-white/"]) * {
+  color: var(--text-main) !important;
+}
+
+html.dark [class*="dark:hover:bg-white"]:hover,
+html.dark [class*="dark:focus:bg-white"]:focus {
+  background-color: var(--border-ink-muted) !important;
+}
+
+html.dark [class~="dark:text-[#1C1917]"],
+html.dark [class~="dark:text-[#18181B]"] {
+  color: var(--text-main) !important;
+}
+
+/* Neutral legacy ink should never fall back to pure white or the old iOS gray scale. */
+html.dark [class~="dark:text-[#FFFFFF]"],
+html.dark [class~="dark:text-[#F2F2F7]"],
+html.dark [class~="dark:text-[#ECECF1]"],
+html.dark [class~="dark:text-[#FAFAFA]"],
+html.dark [class~="dark:text-[#FBF9F4]"] {
+  color: var(--text-main) !important;
+}
+
+html.dark [class~="dark:text-[#A1A1A6]"],
+html.dark [class~="dark:text-[#A1A1AA]"],
+html.dark [class~="dark:text-[#A8A29E]"],
+html.dark [class~="dark:text-[#8E8E93]"],
+html.dark [class~="dark:text-[#AEAEB2]"],
+html.dark [class~="dark:text-[#AEAEC2]"],
+html.dark [class~="dark:text-[#71717A]"],
+html.dark [class~="dark:text-[#636366]"] {
+  color: var(--text-muted) !important;
+}
+
+html.dark .border,
+html.dark [class~="dark:border-[#262626]"],
+html.dark [class~="dark:border-[#2C2C2E]"],
+html.dark [class~="dark:border-[#2E2E34]"],
+html.dark [class~="dark:border-[#2E2E36]"],
+html.dark [class~="dark:border-[#3A3A3C]"],
+html.dark [class~="dark:border-[#3F3F46]"],
+html.dark [class~="dark:border-[#48484A]"] {
+  border-color: var(--border-ink) !important;
+}
+
+html.dark [class~="dark:divide-[#2C2C2E]"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--border-ink) !important;
+}
+
+/* ========================================== */
+/* DESKTOP MINIMAL COMPOSITION                 */
+/* ========================================== */
+/* Desktop retains its information density while removing the stacked-card feel. */
+@media (min-width: 1024px) {
+  .desktop-minimal > header {
+    border-bottom: 1px solid var(--border-ink-muted);
+  }
+
+  .desktop-minimal .rounded-3xl {
+    border-radius: 12px !important;
+  }
+
+  .desktop-minimal .rounded-2xl {
+    border-radius: 8px !important;
+  }
+
+  .desktop-minimal .rounded-xl {
+    border-radius: 6px !important;
+  }
+
+  .desktop-minimal .shadow-xs,
+  .desktop-minimal .shadow-sm,
+  .desktop-minimal .shadow-lg,
+  .desktop-minimal .shadow-xl,
+  .desktop-minimal .shadow-2xl {
+    box-shadow: none !important;
+  }
+
+  .desktop-minimal main > div > div.rounded-3xl {
+    border: 1px solid var(--border-ink-muted);
+  }
+
+  .desktop-minimal [role="dialog"] {
+    border-color: var(--border-ink-muted);
+  }
+
+  .desktop-minimal .animate-in {
+    animation: none !important;
+  }
+
+  .desktop-minimal [data-desktop-sidebar-summary] {
+    display: none;
   }
 }

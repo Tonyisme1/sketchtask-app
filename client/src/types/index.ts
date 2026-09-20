@@ -24,6 +24,7 @@ export interface TaskEditorInitialData {
   priority?: TaskPriority;
   tags?: string[];
   mode?: "view" | "edit";
+  lockItemType?: boolean;
 }
 
 export interface TaskDto {

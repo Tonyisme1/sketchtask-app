@@ -27,23 +27,26 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#FBF9F4] p-6 flex flex-col items-center justify-center text-[#1C1917] font-sans">
-          <div className="max-w-md w-full p-5 bg-white border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626]">
-            <div className="w-10 h-10 bg-[#FECDD3] border border-[#262626] rounded-[4px] flex items-center justify-center text-xl mb-3">
-              <AlertTriangle size={20} strokeWidth={2.4} className="text-rose-800" />
+        <div className="min-h-screen bg-[#F2F2F7] dark:bg-[#18181A] p-6 flex flex-col items-center justify-center text-[#1C1917] dark:text-[#F2F2F7] font-sans">
+          <div className="max-w-md w-full p-6 bg-white dark:bg-[#1C1C1E] rounded-3xl shadow-2xl space-y-4 text-center">
+            <div className="w-12 h-12 bg-rose-500/10 rounded-2xl flex items-center justify-center text-xl mx-auto shadow-xs">
+              <AlertTriangle size={24} strokeWidth={2.4} className="text-rose-600 dark:text-rose-400" />
             </div>
-            <h2 className="text-base font-bold text-[#1C1917] mb-1">
-              Đã có chút trục trặc khi tải trang
-            </h2>
-            <p className="text-xs text-[#78716C] mb-4">
-              {this.state.error?.message || "Lỗi khởi tạo giao diện."}
-            </p>
+            <div className="space-y-1">
+              <h2 className="text-base font-bold text-[#1C1917] dark:text-white">
+                Đã có chút trục trặc khi tải trang
+              </h2>
+              <p className="text-xs text-[#78716C] dark:text-[#8E8E93] leading-relaxed">
+                {this.state.error?.message || "Lỗi khởi tạo giao diện."}
+              </p>
+            </div>
             <button
+              type="button"
               onClick={() => {
                 localStorage.clear();
                 window.location.reload();
               }}
-              className="px-3 py-1.5 bg-[#FEF08A] text-[#1C1917] border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] text-xs font-bold"
+              className="px-4 py-2.5 bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] rounded-2xl shadow-xs text-xs font-bold active:scale-95 transition-all cursor-pointer inline-flex items-center justify-center"
             >
               Làm mới lại dữ liệu
             </button>

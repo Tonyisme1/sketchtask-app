@@ -35,10 +35,10 @@ export const HandDrawnCheckbox: React.FC<CheckboxProps> = ({
           onChange(!checked);
         }}
         data-checked={checked}
-        className={`${dimensionClass} border-[1.5px] rounded-full flex items-center justify-center transition-all duration-150 shrink-0 ${
+        className={`${dimensionClass} rounded-full border-none flex items-center justify-center transition-all duration-150 shrink-0 ${
           checked
-            ? "context-checkbox bg-[#1C1917] border-[#1C1917] text-white dark:bg-[#E4E4E7] dark:border-[#E4E4E7] dark:text-[#18181B] shadow-none scale-100"
-            : "bg-white border-[#262626] shadow-[1px_1px_0px_#262626] group-hover:border-[#1C1917] group-hover:scale-105"
+            ? "context-checkbox bg-[#1C1917] text-white dark:bg-[#E4E4E7] dark:text-[#18181B] shadow-2xs scale-100"
+            : "bg-black/[0.08] dark:bg-white/[0.12] group-hover:bg-black/[0.15] dark:group-hover:bg-white/[0.2] shadow-2xs group-hover:scale-105"
         }`}
       >
         {checked && (
@@ -58,8 +58,8 @@ export const HandDrawnCheckbox: React.FC<CheckboxProps> = ({
 
       {label && (
         <span
-          className={`text-sm font-medium text-[#1C1917] transition-all duration-150 ${
-            checked ? "line-through text-[#78716C] opacity-60" : ""
+          className={`text-sm font-medium text-[#1C1917] dark:text-[#F2F2F7] transition-all duration-150 ${
+            checked ? "line-through text-[#78716C] dark:text-[#8E8E93] opacity-60" : ""
           }`}
         >
           {label}

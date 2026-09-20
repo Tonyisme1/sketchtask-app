@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { LogIn, LogOut, Settings, User } from "lucide-react";
-import { DynamicIcon } from "../../shared/ui";
+import { LogIn, LogOut, Settings } from "lucide-react";
+import { DynamicIcon } from "../ui";
 import type { UserProfile } from "../../stores/appStore";
 
 interface AccountMenuProps {
@@ -22,7 +22,8 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonSize = size === "sm" ? "h-8 w-8" : "h-9 w-9";
-  const avatarSize = size === "sm" ? "h-5 w-5" : "h-6 w-6";
+  const avatarBackground = user.isSignedIn ? user.avatarBg || "#09090B" : "#09090B";
+  const avatarForeground = user.isSignedIn ? "text-[#1C1C1E]" : "text-white";
 
   useEffect(() => {
     const handlePointerDown = (event: MouseEvent | TouchEvent) => {
@@ -52,8 +53,8 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        style={{ backgroundColor: user.avatarBg || "#FEF08A" }}
-        className={`${buttonSize} relative flex items-center justify-center rounded-xl border border-[#E5E5EA] dark:border-[#3A3A3C] text-[#1C1C1E] shadow-2xs transition-all active:scale-95 cursor-pointer overflow-hidden`}
+        style={{ backgroundColor: avatarBackground }}
+        className={`${buttonSize} ${avatarForeground} relative flex items-center justify-center rounded-2xl border-none shadow-2xs transition-all active:scale-95 cursor-pointer overflow-hidden`}
         title={user.isSignedIn ? `Tài khoản: ${user.name}` : "Đăng nhập"}
         aria-label={user.isSignedIn ? `Tài khoản: ${user.name}` : "Đăng nhập"}
         aria-haspopup="menu"
@@ -70,13 +71,13 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
         <div
           role="menu"
           aria-label="Menu tài khoản"
-          className="absolute right-0 top-full z-[80] mt-2 w-60 rounded-2xl border border-[#E5E5EA] dark:border-[#2C2C2E] bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl p-1.5 text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xl animate-in fade-in slide-in-from-top-1 duration-150"
+          className="absolute right-0 top-full z-[80] mt-2 w-60 rounded-3xl border-none bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl p-2 text-[#1C1C1E] dark:text-[#F2F2F7] shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150"
         >
-          <div className="border-b border-[#E5E5EA] dark:border-[#2C2C2E] px-3 py-2.5 mb-1">
+          <div className="border-b border-black/[0.04] dark:border-white/[0.06] px-3 py-2.5 mb-1">
             <div className="flex items-center gap-2.5">
               <span
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-[#1C1C1E] text-xs font-semibold shrink-0 shadow-xs overflow-hidden"
-                style={{ backgroundColor: user.avatarBg || "#FEF08A" }}
+                className={`w-7 h-7 rounded-full flex items-center justify-center ${avatarForeground} text-xs font-semibold shrink-0 shadow-xs overflow-hidden`}
+                style={{ backgroundColor: avatarBackground }}
               >
                 <DynamicIcon
                   name={user.avatar || (user.isSignedIn ? "lucide:UserCheck" : "lucide:User")}

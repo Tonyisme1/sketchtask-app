@@ -63,7 +63,7 @@ const DrumWheelColumn: React.FC<DrumWheelColumnProps> = ({
       <div className="relative w-full overflow-hidden">
         {/* Vạch kẻ khung chọn tiêu điểm ở giữa */}
         <div
-          className="pointer-events-none absolute inset-x-1 top-1/2 z-10 h-[42px] -translate-y-1/2 rounded-[6px] border-[1.5px] border-[#262626] dark:border-white/40 bg-[#FEF08A]/15 dark:bg-white/10 shadow-[0.5px_0.5px_0px_#262626]"
+          className="pointer-events-none absolute inset-x-1 top-1/2 z-10 h-[42px] -translate-y-1/2 rounded-2xl bg-[var(--accent-blue)]/15 dark:bg-white/10"
           aria-hidden="true"
         />
 
@@ -332,8 +332,8 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
         ref={panelRef}
         className={
           isTouchViewport
-            ? "pointer-events-auto relative w-full max-w-[310px] max-h-[calc(100dvh-2rem)] overflow-hidden rounded-[10px] border-[1.5px] border-[#262626] bg-[#FBF9F4] shadow-[4px_4px_0px_#262626] animate-in fade-in duration-150"
-            : "pointer-events-auto fixed max-w-[calc(100vw-1rem)] overflow-hidden rounded-[10px] border-[1.5px] border-[#262626] bg-[#FBF9F4] shadow-[3.5px_3.5px_0px_#262626] animate-in fade-in duration-150"
+            ? "pointer-events-auto relative w-full max-w-[310px] max-h-[calc(100dvh-2rem)] overflow-hidden rounded-3xl bg-[#FBF9F4] dark:bg-[#1C1C1E] shadow-2xl animate-in fade-in duration-150"
+            : "pointer-events-auto fixed max-w-[calc(100vw-1rem)] overflow-hidden rounded-3xl bg-[#FBF9F4] dark:bg-[#1C1C1E] shadow-2xl animate-in fade-in duration-150"
         }
         style={
           isTouchViewport
@@ -347,14 +347,14 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
         onClick={(event) => event.stopPropagation()}
       >
         {/* Header: Title */}
-        <div className="px-4 py-2.5 flex items-center justify-between border-b border-[#262626]/15 bg-[#FAF8F3]">
-          <h3 className="text-sm font-bold text-[#1C1917] tracking-tight">
+        <div className="px-4 py-3 flex items-center justify-between border-b border-black/[0.04] dark:border-white/[0.06] bg-[#FAF8F3] dark:bg-[#202023]">
+          <h3 className="text-sm font-bold text-[#1C1917] dark:text-[#F2F2F7] tracking-tight">
             Chọn giờ ({selectedHour}:{selectedMinute})
           </h3>
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            className="p-1 rounded-[4px] border border-transparent hover:border-[#262626] hover:bg-white text-[#78716C] hover:text-[#1C1917] active:translate-y-[0.5px] cursor-pointer"
+            className="p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-[#78716C] hover:text-[#1C1917] dark:text-[#8E8E93] dark:hover:text-white cursor-pointer transition-colors"
             title="Đóng"
           >
             <X size={14} strokeWidth={2.4} />
@@ -390,18 +390,18 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
         </div>
 
         {/* Bottom Actions */}
-        <div className="px-3.5 py-2.5 bg-[#FAF8F3] dark:bg-[#1C1C1E] border-t border-[#262626]/15 dark:border-white/10 flex items-center justify-between gap-2">
+        <div className="px-4 py-3 bg-[#FAF8F3] dark:bg-[#1C1C1E] border-t border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between gap-2.5">
           <button
             type="button"
             onClick={handleClear}
-            className="flex-1 py-1.5 px-2 rounded-[6px] bg-white dark:bg-[#2C2C2E] hover:bg-slate-100 dark:hover:bg-[#3A3A3C] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] text-xs font-bold text-[#57534E] dark:text-[#8E8E93] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer transition-all"
+            className="flex-1 py-2 px-3 rounded-2xl bg-white dark:bg-[#2C2C2E] hover:bg-black/5 dark:hover:bg-[#3A3A3C] text-xs font-bold text-[#57534E] dark:text-[#8E8E93] shadow-xs active:scale-95 cursor-pointer transition-all"
           >
             Xóa giờ
           </button>
           <button
             type="button"
             onClick={handleDone}
-            className="flex-1 py-1.5 px-3 rounded-[6px] bg-[#1C1917] dark:bg-white hover:bg-[#262626] dark:hover:bg-[#F2F2F7] text-white dark:text-[#1C1917] border-[1.5px] border-[#1C1917] dark:border-white text-xs font-bold shadow-[1.5px_1.5px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer flex items-center justify-center gap-1.5 transition-all"
+            className="flex-1 py-2 px-3 rounded-2xl bg-[#1C1917] dark:bg-white hover:bg-black dark:hover:bg-[#F2F2F7] text-white dark:text-[#1C1917] text-xs font-bold shadow-xs active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 transition-all"
           >
             <Check size={13} strokeWidth={3} />
             <span>Hoàn tất</span>
@@ -418,13 +418,13 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen((open) => !open)}
-        className={`w-full flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-[4px] border border-[#262626] bg-[#FAF8F3] hover:bg-white text-xs sm:text-sm font-mono font-bold text-[#1C1917] transition-all cursor-pointer shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
-          isOpen ? "bg-white ring-1 ring-[#1C1917]" : ""
+        className={`w-full flex items-center justify-between gap-1.5 px-3 py-1.5 rounded-2xl bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-muted)] text-xs sm:text-sm font-mono font-bold text-[#1C1917] dark:text-[#F2F2F7] transition-all cursor-pointer shadow-xs active:scale-95 ${
+          isOpen ? "ring-2 ring-[var(--accent-blue)]/30" : ""
         }`}
       >
         <div className="flex items-center gap-1.5 truncate">
-          <Clock size={12} className={value ? "text-[#1C1917]" : "text-[#78716C]"} />
-          <span className={value ? "text-[#1C1917]" : "text-[#78716C] font-normal"}>
+          <Clock size={12} className={value ? "text-[var(--accent-blue)]" : "text-[#78716C] dark:text-[#8E8E93]"} />
+          <span className={value ? "text-[#1C1917] dark:text-[#F2F2F7]" : "text-[#78716C] dark:text-[#8E8E93] font-normal"}>
             {value || placeholder}
           </span>
         </div>

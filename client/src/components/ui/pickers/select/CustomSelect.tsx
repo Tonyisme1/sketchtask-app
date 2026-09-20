@@ -131,7 +131,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       ref={panelRef}
       role="dialog"
       aria-label="Danh sách lựa chọn"
-      className="fixed z-[1000002] bg-[#FBF9F4] dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] rounded-[6px] shadow-[3px_3px_0px_#262626] py-1 animate-in fade-in flex flex-col overflow-hidden text-[#1C1917] dark:text-[#F2F2F7]"
+      className="fixed z-[1000002] bg-[#FBF9F4] dark:bg-[#1C1C1E] rounded-2xl shadow-2xl py-1.5 animate-in fade-in flex flex-col overflow-hidden text-[#1C1917] dark:text-[#F2F2F7]"
       style={{
         top: panelPos.top,
         left: panelPos.left,
@@ -141,7 +141,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       onClick={(e) => e.stopPropagation()}
     >
       {/* Options List với phân nhóm & thụt lề */}
-      <div className="max-h-56 overflow-y-auto no-scrollbar py-0.5">
+      <div className="max-h-56 overflow-y-auto no-scrollbar py-0.5 px-1">
         {filteredOptions.length === 0 ? (
           <div className="p-2.5 text-center text-xs text-[#78716C] dark:text-[#8E8E93] font-mono">
             Không có mục phù hợp
@@ -156,7 +156,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
               <React.Fragment key={option.value || `opt-${idx}`}>
                 {/* Header Nhóm */}
                 {showGroupHeader && (
-                  <div className="px-2.5 py-1 text-[11px] font-medium text-[#57534E] dark:text-[#8E8E93] bg-[#FAF8F3] dark:bg-[#2C2C2E] border-y border-[#262626]/15 dark:border-white/10 sticky top-0 z-10 flex items-center gap-1 select-none">
+                  <div className="px-2.5 py-1 text-[11px] font-bold text-[#57534E] dark:text-[#8E8E93] bg-[#FAF8F3] dark:bg-[#2C2C2E] rounded-lg sticky top-0 z-10 flex items-center gap-1 select-none">
                     <span>{option.group}</span>
                   </div>
                 )}
@@ -170,43 +170,34 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                     onChange(option.value);
                     setIsOpen(false);
                   }}
-                  className={`group w-full flex items-center gap-2 py-1.5 text-xs text-left transition-colors cursor-pointer ${
-                    option.depth ? "pl-6 pr-3" : "px-3"
-                  } ${
+                  className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 text-xs text-left rounded-xl transition-colors cursor-pointer ${
                     isSelected
-                      ? "bg-[#FEF08A] dark:bg-white/15 font-black text-[#1C1917] dark:text-white"
+                      ? "bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] font-bold shadow-xs"
                       : option.disabled
                       ? "opacity-40 cursor-not-allowed"
-                      : "text-[#1C1917] dark:text-[#F2F2F7] hover:bg-white dark:hover:bg-[#2C2C2E]"
+                      : "text-[#1C1917] dark:text-[#F2F2F7] hover:bg-black/5 dark:hover:bg-white/10"
                   }`}
+                  style={{ paddingLeft: option.depth ? `${option.depth * 12 + 10}px` : undefined }}
                 >
-                  {option.icon && (
-                    <span className="shrink-0 flex items-center">
-                      <DynamicIcon name={option.icon} size={13} strokeWidth={2.2} />
-                    </span>
-                  )}
-
-                  <div className="overflow-hidden flex-1 min-w-0">
-                    <span className="truncate block font-medium">
-                      {option.label}
-                    </span>
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    {option.icon && (
+                      <span className="shrink-0 flex items-center">
+                        <DynamicIcon name={option.icon} size={13} strokeWidth={2.2} />
+                      </span>
+                    )}
+                    <span className="truncate">{option.label}</span>
+                    {option.badge && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 bg-[#FEF08A] text-[#1C1917] rounded-full shrink-0">
+                        {option.badge}
+                      </span>
+                    )}
+                    {option.count !== undefined && (
+                      <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 bg-black/5 dark:bg-white/10 rounded-full text-[#78716C] dark:text-[#8E8E93] shrink-0">
+                        {option.count}
+                      </span>
+                    )}
                   </div>
-
-                  {option.badge && (
-                    <span className="text-[9px] font-bold px-1.5 py-0.2 bg-[#FAF8F3] dark:bg-[#2C2C2E] border border-[#262626] dark:border-[#3A3A3C] rounded text-[#57534E] dark:text-[#8E8E93] shrink-0">
-                      {option.badge}
-                    </span>
-                  )}
-
-                  {option.count !== undefined && (
-                    <span className="text-[10px] font-mono text-[#78716C] dark:text-[#8E8E93] shrink-0">
-                      ({option.count})
-                    </span>
-                  )}
-
-                  {isSelected && (
-                    <Check size={13} strokeWidth={2.6} className="text-[#1C1917] dark:text-white shrink-0 ml-1" />
-                  )}
+                  {isSelected && <Check size={13} strokeWidth={2.8} className="shrink-0" />}
                 </button>
               </React.Fragment>
             );
@@ -223,7 +214,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         ref={triggerRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full min-w-0 flex items-center justify-between gap-1.5 px-2.5 py-1.5 text-xs sm:text-sm bg-white dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] hover:-translate-y-[0.5px] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all select-none text-[#1C1917] dark:text-[#F2F2F7] cursor-pointer"
+        className="w-full min-w-0 flex items-center justify-between gap-1.5 px-3 py-2 text-xs sm:text-sm bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-muted)] rounded-2xl shadow-xs active:scale-95 transition-all select-none text-[#1C1917] dark:text-[#F2F2F7] cursor-pointer"
       >
         <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
           {selectedOption ? (
@@ -237,12 +228,12 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                 {selectedOption.label}
               </span>
               {selectedOption.badge && (
-                <span className="text-[9px] font-bold px-1.5 py-0.2 bg-[#FEF08A] border border-[#262626] rounded text-[#1C1917] shrink-0">
+                <span className="text-[9px] font-bold px-1.5 py-0.2 bg-[#FEF08A] rounded-full text-[#1C1917] shrink-0">
                   {selectedOption.badge}
                 </span>
               )}
               {selectedOption.count !== undefined && (
-                <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 bg-[#F3EFE6] border border-[#D4CEBF] rounded text-[#78716C] shrink-0">
+                <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 bg-black/5 dark:bg-white/10 rounded-full text-[#78716C] shrink-0">
                   {selectedOption.count}
                 </span>
               )}

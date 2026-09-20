@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { App as CapacitorApp } from "@capacitor/app";
-import { NavigationTarget, TabKey, TaskSubTab } from "./shared/types";
-import { AppProvider, useAppStore } from "./shared/stores";
-import { useResponsiveLayout } from "./shared/hooks";
+import { NavigationTarget, TabKey, TaskSubTab } from "./types";
+import { AppProvider, useAppStore } from "./stores";
+import { useResponsiveLayout } from "./hooks";
 
 // 3 Dedicated Platform Shells & Workspaces
 import { DesktopShell, DesktopWorkspace } from "./desktop";
-import type { DesktopPlannerSurface } from "./components/features/planner/DesktopPlannerHeader";
+import type { DesktopPlannerSurface } from "./desktop/components/planner/DesktopPlannerHeader";
 import { TabletShell, TabletWorkspace } from "./tablet";
 import { MobileShell, MobileWorkspace } from "./mobile";
 
 // Standalone Feature Pages
-import { AuthPage } from "./features";
+import { AuthPage } from "./components/shared/auth/AuthPage";
 import { ToastViewport } from "./components/ui/feedback/ToastViewport";
 import { UpdateModal } from "./components/ui/overlays/UpdateModal";
 import { checkForAppUpdates, type UpdateInfo } from "./services/updateService";
@@ -64,12 +64,10 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
 
   const [previousTab, setPreviousTab] = useState<TabKey>("today");
   const [desktopPlannerSurface, setDesktopPlannerSurface] = useState<DesktopPlannerSurface>("calendar");
-  const [desktopPlannerSurfaceRevision, setDesktopPlannerSurfaceRevision] = useState(0);
   const appNavigationStackRef = useRef<AppLocation[]>([]);
 
   const handleDesktopPlannerSurfaceChange = useCallback((surface: DesktopPlannerSurface) => {
     setDesktopPlannerSurface(surface);
-    setDesktopPlannerSurfaceRevision((revision) => revision + 1);
   }, []);
 
   const handleTabChange = useCallback((tab: TabKey | string, target?: NavigationTarget) => {
@@ -79,7 +77,11 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     };
     let nextLocation: AppLocation;
 
-    if (tab === "today" || tab === "planner" || tab === "deadlines") {
+    // Desktop owns an independent Event workspace. Smaller layouts retain the
+    // legacy planner-as-task-subtab route so their existing navigation remains intact.
+    if (tab === "planner" && isDesktop) {
+      nextLocation = { tab: "planner", taskSubTab: activeTaskSubTab };
+    } else if (tab === "today" || tab === "planner" || tab === "deadlines") {
       nextLocation = { tab: "tasks", taskSubTab: tab };
     } else if (tab === "tasks") {
       nextLocation = {
@@ -115,7 +117,7 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     setNavigationTarget(target);
     setActiveTaskSubTab(nextLocation.taskSubTab);
     setActiveTab(nextLocation.tab);
-  }, [activeTab, activeTaskSubTab, closeTaskDetail, setActiveTaskSubTab, setIsJournalBookOpen, setIsMobileNoteDetailOpen, setSettingsMobileSubView]);
+  }, [activeTab, activeTaskSubTab, closeTaskDetail, isDesktop, setActiveTaskSubTab, setIsJournalBookOpen, setIsMobileNoteDetailOpen, setSettingsMobileSubView]);
 
   // Desktop có thêm danh sách tổng; mobile/tablet vẫn giữ Công việc mở ở Hôm nay.
   const handleDesktopTaskSubTabChange = useCallback((subTab: TaskSubTab) => {
@@ -229,7 +231,6 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
           onNavigateRoute={onNavigateRoute}
           previousTab={previousTab}
           desktopPlannerSurface={desktopPlannerSurface}
-          desktopPlannerSurfaceRevision={desktopPlannerSurfaceRevision}
         />
       </DesktopShell>
     );

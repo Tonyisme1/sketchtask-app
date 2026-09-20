@@ -16,6 +16,26 @@
 | `--text-muted`       | `#71717A` | `#A1A1AA` | Metadata, subtitle, ngày giờ (xám 60% đạt chuẩn WCAG)                 |
 | `--text-subtle`      | `#A1A1AA` | `#71717A` | Placeholder, disabled, hint                                           |
 
+### Palette Dark Mode đang áp dụng
+
+Lớp ghi đè Dark Mode trong `client/src/index.css` dùng palette theo ảnh tham chiếu Google Calendar dưới đây. Các giá trị này có ưu tiên cao hơn bảng token cũ ở trên.
+
+| Token | Giá trị Dark | Vai trò |
+| --- | --- | --- |
+| `--bg-canvas` | `#202124` | Header, sidebar và app chrome |
+| `--bg-surface` | `#121212` | Vùng nội dung chính và card |
+| `--bg-surface-muted` | `#202124` | Input và bề mặt công cụ nâng cao |
+| `--border-ink` | `#3C4043` | Lưới calendar và viền chính |
+| `--border-ink-muted` | `#303134` | Divider và hover |
+| `--text-main` / `--text-muted` | `#E8EAED` / `#BDC1C6` | Chữ chính và metadata |
+| `--accent-blue` / `--accent-sky` | `#8AB4F8` | Accent lịch và task |
+| `--accent-coral` / `--accent-mint` / `--accent-yellow` | `#F28B82` / `#81C995` / `#FDD663` | Accent trạng thái ngữ nghĩa |
+
+Dark Mode surface invariant: không dùng nền trắng, trắng trong suốt, hoặc
+`dark:bg-white` cho card, CTA, active state, input hay popover. Các surface
+phải dùng `--bg-surface` hoặc `--bg-surface-muted`; chữ chính dùng
+`--text-main` thay vì trắng tuyệt đối.
+
 ## 2. Hệ 4 Màu Ngữ Nghĩa Độc Quyền (Exclusive Semantic Palette - Desaturated in Dark Mode)
 
 | Ngữ Nghĩa                | Token CSS         | Light Mode            | Dark Mode (Desaturated)     | Ý nghĩa & Vị trí sử dụng                    |

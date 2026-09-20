@@ -9,15 +9,15 @@ interface ToastItem extends ToastEventDetail {
 const toneConfig: Record<ToastTone, { icon: React.ReactNode; className: string }> = {
   success: {
     icon: <CheckCircle2 size={16} strokeWidth={2.4} />,
-    className: "bg-[#BBF7D0] text-[#065F46]",
+    className: "bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917]",
   },
   info: {
     icon: <Info size={16} strokeWidth={2.4} />,
-    className: "bg-[#BAE6FD] text-[#1C1917]",
+    className: "bg-sky-600 text-white",
   },
   error: {
     icon: <XCircle size={16} strokeWidth={2.4} />,
-    className: "bg-[#FECDD3] text-[#9F1239]",
+    className: "bg-rose-600 text-white",
   },
 };
 
@@ -64,7 +64,7 @@ export const ToastViewport: React.FC = () => {
         key={toast.id}
         role="status"
         aria-live="polite"
-        className={`pointer-events-auto flex max-w-[min(92vw,28rem)] items-center gap-2 rounded-[6px] border-[1.5px] border-[#262626] px-3.5 py-2.5 text-xs font-bold shadow-[2px_2px_0px_#262626] animate-in fade-in slide-in-from-bottom-2 duration-150 ${config.className}`}
+        className={`pointer-events-auto flex max-w-[min(92vw,28rem)] items-center gap-2 rounded-full border-none px-4 py-2.5 text-xs font-bold shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-150 ${config.className}`}
       >
         {config.icon}
         <span>{toast.message}</span>

@@ -31,7 +31,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
     <div className={`inline-flex items-center gap-2 select-none ${className}`}>
       {/* Emblem: ba dòng việc và dấu hoàn thành, dùng chung ngôn ngữ với time-grid */}
       <div
-        className={`${iconSizes[size]} bg-[#1C1917] border-[1.5px] border-[#262626] rounded-xl shadow-[2px_2px_0px_#262626] flex items-center justify-center`}
+        className={`${iconSizes[size]} bg-[#1C1917] dark:bg-white rounded-2xl shadow-xs flex items-center justify-center`}
       >
         <svg
           viewBox="0 0 24 24"
@@ -42,9 +42,9 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
           strokeLinejoin="round"
           className="w-[72%] h-[72%]"
         >
-          <rect x="3" y="3" width="18" height="18" rx="4" fill="#1C1917" stroke="#FFFFFF" strokeWidth="1.8" />
-          <path d="M7 8h10M7 12h6M7 16h4" stroke="#FEF08A" strokeWidth="1.6" strokeLinecap="round" />
-          <path d="M14 16.5l1.8 1.8L19 14" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="3" y="3" width="18" height="18" rx="5" fill="#1C1917" stroke="none" />
+          <path d="M7 8h10M7 12h6M7 16h4" stroke="#FEF08A" strokeWidth="1.8" strokeLinecap="round" />
+          <path d="M14 16.5l1.8 1.8L19 14" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
 
@@ -52,10 +52,10 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       {showText && (
         <div className="flex flex-col leading-none">
           <span
-            className={`text-[#1C1917] ${textSizes[size]}`}
+            className={`text-[#1C1917] dark:text-[#F2F2F7] ${textSizes[size]}`}
           >
             Sketch
-            <span className="text-[#1C1917] underline decoration-[#1C1917] decoration-[2px] underline-offset-2">
+            <span className="text-[#1C1917] dark:text-white underline decoration-[#FEF08A] decoration-[2px] underline-offset-2">
               Task
             </span>
           </span>

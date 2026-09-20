@@ -3,7 +3,7 @@ import React, { useEffect, useRef } from "react";
 // ==========================================
 // COMPONENT: AutoResizeTextarea
 // Tự động mở rộng chiều cao theo nội dung, không làm nhảy layout
-// Chuẩn phong cách mực vẽ SketchTask
+// Chuẩn phong cách hiện đại bo góc không viền
 // ==========================================
 
 export interface AutoResizeTextareaProps
@@ -90,7 +90,7 @@ export const AutoResizeTextarea = React.forwardRef<
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         rows={minRows}
-        className={`w-full bg-[#FCFBF9] text-[#1C1917] placeholder-[#A8A29E] border-[1.5px] border-[#262626] rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-sans focus:outline-none focus:bg-white focus:shadow-[2px_2px_0px_#262626] transition-all resize-none leading-relaxed ${className}`}
+        className={`w-full bg-black/[0.04] dark:bg-white/[0.06] text-[#1C1917] dark:text-[#F2F2F7] placeholder-[#78716C] dark:placeholder-[#8E8E93] border-none rounded-2xl px-4 py-2.5 text-xs sm:text-sm font-sans focus:outline-none focus:bg-white dark:focus:bg-[#2C2C2E] shadow-2xs focus:shadow-xs focus:ring-2 focus:ring-[var(--accent-blue)]/30 transition-all resize-none leading-relaxed ${className}`}
         {...props}
       />
     );

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { CheckSquare, FilePenLine, Sun, LucideIcon } from "lucide-react";
-import { TabKey, TaskSubTab } from "../../shared/types";
+import { TabKey, TaskSubTab } from "../../types";
 
 export interface TabletNavProps {
   activeTab: TabKey;
@@ -13,11 +13,10 @@ const navItems: Array<{
   label: string;
   shortLabel: string;
   icon: LucideIcon;
-  activeClass: string;
 }> = [
-  { key: "today", label: "Hôm nay", shortLabel: "Nay", icon: Sun, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
-  { key: "tasks", label: "Công việc", shortLabel: "Việc", icon: CheckSquare, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
-  { key: "notes", label: "Ghi chép", shortLabel: "Ghi", icon: FilePenLine, activeClass: "bg-[#1C1917] text-white border-[#1C1917]" },
+  { key: "today", label: "Hôm nay", shortLabel: "Nay", icon: Sun },
+  { key: "tasks", label: "Công việc", shortLabel: "Việc", icon: CheckSquare },
+  { key: "notes", label: "Ghi chép", shortLabel: "Ghi", icon: FilePenLine },
 ];
 
 const isNavItemActive = (
@@ -112,7 +111,7 @@ export const TabletNav: React.FC<TabletNavProps> = ({
       }`}
       aria-label="Điều hướng chính Tablet"
     >
-      <div className="pointer-events-auto bg-[#F2F2F7]/95 dark:bg-[#18181A]/95 backdrop-blur-2xl border border-[#E5E5EA] dark:border-[#262626] rounded-full p-1.5 shadow-2xl shadow-black/10 flex items-center gap-1">
+      <div className="pointer-events-auto bg-[#F2F2F7]/95 dark:bg-[#18181A]/95 backdrop-blur-2xl border-none rounded-full p-1.5 shadow-2xl flex items-center gap-1">
         {navItems.map(({ key, label, shortLabel, icon: Icon }) => {
           const isActive = isNavItemActive(activeTab, activeTaskSubTab, key);
           return (

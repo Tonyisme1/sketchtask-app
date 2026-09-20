@@ -1,5 +1,27 @@
 # Current Runtime UI State
 
+## Desktop right dock
+
+- Desktop has one shared right dock. The narrow tool rail is always visible;
+  its panel expands left from the rail when a utility is selected.
+- Search, notifications, overdue, and upcoming are compact utility panels.
+  Notes and journal are docked mini-apps that reuse their feature models and
+  editors. Opening a utility does not change the active Event or Task workspace.
+- Task detail and utility content share the same right-dock area. Opening a
+  utility temporarily hides the inspector without clearing the selected task;
+  closing the utility restores that inspector when a task is still selected.
+
+## Desktop visual composition
+
+- `DesktopShell` applies the `desktop-minimal` scope at the Desktop breakpoint.
+- This scope keeps the current Desktop information architecture but reduces
+  surface corners to 6-12px, removes soft shadows, and uses thin token-based
+  borders where a surface needs separation.
+- The Desktop sidebar keeps navigation and status badges but hides repeated
+  preview summaries. The compact right utility rail and planner toolbar use
+  the same lower-density control scale.
+- Tablet and Mobile are outside this scope and retain their existing composition.
+
 Tài liệu này là mô tả runtime của `client/src`. Khi tài liệu và source khác nhau, source hiện tại được ưu tiên và tài liệu phải được cập nhật ở cùng một thay đổi.
 
 ## 1. Ngôn ngữ hình ảnh đang dùng

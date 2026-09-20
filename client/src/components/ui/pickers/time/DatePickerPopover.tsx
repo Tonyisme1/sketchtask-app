@@ -207,27 +207,27 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
       >
         <div
           ref={panelRef}
-          className="w-full max-w-[310px] bg-[#FFFDF8] border-[1.5px] border-[#262626] rounded-[10px] shadow-[4px_4px_0px_#262626] overflow-hidden p-3.5 animate-in fade-in duration-150"
+          className="w-full max-w-[310px] bg-[#FFFDF8] dark:bg-[#1C1C1E] rounded-3xl shadow-2xl overflow-hidden p-4 select-none animate-in fade-in duration-150"
           onClick={(event) => event.stopPropagation()}
         >
           {/* Header Tháng / Năm & Nút Đóng */}
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-[#262626]/20">
+          <div className="flex items-center justify-between pb-2 mb-2 border-b border-black/[0.04] dark:border-white/[0.06]">
             <button
               type="button"
               onClick={handlePrevMonth}
-              className="p-1 rounded-[4px] hover:bg-white border border-transparent hover:border-[#262626] text-[#1C1917] cursor-pointer active:translate-y-[0.5px]"
+              className="p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-[#1C1917] dark:text-[#F2F2F7] cursor-pointer transition-colors"
               title="Tháng trước"
             >
               <ChevronLeft size={16} strokeWidth={2.4} />
             </button>
-            <span className="font-mono text-sm font-black text-[#1C1917]">
+            <span className="font-mono text-sm font-black text-[#1C1917] dark:text-[#F2F2F7]">
               Tháng {viewMonth + 1}, {viewYear}
             </span>
             <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="p-1 rounded-[4px] hover:bg-white border border-transparent hover:border-[#262626] text-[#1C1917] cursor-pointer active:translate-y-[0.5px]"
+                className="p-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 text-[#1C1917] dark:text-[#F2F2F7] cursor-pointer transition-colors"
                 title="Tháng sau"
               >
                 <ChevronRight size={16} strokeWidth={2.4} />
@@ -236,7 +236,7 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
           </div>
 
           {/* Thứ trong tuần */}
-          <div className="grid grid-cols-7 text-center font-mono text-[11px] font-bold text-[#78716C] mb-1.5">
+          <div className="grid grid-cols-7 text-center font-mono text-[11px] font-bold text-[#78716C] dark:text-[#8E8E93] mb-1.5">
             {WEEKDAY_NAMES.map((day) => (
               <div key={day} className="py-0.5">{day}</div>
             ))}
@@ -252,17 +252,17 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
                   key={`${item.dateStr}-${index}`}
                   type="button"
                   onClick={() => handleSelectDate(item.dateStr)}
-                  className={`h-8 rounded-[5px] text-xs font-mono font-bold flex flex-col items-center justify-center relative transition-all cursor-pointer ${
+                  className={`h-8 rounded-xl text-xs font-mono font-bold flex flex-col items-center justify-center relative transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-[#1C1917] text-white border border-[#1C1917] shadow-[1.5px_1.5px_0px_#262626] font-black scale-105"
+                      ? "bg-[#1C1917] text-white dark:bg-white dark:text-[#1C1917] shadow-sm font-black scale-105"
                       : item.isCurrentMonth
-                      ? "text-[#1C1917] bg-white/70 hover:bg-white border border-[#E7E5E4] hover:border-[#262626]"
-                      : "text-[#A8A29E]/60 bg-transparent hover:bg-[#F5F3EF]"
+                      ? "text-[#1C1917] dark:text-[#F2F2F7] hover:bg-black/5 dark:hover:bg-white/10"
+                      : "text-[#A8A29E]/60 dark:text-[#636366] bg-transparent"
                   }`}
                 >
                   <span>{item.dayNum}</span>
                   {isToday && (
-                    <span className={`w-1 h-1 rounded-full absolute bottom-1 ${isSelected ? "bg-white" : "bg-[#1C1917]"}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full absolute bottom-1 ${isSelected ? "bg-white dark:bg-[#1C1917]" : "bg-[#1C1917] dark:bg-white"}`} />
                   )}
                 </button>
               );
@@ -270,7 +270,7 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
           </div>
 
           {/* Nút hành động đáy */}
-          <div className="flex items-center justify-between pt-3 mt-2.5 border-t border-[#262626]/20 dark:border-white/10 text-xs font-mono font-bold">
+          <div className="flex items-center justify-between pt-3 mt-2.5 border-t border-black/[0.04] dark:border-white/[0.06] text-xs font-mono font-bold">
             <button
               type="button"
               onClick={handleClear}
@@ -282,14 +282,14 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
               <button
                 type="button"
                 onClick={handleSelectToday}
-                className="px-3 py-1 bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] rounded-[4px] text-xs border border-[#1C1917] dark:border-white shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
+                className="px-3 py-1 bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] rounded-xl text-xs shadow-xs active:scale-95 cursor-pointer"
               >
                 Hôm nay
               </button>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="px-2.5 py-1 bg-white dark:bg-[#2C2C2E] text-[#1C1917] dark:text-[#F2F2F7] rounded-[4px] text-xs border border-[#262626] dark:border-[#3A3A3C] shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
+                className="px-2.5 py-1 bg-black/[0.05] dark:bg-[#2C2C2E] text-[#1C1917] dark:text-[#F2F2F7] rounded-xl text-xs shadow-xs active:scale-95 cursor-pointer"
               >
                 Đóng
               </button>
@@ -300,7 +300,7 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
     ) : (
       <div
         ref={panelRef}
-        className="fixed z-[1000001] max-w-[calc(100vw-1rem)] bg-[#FBF9F4] dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] rounded-[6px] shadow-[3px_3px_0px_#262626] overflow-hidden p-2.5"
+        className="fixed z-[1000001] max-w-[calc(100vw-1rem)] bg-[#FBF9F4] dark:bg-[#1C1C1E] rounded-3xl shadow-2xl overflow-hidden p-3 select-none"
         style={{
           top: panelPosition?.top,
           left: panelPosition?.left,
@@ -308,11 +308,11 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
         }}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between pb-2 mb-1.5 border-b border-[#262626]/20 dark:border-white/10">
+        <div className="flex items-center justify-between pb-2 mb-1.5 border-b border-black/[0.04] dark:border-white/[0.06]">
           <button
             type="button"
             onClick={handlePrevMonth}
-            className="p-1 rounded hover:bg-white dark:hover:bg-[#2C2C2E] border border-transparent hover:border-[#262626] dark:hover:border-[#3A3A3C] text-[#1C1917] dark:text-[#F2F2F7] cursor-pointer active:translate-y-[0.5px]"
+            className="p-1 rounded-xl hover:bg-white dark:hover:bg-[#2C2C2E] text-[#1C1917] dark:text-[#F2F2F7] cursor-pointer transition-colors"
             title="Tháng trước"
           >
             <ChevronLeft size={14} />
@@ -323,7 +323,7 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
           <button
             type="button"
             onClick={handleNextMonth}
-            className="p-1 rounded hover:bg-white dark:hover:bg-[#2C2C2E] border border-transparent hover:border-[#262626] dark:hover:border-[#3A3A3C] text-[#1C1917] dark:text-[#F2F2F7] cursor-pointer active:translate-y-[0.5px]"
+            className="p-1 rounded-xl hover:bg-white dark:hover:bg-[#2C2C2E] text-[#1C1917] dark:text-[#F2F2F7] cursor-pointer transition-colors"
             title="Tháng sau"
           >
             <ChevronRight size={14} />
@@ -345,9 +345,9 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
                 key={`${item.dateStr}-${index}`}
                 type="button"
                 onClick={() => handleSelectDate(item.dateStr)}
-                className={`h-7 rounded-[4px] text-xs font-mono font-bold flex flex-col items-center justify-center relative transition-colors cursor-pointer ${
+                className={`h-7 rounded-xl text-xs font-mono font-bold flex flex-col items-center justify-center relative transition-colors cursor-pointer ${
                   isSelected
-                    ? "bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] border border-[#1C1917] dark:border-white shadow-[1px_1px_0px_#262626] font-black"
+                    ? "bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] font-black shadow-xs"
                     : item.isCurrentMonth
                     ? "text-[#1C1917] dark:text-[#F2F2F7] hover:bg-white dark:hover:bg-[#2C2C2E]"
                     : "text-[#A8A29E] dark:text-[#636366] hover:bg-[#F5F3EF] dark:hover:bg-[#2C2C2E]/40"
@@ -362,7 +362,7 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
           })}
         </div>
 
-        <div className={`flex items-center ${showClear ? "justify-between" : "justify-end"} pt-2.5 mt-2 border-t border-[#262626]/20 dark:border-white/10 text-xs font-mono font-bold`}>
+        <div className={`flex items-center ${showClear ? "justify-between" : "justify-end"} pt-2.5 mt-2 border-t border-black/[0.04] dark:border-white/[0.06] text-xs font-mono font-bold`}>
           {showClear && (
             <button
               type="button"
@@ -375,7 +375,7 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
           <button
             type="button"
             onClick={handleSelectToday}
-            className="px-2 py-0.5 bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] rounded text-[11px] border border-[#1C1917] dark:border-white shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
+            className="px-2.5 py-1 bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] rounded-xl text-[11px] shadow-xs active:scale-95 cursor-pointer"
           >
             Hôm nay
           </button>
@@ -391,13 +391,13 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen((open) => !open)}
-        className={`w-full flex items-center justify-between gap-1.5 px-2.5 py-1 rounded-[4px] border border-[#262626] bg-[#FAF8F3] hover:bg-white text-sm font-mono font-bold text-[#1C1917] transition-all cursor-pointer shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none ${
-          isOpen ? "bg-white ring-1 ring-[#1C1917]" : ""
+        className={`w-full flex items-center justify-between gap-1.5 px-3 py-1.5 rounded-2xl bg-[var(--bg-surface)] hover:bg-[var(--bg-surface-muted)] text-sm font-mono font-bold text-[#1C1917] dark:text-[#F2F2F7] transition-all cursor-pointer shadow-xs active:scale-95 ${
+          isOpen ? "ring-2 ring-[var(--accent-blue)]/30" : ""
         }`}
       >
         <div className="flex items-center gap-1.5 truncate">
-          <Calendar size={12} className={value ? "text-[#1C1917]" : "text-[#78716C]"} />
-          <span className={value ? "text-[#1C1917]" : "text-[#78716C] font-normal"}>
+          <Calendar size={13} className={value ? "text-[var(--accent-blue)]" : "text-[#78716C] dark:text-[#8E8E93]"} />
+          <span className={value ? "text-[#1C1917] dark:text-[#F2F2F7]" : "text-[#78716C] dark:text-[#8E8E93] font-normal"}>
             {displayLabel}
           </span>
         </div>

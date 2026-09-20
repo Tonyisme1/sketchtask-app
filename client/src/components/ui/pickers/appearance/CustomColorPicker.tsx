@@ -89,10 +89,10 @@ export const CustomColorPicker: React.FC<CustomColorPickerProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] hover:-translate-y-[0.5px] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all text-xs font-bold text-[#1C1917] select-none"
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#2C2C2E] rounded-2xl shadow-xs hover:bg-black/[0.03] dark:hover:bg-white/[0.06] active:scale-95 transition-all text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA] select-none cursor-pointer"
       >
         <span
-          className="w-3.5 h-3.5 rounded-full border border-[#262626] shadow-[1px_1px_0px_#262626] shrink-0"
+          className="w-3.5 h-3.5 rounded-full shadow-xs shrink-0"
           style={{ backgroundColor: value }}
         />
         <span>{selectedColorObj?.name || label}</span>
@@ -104,28 +104,28 @@ export const CustomColorPicker: React.FC<CustomColorPickerProps> = ({
         <div
           className={`absolute ${
             align === "right" ? "right-0" : "left-0"
-          } top-full mt-1.5 w-[260px] max-w-[calc(100vw-28px)] bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] z-50 p-2.5 space-y-2 animate-in fade-in text-xs text-[#1C1917] select-none`}
+          } top-full mt-2 w-[270px] max-w-[calc(100vw-28px)] bg-white dark:bg-[#1E1E22] rounded-3xl shadow-2xl z-50 p-3.5 space-y-2.5 animate-in fade-in zoom-in-95 text-xs text-[#1C1917] dark:text-[#FAFAFA] select-none`}
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]">
-            <span className="font-bold text-xs flex items-center gap-1.5 text-[#1C1917]">
-              <Palette size={14} strokeWidth={2.2} />
+          <div className="flex items-center justify-between pb-1">
+            <span className="font-bold text-xs flex items-center gap-1.5 text-[#1C1917] dark:text-[#FAFAFA]">
+              <Palette size={14} strokeWidth={2.2} className="text-[var(--accent-blue)]" />
               <span>BẢNG MÀU ({colors.length} MÀU)</span>
             </span>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="text-[#78716C] hover:text-[#1C1917] font-bold text-xs p-0.5"
+              className="text-[#78716C] hover:text-[#1C1917] dark:hover:text-white font-bold p-1 rounded-lg hover:bg-black/[0.04] dark:hover:bg-white/[0.08] cursor-pointer"
             >
-              <X size={13} strokeWidth={2.5} />
+              <X size={14} strokeWidth={2.5} />
             </button>
           </div>
 
           {/* Color Grid (5 cột, nếu quá 10 màu thì cuộn gọn gàng max-h-[82px] ẩn thanh cuộn) */}
           <div
-            className={`grid grid-cols-5 gap-1.5 p-1 bg-white border border-[#D4CEBF] rounded-[4px] ${
+            className={`grid grid-cols-5 gap-1.5 p-2 bg-black/[0.03] dark:bg-white/[0.04] rounded-2xl ${
               colors.length > 10
-                ? "max-h-[82px] overflow-y-auto no-scrollbar pr-0.5"
+                ? "max-h-[96px] overflow-y-auto no-scrollbar pr-0.5"
                 : ""
             }`}
           >
@@ -141,24 +141,24 @@ export const CustomColorPicker: React.FC<CustomColorPickerProps> = ({
                     setIsOpen(false);
                   }}
                   title={color.name}
-                  className={`h-8 rounded-xl border-[1.5px] border-[#262626] transition-all flex items-center justify-center text-[10px] font-bold active:translate-y-[0.5px] cursor-pointer ${
+                  className={`h-8 rounded-xl transition-all flex items-center justify-center text-[10px] font-bold active:scale-95 cursor-pointer shadow-2xs ${
                     isSelected
-                      ? "shadow-[2px_2px_0px_#262626] -translate-y-[1px] z-10 font-bold ring-1 ring-[#262626]"
-                      : "hover:shadow-[1.5px_1.5px_0px_#262626]"
+                      ? "shadow-sm scale-105 z-10 font-bold ring-2 ring-[var(--accent-blue)]"
+                      : "hover:scale-105"
                   }`}
                   style={{ backgroundColor: color.hex }}
                 >
-                  {isSelected && <Check size={12} strokeWidth={3} />}
+                  {isSelected && <Check size={12} strokeWidth={3} className="text-[#1C1917]" />}
                 </button>
               );
             })}
           </div>
 
           {/* Color Name Footer */}
-          <div className="pt-1 border-t border-[#D4CEBF] text-center text-[11px] font-mono text-[#78716C] flex items-center justify-center gap-1.5">
+          <div className="pt-1 text-center text-[11px] font-mono text-[#78716C] dark:text-[#A1A1AA] flex items-center justify-center gap-1.5">
             <span>Đang chọn:</span>
             <span
-              className="font-bold text-[#1C1917] px-1.5 py-0.2 rounded border border-[#262626]"
+              className="font-bold text-[#1C1917] px-2 py-0.5 rounded-full shadow-2xs"
               style={{ backgroundColor: value }}
             >
               {selectedColorObj?.name || value}

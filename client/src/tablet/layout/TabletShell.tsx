@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { TabKey, NavigationTarget } from "../../shared/types";
-import { useAppStore } from "../../shared/stores";
+import { TabKey, NavigationTarget } from "../../types";
+import { useAppStore } from "../../stores";
 import { TabletHeader } from "./TabletHeader";
 import { TabletNav } from "./TabletNav";
 import { ContextAwareFab } from "../../components/layout/ContextAwareFab";
-import {
-  AuthModal,
-  PinLockModal,
-  QuickTaskModal,
-} from "../../features";
+import { AuthModal } from "../../components/shared/auth/AuthModal";
+import { PinLockModal } from "../../components/shared/auth/PinLockModal";
+import { QuickTaskModal } from "../../components/shared/tasks/QuickTaskModal";
 import {
   NotificationDrawer,
-} from "../../shared/ui";
-import { NotesSectionTabs } from "../../components/layout/NotesSectionTabs";
+} from "../../components/ui";
+import { NotesSectionTabs } from "./NotesSectionTabs";
 
 export interface TabletShellProps {
   activeTab: TabKey;

@@ -1,5 +1,5 @@
 import React from "react";
-import { Sidebar, SidebarProps } from "../../components/layout/Sidebar";
+import { Sidebar, SidebarProps } from "./Sidebar";
 
 export interface DesktopSidebarProps extends SidebarProps {}
 

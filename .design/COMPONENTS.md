@@ -1,5 +1,14 @@
 # UI Components
 
+### `DesktopRightDock`
+
+- Desktop-only utility rail on the outer right edge of the workspace.
+- Hosts exactly one open utility panel at a time. Notes and journal are
+  dedicated docked mini-apps that reuse their feature models, rather than
+  read-only previews.
+- Shares its available width with `DesktopTaskDetailPage`; it must never create
+  a second full-height right sidebar beside the inspector.
+
 Danh sách này mô tả component đang được mount hoặc được dùng chung trong `client/src`. Tái sử dụng component hiện có trước khi tạo component mới.
 
 ## 1. Platform shells

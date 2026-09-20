@@ -73,35 +73,35 @@ export const CustomAvatarPicker: React.FC<CustomAvatarPickerProps> = ({
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         title="Bấm để đổi Avatar"
-        className="relative group w-10 h-10 rounded-[6px] border-[1.5px] border-[#262626] shadow-[2px_2px_0px_#262626] flex items-center justify-center transition-all hover:scale-105 active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+        className="relative group w-11 h-11 rounded-2xl shadow-xs flex items-center justify-center transition-all hover:scale-105 active:scale-95 cursor-pointer"
         style={{ backgroundColor: avatarBg || "#BBF7D0" }}
       >
         <DynamicIcon
           name={avatar || "lucide:User"}
-          size={20}
+          size={22}
           strokeWidth={2.2}
           className="text-[#1C1917]"
         />
-        <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-white border border-[#262626] rounded-full flex items-center justify-center text-[#1C1917] shadow-[1px_1px_0px_#262626] group-hover:bg-[#FEF08A]">
-          <Edit3 size={9} strokeWidth={2.4} />
+        <span className="absolute -bottom-1 -right-1 w-5 h-5 bg-white dark:bg-[#2C2C2E] rounded-full flex items-center justify-center text-[#1C1917] dark:text-white shadow-xs group-hover:bg-[#FEF08A]">
+          <Edit3 size={10} strokeWidth={2.4} />
         </span>
       </button>
 
       {/* Popover Box (Rộng rãi, hỗ trợ cuộn ẩn thanh cuộn) */}
       {isOpen && (
-        <div className="absolute left-0 top-full mt-2 w-[270px] max-w-[calc(100vw-36px)] bg-[#FBF9F4] dark:bg-[#1C1C1E] border-[1.5px] border-[#262626] dark:border-[#3A3A3C] rounded-[6px] shadow-[3px_3px_0px_#262626] z-50 p-3 space-y-3 animate-in fade-in text-xs text-[#1C1917] dark:text-[#F2F2F7] select-none">
+        <div className="absolute left-0 top-full mt-2 w-[280px] max-w-[calc(100vw-36px)] bg-white dark:bg-[#1E1E22] rounded-3xl shadow-2xl z-50 p-4 space-y-3 animate-in fade-in zoom-in-95 text-xs text-[#1C1917] dark:text-[#F2F2F7] select-none">
           {/* Header */}
-          <div className="flex items-center justify-between pb-1.5 border-b border-[#262626] dark:border-[#3A3A3C]">
-            <span className="font-bold text-xs flex items-center gap-1 text-[#1C1917] dark:text-[#F2F2F7]">
-              <Sparkles size={13} strokeWidth={2.2} />
+          <div className="flex items-center justify-between pb-1">
+            <span className="font-bold text-xs flex items-center gap-1.5 text-[#1C1917] dark:text-[#F2F2F7]">
+              <Sparkles size={14} strokeWidth={2.2} className="text-[var(--accent-blue)]" />
               <span>CHỌN AVATAR SKETCH</span>
             </span>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="text-[#78716C] dark:text-[#8E8E93] hover:text-[#1C1917] dark:hover:text-white font-bold p-0.5 cursor-pointer"
+              className="text-[#78716C] dark:text-[#8E8E93] hover:text-[#1C1917] dark:hover:text-white font-bold p-1 rounded-lg hover:bg-black/[0.04] dark:hover:bg-white/[0.08] cursor-pointer"
             >
-              <X size={13} strokeWidth={2.5} />
+              <X size={14} strokeWidth={2.5} />
             </button>
           </div>
 
@@ -110,7 +110,7 @@ export const CustomAvatarPicker: React.FC<CustomAvatarPickerProps> = ({
             <span className="text-[10px] font-bold text-[#78716C] dark:text-[#8E8E93] block mb-1">
               1. Biểu tượng:
             </span>
-            <div className="grid grid-cols-4 gap-1.5 p-1 bg-white dark:bg-[#2C2C2E] border border-[#D4CEBF] dark:border-[#3A3A3C] rounded-[4px] max-h-36 overflow-y-auto no-scrollbar">
+            <div className="grid grid-cols-4 gap-1.5 p-2 bg-black/[0.03] dark:bg-white/[0.04] rounded-2xl max-h-36 overflow-y-auto no-scrollbar">
               {AVATAR_ICONS.map((item) => {
                 const isSelected = avatar === item.id;
                 return (
@@ -119,10 +119,10 @@ export const CustomAvatarPicker: React.FC<CustomAvatarPickerProps> = ({
                     type="button"
                     onClick={() => onChange(item.id, avatarBg)}
                     title={item.label}
-                    className={`h-9 rounded-xl border-[1.5px] border-[#262626] dark:border-[#3A3A3C] flex items-center justify-center transition-all cursor-pointer ${
+                    className={`h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                       isSelected
-                        ? "bg-[#FEF08A] dark:bg-white/20 shadow-[1.5px_1.5px_0px_#262626] -translate-y-[0.5px] font-bold ring-1 ring-[#262626] dark:ring-white"
-                        : "bg-[#FBF9F4] dark:bg-[#1C1C1E] hover:bg-white dark:hover:bg-[#3A3A3C] active:translate-y-[0.5px]"
+                        ? "bg-white dark:bg-[#2C2C2E] shadow-sm font-bold ring-2 ring-[var(--accent-blue)] scale-105"
+                        : "hover:bg-white/60 dark:hover:bg-[#2C2C2E]/60 active:scale-95"
                     }`}
                   >
                     <DynamicIcon
@@ -142,7 +142,7 @@ export const CustomAvatarPicker: React.FC<CustomAvatarPickerProps> = ({
             <span className="text-[10px] font-bold text-[#78716C] dark:text-[#8E8E93] block mb-1">
               2. Màu nền:
             </span>
-            <div className="grid grid-cols-5 gap-1 p-1 bg-white dark:bg-[#2C2C2E] border border-[#D4CEBF] dark:border-[#3A3A3C] rounded-[4px]">
+            <div className="grid grid-cols-5 gap-1.5 p-2 bg-black/[0.03] dark:bg-white/[0.04] rounded-2xl">
               {AVATAR_BG_COLORS.map((color) => {
                 const isSelected =
                   avatarBg?.toLowerCase() === color.hex.toLowerCase();
@@ -152,9 +152,9 @@ export const CustomAvatarPicker: React.FC<CustomAvatarPickerProps> = ({
                     type="button"
                     onClick={() => onChange(avatar, color.hex)}
                     title={color.name}
-                    className={`h-6 rounded-full border border-[#262626] dark:border-[#3A3A3C] flex items-center justify-center transition-all cursor-pointer ${
+                    className={`h-7 rounded-full flex items-center justify-center transition-all cursor-pointer shadow-2xs ${
                       isSelected
-                        ? "shadow-[1.5px_1.5px_0px_#262626] scale-110 ring-1 ring-[#262626] dark:ring-white font-bold"
+                        ? "shadow-sm scale-110 ring-2 ring-[var(--accent-blue)] font-bold"
                         : "hover:scale-105"
                     }`}
                     style={{ backgroundColor: color.hex }}
@@ -167,15 +167,15 @@ export const CustomAvatarPicker: React.FC<CustomAvatarPickerProps> = ({
           </div>
 
           {/* Preview & Done Button */}
-          <div className="pt-2 border-t border-[#D4CEBF] dark:border-[#3A3A3C] flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
+          <div className="pt-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
               <span
-                className="w-6 h-6 rounded border border-[#262626] flex items-center justify-center shadow-[1px_1px_0px_#262626]"
+                className="w-7 h-7 rounded-xl flex items-center justify-center shadow-xs"
                 style={{ backgroundColor: avatarBg || "#BBF7D0" }}
               >
                 <DynamicIcon
                   name={avatar || "lucide:User"}
-                  size={14}
+                  size={15}
                   strokeWidth={2.2}
                   className="text-[#1C1917]"
                 />
@@ -186,7 +186,7 @@ export const CustomAvatarPicker: React.FC<CustomAvatarPickerProps> = ({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="px-3 py-1 bg-[#1C1917] dark:bg-white hover:bg-[#262626] dark:hover:bg-[#F2F2F7] text-white dark:text-[#1C1917] text-[11px] font-bold rounded-xl border border-[#1C1917] dark:border-white shadow-[1px_1px_0px_#262626] active:translate-y-[0.5px] cursor-pointer"
+              className="px-4 py-1.5 bg-[#1C1917] dark:bg-white hover:bg-[#262626] dark:hover:bg-[#F2F2F7] text-white dark:text-[#1C1917] text-xs font-bold rounded-2xl shadow-xs active:scale-95 cursor-pointer transition-all"
             >
               Xong
             </button>

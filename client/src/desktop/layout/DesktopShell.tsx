@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { TabKey, NavigationTarget, TaskSubTab } from "../../shared/types";
-import { useAppStore } from "../../shared/stores";
+import { TabKey, NavigationTarget, TaskSubTab } from "../../types";
+import { useAppStore } from "../../stores";
 import { DesktopHeader } from "./DesktopHeader";
 import { DesktopSidebar } from "./DesktopSidebar";
-import {
-  AuthModal,
-  PinLockModal,
-  QuickTaskModal,
-  SettingsTab,
-  AIAssistantSidePanel,
-} from "../../features";
+import { AuthModal } from "../../components/shared/auth/AuthModal";
+import { PinLockModal } from "../../components/shared/auth/PinLockModal";
+import { QuickTaskModal } from "../../components/shared/tasks/QuickTaskModal";
+import { AIAssistantSidePanel } from "../components/ai/AIAssistantSidePanel";
+import { DesktopSettingsPage } from "../tabs/DesktopSettingsPage";
 import { Settings, X } from "lucide-react";
 import { useModalBackClose } from "../../hooks/useModalBackClose";
-import type { DesktopPlannerSurface } from "../../components/features/planner/DesktopPlannerHeader";
+import type { DesktopPlannerSurface } from "../components/planner/DesktopPlannerHeader";
 
 export interface DesktopShellProps {
   activeTab: TabKey;
@@ -81,12 +79,15 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
         !isInput
       ) {
         e.preventDefault();
-        openQuickTaskModal();
+        openQuickTaskModal({
+          itemType: activeTab === "planner" ? "event" : "task",
+          lockItemType: true,
+        });
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [toggleSidebar, openQuickTaskModal]);
+  }, [activeTab, toggleSidebar, openQuickTaskModal]);
 
   const handleOpenDesktopSettings = () => {
     setSettingsMobileSubView(null);
@@ -119,7 +120,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
 
   return (
     <div
-      className="h-screen max-h-screen overflow-hidden bg-[#F2F2F7] dark:bg-[#18181A] text-[#1C1917] dark:text-[#F2F2F7] font-sans flex flex-col selection:bg-[#FEF08A] selection:text-[#1C1917]"
+      className="desktop-minimal h-screen max-h-screen overflow-hidden bg-[#F2F2F7] dark:bg-[#18181A] text-[#1C1917] dark:text-[#F2F2F7] font-sans flex flex-col selection:bg-[#FEF08A] selection:text-[#1C1917]"
     >
       {/* 1. Desktop luôn giữ topbar để editor không mất ngữ cảnh workspace. */}
       <DesktopHeader
@@ -139,7 +140,12 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
         <DesktopSidebar
           activeTab={activeTab}
           onTabChange={handleTabChange}
-          onCreateTask={openQuickTaskModal}
+          onCreateEvent={() =>
+            openQuickTaskModal({ itemType: "event", lockItemType: true })
+          }
+          onCreateTask={() =>
+            openQuickTaskModal({ itemType: "task", lockItemType: true })
+          }
           onOpenSettings={handleOpenDesktopSettings}
           onOpenAIModal={() => setIsAIModalOpen((prev) => !prev)}
           desktopPlannerSurface={desktopPlannerSurface}
@@ -176,16 +182,16 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
           aria-modal="true"
           aria-label="Cài đặt"
           onClick={() => setIsSettingsPopupOpen(false)}
-          className="fixed inset-0 z-[999998] flex items-center justify-center bg-black/50 p-4 lg:p-8"
+          className="fixed inset-0 z-[999998] flex items-center justify-center bg-black/50 p-4 lg:p-8 dark:bg-[#3C4043]/80"
         >
           <section
             role="document"
             onClick={(event) => event.stopPropagation()}
-            className="flex h-[min(90dvh,840px)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border-[1.5px] border-[#262626] bg-white dark:bg-[#121214] shadow-[4px_4px_0px_#262626]"
+            className="flex h-[min(90dvh,840px)] w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-[var(--bg-surface)] shadow-none dark:bg-[var(--bg-canvas)]"
           >
-            <header className="flex min-h-[56px] items-center justify-between border-b-[1.5px] border-[#262626] bg-white dark:bg-[#1C1C1E] px-5 lg:px-6 shrink-0">
+            <header className="flex min-h-[52px] items-center justify-between bg-[var(--bg-surface)] px-4 lg:px-5 shrink-0 dark:bg-[var(--bg-canvas)]">
               <div className="flex items-center gap-2.5">
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#262626] bg-[#1C1917] text-white dark:bg-white dark:text-[#1C1917]">
+                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1C1917] text-white dark:bg-[var(--bg-surface-muted)] dark:text-[var(--text-main)]">
                   <Settings size={16} strokeWidth={2.2} />
                 </span>
                 <h2 className="text-base font-bold tracking-tight text-[#1C1917] dark:text-white">Cài đặt hệ thống</h2>
@@ -193,19 +199,18 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
               <button
                 type="button"
                 onClick={() => setIsSettingsPopupOpen(false)}
-                className="flex h-8 w-8 items-center justify-center rounded-xl border-[1.5px] border-[#262626] bg-white dark:bg-[#2C2C2E] hover:bg-[#FAF8F3] dark:hover:bg-[#3A3A3C] text-[#1C1917] dark:text-[#F2F2F7] shadow-[1px_1px_0px_#262626] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none transition-all cursor-pointer"
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--bg-surface-muted)] hover:bg-[var(--border-ink-muted)] text-[var(--text-main)] active:scale-95 transition-all cursor-pointer"
                 aria-label="Đóng cài đặt"
                 title="Đóng (ESC)"
               >
                 <X size={15} strokeWidth={2.4} />
               </button>
             </header>
-            <div className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-6 bg-[#FAFAFA] dark:bg-black">
-              <SettingsTab
+            <div className="min-h-0 flex-1 overflow-y-auto bg-[var(--bg-canvas)] p-3 lg:p-4 dark:bg-[var(--bg-surface)]">
+              <DesktopSettingsPage
                 onNavigateTab={handleTabChange}
                 onNavigateRoute={onNavigateRoute}
                 embedded
-                platform="desktop"
               />
             </div>
           </section>

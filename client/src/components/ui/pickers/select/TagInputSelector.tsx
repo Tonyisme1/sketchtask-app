@@ -69,7 +69,7 @@ export const TagInputSelector: React.FC<TagInputSelectorProps> = ({
           selectedTags.map((tag) => (
             <span
               key={tag}
-              className="inline-flex items-center gap-1.5 rounded-[4px] border-[1.5px] border-[#262626] bg-[#1C1917] px-2.5 py-1 text-xs font-bold text-white shadow-[1px_1px_0px_#262626] transition-all animate-in fade-in duration-100"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#1C1917] dark:bg-white px-3 py-1 text-xs font-bold text-white dark:text-[#1C1917] shadow-xs transition-all animate-in fade-in duration-100"
             >
               <span>#{tag}</span>
               <button
@@ -78,7 +78,7 @@ export const TagInputSelector: React.FC<TagInputSelectorProps> = ({
                   e.stopPropagation();
                   handleToggleTag(tag);
                 }}
-                className="flex h-3.5 w-3.5 items-center justify-center rounded-full hover:bg-white/20 active:scale-90 transition-transform cursor-pointer"
+                className="flex h-3.5 w-3.5 items-center justify-center rounded-full hover:bg-white/20 dark:hover:bg-black/20 active:scale-90 transition-transform cursor-pointer"
                 title={`Gỡ bỏ #${tag}`}
                 aria-label={`Gỡ bỏ nhãn ${tag}`}
               >
@@ -87,7 +87,7 @@ export const TagInputSelector: React.FC<TagInputSelectorProps> = ({
             </span>
           ))
         ) : (
-          <span className="font-mono text-xs italic text-[#78716C]">
+          <span className="font-mono text-xs italic text-[#78716C] dark:text-[#8E8E93]">
             Chưa có nhãn nào được gắn
           </span>
         )}
@@ -96,11 +96,11 @@ export const TagInputSelector: React.FC<TagInputSelectorProps> = ({
       {/* 2. Ô Nhập Để Tạo Tag Mới & Nút Thêm (Inline Input) */}
       <div className="flex items-center gap-1.5">
         <div
-          className={`flex flex-1 items-center gap-1.5 rounded-xl border-[1.5px] bg-white px-2.5 py-1.5 shadow-[1px_1px_0px_#262626] transition-all ${
-            isInputFocused ? "border-[#1C1917] ring-1 ring-[#1C1917]" : "border-[#262626]"
+          className={`flex flex-1 items-center gap-1.5 rounded-2xl bg-[var(--bg-surface)] px-3 py-2 shadow-xs transition-all ${
+            isInputFocused ? "ring-2 ring-[var(--accent-blue)]/30" : ""
           }`}
         >
-          <span className="font-mono text-xs font-black text-[#78716C]">#</span>
+          <span className="font-mono text-xs font-black text-[#78716C] dark:text-[#8E8E93]">#</span>
           <input
             type="text"
             value={newTagInput}
@@ -109,7 +109,7 @@ export const TagInputSelector: React.FC<TagInputSelectorProps> = ({
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
             placeholder={placeholder}
-            className="w-full bg-transparent text-xs font-bold text-[#1C1917] placeholder:font-normal placeholder:text-[#A8A29E] focus:outline-none"
+            className="w-full bg-transparent text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7] placeholder:font-normal placeholder:text-[#A8A29E] dark:placeholder:text-[#71717A] focus:outline-none"
           />
         </div>
 
@@ -117,7 +117,7 @@ export const TagInputSelector: React.FC<TagInputSelectorProps> = ({
           type="button"
           onClick={() => handleCreateNewTag()}
           disabled={!newTagInput.trim()}
-          className="flex h-[34px] shrink-0 items-center gap-1 rounded-[4px] border-[1.5px] border-[#262626] bg-[#FAF8F3] px-3 text-xs font-bold text-[#1C1917] shadow-[1px_1px_0px_#262626] transition-all hover:bg-white active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+          className="flex h-[36px] shrink-0 items-center gap-1 rounded-2xl bg-[#1C1917] dark:bg-white px-3.5 text-xs font-bold text-white dark:text-[#1C1917] shadow-xs transition-all hover:bg-black active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
         >
           <Plus size={13} strokeWidth={2.5} />
           <span>Tạo</span>
@@ -127,16 +127,16 @@ export const TagInputSelector: React.FC<TagInputSelectorProps> = ({
       {/* 3. Danh sách Tag Gợi Ý Có Sẵn (Click để chọn nhanh) */}
       {unselectedTags.length > 0 && (
         <div className="pt-1">
-          <span className="block mb-1 text-xs font-medium text-[#57534E]">
+          <span className="block mb-1 text-xs font-medium text-[#57534E] dark:text-[#8E8E93]">
             Nhãn có sẵn:
           </span>
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1.5">
             {unselectedTags.map((tag) => (
               <button
                 key={tag}
                 type="button"
                 onClick={() => handleToggleTag(tag)}
-                className="flex items-center gap-1 rounded-[4px] border border-[#262626]/40 bg-[#FAF8F3] px-2 py-0.5 font-mono text-xs font-medium text-[#57534E] hover:border-[#262626] hover:bg-white hover:text-[#1C1917] active:scale-95 transition-all cursor-pointer"
+                className="flex items-center gap-1 rounded-full bg-[var(--bg-surface-muted)] px-3 py-1 font-mono text-xs font-medium text-[#57534E] dark:text-[#A1A1AA] hover:bg-black/10 dark:hover:bg-white/15 hover:text-[#1C1917] dark:hover:text-white active:scale-95 transition-all cursor-pointer shadow-2xs"
                 title={`Gắn nhãn #${tag}`}
               >
                 <Plus size={10} strokeWidth={2.5} />

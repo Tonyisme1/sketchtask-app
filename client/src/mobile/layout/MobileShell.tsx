@@ -1,18 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { TabKey, NavigationTarget } from "../../shared/types";
-import { useAppStore } from "../../shared/stores";
+import { TabKey, NavigationTarget } from "../../types";
+import { useAppStore } from "../../stores";
 import { MobileHeader } from "./MobileHeader";
 import { MobileNav } from "./MobileNav";
 import { ContextAwareFab } from "../../components/layout/ContextAwareFab";
-import {
-  AuthModal,
-  PinLockModal,
-  QuickTaskModal,
-} from "../../features";
+import { AuthModal } from "../../components/shared/auth/AuthModal";
+import { PinLockModal } from "../../components/shared/auth/PinLockModal";
+import { QuickTaskModal } from "../../components/shared/tasks/QuickTaskModal";
 import {
   GlobalSearchModal,
   NotificationDrawer,
-} from "../../shared/ui";
+} from "../../components/ui";
 
 export interface MobileShellProps {
   activeTab: TabKey;

@@ -152,7 +152,7 @@ export const CustomEmojiPicker: React.FC<CustomEmojiPickerProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white border-[1.5px] border-[#262626] rounded-[4px] shadow-[1.5px_1.5px_0px_#262626] hover:-translate-y-[0.5px] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all text-xs font-bold text-[#1C1917] select-none"
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-[#2C2C2E] rounded-2xl shadow-xs hover:bg-black/[0.03] dark:hover:bg-white/[0.06] active:scale-95 transition-all text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA] select-none cursor-pointer"
       >
         <div className="w-5 h-5 flex items-center justify-center">
           <DynamicIcon name={value || "lucide:BookMarked"} size={16} strokeWidth={2.2} />
@@ -166,29 +166,29 @@ export const CustomEmojiPicker: React.FC<CustomEmojiPickerProps> = ({
         <div
           className={`absolute ${
             align === "right" ? "right-0" : "left-0"
-          } top-full mt-1.5 w-[280px] max-w-[calc(100vw-28px)] bg-[#FBF9F4] border-[1.5px] border-[#262626] rounded-[6px] shadow-[3px_3px_0px_#262626] z-50 p-2.5 space-y-2 animate-in fade-in text-xs text-[#1C1917] select-none`}
+          } top-full mt-2 w-[280px] max-w-[calc(100vw-28px)] bg-white dark:bg-[#1E1E22] rounded-3xl shadow-2xl z-50 p-3.5 space-y-2.5 animate-in fade-in zoom-in-95 text-xs text-[#1C1917] dark:text-[#FAFAFA] select-none`}
         >
           {/* Header */}
-          <div className="flex items-center justify-between pb-1.5 border-b border-[#262626]">
-            <div className="flex items-center gap-1.5">
-              <span className="w-7 h-7 rounded bg-[#FEF08A] border border-[#262626] flex items-center justify-center shadow-[1px_1px_0px_#262626]">
+          <div className="flex items-center justify-between pb-1">
+            <div className="flex items-center gap-2">
+              <span className="w-7 h-7 rounded-xl bg-[var(--accent-blue)] text-white flex items-center justify-center shadow-xs">
                 <DynamicIcon name={value || "lucide:BookMarked"} size={15} strokeWidth={2.2} />
               </span>
-              <span className="font-bold text-xs text-[#1C1917]">
+              <span className="font-bold text-xs text-[#1C1917] dark:text-[#FAFAFA]">
                 CHỌN BIỂU TƯỢNG SỔ
               </span>
             </div>
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              className="text-[#78716C] hover:text-[#1C1917] font-bold text-xs p-1"
+              className="text-[#78716C] hover:text-[#1C1917] dark:hover:text-white font-bold p-1 rounded-lg hover:bg-black/[0.04] dark:hover:bg-white/[0.08] cursor-pointer"
             >
-              ✕
+              <Icons.X size={14} strokeWidth={2.5} />
             </button>
           </div>
 
           {/* Dải 4 Tab Danh Mục với SVG Icon */}
-          <div className="grid grid-cols-4 gap-1 p-0.5 bg-white border border-[#262626] rounded-[4px]">
+          <div className="grid grid-cols-4 gap-1 p-1 bg-black/[0.04] dark:bg-white/[0.06] rounded-2xl">
             {MODERN_ICON_CATEGORIES.map((tab) => {
               const TabIcon = tab.categoryIcon;
               return (
@@ -197,20 +197,20 @@ export const CustomEmojiPicker: React.FC<CustomEmojiPickerProps> = ({
                   type="button"
                   onClick={() => setActiveTabId(tab.id)}
                   title={tab.label}
-                  className={`py-1 rounded-xl text-xs font-bold flex items-center justify-center transition-all ${
+                  className={`py-1.5 rounded-xl text-xs font-bold flex items-center justify-center transition-all cursor-pointer ${
                     activeTabId === tab.id
-                      ? "bg-[#FEF08A] text-[#1C1917] shadow-[1px_1px_0px_#262626]"
-                      : "text-[#78716C] hover:bg-[#F3EFE6]"
+                      ? "bg-white dark:bg-[#2C2C2E] text-[#1C1917] dark:text-white shadow-xs"
+                      : "text-[#78716C] dark:text-[#A1A1AA] hover:text-[#1C1917] dark:hover:text-white"
                   }`}
                 >
-                  <TabIcon size={14} strokeWidth={2.2} />
+                  <TabIcon size={15} strokeWidth={2.2} />
                 </button>
               );
             })}
           </div>
 
           {/* Lưới Icon SVG Hiện Đại (4 Cột Rộng Rãi, Nét Mực Sắc Nét) */}
-          <div className="grid grid-cols-4 gap-1.5 p-1.5 bg-white border border-[#D4CEBF] rounded-[4px] max-h-48 overflow-y-auto no-scrollbar">
+          <div className="grid grid-cols-4 gap-1.5 p-2 bg-black/[0.03] dark:bg-white/[0.04] rounded-2xl max-h-48 overflow-y-auto no-scrollbar">
             {activeTab.items.map((item) => {
               const isSelected = value === item.key;
               return (
@@ -222,14 +222,14 @@ export const CustomEmojiPicker: React.FC<CustomEmojiPickerProps> = ({
                     setIsOpen(false);
                   }}
                   title={item.name}
-                  className={`h-11 rounded-[4px] border flex flex-col items-center justify-center transition-all ${
+                  className={`h-12 rounded-xl flex flex-col items-center justify-center transition-all cursor-pointer ${
                     isSelected
-                      ? "bg-[#FEF08A] border-[#262626] shadow-[1.5px_1.5px_0px_#262626] font-bold ring-1 ring-[#262626] z-10"
-                      : "border-transparent hover:border-[#262626] hover:bg-[#F3EFE6] text-[#1C1917]"
+                      ? "bg-white dark:bg-[#2C2C2E] shadow-sm font-bold ring-2 ring-[var(--accent-blue)] z-10"
+                      : "hover:bg-white/60 dark:hover:bg-[#2C2C2E]/60 text-[#1C1917] dark:text-[#FAFAFA]"
                   }`}
                 >
                   <DynamicIcon name={item.key} size={18} strokeWidth={2.2} />
-                  <span className="text-[9px] text-[#78716C] mt-0.5 truncate max-w-[50px] text-center">
+                  <span className="text-[9px] text-[#78716C] dark:text-[#A1A1AA] mt-0.5 truncate max-w-[50px] text-center">
                     {item.name}
                   </span>
                 </button>
