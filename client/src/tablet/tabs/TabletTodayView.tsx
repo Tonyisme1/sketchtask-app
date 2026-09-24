@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { CheckCircle2, ListTodo, Search, X } from "lucide-react";
+import { CheckCircle2, ChevronDown, ListTodo, Search, X } from "lucide-react";
 import { useAppStore } from "../../stores";
 import { getLocalTodayStr, isTaskDueToday, normalizeTaskTimeType, getTaskTags } from "../../utils";
 import { TodayScheduleNotes } from "../../components/shared/today/TodayScheduleNotes";
@@ -26,6 +26,7 @@ export const TabletTodayView: React.FC<TabletTodayViewProps> = ({
   const todayStr = getLocalTodayStr(now);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [isCompletedSectionOpen, setIsCompletedSectionOpen] = useState(false);
 
   const todayList = useMemo(() => {
     return tasks.filter((task) => isTaskDueToday(task, now));
@@ -126,23 +127,35 @@ export const TabletTodayView: React.FC<TabletTodayViewProps> = ({
         {/* Toàn bộ công việc đã hoàn thành */}
         {completedTodayTasks.length > 0 && (
           <div className="mt-6 pt-4 border-t border-black/[0.04] dark:border-white/[0.06] space-y-2.5">
-            <div className="flex items-center justify-between pb-2 border-b border-black/[0.04] dark:border-white/[0.06]">
-              <div className="flex items-center gap-2 text-sm font-semibold text-[#8E8E93] dark:text-[#aeaeb2]">
+            <button
+              type="button"
+              onClick={() => setIsCompletedSectionOpen((open) => !open)}
+              className="flex w-full items-center justify-between border-b border-black/[0.04] dark:border-white/[0.06] pb-2 text-left text-sm font-semibold text-[#8E8E93] dark:text-[#aeaeb2]"
+              aria-expanded={isCompletedSectionOpen}
+            >
+              <span className="flex items-center gap-2">
                 <CheckCircle2 size={16} strokeWidth={2.2} className="text-emerald-500 shrink-0" />
                 <span>Đã hoàn thành ({completedTodayTasks.length})</span>
-              </div>
-            </div>
+              </span>
+              <ChevronDown
+                size={16}
+                strokeWidth={2.2}
+                className={`shrink-0 transition-transform duration-200 ${isCompletedSectionOpen ? "rotate-180" : ""}`}
+              />
+            </button>
 
-            <TodayTaskList
-              tasks={completedTodayTasks}
-              onToggle={toggleTask}
-              onEdit={(task) => openTaskDetail(task.id)}
-              onDelete={deleteTask}
-              onMoveTomorrow={moveTaskToTomorrow}
-              onClick={(task) => openTaskDetail(task.id)}
-              activeTaskId={targetTaskId}
-              showQuickAdd={false}
-            />
+            {isCompletedSectionOpen && (
+              <TodayTaskList
+                tasks={completedTodayTasks}
+                onToggle={toggleTask}
+                onEdit={(task) => openTaskDetail(task.id)}
+                onDelete={deleteTask}
+                onMoveTomorrow={moveTaskToTomorrow}
+                onClick={(task) => openTaskDetail(task.id)}
+                activeTaskId={targetTaskId}
+                showQuickAdd={false}
+              />
+            )}
           </div>
         )}
       </div>

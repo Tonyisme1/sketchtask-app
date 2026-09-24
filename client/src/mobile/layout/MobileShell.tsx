@@ -151,10 +151,10 @@ export const MobileShell: React.FC<MobileShellProps> = ({
           onClick={() => onTabChange("ai")}
           aria-label="Mở Trợ lý AI"
           title="Trợ lý AI"
-          style={{ bottom: "calc(env(safe-area-inset-bottom) + 76px)" }}
-          className="fixed right-4 z-[45] flex h-14 w-14 items-center justify-center rounded-full border-[1.5px] border-[var(--border-ink)] bg-[var(--accent-blue)] text-white shadow-[2px_2px_0px_var(--border-ink)] transition-transform hover:brightness-105 active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none md:hidden"
+          style={{ bottom: "calc(env(safe-area-inset-bottom) + 84px)" }}
+          className="fixed right-3.5 z-[45] flex h-12 w-12 items-center justify-center rounded-full border-[1.5px] border-[var(--border-ink)] bg-[var(--accent-blue)] text-white shadow-[2px_2px_0px_var(--border-ink)] transition-transform hover:brightness-105 active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none md:hidden"
         >
-          <Sparkles size={22} strokeWidth={2.2} />
+          <Sparkles size={18} strokeWidth={2.2} />
         </button>
       )}
 

@@ -154,7 +154,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     <>
       {/* 1. THANH ĐIỀU HƯỚNG DƯỚI ĐÁY TỐI GIẢN */}
       <nav
-        className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#F5F7FA] dark:bg-[#12161B] border-t border-transparent dark:border-transparent px-2 py-1 pb-[max(env(safe-area-inset-bottom),6px)] select-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform shadow-[0_-1px_10px_rgba(0,0,0,0.03)] ${
+        className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#F5F7FA] dark:bg-[#12161B] border-t border-transparent dark:border-transparent px-2.5 py-2 pb-[max(env(safe-area-inset-bottom),8px)] select-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform shadow-[0_-1px_10px_rgba(0,0,0,0.03)] ${
           shouldHideNav
             ? "translate-y-full pointer-events-none"
             : "translate-y-0"
@@ -172,14 +172,14 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                 onClick={() => onTabChange(key)}
                 aria-label={label}
                 title={label}
-                className={`relative min-h-[46px] flex flex-col items-center justify-center gap-0.5 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
+                className={`relative min-h-[52px] flex flex-col items-center justify-center gap-1 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
                   isActive
                     ? "text-[#09090B] dark:text-white font-bold bg-black/[0.06] dark:bg-white/[0.10]"
                     : "text-[#71717A] hover:text-[#09090B] dark:text-[#A1A1AA] dark:hover:text-white"
                 } active:scale-95`}
               >
-                <Icon size={19} strokeWidth={isActive ? 2.4 : 1.9} />
-                <span className="text-[11px] leading-tight whitespace-nowrap">
+                <Icon size={21} strokeWidth={isActive ? 2.4 : 1.9} />
+                <span className="text-xs leading-tight whitespace-nowrap">
                   {shortLabel}
                 </span>
               </button>
@@ -193,9 +193,9 @@ export const MobileNav: React.FC<MobileNavProps> = ({
               onClick={handleCreateCurrentItem}
               aria-label={activeTab === "events" ? "Tạo sự kiện mới" : "Tạo công việc mới"}
               title="Tạo mới"
-              className="w-11 h-11 flex items-center justify-center rounded-2xl bg-[#182230] dark:bg-[var(--accent-blue)] text-white border-none shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              className="w-12 h-12 flex items-center justify-center rounded-2xl bg-[#182230] dark:bg-[var(--accent-blue)] text-white border-none shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
             >
-              <Plus size={22} strokeWidth={2.6} />
+              <Plus size={23} strokeWidth={2.6} />
             </button>
           </div>
 
@@ -208,7 +208,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             }}
             aria-label="Hạn định"
             title="Hạn định"
-            className={`relative min-h-[46px] flex flex-col items-center justify-center gap-0.5 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
+            className={`relative min-h-[52px] flex flex-col items-center justify-center gap-1 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
               isNavItemActive(activeTab, activeTaskSubTab, "deadlines")
                 ? "text-[#1C1C1E] dark:text-white font-bold bg-black/[0.05] dark:bg-white/[0.08]"
                 : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
@@ -216,7 +216,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
           >
             <div className="relative">
               <Hourglass
-                size={19}
+              size={21}
                 strokeWidth={
                   isNavItemActive(activeTab, activeTaskSubTab, "deadlines")
                     ? 2.4
@@ -230,7 +230,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
                 />
               )}
             </div>
-            <span className="text-[11px] leading-tight whitespace-nowrap">
+            <span className="text-xs leading-tight whitespace-nowrap">
               Hạn
             </span>
           </button>
@@ -241,21 +241,21 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             onClick={() => onTabChange("settings")}
             aria-label="Cá nhân"
             title="Cá nhân"
-            className={`relative min-h-[46px] flex flex-col items-center justify-center gap-0.5 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
+            className={`relative min-h-[52px] flex flex-col items-center justify-center gap-1 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
               isNavItemActive(activeTab, activeTaskSubTab, "settings")
                 ? "text-[#1C1C1E] dark:text-white font-bold bg-black/[0.05] dark:bg-white/[0.08]"
                 : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
             } active:scale-95`}
           >
             <UserRound
-              size={19}
+                size={21}
               strokeWidth={
                 isNavItemActive(activeTab, activeTaskSubTab, "settings")
                   ? 2.4
                   : 1.9
               }
             />
-            <span className="text-[11px] leading-tight whitespace-nowrap">
+            <span className="text-xs leading-tight whitespace-nowrap">
               Cá nhân
             </span>
           </button>

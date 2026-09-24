@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CheckCircle2, ChevronDown, ChevronRight } from "lucide-react";
+import { CheckCircle2, ChevronDown } from "lucide-react";
 import { TaskDto } from "../../../types";
 import { useAppStore } from "../../../stores/appStore";
 import { TaskCard } from "./TaskCard";
@@ -199,37 +199,28 @@ export const TaskList: React.FC<TaskListProps> = ({
             <React.Fragment key={node.task.id}>
               {showCompletionSection && node.task.completed &&
                  (index === 0 || !orderedRootNodes[index - 1].task.completed) && (
-                  presentation === "desktop" && (
-                    <button
-                      type="button"
-                      onClick={() => setIsCompletedSectionOpen((open) => !open)}
-                      className="mt-4 mb-1 flex w-full items-center justify-between px-1 py-2 text-xs font-mono font-bold uppercase tracking-wider text-[var(--text-muted)] transition-colors hover:text-[var(--text-main)] cursor-pointer"
-                      aria-expanded={isCompletedSectionOpen}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <CheckCircle2 size={13} strokeWidth={2.4} className="shrink-0 text-emerald-500" />
-                        <span>Đã xong ({completedTaskCount})</span>
-                      </span>
-                      {isCompletedSectionOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
-                    </button>
-                  )
-                )}
-                {showCompletionSection && node.task.completed &&
-                  (index === 0 || !orderedRootNodes[index - 1].task.completed) && (
-                  <div
+                  <button
+                    type="button"
+                    onClick={() => setIsCompletedSectionOpen((open) => !open)}
                     className={
                       presentation === "desktop"
-                        ? "hidden mt-4 mb-1 pt-2 flex items-center justify-between text-xs font-mono font-bold uppercase tracking-wider text-[var(--text-muted)]"
-                        : "mt-4 mb-2 flex items-center justify-between rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] px-3.5 py-2.5 text-xs font-mono font-bold uppercase tracking-wider text-[#8E8E93] dark:text-[#aeaeb2]"
+                        ? "mt-4 mb-1 flex w-full items-center justify-between px-1 py-2 text-xs font-mono font-bold uppercase tracking-wider text-[var(--text-muted)] transition-colors hover:text-[var(--text-main)] cursor-pointer"
+                        : "mt-4 mb-2 flex w-full items-center justify-between rounded-2xl bg-black/[0.03] dark:bg-white/[0.04] px-3.5 py-2.5 text-xs font-mono font-bold uppercase tracking-wider text-[#8E8E93] dark:text-[#aeaeb2] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.07] cursor-pointer"
                     }
+                    aria-expanded={isCompletedSectionOpen}
                   >
                     <span className="flex items-center gap-1.5">
-                      <CheckCircle2 size={13} strokeWidth={2.4} className="text-emerald-500 shrink-0" />
-                      <span>Đã hoàn thành ({orderedRootNodes.filter((n) => n.task.completed).length})</span>
+                      <CheckCircle2 size={13} strokeWidth={2.4} className="shrink-0 text-[var(--accent-blue)]" />
+                      <span>Đã xong ({completedTaskCount})</span>
                     </span>
-                  </div>
+                    <ChevronDown
+                      size={15}
+                      strokeWidth={2.2}
+                      className={`shrink-0 transition-transform duration-200 ${isCompletedSectionOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
                 )}
-              {(!node.task.completed || presentation !== "desktop" || isCompletedSectionOpen) && (
+              {(!node.task.completed || !showCompletionSection || isCompletedSectionOpen) && (
               <TaskTreeNodeItem
                 node={node}
                 index={index}

@@ -1,7 +1,7 @@
 import React from "react";
 import { ChevronRight } from "lucide-react";
 import { TaskDto, TaskItemType } from "../../../types";
-import { normalizeTaskTimeType } from "../../../utils/taskSemantics";
+import { getTaskTemporalState, normalizeTaskTimeType } from "../../../utils/taskSemantics";
 import { useResponsiveLayout } from "../../../hooks";
 import { PlannerTimeline } from "./PlannerTimeline";
 
@@ -44,6 +44,14 @@ const TouchWeekList: React.FC<PlannerWeekViewProps> = ({
       const deadlineCount = dayTasks.filter(
         (task) => normalizeTaskTimeType(task) === "deadline",
       ).length;
+      const overdueScheduledCount = dayTasks.filter((task) => {
+        if (task.completed || normalizeTaskTimeType(task) !== "scheduled") return false;
+        return getTaskTemporalState(task) === "pastScheduled";
+      }).length;
+      const overdueDeadlineCount = dayTasks.filter((task) => {
+        if (task.completed || normalizeTaskTimeType(task) !== "deadline") return false;
+        return getTaskTemporalState(task) === "overdue";
+      }).length;
       const taskCount = dayTasks.length;
 
       return (
@@ -74,25 +82,38 @@ const TouchWeekList: React.FC<PlannerWeekViewProps> = ({
             )}
           </div>
 
-          {/* Cột 2: Thông tin tóm tắt công việc */}
-          <div className="flex-1 min-w-0 flex items-center gap-1.5 text-[13px] sm:text-xs text-[#8E8E93] dark:text-[#8E8E93] truncate">
+          {/* Cột 2: Số lượng chính và trạng thái được neo về cuối hàng */}
+          <div className="flex min-w-0 flex-1 items-center gap-2 text-[13px] sm:text-xs text-[#8E8E93] dark:text-[#8E8E93]">
             {dayTasks.length > 0 ? (
-              <div className="flex items-center gap-1.5 truncate">
-                <span className="font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{dayTasks.length} {itemLabel}</span>
-                <span>·</span>
-                {scheduledCount > 0 && (
-                  <>
-                    <span>·</span>
-                    <span className="text-sky-600 dark:text-sky-400 font-medium">🕒 {scheduledCount} hẹn</span>
-                  </>
-                )}
-                {deadlineCount > 0 && (
-                  <>
-                    <span>·</span>
-                    <span className="text-rose-600 dark:text-rose-400 font-medium">{deadlineCount} hạn</span>
-                  </>
-                )}
-              </div>
+              <>
+                <span className="min-w-0 truncate font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                  {dayTasks.length} {itemLabel}
+                </span>
+                <div className="ml-auto flex shrink-0 items-center gap-2 font-medium">
+                  {scheduledCount > 0 && (
+                    <span
+                      className={`inline-flex items-center gap-1 ${overdueScheduledCount > 0 ? "text-[var(--danger-text)]" : "text-[var(--accent-blue)]"}`}
+                      aria-label={overdueScheduledCount > 0 ? "Có lịch hẹn quá thời gian" : "Có lịch hẹn"}
+                      title={overdueScheduledCount > 0 ? "Lịch hẹn quá thời gian" : "Có lịch hẹn"}
+                    >
+                      <span
+                        className={`h-2 w-2 rounded-full ${overdueScheduledCount > 0 ? "bg-[var(--accent-coral)]" : "bg-[var(--accent-blue)]"}`}
+                      />
+                    </span>
+                  )}
+                  {deadlineCount > 0 && (
+                    <span
+                      className={`inline-flex items-center gap-1 ${overdueDeadlineCount > 0 ? "text-[var(--danger-text)]" : "text-[var(--accent-blue)]"}`}
+                      aria-label={overdueDeadlineCount > 0 ? "Có deadline quá hạn" : "Có deadline"}
+                      title={overdueDeadlineCount > 0 ? "Deadline quá hạn" : "Có deadline"}
+                    >
+                      <span
+                        className={`h-2 w-2 rounded-full ${overdueDeadlineCount > 0 ? "bg-[var(--accent-coral)]" : "bg-[var(--accent-blue)]"}`}
+                      />
+                    </span>
+                  )}
+                </div>
+              </>
             ) : (
               <span className="text-[#8E8E93] dark:text-[#8E8E93] text-[13px] sm:text-xs">Trống</span>
             )}

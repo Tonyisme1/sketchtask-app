@@ -126,7 +126,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
     try {
       const result = await askGeminiAIAssistant(
         text,
-        nextMessages.map((m) => ({ sender: m.sender, text: m.text })),
+        messages.map((m) => ({ sender: m.sender, text: m.text })),
         {
           tasks,
         },
@@ -145,6 +145,15 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
       ]);
     } catch (err) {
       console.error("AI processing error:", err);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `ai-error-${Date.now()}`,
+          sender: "ai",
+          text: "Mình chưa xử lý được yêu cầu này. Bạn thử nói rõ việc cần làm, thời gian hoặc mục tiêu nhé.",
+          time: getTimeLabel(),
+        },
+      ]);
     } finally {
       setIsTyping(false);
     }

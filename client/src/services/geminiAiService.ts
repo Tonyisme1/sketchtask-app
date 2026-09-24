@@ -20,13 +20,18 @@ type GeminiAction =
   | "create_note"
   | "none";
 
-interface GeminiPayload {
+interface GeminiActionPayload {
   action?: GeminiAction;
+  type?: GeminiAction;
   tasks?: unknown;
   plan?: unknown;
   taskId?: unknown;
   journal?: unknown;
   note?: unknown;
+}
+
+interface GeminiPayload extends GeminiActionPayload {
+  actions?: unknown[];
 }
 
 const DAY_NAMES = [
@@ -70,12 +75,20 @@ const normalizeTimeType = (value: unknown): TaskTimeType => {
 const parseTaskIntent = (value: unknown, todayStr: string): ParsedTaskIntent | null => {
   if (!isObject(value) || typeof value.title !== "string" || !value.title.trim()) return null;
 
-  const timeType = normalizeTimeType(value.timeType);
-  const dueDate = isValidDate(value.dueDate) ? value.dueDate : todayStr;
+  const timeType = normalizeTimeType(value.timeType ?? value.itemType);
+  const dueDate = isValidDate(value.dueDate)
+    ? value.dueDate
+    : isValidDate(value.date)
+      ? value.date
+      : todayStr;
   const startTime = isValidTime(value.startTime) ? value.startTime : undefined;
   const endTime = isValidTime(value.endTime) ? value.endTime : undefined;
   const deadlineTime = isValidTime(value.deadlineTime) ? value.deadlineTime : undefined;
-  const deadlineDate = isValidDate(value.deadlineDate) ? value.deadlineDate : undefined;
+  const deadlineDate = isValidDate(value.deadlineDate)
+    ? value.deadlineDate
+    : timeType === "deadline"
+      ? dueDate
+      : undefined;
   const tags = Array.isArray(value.tags)
     ? value.tags.filter((tag): tag is string => typeof tag === "string" && Boolean(tag.trim())).slice(0, 8)
     : undefined;
@@ -99,22 +112,22 @@ const parseTaskIntent = (value: unknown, todayStr: string): ParsedTaskIntent | n
 const taskExists = (tasks: TaskDto[], taskId: unknown) =>
   typeof taskId === "string" && tasks.some((task) => task.id === taskId);
 
-const parseProposal = (
-  payload: GeminiPayload,
+const parseAction = (
+  payload: GeminiActionPayload,
   tasks: TaskDto[],
   todayStr: string,
-): AIActionProposal | null => {
-  const actions: AIProposalAction[] = [];
+): AIProposalAction | null => {
+  const action = payload.action || payload.type;
 
-  if (payload.action === "create_tasks" && Array.isArray(payload.tasks)) {
+  if (action === "create_tasks" && Array.isArray(payload.tasks)) {
     const parsedTasks = payload.tasks
       .map((task) => parseTaskIntent(task, todayStr))
       .filter((task): task is ParsedTaskIntent => Boolean(task))
       .slice(0, 20);
-    if (parsedTasks.length) actions.push({ type: "create_tasks", tasks: parsedTasks });
+    return parsedTasks.length ? { type: "create_tasks", tasks: parsedTasks } : null;
   }
 
-  if (payload.action === "breakdown_plan" && isObject(payload.plan)) {
+  if (action === "breakdown_plan" && isObject(payload.plan)) {
     const steps = Array.isArray(payload.plan.steps)
       ? payload.plan.steps
           .map((step) => parseTaskIntent(step, todayStr))
@@ -127,26 +140,26 @@ const parseProposal = (
         subtasks: steps,
         targetTaskId: taskExists(tasks, payload.plan.targetTaskId) ? String(payload.plan.targetTaskId) : undefined,
       };
-      actions.push({ type: "breakdown_goal", plan });
+      return { type: "breakdown_goal", plan };
     }
   }
 
   if (
-    (payload.action === "complete_task" || payload.action === "delete_task") &&
+    (action === "complete_task" || action === "delete_task") &&
     taskExists(tasks, payload.taskId)
   ) {
     const task = tasks.find((candidate) => candidate.id === payload.taskId);
     if (task && getTaskItemType(task) !== "event") {
-      actions.push({ type: payload.action, taskId: String(payload.taskId) });
+      return { type: action, taskId: String(payload.taskId) };
     }
   }
 
-  if (payload.action === "create_journal_entry" && isObject(payload.journal)) {
+  if (action === "create_journal_entry" && isObject(payload.journal)) {
     const date = isValidDate(payload.journal.date) ? payload.journal.date : todayStr;
     const time = isValidTime(payload.journal.time) ? payload.journal.time : "09:00";
     const content = typeof payload.journal.content === "string" ? payload.journal.content.trim().slice(0, 4000) : "";
     if (content) {
-      actions.push({
+      return {
         type: "create_journal_entry",
         date,
         time,
@@ -154,17 +167,32 @@ const parseProposal = (
         linkedTaskId: taskExists(tasks, payload.journal.linkedTaskId)
           ? String(payload.journal.linkedTaskId)
           : undefined,
-      });
+      };
     }
   }
 
-  if (payload.action === "create_note" && isObject(payload.note)) {
+  if (action === "create_note" && isObject(payload.note)) {
     const title = typeof payload.note.title === "string" ? payload.note.title.trim().slice(0, 240) : "";
     const content = typeof payload.note.content === "string" ? payload.note.content.trim().slice(0, 10000) : "";
     if (title || content) {
-      actions.push({ type: "create_note", title: title || "Ghi chú không tiêu đề", content });
+      return { type: "create_note", title: title || "Ghi chú không tiêu đề", content };
     }
   }
+
+  return null;
+};
+
+const parseProposal = (
+  payload: GeminiPayload,
+  tasks: TaskDto[],
+  todayStr: string,
+): AIActionProposal | null => {
+  const actionPayloads = Array.isArray(payload.actions) && payload.actions.length > 0
+    ? payload.actions.filter(isObject).slice(0, 8).map((action) => action as GeminiActionPayload)
+    : [payload];
+  const actions = actionPayloads
+    .map((action) => parseAction(action, tasks, todayStr))
+    .filter((action): action is AIProposalAction => Boolean(action));
 
   return actions.length ? { id: createProposalId(), actions } : null;
 };
@@ -199,16 +227,17 @@ const extractAnswer = (rawAnswer: string) => {
 };
 
 const getActionInstruction = () => `
-Nếu người dùng yêu cầu thay đổi dữ liệu, hãy trả lời ngắn gọn rồi thêm đúng một khối JSON ở cuối câu trả lời:
+Nếu người dùng yêu cầu thay đổi dữ liệu, hãy trả lời ngắn gọn rồi thêm đúng một khối JSON ở cuối câu trả lời. Nếu có nhiều việc độc lập trong cùng một câu, dùng "actions" để gom tất cả đề xuất trong một lần:
 {
   "action": "create_tasks" | "breakdown_plan" | "complete_task" | "delete_task" | "create_journal_entry" | "create_note" | "none",
+  "actions": [{ "action": "create_tasks|breakdown_plan|complete_task|delete_task|create_journal_entry|create_note", "tasks": [], "plan": {}, "taskId": "...", "journal": {}, "note": {} }],
   "tasks": [{ "title": "...", "dueDate": "YYYY-MM-DD", "timeType": "task|scheduled|deadline|event", "startTime": "HH:MM", "endTime": "HH:MM", "deadlineTime": "HH:MM", "priority": "high|medium|low", "tag": "...", "description": "..." }],
   "plan": { "goalTitle": "...", "targetTaskId": "id chính xác nếu có", "steps": [{ "title": "...", "dueDate": "YYYY-MM-DD", "timeType": "task|scheduled|deadline", "startTime": "HH:MM", "endTime": "HH:MM", "deadlineTime": "HH:MM", "priority": "high|medium|low", "tag": "..." }] },
   "taskId": "id chính xác từ danh mục công việc",
   "journal": { "date": "YYYY-MM-DD", "time": "HH:MM", "content": "...", "linkedTaskId": "id chính xác nếu có" },
   "note": { "title": "...", "content": "..." }
 }
-Chỉ dùng action khi người dùng thật sự yêu cầu thay đổi. Không tự nhận đã tạo, xóa hoặc hoàn thành dữ liệu. Event không có checkbox hoàn thành. Với hoàn thành/xóa, chỉ dùng taskId có trong danh mục, không đoán theo tên.
+Quy tắc xử lý: phân biệt task có deadline, lịch hẹn/event có thời gian bắt đầu-kết thúc và việc thường; giữ đúng ngày/giờ người dùng nêu; hiểu ngày tương đối theo ngày hiện tại; nếu thiếu thông tin quan trọng thì hỏi lại thay vì đoán. Chỉ dùng action khi người dùng thật sự yêu cầu thay đổi. Không tự nhận đã tạo, xóa hoặc hoàn thành dữ liệu. Event không có checkbox hoàn thành. Với hoàn thành/xóa, chỉ dùng taskId có trong danh mục, không đoán theo tên.
 `;
 
 export async function askGeminiAIAssistant(
@@ -229,11 +258,16 @@ export async function askGeminiAIAssistant(
     const state = getTaskTemporalState(task, now);
     return state === "overdue" || state === "pastScheduled";
   });
-  const taskCatalog = context.tasks.slice(0, 250).map((task) => ({
+  const taskCatalog = context.tasks.slice(0, 400).map((task) => ({
     id: task.id,
     title: task.title,
     completed: task.completed,
+    itemType: getTaskItemType(task),
     timeType: task.timeType || "task",
+    priority: task.priority || "medium",
+    tag: task.tag,
+    tags: task.tags,
+    description: task.description?.slice(0, 400),
     dueDate: task.dueDate,
     deadlineDate: task.deadlineDate,
     startTime: task.startTime,
@@ -265,7 +299,7 @@ ${getActionInstruction()}`;
           body: JSON.stringify({
             system_instruction: { parts: [{ text: systemInstruction }] },
             contents: [...recentHistory, { role: "user", parts: [{ text: userQuery }] }],
-            generationConfig: { temperature: 0.2, maxOutputTokens: 2200 },
+            generationConfig: { temperature: 0.15, maxOutputTokens: 4000 },
           }),
         },
       );
