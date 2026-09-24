@@ -1,7 +1,5 @@
 import React, { useMemo } from "react";
-import {
-  DeadlinesView,
-} from "../../components/shared/deadlines/DeadlinesView";
+import { DesktopDeadlinesView } from "../components/deadlines/DesktopDeadlinesView";
 import {
   DeadlinesScreenModel,
   useDeadlinesScreenModel,
@@ -28,10 +26,9 @@ export const DesktopDeadlinesPage: React.FC<DesktopDeadlinesPageProps> = ({
   );
 
   return (
-    <DeadlinesView
+    <DesktopDeadlinesView
       {...desktopTaskModel}
       onNavigateToTaskDate={onNavigateToTaskDate}
-      taskListPresentation="desktop"
     />
   );
 };

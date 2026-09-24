@@ -23,7 +23,6 @@ export * from "./overlays/ConfirmModal";
 export * from "./overlays/RescheduleDateModal";
 export * from "./overlays/UpdateModal";
 export * from "./overlays/GlobalSearchModal";
-export * from "./overlays/NotificationDrawer";
 
 // Feedback
 export * from "./feedback/EmptyStateDoodle";

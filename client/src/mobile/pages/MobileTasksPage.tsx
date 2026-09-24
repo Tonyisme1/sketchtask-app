@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { NavigationTarget } from "../../types";
-import { MobileTodayView } from "../tabs/MobileTodayView";
 import { MobileDeadlinesPage } from "../tabs/MobileDeadlinesPage";
 import { MobilePlannerPage } from "../tabs/MobilePlannerPage";
-import { getLocalTodayStr, getTaskEffectiveDate } from "../../utils";
+import { getTaskEffectiveDate } from "../../utils";
 import { TaskScreenModel, useTaskScreenModel } from "../../features/tasks/model/createTaskScreenModel";
+import { useAppStore } from "../../stores";
 
 export interface MobileTasksPageProps {
   model?: TaskScreenModel;
@@ -22,13 +22,18 @@ export const MobileTasksPage: React.FC<MobileTasksPageProps> = ({
 
   const { activeTaskSubTab } = model;
   const { setActiveTaskSubTab } = model.actions;
+  const { mobileDeadlineView, setMobileDeadlineView } = useAppStore();
 
   const [plannerTargetDateStr, setPlannerTargetDateStr] = useState<string | undefined>(undefined);
   const [plannerTargetTaskId, setPlannerTargetTaskId] = useState<string | undefined>(undefined);
   const [plannerSourceTab, setPlannerSourceTab] = useState<"deadlines" | undefined>(undefined);
-  const [todayTargetTaskId, setTodayTargetTaskId] = useState<string | undefined>(undefined);
 
-  const todayStr = getLocalTodayStr(new Date());
+
+  useEffect(() => {
+    if (activeTaskSubTab === "all" || activeTaskSubTab === "today") {
+      setActiveTaskSubTab("planner");
+    }
+  }, [activeTaskSubTab, setActiveTaskSubTab]);
 
   useEffect(() => {
     if (!navigationTarget?.taskId) return;
@@ -40,26 +45,16 @@ export const MobileTasksPage: React.FC<MobileTasksPageProps> = ({
     }
 
     const taskDate = navigationTarget.date || getTaskEffectiveDate(task);
-    if (taskDate === todayStr) {
-      setTodayTargetTaskId(task.id);
-      setActiveTaskSubTab("today");
-    } else {
-      setPlannerTargetDateStr(taskDate);
-      setPlannerTargetTaskId(task.id);
-      setActiveTaskSubTab("planner");
-    }
+    setPlannerTargetDateStr(taskDate);
+    setPlannerTargetTaskId(task.id);
+    setActiveTaskSubTab("planner");
     onClearNavigationTarget?.();
-  }, [navigationTarget, model.tasks, todayStr, setActiveTaskSubTab, onClearNavigationTarget]);
+  }, [navigationTarget, model.tasks, setActiveTaskSubTab, onClearNavigationTarget]);
 
   return (
     <div className="w-full min-w-0 select-none">
       {/* Content */}
-      {activeTaskSubTab === "today" ? (
-        <MobileTodayView
-          targetTaskId={todayTargetTaskId}
-          onClearTarget={() => setTodayTargetTaskId(undefined)}
-        />
-      ) : activeTaskSubTab === "planner" ? (
+      {activeTaskSubTab === "planner" || activeTaskSubTab === "today" || activeTaskSubTab === "all" ? (
         <MobilePlannerPage
           targetDateStr={plannerTargetDateStr}
           targetTaskId={plannerTargetTaskId}
@@ -75,15 +70,13 @@ export const MobileTasksPage: React.FC<MobileTasksPageProps> = ({
         />
       ) : (
         <MobileDeadlinesPage
+          view={mobileDeadlineView}
+          onViewChange={setMobileDeadlineView}
           onNavigateToTaskDate={(dateStr, taskId) => {
-            if (dateStr === todayStr) {
-              setActiveTaskSubTab("today");
-            } else {
-              setPlannerTargetDateStr(dateStr);
-              setPlannerTargetTaskId(taskId);
-              setPlannerSourceTab("deadlines");
-              setActiveTaskSubTab("planner");
-            }
+            setPlannerTargetDateStr(dateStr);
+            setPlannerTargetTaskId(taskId);
+            setPlannerSourceTab("deadlines");
+            setActiveTaskSubTab("planner");
           }}
         />
       )}

@@ -3,7 +3,6 @@ import { useAppStore } from "../../../stores/appStore";
 import { TaskDto, TaskPriority } from "../../../types";
 import { getLocalTodayStr, getLocalTomorrowStr } from "../../../utils/date";
 import {
-  isTaskDueToday,
   normalizeTaskTimeType,
   getTaskTags,
   getTaskTemporalState,
@@ -12,7 +11,6 @@ import {
   getTaskEffectiveTime,
   getTaskItemType,
 } from "../../../utils/taskSemantics";
-import { getTaskProgress } from "../../../utils/taskHierarchy";
 import { TaskScreenModel, TaskScreenFilterState, TaskGroup } from "./types";
 
 const isLikelyJunkTask = (task: TaskDto) => {
@@ -128,45 +126,7 @@ export const useTaskScreenModel = (): TaskScreenModel => {
     [searchQuery, filterType, selectedPriority, selectedTag, activeTaskListTags]
   );
 
-  // 1. Task Hôm Nay (Today)
-  const rawTodayTasks = useMemo(() => {
-    return tasks.filter((task) => isTaskDueToday(task, now));
-  }, [tasks, todayStr]);
-
-  const todayTasks = useMemo(() => {
-    return applyGeneralFilters(rawTodayTasks);
-  }, [rawTodayTasks, applyGeneralFilters]);
-
-  const activeScheduledTasks = useMemo(() => {
-    return todayTasks.filter((task) => {
-      if (task.parentTaskId) return false;
-      if (task.completed) return false;
-      return normalizeTaskTimeType(task) === "scheduled";
-    });
-  }, [todayTasks]);
-
-  const activeTaskListItems = useMemo(() => {
-    return todayTasks.filter((task) => {
-      if (task.completed) return false;
-      return normalizeTaskTimeType(task) !== "scheduled";
-    });
-  }, [todayTasks]);
-
-  const completedTodayTasks = useMemo(() => {
-    if (hideCompletedTasks) return [];
-    return todayTasks.filter((task) => task.completed);
-  }, [todayTasks, hideCompletedTasks]);
-
-  const todayProgress = useMemo(() => {
-    const { completed, total } = getTaskProgress(rawTodayTasks);
-    return {
-      completed,
-      total,
-      percent: total > 0 ? Math.round((completed / total) * 100) : 0,
-    };
-  }, [rawTodayTasks]);
-
-  // 2. Task Quá Hạn (Overdue)
+  // 1. Task Quá Hạn (Overdue)
   const overdueTasks = useMemo(() => {
     const list = tasks.filter((task) => {
       if (getTaskItemType(task) === "event") return false;
@@ -177,7 +137,7 @@ export const useTaskScreenModel = (): TaskScreenModel => {
     return sortByDateAndTime(applyGeneralFilters(list));
   }, [tasks, applyGeneralFilters]);
 
-  // 3. Task Sắp Đến (Upcoming)
+  // 2. Task Sắp Đến (Upcoming)
   const upcomingTasks = useMemo(() => {
     const list = tasks.filter((task) => {
       if (task.completed) return false;
@@ -193,7 +153,7 @@ export const useTaskScreenModel = (): TaskScreenModel => {
   const overdueGroups = useMemo(() => groupByDate(overdueTasks), [overdueTasks]);
   const upcomingGroups = useMemo(() => groupByDate(upcomingTasks), [upcomingTasks]);
 
-  // 4. Tất cả công việc (All tasks)
+  // 3. Tất cả công việc (All tasks)
   const allTasks = useMemo(() => {
     return applyGeneralFilters(tasks);
   }, [tasks, applyGeneralFilters]);
@@ -241,10 +201,6 @@ export const useTaskScreenModel = (): TaskScreenModel => {
 
   return {
     tasks,
-    todayTasks,
-    activeScheduledTasks,
-    activeTaskListItems,
-    completedTodayTasks,
     overdueTasks,
     upcomingTasks,
     overdueGroups,
@@ -253,10 +209,8 @@ export const useTaskScreenModel = (): TaskScreenModel => {
     junkTasks,
     tags,
 
-    todayProgress,
     overdueCount: overdueTasks.length,
     upcomingCount: upcomingTasks.length,
-    activeCount: rawTodayTasks.filter((t) => !t.completed).length,
 
     activeTaskSubTab,
     filters,

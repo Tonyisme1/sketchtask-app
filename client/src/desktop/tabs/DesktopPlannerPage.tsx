@@ -50,7 +50,7 @@ export const DesktopPlannerPage: React.FC<DesktopPlannerPageProps> = ({
   const { activeTaskListTags } = useAppStore();
 
   const desktopSurface: DesktopPlannerSurface = controlledDesktopSurface || "calendar";
-  const [viewMode, setViewMode] = useState<PlannerViewMode>("agenda");
+  const [viewMode, setViewMode] = useState<PlannerViewMode>("day");
   const [weekOffset, setWeekOffset] = useState(0);
   const [monthOffset, setMonthOffset] = useState(0);
   const [dayOffset, setDayOffset] = useState(0);

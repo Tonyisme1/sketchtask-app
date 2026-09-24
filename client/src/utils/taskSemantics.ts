@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { TaskDto, TaskItemType, TaskTimeType } from "../types";
 import { getLocalTodayStr } from "./date";
 
@@ -37,6 +38,33 @@ export type TaskTemporalState =
   | "pastScheduled"
   | "overdue"
   | "completed";
+
+export type TaskCardVisualTone = "event" | "task" | "overdue" | "completed";
+
+/** Keep calendar chips and list cards on the same semantic color contract. */
+export const getTaskCardVisualTone = (
+  task: TaskDto,
+  now: Date = new Date(),
+  completedOverride = task.completed,
+): TaskCardVisualTone => {
+  if (getTaskItemType(task) === "event") return "event";
+  if (completedOverride) return "completed";
+
+  const temporal = getTaskTemporalState(task, now);
+  return temporal === "overdue" || temporal === "pastScheduled" ? "overdue" : "task";
+};
+
+export const getTaskCardVisualStyle = (
+  task: TaskDto,
+  now: Date = new Date(),
+  completedOverride = task.completed,
+): CSSProperties => {
+  const tone = getTaskCardVisualTone(task, now, completedOverride);
+  return {
+    backgroundColor: `var(--task-card-${tone}-bg)`,
+    color: `var(--task-card-${tone}-text)`,
+  };
+};
 
 export interface TaskDateTime {
   date?: string;
@@ -243,6 +271,54 @@ export const getTaskTemporalState = (task: TaskDto, now: Date = new Date()): Tas
   }
 
   return currentMinutes > targetMinutes ? "overdue" : "upcoming";
+};
+
+/** Keep every entry point pointed at the same deadline-only task set. */
+export const isTaskDeadline = (task: TaskDto): boolean =>
+  getTaskItemType(task) !== "event" && normalizeTaskTimeType(task) === "deadline";
+
+export interface DeadlineAttentionSummary {
+  overdue: number;
+  upcoming: number;
+}
+
+/** Keep every deadline entry point on the same overdue/upcoming split. */
+export const getDeadlineAttentionSummary = (
+  tasks: TaskDto[],
+  now: Date = new Date(),
+  daysAhead = 7,
+): DeadlineAttentionSummary => {
+  const todayStr = getLocalTodayStr(now);
+  const limitDate = new Date(now);
+  limitDate.setDate(limitDate.getDate() + Math.max(0, daysAhead - 1));
+  const limitStr = getLocalTodayStr(limitDate);
+
+  return tasks.reduce<DeadlineAttentionSummary>(
+    (summary, task) => {
+      if (task.completed || !isTaskDeadline(task)) return summary;
+      if (getTaskTemporalState(task, now) === "overdue") {
+        summary.overdue += 1;
+        return summary;
+      }
+
+      const deadlineDate = getTaskDeadlineDate(task) || getTaskEffectiveDate(task);
+      if (deadlineDate && deadlineDate >= todayStr && deadlineDate <= limitStr) {
+        summary.upcoming += 1;
+      }
+      return summary;
+    },
+    { overdue: 0, upcoming: 0 },
+  );
+};
+
+/** Count overdue work plus deadline work due within the current seven-day window. */
+export const getDeadlineAttentionCount = (
+  tasks: TaskDto[],
+  now: Date = new Date(),
+  daysAhead = 7,
+): number => {
+  const summary = getDeadlineAttentionSummary(tasks, now, daysAhead);
+  return summary.overdue + summary.upcoming;
 };
 
 /** Kiểm tra task có thuộc đúng một ngày cụ thể (YYYY-MM-DD) hay không */

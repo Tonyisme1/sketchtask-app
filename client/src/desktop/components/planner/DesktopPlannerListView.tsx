@@ -1,8 +1,7 @@
 import React, { useMemo } from "react";
 import { TaskDto, TaskItemType } from "../../../types";
-import { getTaskProgress } from "../../../utils/taskHierarchy";
 import { useAppStore } from "../../../stores/appStore";
-import { DesktopTaskGroup } from "../../../components/shared/common/DesktopTaskGroup";
+import { DesktopTaskGroup } from "../tasks/DesktopTaskGroup";
 
 interface PlannerListDay {
   dateStr: string;
@@ -44,9 +43,7 @@ export const DesktopPlannerListView: React.FC<DesktopPlannerListViewProps> = ({
   const visibleDayEntries = isEventStream
     ? dayEntries.filter((entry) => entry.tasks.length > 0)
     : dayEntries;
-  const { total: totalTaskCount, completed: completedCount } = getTaskProgress(
-    dayEntries.flatMap((entry) => entry.tasks),
-  );
+  const totalTaskCount = dayEntries.reduce((count, entry) => count + entry.tasks.length, 0);
 
   return (
     <section className="flex-1 min-h-0 overflow-y-auto bg-[var(--bg-canvas)] px-5 py-5 select-none">
@@ -60,36 +57,14 @@ export const DesktopPlannerListView: React.FC<DesktopPlannerListViewProps> = ({
               </h2>
               <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-[var(--text-muted)]">
                 <span>{totalTaskCount} {isEventStream ? "sự kiện" : "công việc"}</span>
-                {!isEventStream && (
-                  <>
-                    <span>·</span>
-                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                      {completedCount} đã hoàn thành
-                    </span>
-                  </>
-                )}
-                <span>·</span>
-                <span>
-                  {isEventStream
-                    ? totalTaskCount
-                    : Math.max(0, totalTaskCount - completedCount)} {isEventStream ? "sắp diễn ra" : "cần xử lý"}
-                </span>
               </div>
             </div>
           </div>
-
-          {!isEventStream && totalTaskCount > 0 && (
-            <span className="font-mono text-xs font-bold text-[var(--text-muted)]">
-              {Math.round((completedCount / totalTaskCount) * 100)}%
-            </span>
-          )}
         </header>
 
         {/* === PHẦN 2: Header ngày và card trực tiếp === */}
         {visibleDayEntries.map(({ day, tasks }) => {
-          const dayCompletedCount = tasks.filter((task) => task.completed).length;
           const dayTotalCount = tasks.length;
-          const isAllDone = dayTotalCount > 0 && dayCompletedCount === dayTotalCount;
 
           return (
             <DesktopTaskGroup
@@ -98,14 +73,7 @@ export const DesktopPlannerListView: React.FC<DesktopPlannerListViewProps> = ({
               dateStr={day.dateStr}
               tasks={tasks}
               isToday={day.isToday}
-              subtitle={`${dayCompletedCount}/${dayTotalCount} ${isEventStream ? "sự kiện" : "việc"}`}
-              badge={
-                isAllDone ? (
-                  <span className="shrink-0 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                    Xong hết
-                  </span>
-                ) : undefined
-              }
+              subtitle={`${dayTotalCount} ${isEventStream ? "sự kiện" : "việc"}`}
               emptyMessage={isEventStream ? "Chưa có sự kiện nào" : "Chưa có lịch trình hay công việc nào"}
               emptySubMessage={isEventStream ? "Bạn có thể thêm sự kiện cho ngày này." : "Bạn có thể thêm task cho ngày này."}
               variant="planner"

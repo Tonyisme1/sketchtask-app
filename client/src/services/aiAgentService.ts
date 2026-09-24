@@ -70,7 +70,6 @@ export interface AIQueryResult {
     | "goal_breakdown"
     | "task_action"
     | "action_proposal"
-    | "stats_progress"
     | "task_query"
     | "text_reply";
   text: string;
@@ -92,16 +91,6 @@ export interface AIQueryResult {
     timeLabel?: string;
     tag?: string;
   }[];
-  stats?: {
-    totalCount: number;
-    completedTotal: number;
-    totalPercent: number;
-    todayCount: number;
-    completedToday: number;
-    todayPercent: number;
-    overdueCount: number;
-    urgentCount: number;
-  };
 }
 
 export interface DynamicPromptChip {
@@ -180,14 +169,7 @@ export function generateDynamicPromptChips(
     });
   }
 
-  // 4. Phân tích tiến độ
-  chips.push({
-    id: "stats",
-    label: "Phân tích tiến độ",
-    query: "Phân tích tiến độ công việc và tỷ lệ hoàn thành",
-  });
-
-  // 5. Gợi ý chia nhỏ mục tiêu
+  // 4. Gợi ý chia nhỏ mục tiêu
   chips.push({
     id: "breakdown",
     label: "Chia nhỏ mục tiêu",

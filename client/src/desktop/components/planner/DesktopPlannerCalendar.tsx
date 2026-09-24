@@ -8,6 +8,7 @@ import {
   getTaskTemporalState,
   getTaskItemType,
   normalizeTaskTimeType,
+  getTaskCardVisualStyle,
 } from "../../../utils/taskSemantics";
 
 export interface DesktopPlannerCalendarProps {
@@ -109,7 +110,7 @@ export const DesktopPlannerCalendar: React.FC<DesktopPlannerCalendarProps> = ({
       </div>
 
       {/* 2. Lưới 35 hoặc 42 ô ngày */}
-      <div className="grid grid-cols-7 gap-1 bg-[#F2F2F7] dark:bg-[#202023] p-1.5">
+      <div className="grid grid-cols-7 gap-1 bg-[#F2F2F7] dark:bg-[#12161B] p-1.5">
         {monthMatrix.map((item) => {
           const isCurrentMonth = item.isCurrentMonth;
           const dayTasks = isCurrentMonth ? getTasksForDate(item.dateStr) : [];
@@ -133,13 +134,13 @@ export const DesktopPlannerCalendar: React.FC<DesktopPlannerCalendarProps> = ({
           const visibleTasks = sortedTasks.slice(0, maxVisibleChips);
           const hiddenCount = taskCount - maxVisibleChips;
 
-          let cellBg = "bg-white dark:bg-[#1C1C1E]";
+          let cellBg = "bg-white dark:bg-[#1E222A]";
           if (!isCurrentMonth) {
             cellBg = "bg-[#F2F2F7]/80 dark:bg-[#141416] opacity-45";
           } else if (isSelected) {
-            cellBg = "bg-[#007AFF]/[0.08] dark:bg-[#0A84FF]/[0.12] ring-2 ring-inset ring-[#007AFF] dark:ring-[#0A84FF]";
+            cellBg = "bg-[var(--accent-blue)]/[0.08] dark:bg-[var(--accent-blue)]/[0.16] ring-2 ring-inset ring-[var(--accent-blue)]";
           } else if (isToday) {
-            cellBg = "bg-[#007AFF]/[0.025] dark:bg-[#0A84FF]/[0.03]";
+            cellBg = "bg-[var(--accent-sky)]/[0.25] dark:bg-[var(--accent-sky)]/[0.12]";
           }
 
           return (
@@ -160,12 +161,12 @@ export const DesktopPlannerCalendar: React.FC<DesktopPlannerCalendarProps> = ({
                     }}
                     className={`flex h-[26px] w-[26px] items-center justify-center rounded-full font-mono text-xs font-bold transition-transform active:scale-90 cursor-pointer ${
                       isToday
-                        ? "bg-[#007AFF] dark:bg-[#0A84FF] text-white shadow-sm font-black"
+                        ? "bg-[var(--accent-blue)] text-white shadow-sm font-black"
                         : isSelected
-                          ? "bg-[#007AFF] text-white dark:bg-[#0A84FF]"
+                          ? "bg-[var(--accent-blue)] text-white"
                           : isPast
-                            ? "text-[#8E8E93] dark:text-[#8E8E93] hover:bg-neutral-100 dark:hover:bg-[#2C2C2E]"
-                            : "text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-neutral-100 dark:hover:bg-[#2C2C2E]"
+                            ? "text-[var(--text-muted)] hover:bg-black/5 dark:hover:bg-white/10"
+                            : "text-[var(--text-main)] hover:bg-black/5 dark:hover:bg-white/10"
                     }`}
                     title={`Xem chi tiết ngày ${formatShortDayMonth(item.dateStr)}`}
                   >
@@ -198,10 +199,8 @@ export const DesktopPlannerCalendar: React.FC<DesktopPlannerCalendarProps> = ({
                   {visibleTasks.map((task) => {
                     const time = getTaskEffectiveTime(task);
                     const normType = normalizeTaskTimeType(task);
-
-                    const chipTone = task.completed
-                      ? "bg-[var(--bg-surface-muted)] text-[var(--text-muted)] line-through opacity-60"
-                      : "bg-[var(--accent-blue)] text-white hover:brightness-95 dark:hover:brightness-110";
+                    const isPastEvent =
+                      getTaskItemType(task) === "event" && item.dateStr < todayStr;
 
                     return (
                       <button
@@ -217,12 +216,13 @@ export const DesktopPlannerCalendar: React.FC<DesktopPlannerCalendarProps> = ({
                           }
                         }}
                         title={`${task.title}${time ? ` (${time})` : ""}`}
-                        className={`flex w-full min-w-0 items-center gap-1 rounded-xl px-2 py-0.5 text-left text-[10.5px] font-bold transition-all active:scale-[0.98] cursor-pointer shadow-2xs ${chipTone}`}
+                        style={getTaskCardVisualStyle(task)}
+                        className={`planner-calendar-card flex w-full min-w-0 items-center gap-1 rounded-xl px-2 py-0.5 text-left text-[10.5px] font-bold transition-all active:scale-[0.98] cursor-pointer shadow-2xs ${task.completed ? "line-through opacity-60" : isPastEvent ? "opacity-60" : "hover:brightness-95 dark:hover:brightness-110"}`}
                       >
                         {normType === "deadline" ? (
-                          <Hourglass size={9.5} className="shrink-0 text-white" />
+                          <Hourglass size={9.5} className="shrink-0 text-current" />
                         ) : normType === "scheduled" ? (
-                          <Clock size={9.5} className="shrink-0 text-white" />
+                          <Clock size={9.5} className="shrink-0 text-current" />
                         ) : null}
 
                         {time && (
@@ -285,7 +285,7 @@ export const DesktopPlannerCalendar: React.FC<DesktopPlannerCalendarProps> = ({
           <div
             role="dialog"
             aria-label={`Tóm tắt ${formatShortDayMonth(previewDateStr)}`}
-            className="fixed z-40 flex max-h-[min(360px,calc(100vh-24px))] w-[min(360px,calc(100vw-24px))] flex-col rounded-3xl bg-[#F2F2F7] dark:bg-[#202023] p-3 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+            className="fixed z-40 flex max-h-[min(360px,calc(100vh-24px))] w-[min(360px,calc(100vw-24px))] flex-col rounded-3xl bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] p-3 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
             style={{ left, top }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -338,12 +338,13 @@ export const DesktopPlannerCalendar: React.FC<DesktopPlannerCalendarProps> = ({
                             openTaskDetail(task.id);
                           }
                         }}
-                        className="flex w-full items-center justify-between gap-3 rounded-2xl bg-white dark:bg-[#1C1C1E] p-2.5 text-left hover:bg-neutral-100 dark:hover:bg-[#2C2C2E] shadow-xs transition-all cursor-pointer"
+                        style={getTaskCardVisualStyle(task)}
+                        className="flex w-full items-center justify-between gap-3 rounded-2xl p-2.5 text-left hover:brightness-95 dark:hover:brightness-110 shadow-xs transition-all cursor-pointer"
                       >
-                      <p className={`min-w-0 truncate text-xs font-bold ${isCompleted ? "text-emerald-600 line-through" : "text-[#1C1C1E] dark:text-white"}`}>
+                      <p className={`min-w-0 truncate text-xs font-bold ${isCompleted ? "line-through opacity-70" : ""}`}>
                         {task.title || "Công việc không tên"}
                       </p>
-                      <p className="shrink-0 text-[10px] font-semibold text-[#8E8E93] dark:text-[#8E8E93]">
+                      <p className="shrink-0 text-[10px] font-semibold opacity-75">
                         {meta}
                       </p>
                     </button>

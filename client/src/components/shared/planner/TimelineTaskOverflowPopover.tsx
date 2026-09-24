@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { TaskDto } from "../../../types";
+import { getTaskCardVisualStyle } from "../../../utils/taskSemantics";
 
 interface TimelineTaskOverflowPopoverProps {
   tasks: TaskDto[];
@@ -72,7 +73,8 @@ export const TimelineTaskOverflowPopover: React.FC<TimelineTaskOverflowPopoverPr
                 onClose();
                 onOpenTask(task);
               }}
-              className="block w-full truncate rounded-2xl px-3 py-2 text-left text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+              style={getTaskCardVisualStyle(task)}
+              className={`block w-full truncate rounded-2xl px-3 py-2 text-left text-xs font-semibold hover:brightness-95 dark:hover:brightness-110 transition-colors cursor-pointer ${task.completed ? "line-through opacity-60" : ""}`}
               title={task.title}
             >
               {task.title || "Công việc không tên"}

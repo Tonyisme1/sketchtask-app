@@ -1,27 +1,20 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   CheckSquare,
-  FilePenLine,
-  Bell,
+  CalendarDays,
+  Hourglass,
   UserRound,
   Plus,
-  FileText,
-  X,
   LucideIcon,
 } from "lucide-react";
 import { TabKey, TaskSubTab } from "../../types";
 import { useAppStore } from "../../stores/appStore";
-import {
-  getTaskTemporalState,
-  isTaskDueToday,
-} from "../../utils/taskSemantics";
+import { getDeadlineAttentionCount } from "../../utils/taskSemantics";
 
 export interface MobileNavProps {
   activeTab: TabKey;
   activeTaskSubTab: TaskSubTab;
   onTabChange: (tab: TabKey) => void;
-  onOpenNotifications?: () => void;
-  isNotificationOpen?: boolean;
 }
 
 interface NavTabItem {
@@ -33,70 +26,45 @@ interface NavTabItem {
 
 const leftNavItems: NavTabItem[] = [
   { key: "tasks", label: "Công việc", shortLabel: "Việc", icon: CheckSquare },
-  { key: "notes", label: "Ghi chép", shortLabel: "Ghi", icon: FilePenLine },
+  { key: "events", label: "Sự kiện", shortLabel: "Sự kiện", icon: CalendarDays },
 ];
 
-const isNavItemActive = (activeTab: TabKey, key: TabKey) => {
+const isNavItemActive = (
+  activeTab: TabKey,
+  activeTaskSubTab: TaskSubTab,
+  key: TabKey,
+) => {
   if (key === "tasks") {
     return (
-      activeTab === "tasks" ||
+      (activeTab === "tasks" && activeTaskSubTab !== "deadlines") ||
       activeTab === "today" ||
-      activeTab === "planner" ||
-      activeTab === "deadlines"
+      activeTab === "planner"
     );
   }
-  if (key === "notes") return activeTab === "notes" || activeTab === "journal";
+  if (key === "deadlines") {
+    return (
+      activeTab === "deadlines" ||
+      (activeTab === "tasks" && activeTaskSubTab === "deadlines")
+    );
+  }
+  if (key === "events") return activeTab === "events";
   if (key === "settings") return activeTab === "settings";
   return activeTab === key;
 };
 
 export const MobileNav: React.FC<MobileNavProps> = ({
   activeTab,
+  activeTaskSubTab,
   onTabChange,
-  onOpenNotifications,
-  isNotificationOpen = false,
 }) => {
-  const { tasks, openTaskDetail } = useAppStore();
+  const { tasks, openTaskDetail, setMobileDeadlineView } = useAppStore();
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isScrollingDown, setIsScrollingDown] = useState(false);
-  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
-  const createSheetRef = useRef<HTMLDivElement>(null);
 
-  const alertCount = useMemo(() => {
-    const overdue = tasks.filter((t) => {
-      if (t.completed) return false;
-      const state = getTaskTemporalState(t);
-      return state === "overdue" || state === "pastScheduled";
-    }).length;
-
-    const todayDue = tasks.filter((t) => {
-      if (t.completed) return false;
-      if (!isTaskDueToday(t)) return false;
-      const state = getTaskTemporalState(t);
-      return state !== "overdue" && state !== "pastScheduled";
-    }).length;
-
-    return overdue + todayDue;
-  }, [tasks]);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      if (
-        createSheetRef.current &&
-        !createSheetRef.current.contains(e.target as Node)
-      ) {
-        setIsCreateSheetOpen(false);
-      }
-    };
-    if (isCreateSheetOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("touchstart", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, [isCreateSheetOpen]);
+  const deadlineAttentionCount = useMemo(
+    () => getDeadlineAttentionCount(tasks),
+    [tasks],
+  );
 
   useEffect(() => {
     const initialHeight = window.visualViewport?.height || window.innerHeight;
@@ -171,86 +139,22 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleCreateTask = () => {
-    setIsCreateSheetOpen(false);
-    openTaskDetail("new");
-  };
-
-  const handleCreateNote = () => {
-    setIsCreateSheetOpen(false);
-    onTabChange("notes");
-    window.setTimeout(() => {
-      window.dispatchEvent(
-        new CustomEvent("sketchtask:create", {
-          detail: { type: "note" },
-        }),
-      );
-    }, 80);
+  const handleCreateCurrentItem = () => {
+    const isEvent = activeTab === "events";
+    openTaskDetail("new", {
+      itemType: isEvent ? "event" : "task",
+      timeType: isEvent ? "event" : "task",
+      lockItemType: true,
+    });
   };
 
   const shouldHideNav = isKeyboardOpen || isScrollingDown;
 
   return (
     <>
-      {/* 1. NATIVE-LIKE BOTTOM SHEET CHỌN TẠO NHANH KHI BẤM [+] */}
-      {isCreateSheetOpen && (
-        <div className="fixed inset-0 z-50 bg-black/45 backdrop-blur-[3px] flex items-end justify-center animate-in fade-in duration-200 select-none">
-          <div
-            ref={createSheetRef}
-            className="w-full max-w-md bg-white dark:bg-[#121214] border-none rounded-t-[32px] p-4 sm:p-5 pb-[max(env(safe-area-inset-bottom),24px)] shadow-2xl space-y-3.5 animate-in slide-in-from-bottom-6 duration-250"
-          >
-            {/* Grab Handle */}
-            <div className="w-10 h-1.2 rounded-full bg-[#D1D1D6] dark:bg-[#3A3A3C] mx-auto mb-1" />
-
-            <div className="flex items-center justify-between pb-2 border-b border-black/[0.04] dark:border-white/[0.06]">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#8E8E93] dark:text-[#aeaeb2]">
-                Tạo mới
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsCreateSheetOpen(false)}
-                className="w-7 h-7 rounded-full flex items-center justify-center text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white bg-[#F2F2F7] dark:bg-[#2C2C2E] transition-colors cursor-pointer"
-                title="Đóng"
-                aria-label="Đóng"
-              >
-                <X size={15} strokeWidth={2.4} />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <button
-                type="button"
-                onClick={handleCreateTask}
-                className="flex flex-col items-center justify-center gap-2 p-3.5 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] rounded-2xl border-none transition-all cursor-pointer group text-left active:scale-[0.98]"
-              >
-                <div className="w-10 h-10 rounded-2xl bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                  <CheckSquare size={18} strokeWidth={2.2} />
-                </div>
-                <p className="text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7]">
-                  Công việc
-                </p>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleCreateNote}
-                className="flex flex-col items-center justify-center gap-2 p-3.5 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] rounded-2xl border-none transition-all cursor-pointer group text-left active:scale-[0.98]"
-              >
-                <div className="w-10 h-10 rounded-2xl bg-white dark:bg-[#3A3A3C] text-[#1C1C1E] dark:text-white border-none flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
-                  <FileText size={18} strokeWidth={2.2} />
-                </div>
-                <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
-                  Ghi chú
-                </p>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 2. THANH ĐIỀU HƯỚNG DƯỚI ĐÁY TỐI GIẢN */}
+      {/* 1. THANH ĐIỀU HƯỚNG DƯỚI ĐÁY TỐI GIẢN */}
       <nav
-        className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#F8F9FA]/95 dark:bg-[#141417]/95 backdrop-blur-xl border-t border-black/[0.04] dark:border-white/[0.06] px-2 py-1 pb-[max(env(safe-area-inset-bottom),6px)] select-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform shadow-[0_-1px_10px_rgba(0,0,0,0.03)] ${
+        className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#F5F7FA] dark:bg-[#12161B] border-t border-transparent dark:border-transparent px-2 py-1 pb-[max(env(safe-area-inset-bottom),6px)] select-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform shadow-[0_-1px_10px_rgba(0,0,0,0.03)] ${
           shouldHideNav
             ? "translate-y-full pointer-events-none"
             : "translate-y-0"
@@ -258,9 +162,9 @@ export const MobileNav: React.FC<MobileNavProps> = ({
         aria-label="Điều hướng chính"
       >
         <div className="grid grid-cols-5 gap-1 max-w-md mx-auto items-center">
-          {/* Nút 1: Việc, Nút 2: Ghi */}
+          {/* Nút 1: Việc, Nút 2: Sự kiện */}
           {leftNavItems.map(({ key, label, shortLabel, icon: Icon }) => {
-            const isActive = isNavItemActive(activeTab, key);
+            const isActive = isNavItemActive(activeTab, activeTaskSubTab, key);
             return (
               <button
                 key={key}
@@ -286,42 +190,48 @@ export const MobileNav: React.FC<MobileNavProps> = ({
           <div className="flex items-center justify-center">
             <button
               type="button"
-              onClick={() => setIsCreateSheetOpen(true)}
-              aria-label="Tạo mới công việc hoặc ghi chú"
+              onClick={handleCreateCurrentItem}
+              aria-label={activeTab === "events" ? "Tạo sự kiện mới" : "Tạo công việc mới"}
               title="Tạo mới"
-              className="w-11 h-11 flex items-center justify-center rounded-2xl bg-[#09090B] dark:bg-white text-white dark:text-[#09090B] border-none shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer"
+              className="w-11 h-11 flex items-center justify-center rounded-2xl bg-[#182230] dark:bg-[var(--accent-blue)] text-white border-none shadow-md hover:scale-105 active:scale-95 transition-all cursor-pointer"
             >
               <Plus size={22} strokeWidth={2.6} />
             </button>
           </div>
 
-          {/* Nút 4: Thông báo (Có huy hiệu cảnh báo thời gian thực) */}
+          {/* Nút 4: Hạn định là lối tắt duy nhất tới việc cần xử lý. */}
           <button
             type="button"
-            onClick={() => onTabChange("notifications")}
-            aria-label="Thông báo"
-            title="Thông báo"
+            onClick={() => {
+              setMobileDeadlineView("upcoming");
+              onTabChange("deadlines");
+            }}
+            aria-label="Hạn định"
+            title="Hạn định"
             className={`relative min-h-[46px] flex flex-col items-center justify-center gap-0.5 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
-              isNavItemActive(activeTab, "notifications")
+              isNavItemActive(activeTab, activeTaskSubTab, "deadlines")
                 ? "text-[#1C1C1E] dark:text-white font-bold bg-black/[0.05] dark:bg-white/[0.08]"
                 : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
             } active:scale-95`}
           >
             <div className="relative">
-              <Bell
+              <Hourglass
                 size={19}
                 strokeWidth={
-                  isNavItemActive(activeTab, "notifications") ? 2.4 : 1.9
+                  isNavItemActive(activeTab, activeTaskSubTab, "deadlines")
+                    ? 2.4
+                    : 1.9
                 }
               />
-              {alertCount > 0 && (
-                <span className="absolute -top-1 -right-1.5 min-w-[15px] h-3.5 px-0.5 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold flex items-center justify-center border-none shadow-xs">
-                  {alertCount > 9 ? "9+" : alertCount}
-                </span>
+              {deadlineAttentionCount > 0 && (
+                <span
+                  aria-label={`${deadlineAttentionCount} việc cần chú ý`}
+                  className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[var(--accent-blue)] ring-2 ring-[var(--bg-canvas)]"
+                />
               )}
             </div>
             <span className="text-[11px] leading-tight whitespace-nowrap">
-              Báo
+              Hạn
             </span>
           </button>
 
@@ -332,14 +242,18 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             aria-label="Cá nhân"
             title="Cá nhân"
             className={`relative min-h-[46px] flex flex-col items-center justify-center gap-0.5 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
-              isNavItemActive(activeTab, "settings")
+              isNavItemActive(activeTab, activeTaskSubTab, "settings")
                 ? "text-[#1C1C1E] dark:text-white font-bold bg-black/[0.05] dark:bg-white/[0.08]"
                 : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
             } active:scale-95`}
           >
             <UserRound
               size={19}
-              strokeWidth={isNavItemActive(activeTab, "settings") ? 2.4 : 1.9}
+              strokeWidth={
+                isNavItemActive(activeTab, activeTaskSubTab, "settings")
+                  ? 2.4
+                  : 1.9
+              }
             />
             <span className="text-[11px] leading-tight whitespace-nowrap">
               Cá nhân

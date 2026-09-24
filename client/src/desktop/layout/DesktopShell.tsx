@@ -120,7 +120,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
 
   return (
     <div
-      className="desktop-minimal h-screen max-h-screen overflow-hidden bg-[#F2F2F7] dark:bg-[#18181A] text-[#1C1917] dark:text-[#F2F2F7] font-sans flex flex-col selection:bg-[#FEF08A] selection:text-[#1C1917]"
+      className="desktop-minimal h-screen max-h-screen overflow-hidden bg-[#F2F2F7] dark:bg-[#18181A] text-[#1C1917] dark:text-[#F2F2F7] font-sans flex flex-col "
     >
       {/* 1. Desktop luôn giữ topbar để editor không mất ngữ cảnh workspace. */}
       <DesktopHeader

@@ -52,8 +52,8 @@ const CollapsibleTaskSection: React.FC<CollapsibleTaskSectionProps> = ({
       aria-expanded={open}
       className={`w-full min-h-[38px] px-3.5 py-2 flex items-center justify-between gap-2 text-left cursor-pointer transition-colors ${
         open
-          ? "bg-[#F2F2F7] dark:bg-[#2C2C2E]/60 text-[#1C1C1E] dark:text-[#F2F2F7]"
-          : "bg-white dark:bg-[#1C1C1E] hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7]"
+          ? "bg-[#F2F2F7] dark:bg-[#242933] text-[#1C1C1E] dark:text-[#F2F2F7]"
+          : "bg-white dark:bg-[#1E222A] hover:bg-[#F2F2F7] dark:hover:bg-[#242933] text-[#1C1C1E] dark:text-[#F2F2F7]"
       } focus-visible:outline-none`}
     >
       <span className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
@@ -66,7 +66,7 @@ const CollapsibleTaskSection: React.FC<CollapsibleTaskSectionProps> = ({
         </span>
       </span>
     </button>
-    {open && <div className="p-3.5 space-y-2.5 bg-white dark:bg-[#1C1C1E]">{children}</div>}
+    {open && <div className="p-3.5 space-y-2.5 bg-white dark:bg-[#1E222A]">{children}</div>}
   </section>
 );
 
@@ -418,9 +418,9 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   };
 
   return (
-    <div className="task-detail-editor w-full h-full bg-[#FBF9F4] dark:bg-[#121214] text-[#1C1C1E] dark:text-[#F2F2F7] select-none flex flex-col overflow-y-auto">
+    <div className="task-detail-editor w-full h-full bg-[#F5F7FA] dark:bg-[#12161B] text-[#1C1C1E] dark:text-[#F2F2F7] select-none flex flex-col overflow-y-auto">
       {/* 1. TOPBAR */}
-      <div className={`shrink-0 z-30 sticky top-0 bg-white/92 dark:bg-[#1C1C1E]/92 backdrop-blur-xl px-3 sm:px-4 flex items-center justify-between min-h-[46px] sm:min-h-[48px] ${
+      <div className={`shrink-0 z-30 sticky top-0 bg-[#F5F7FA] dark:bg-[#12161B] border-b border-transparent dark:border-transparent px-3 sm:px-4 flex items-center justify-between min-h-[46px] sm:min-h-[48px] ${
         isMobile || isTablet
           ? isNativePlatform()
             ? "pt-10 pb-1.5"
@@ -433,7 +433,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             type="button"
             onClick={onBack}
             aria-label="Quay lại"
-            className="mobile-back-button flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-white dark:bg-[#2C2C2E] hover:bg-[#F2F2F7] dark:hover:bg-[#3A3A3C] text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs active:scale-95 cursor-pointer transition-all"
+            className="mobile-back-button flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] active:scale-95 cursor-pointer transition-all"
           >
             <ArrowLeft size={14} strokeWidth={2.4} />
             <span>Quay lại</span>
@@ -464,7 +464,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               }
             }}
             aria-label={taskId === "new" || activeTaskDetailInitialData?.mode === "edit" ? "Hủy" : "Quay lại"}
-            className="mobile-back-button flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-white dark:bg-[#2C2C2E] hover:bg-[#F2F2F7] dark:hover:bg-[#3A3A3C] text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs active:scale-95 cursor-pointer transition-all"
+            className="mobile-back-button flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] active:scale-95 cursor-pointer transition-all"
           >
             <ArrowLeft size={14} strokeWidth={2.4} />
             <span>{taskId === "new" || activeTaskDetailInitialData?.mode === "edit" ? "Hủy" : "Quay lại"}</span>
@@ -484,7 +484,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             <button
               type="button"
               onClick={() => setIsOptionsMenuOpen(!isOptionsMenuOpen)}
-              className="w-8 h-8 rounded-2xl bg-white dark:bg-[#2C2C2E] hover:bg-[#F2F2F7] dark:hover:bg-[#3A3A3C] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-xs active:scale-95 cursor-pointer transition-all flex items-center justify-center"
+              className="w-8 h-8 rounded-2xl bg-transparent hover:bg-black/5 dark:hover:bg-white/10 text-[#1C1C1E] dark:text-[#F2F2F7] active:scale-95 cursor-pointer transition-all flex items-center justify-center"
               title="Tùy chọn"
               aria-label="Tùy chọn"
             >
@@ -493,7 +493,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
 
             {/* Popup menu 3 chấm */}
             {isOptionsMenuOpen && (
-              <div className="absolute right-0 top-full mt-1.5 w-48 bg-white dark:bg-[#1C1C1E] rounded-2xl shadow-2xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150 select-none overflow-hidden">
+              <div className="absolute right-0 top-full mt-1.5 w-48 bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl shadow-2xl py-1 z-50 animate-in fade-in zoom-in-95 duration-150 select-none overflow-hidden">
                 {/* Header trạng thái */}
                 <div className="px-3 py-1.5 bg-black/[0.02] dark:bg-white/[0.03]">
                   <span className={`text-[10px] font-bold ${
@@ -655,40 +655,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
       {mode === "view" ? (
         /* ================= CHẾ ĐỘ XEM (VIEW) ================= */
         <div className="flex-1 w-full px-3 py-3 sm:px-5 sm:py-4 pb-16 space-y-3 max-w-xl mx-auto">
-          {/* Trạng thái & Ưu tiên */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {itemType === "task" ? (
-              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold shadow-2xs ${
-                completed
-                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-                  : "bg-black/[0.04] dark:bg-white/[0.06] text-[#1C1C1E] dark:text-[#F2F2F7]"
-              }`}>
-                {completed ? "Đã xong" : "Cần làm"}
-              </span>
-            ) : (
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/10 text-blue-700 dark:text-blue-300 shadow-2xs">
-                Sự kiện
-              </span>
-            )}
 
-            {isOverdue && !completed && (
-              <span className="px-2.5 py-0.5 rounded-full bg-rose-500/10 text-[#FF3B30] dark:text-[#FF453A] text-[11px] font-bold shadow-2xs">
-                Quá hạn
-              </span>
-            )}
-
-            {itemType === "task" && isDueTodayTask && !completed && !isOverdue && (
-              <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11px] font-bold shadow-2xs">
-                Hôm nay
-              </span>
-            )}
-
-            {itemType === "task" && priority === "high" && (
-              <span className="px-2.5 py-0.5 rounded-full bg-[#FFE4E6] dark:bg-rose-950/40 text-[#BE123C] dark:text-rose-400 text-[11px] font-bold shadow-2xs">
-                Gấp
-              </span>
-            )}
-          </div>
 
           {/* Tiêu đề */}
           <div className="pt-0.5 pb-1">
@@ -699,22 +666,52 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             </h1>
           </div>
 
-          {/* Khối Thông tin Tinh Gọn (Thời gian & Nhãn) */}
-          <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1C1C1E] space-y-2 shadow-xs text-xs">
+          {/* Khối Thông tin Chi tiết */}
+          <div className="p-3.5 rounded-2xl bg-white dark:bg-[#1E222A] border border-black/[0.04] dark:border-white/[0.04] space-y-3 shadow-xs text-xs">
+            {/* Loại */}
             <div className="flex items-center justify-between gap-2">
+              <span className="text-[#8E8E93] dark:text-[#aeaeb2] font-medium text-[11px]">Loại:</span>
+              <span className="font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                {itemType === "event" ? "Sự kiện" : "Công việc"}
+              </span>
+            </div>
+
+            {/* Trạng thái (Chỉ dành cho Công việc) */}
+            {itemType === "task" && (
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[#8E8E93] dark:text-[#aeaeb2] font-medium text-[11px]">Trạng thái:</span>
+                <span className={`font-bold ${completed ? "text-[#34C759]" : "text-[#8E8E93] dark:text-[#aeaeb2]"}`}>
+                  {completed ? "Đã hoàn thành" : "Chưa hoàn thành"}
+                </span>
+              </div>
+            )}
+
+            {/* Ưu tiên (Chỉ dành cho Công việc) */}
+            {itemType === "task" && (
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[#8E8E93] dark:text-[#aeaeb2] font-medium text-[11px]">Độ ưu tiên:</span>
+                <span className="font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                  {priority === "high" ? "● Gấp" : priority === "low" ? "○ Thấp" : "◐ Vừa"}
+                </span>
+              </div>
+            )}
+
+            {/* Thời gian */}
+            <div className="flex items-center justify-between gap-2 pt-2 border-t border-black/[0.04] dark:border-white/[0.06]">
               <span className="text-[#8E8E93] dark:text-[#aeaeb2] font-medium text-[11px]">Thời gian:</span>
               <span className="font-bold text-[#1C1C1E] dark:text-[#F2F2F7] text-right">
-                {isDateRange && startDate && endDate
+                {isDateRange && startDate && endDate && startDate !== endDate
                   ? `${formatShortDayMonth(startDate)} → ${formatShortDayMonth(endDate)}`
-                  : dueDate
-                  ? formatFullDate(dueDate)
+                  : (startDate || dueDate)
+                  ? formatFullDate((startDate || dueDate) as string)
                   : "Chưa đặt ngày"}
-                {!isDateRange && effectiveTime
-                  ? ` · ${startTime ? `${startTime}${endTime ? `-${endTime}` : ""}` : effectiveTime}`
+                {(startTime || effectiveTime)
+                  ? ` · ${startTime || effectiveTime}${endTime ? ` - ${endTime}` : ""}`
                   : ""}
               </span>
             </div>
 
+            {/* Nhãn */}
             {selectedTags.length > 0 && (
               <div className="flex items-center justify-between gap-2 pt-2 border-t border-black/[0.04] dark:border-white/[0.06]">
                 <span className="text-[#8E8E93] dark:text-[#aeaeb2] font-medium text-[11px]">Nhãn:</span>
@@ -728,6 +725,16 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+            
+            {/* Ngày tạo */}
+            {existingTask?.createdAt && (
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-black/[0.04] dark:border-white/[0.06]">
+                <span className="text-[#8E8E93] dark:text-[#aeaeb2] font-medium text-[11px]">Ngày tạo:</span>
+                <span className="font-medium text-[#8E8E93] dark:text-[#aeaeb2] text-[11px]">
+                  {formatFullDate(existingTask.createdAt.split("T")[0])}
+                </span>
               </div>
             )}
           </div>
@@ -1071,47 +1078,47 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             )}
           </CollapsibleTaskSection>
 
-          {itemType === "task" && (
-            <>
-              {/* Mục 3: Phân loại */}
-              <CollapsibleTaskSection
-                title="Phân loại"
-                open={openSections.organize}
-                onToggle={() => toggleSection("organize")}
-              >
+          {/* Mục 3: Phân loại */}
+          <CollapsibleTaskSection
+            title="Phân loại"
+            open={openSections.organize}
+            onToggle={() => toggleSection("organize")}
+          >
             <div className="space-y-2.5 text-xs">
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-medium text-[11px] text-[#8E8E93] dark:text-[#aeaeb2] shrink-0">
-                  Ưu tiên:
-                </span>
-                <div className="flex items-center gap-1.5">
-                  {[
-                    { key: "high", label: "Gấp", sym: "●" },
-                    { key: "medium", label: "Vừa", sym: "◐" },
-                    { key: "low", label: "Thấp", sym: "○" },
-                  ].map((p) => (
-                    <button
-                      key={p.key}
-                      type="button"
-                      onClick={() => {
-                        const nextP = p.key as TaskPriority;
-                        setPriority(nextP);
-                        markDraftChanged();
-                      }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-pointer transition-all active:scale-95 ${
-                        priority === p.key
-                          ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] shadow-xs"
-                          : "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#8E8E93] dark:text-[#aeaeb2] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]"
-                      }`}
-                    >
-                      <span className="font-mono text-[10px]">{p.sym}</span>
-                      <span>{p.label}</span>
-                    </button>
-                  ))}
+              {itemType === "task" && (
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium text-[11px] text-[#8E8E93] dark:text-[#aeaeb2] shrink-0">
+                    Ưu tiên:
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {[
+                      { key: "high", label: "Gấp", sym: "●" },
+                      { key: "medium", label: "Vừa", sym: "◐" },
+                      { key: "low", label: "Thấp", sym: "○" },
+                    ].map((p) => (
+                      <button
+                        key={p.key}
+                        type="button"
+                        onClick={() => {
+                          const nextP = p.key as TaskPriority;
+                          setPriority(nextP);
+                          markDraftChanged();
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 cursor-pointer transition-all active:scale-95 ${
+                          priority === p.key
+                            ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] shadow-xs"
+                            : "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#8E8E93] dark:text-[#aeaeb2] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C]"
+                        }`}
+                      >
+                        <span className="font-mono text-[10px]">{p.sym}</span>
+                        <span>{p.label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="pt-2 border-t border-black/[0.04] dark:border-white/[0.06] space-y-1">
+              <div className={`${itemType === "task" ? "pt-2 border-t border-black/[0.04] dark:border-white/[0.06]" : ""} space-y-1`}>
                 <span className="font-medium text-[11px] text-[#8E8E93] dark:text-[#aeaeb2]">
                   Nhãn:
                 </span>
@@ -1125,9 +1132,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                 />
               </div>
             </div>
-              </CollapsibleTaskSection>
-            </>
-          )}
+          </CollapsibleTaskSection>
 
           {/* Mục 4: Ghi chú */}
           <CollapsibleTaskSection

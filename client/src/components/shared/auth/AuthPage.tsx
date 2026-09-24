@@ -112,7 +112,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBF9F4] dark:bg-[#121214] font-sans text-[#1C1917] dark:text-[#F2F2F7] selection:bg-[#FEF08A] selection:text-[#1C1917]">
+    <div className="min-h-screen bg-[#FBF9F4] dark:bg-[#121214] font-sans text-[#1C1917] dark:text-[#F2F2F7] ">
       <header className="bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl shadow-2xs pt-[max(env(safe-area-inset-top),8px)]">
         <div className="mx-auto flex min-h-[56px] max-w-[1280px] items-center justify-between px-4 sm:min-h-[68px] sm:px-6 lg:min-h-[72px] lg:px-10">
           <a

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { NavigationTarget } from "../../types";
-import { DesktopTodayView } from "../tabs/DesktopTodayView";
 import { DesktopDeadlinesPage } from "../tabs/DesktopDeadlinesPage";
 import { DesktopPlannerPage } from "../tabs/DesktopPlannerPage";
 import { DesktopAllTasksView } from "../tabs/DesktopAllTasksView";
-import { getLocalTodayStr, getTaskEffectiveDate } from "../../utils";
+import { getTaskEffectiveDate } from "../../utils";
 import {
   TaskScreenModel,
   useTaskScreenModel,
@@ -33,12 +32,6 @@ export const DesktopTasksPage: React.FC<DesktopTasksPageProps> = ({
   const [plannerTargetTaskId, setPlannerTargetTaskId] = useState<
     string | undefined
   >(undefined);
-  const [todayTargetTaskId, setTodayTargetTaskId] = useState<
-    string | undefined
-  >(undefined);
-
-  const todayStr = getLocalTodayStr(new Date());
-
   useEffect(() => {
     if (!navigationTarget?.taskId) return;
 
@@ -51,19 +44,13 @@ export const DesktopTasksPage: React.FC<DesktopTasksPageProps> = ({
     }
 
     const taskDate = navigationTarget.date || getTaskEffectiveDate(task);
-    if (taskDate === todayStr) {
-      setTodayTargetTaskId(task.id);
-      setActiveTaskSubTab("today");
-    } else {
-      setPlannerTargetDateStr(taskDate);
-      setPlannerTargetTaskId(task.id);
-      setActiveTaskSubTab("planner");
-    }
+    setPlannerTargetDateStr(taskDate);
+    setPlannerTargetTaskId(task.id);
+    setActiveTaskSubTab("planner");
     onClearNavigationTarget?.();
   }, [
     navigationTarget,
     model.tasks,
-    todayStr,
     setActiveTaskSubTab,
     onClearNavigationTarget,
   ]);
@@ -77,12 +64,7 @@ export const DesktopTasksPage: React.FC<DesktopTasksPageProps> = ({
       }`}
     >
       {/* Content */}
-      {activeTaskSubTab === "today" ? (
-        <DesktopTodayView
-          targetTaskId={todayTargetTaskId}
-          onClearTarget={() => setTodayTargetTaskId(undefined)}
-        />
-      ) : activeTaskSubTab === "planner" ? (
+      {activeTaskSubTab === "planner" ? (
         <DesktopPlannerPage
           workspaceKind="task"
           targetDateStr={plannerTargetDateStr}
@@ -98,13 +80,9 @@ export const DesktopTasksPage: React.FC<DesktopTasksPageProps> = ({
       ) : (
         <DesktopDeadlinesPage
           onNavigateToTaskDate={(dateStr, taskId) => {
-            if (dateStr === todayStr) {
-              setActiveTaskSubTab("today");
-            } else {
-              setPlannerTargetDateStr(dateStr);
-              setPlannerTargetTaskId(taskId);
-              setActiveTaskSubTab("planner");
-            }
+            setPlannerTargetDateStr(dateStr);
+            setPlannerTargetTaskId(taskId);
+            setActiveTaskSubTab("planner");
           }}
         />
       )}

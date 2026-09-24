@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { App as CapacitorApp } from "@capacitor/app";
-import { NavigationTarget, TabKey, TaskSubTab } from "./types";
+import { MobileEventSubTab, NavigationTarget, TabKey, TaskSubTab } from "./types";
 import { AppProvider, useAppStore } from "./stores";
 import { useResponsiveLayout } from "./hooks";
 
@@ -47,6 +47,7 @@ const getLocationTab = (location: AppLocation): TabKey =>
 
 function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("tasks");
+  const [activeMobileEventSubTab, setActiveMobileEventSubTab] = useState<MobileEventSubTab>("calendar");
   const [navigationTarget, setNavigationTarget] = useState<NavigationTarget | undefined>();
   const {
     activeTaskSubTab,
@@ -62,7 +63,7 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
   } = useAppStore();
   const { isDesktop, isTablet } = useResponsiveLayout();
 
-  const [previousTab, setPreviousTab] = useState<TabKey>("today");
+  const [previousTab, setPreviousTab] = useState<TabKey>("tasks");
   const [desktopPlannerSurface, setDesktopPlannerSurface] = useState<DesktopPlannerSurface>("calendar");
   const appNavigationStackRef = useRef<AppLocation[]>([]);
 
@@ -79,14 +80,31 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
 
     // Desktop owns an independent Event workspace. Smaller layouts retain the
     // legacy planner-as-task-subtab route so their existing navigation remains intact.
-    if (tab === "planner" && isDesktop) {
+    if (tab === "events" && (isDesktop || isTablet)) {
+      nextLocation = {
+        tab: "tasks",
+        taskSubTab: isDesktop ? "all" : "today",
+      };
+    } else if (tab === "events") {
+      nextLocation = { tab: "events", taskSubTab: activeTaskSubTab };
+    } else if (tab === "planner" && isDesktop) {
       nextLocation = { tab: "planner", taskSubTab: activeTaskSubTab };
     } else if (tab === "today" || tab === "planner" || tab === "deadlines") {
-      nextLocation = { tab: "tasks", taskSubTab: tab };
+      nextLocation = {
+        tab: "tasks",
+        taskSubTab:
+          tab === "today"
+            ? isDesktop
+              ? "all"
+              : isTablet
+                ? "today"
+                : "planner"
+            : tab,
+      };
     } else if (tab === "tasks") {
       nextLocation = {
         tab: "tasks",
-        taskSubTab: "today",
+        taskSubTab: isDesktop ? "all" : "planner",
       };
     } else {
       nextLocation = { tab: tab as TabKey, taskSubTab: activeTaskSubTab };
@@ -117,9 +135,17 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     setNavigationTarget(target);
     setActiveTaskSubTab(nextLocation.taskSubTab);
     setActiveTab(nextLocation.tab);
-  }, [activeTab, activeTaskSubTab, closeTaskDetail, isDesktop, setActiveTaskSubTab, setIsJournalBookOpen, setIsMobileNoteDetailOpen, setSettingsMobileSubView]);
+  }, [activeTab, activeTaskSubTab, closeTaskDetail, isDesktop, isTablet, setActiveTaskSubTab, setIsJournalBookOpen, setIsMobileNoteDetailOpen, setSettingsMobileSubView]);
 
-  // Desktop có thêm danh sách tổng; mobile/tablet vẫn giữ Công việc mở ở Hôm nay.
+  // Desktop has no Today destination. Restore legacy state into All tasks only
+  // at the Desktop breakpoint, preserving the smaller-screen navigation model.
+  useEffect(() => {
+    if (isDesktop && activeTab === "tasks" && activeTaskSubTab === "today") {
+      setActiveTaskSubTab("all");
+    }
+  }, [isDesktop, activeTab, activeTaskSubTab, setActiveTaskSubTab]);
+
+  // Desktop mở danh sách tổng; Mobile mở Công việc ở lịch Ngày, Tablet giữ lối tắt Hôm nay riêng.
   const handleDesktopTaskSubTabChange = useCallback((subTab: TaskSubTab) => {
     const currentLocation: AppLocation = {
       tab: activeTab,
@@ -176,16 +202,16 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
       return true;
     }
 
-    // The app always returns to Today before allowing the browser/app to exit.
-    if (activeTab === "tasks" && activeTaskSubTab !== "today") {
+    const defaultTaskSubTab = isDesktop ? "all" : "planner";
+    if (activeTab === "tasks" && activeTaskSubTab !== defaultTaskSubTab) {
       setNavigationTarget(undefined);
-      setActiveTaskSubTab("today");
+      setActiveTaskSubTab(defaultTaskSubTab);
       return true;
     }
 
     if (activeTab !== "tasks") {
       setNavigationTarget(undefined);
-      setActiveTaskSubTab("today");
+      setActiveTaskSubTab(defaultTaskSubTab);
       setActiveTab("tasks");
       return true;
     }
@@ -196,6 +222,7 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     activeTaskSubTab,
     activeDetailTaskId,
     closeTaskDetail,
+    isDesktop,
     isJournalBookOpen,
     isMobileNoteDetailOpen,
     setActiveTab,
@@ -264,6 +291,8 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
       onTabChange={handleTabChange}
       onNavigateRoute={onNavigateRoute}
       previousTab={previousTab}
+      activeEventSubTab={activeMobileEventSubTab}
+      onEventSubTabChange={setActiveMobileEventSubTab}
     >
       <MobileWorkspace
         activeTab={activeTab}
@@ -272,6 +301,8 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
         onNavigateTab={handleTabChange}
         onNavigateRoute={onNavigateRoute}
         previousTab={previousTab}
+        activeEventSubTab={activeMobileEventSubTab}
+        onEventSubTabChange={setActiveMobileEventSubTab}
       />
     </MobileShell>
   );

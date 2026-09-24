@@ -6,7 +6,6 @@ import React from "react";
 import { TabKey, TaskDto, TaskSubTab } from "../../types";
 import { useAppStore } from "../../stores/appStore";
 import {
-  Sun,
   Calendar as CalendarIcon,
   Hourglass,
   FilePenLine,
@@ -163,10 +162,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     .sort((first, second) => first.name.localeCompare(second.name, "vi"));
 
   // Task Stats for Badges
-  const pendingTodayCount = taskItems.filter(
-    (task) => !task.completed && isTaskDueToday(task)
-  ).length;
-
   const overdueCount = taskItems.filter((task) => {
     if (task.completed) return false;
     const temporal = getTaskTemporalState(task);
@@ -193,10 +188,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   // === PHẦN: DỮ LIỆU TÓM TẮT CHO SIDEBAR MỞ RỘNG ===
   const todayTasks = taskItems.filter((task) => isTaskDueToday(task));
-  const completedTodayCount = todayTasks.filter((task) => task.completed).length;
-  const todayProgress = todayTasks.length
-    ? Math.round((completedTodayCount / todayTasks.length) * 100)
-    : 0;
 
   const upcomingTasks = taskItems
     .filter((task) => {
@@ -264,15 +255,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       : undefined;
 
   // Handlers
-  const handleSelectToday = () => {
-    if (onDesktopTaskSubTabChange) {
-      onDesktopTaskSubTabChange("today");
-      return;
-    }
-    setActiveTaskSubTab("today");
-    onTabChange("today");
-  };
-
   const handleSelectAllTasks = () => {
     setActiveTaskListTags([]);
     if (onDesktopTaskSubTabChange) {
@@ -420,7 +402,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title="Tất cả việc"
               className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
                 isAllTasksActive
-                  ? "bg-[#09090B] text-white shadow-sm dark:bg-white dark:text-[#09090B]"
+                  ? "bg-[#09090B] text-white shadow-sm dark:bg-white/[0.12] dark:text-white"
                   : "text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
               } active:scale-95`}
             >
@@ -428,51 +410,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
             <button
               type="button"
-              onClick={handleSelectToday}
-              title="Hôm nay"
-              className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
-                isTodayActive
-                  ? "bg-[#09090B] text-white shadow-sm dark:bg-white dark:text-[#09090B]"
-                  : "text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
-              } active:scale-95`}
-            >
-              <Sun size={18} strokeWidth={2.2} />
-            </button>
-
-            <button
-              type="button"
               onClick={handleSelectPlanner}
-              title="Lịch công việc"
+              title="Công việc"
               className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
                 isTaskPlannerActive
-                  ? "bg-[#09090B] text-white shadow-sm dark:bg-white dark:text-[#09090B]"
+                  ? "bg-[#09090B] text-white shadow-sm dark:bg-white/[0.12] dark:text-white"
                   : "text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
               } active:scale-95`}
             >
               <CalendarIcon size={18} strokeWidth={2.2} />
-            </button>
-
-            </>
-            )}
-
-            {isTaskWorkspace && false && (
-            <>
-            <button
-              type="button"
-              onClick={handleSelectDeadlines}
-              title="Hạn định & Quá hạn"
-              className={`hidden w-11 h-11 rounded-2xl flex items-center justify-center transition-all cursor-pointer relative ${
-                isDeadlinesActive
-                  ? "bg-[#09090B] text-white shadow-sm dark:bg-white dark:text-[#09090B]"
-                  : "text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
-              } active:scale-95`}
-            >
-              <Hourglass size={18} strokeWidth={2.2} />
-              {deadlineAlertTotal > 0 && (
-                <span className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
-                  isDeadlinesActive ? "bg-white dark:bg-[#09090B]" : "bg-[#DC2626] dark:bg-[#EF4444]"
-                }`} />
-              )}
             </button>
 
             </>
@@ -486,7 +432,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title="Ghi chú phác thảo"
               className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
                 isNotesActive
-                  ? "bg-[#09090B] text-white shadow-sm dark:bg-white dark:text-[#09090B]"
+                  ? "bg-[#09090B] text-white shadow-sm dark:bg-white/[0.12] dark:text-white"
                   : "text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
               } active:scale-95`}
             >
@@ -499,7 +445,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title="Sổ nhật ký"
               className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
                 isJournalActive
-                  ? "bg-[#09090B] text-white shadow-sm dark:bg-white dark:text-[#09090B]"
+                  ? "bg-[#09090B] text-white shadow-sm dark:bg-white/[0.12] dark:text-white"
                   : "text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
               } active:scale-95`}
             >
@@ -667,29 +613,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
             )}
           </section>
-          <button
-            type="button"
-            onClick={handleSelectToday}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer ${
-              isTodayActive
-                ? "bg-[#09090B] text-white shadow-sm dark:bg-white dark:text-[#09090B]"
-                : "text-[#71717A] dark:text-[#A1A1AA] hover:bg-black/5 hover:text-[#09090B] dark:hover:bg-white/10 dark:hover:text-white"
-            } active:scale-95`}
-          >
-            <div className="flex items-center gap-2.5">
-              <Sun size={16} strokeWidth={2.2} />
-              <span className={isTodayActive ? "font-bold" : ""}>Hôm nay</span>
-            </div>
-            {pendingTodayCount > 0 && (
-              <span className={`font-mono text-[10px] px-2 py-0.5 rounded-full font-bold min-w-[20px] text-center ${
-                isTodayActive
-                  ? "bg-white text-[#09090B] dark:bg-[#141417] dark:text-white"
-                  : "bg-black/10 text-[#09090B] dark:bg-white/15 dark:text-[#FFFFFF]"
-              }`}>
-                {pendingTodayCount}
-              </span>
-            )}
-          </button>
             </>
           )}
 
@@ -737,7 +660,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             } active:scale-95`}
           >
             <CalendarIcon size={16} strokeWidth={2.2} />
-            <span className={isTaskPlannerActive ? "font-bold" : ""}>Lịch công việc</span>
+            <span className={isTaskPlannerActive ? "font-bold" : ""}>Công việc</span>
           </button>
 
           {/* 3. HẠN ĐỊNH */}
@@ -841,26 +764,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <SidebarTaskPreview title="Việc sắp tới" tasks={upcomingTasks} formatDate={formatSidebarDate} />
             </>
           ) : isTodayActive ? (
-            <>
-              <p className="px-1 text-[10px] font-mono font-bold uppercase tracking-wider text-[#78716C] dark:text-[#A1A1AA]">
-                Hôm nay
-              </p>
-              <div className="mt-2 rounded-2xl bg-white/70 p-3 shadow-xs dark:bg-[#2C2C2E]">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7]">Tiến độ</span>
-                  <span className="font-mono text-[10px] font-bold text-[#78716C] dark:text-[#A1A1AA]">
-                    {completedTodayCount}/{todayTasks.length || 0}
-                  </span>
-                </div>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#E7E5E4] dark:bg-[#3A3A3C]">
-                  <div
-                    className="h-full rounded-full bg-[#1C1917] transition-[width] duration-200 dark:bg-white"
-                    style={{ width: `${todayProgress}%` }}
-                  />
-                </div>
-              </div>
-              <SidebarTaskPreview title="Việc kế tiếp" tasks={upcomingTasks} formatDate={formatSidebarDate} />
-            </>
+            <SidebarTaskPreview
+              title="Việc hôm nay"
+              tasks={todayTasks}
+              formatDate={formatSidebarDate}
+              emptyLabel="Hôm nay chưa có việc"
+            />
           ) : isEventWorkspace ? (
             <SidebarTaskPreview
               title="Sự kiện sắp tới"

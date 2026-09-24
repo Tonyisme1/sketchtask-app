@@ -6,8 +6,6 @@ import {
   ExternalLink,
   Plus,
   Sparkles,
-  TrendingUp,
-  AlertTriangle,
   Clock,
   ListPlus,
   Check,
@@ -47,7 +45,7 @@ const getTimeLabel = () =>
 const DEFAULT_WELCOME_MESSAGE: StoredChatMessage = {
   id: "welcome",
   sender: "ai",
-  text: "Chào bạn! Mình có thể giúp bạn lên lịch, phân tích tiến độ hoặc chia nhỏ mục tiêu công việc.",
+  text: "Chào bạn! Mình có thể giúp bạn sắp xếp công việc, lên lịch hoặc chia nhỏ mục tiêu.",
   time: getTimeLabel(),
 };
 
@@ -256,7 +254,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
 
   return (
     <div
-      className={`mx-auto w-full flex flex-col bg-white dark:bg-[#1C1C1E] select-none ${
+      className={`mx-auto w-full flex flex-col bg-[var(--bg-surface)] select-none ${
         isStandalone
           ? "fixed inset-0 z-50 h-[100dvh] max-w-full rounded-none shadow-none"
           : "max-w-3xl h-[calc(100vh-135px)] rounded-3xl shadow-xs overflow-hidden"
@@ -264,7 +262,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
     >
       {/* 1. MINIMALIST TOPBAR */}
       <div
-        className={`px-4 py-3 bg-white dark:bg-[#1C1C1E] border-b border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between shrink-0 ${
+        className={`px-4 py-3 bg-[var(--bg-surface)] border-b border-[var(--border-ink-muted)] flex items-center justify-between shrink-0 ${
           isStandalone ? "pt-[max(env(safe-area-inset-top),12px)]" : ""
         }`}
       >
@@ -301,7 +299,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
       </div>
 
       {/* 2. KHUNG TIN NHẮN (MESSAGE STREAM) */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-4 space-y-4 bg-black/[0.01] dark:bg-black/[0.15]">
+      <div className="flex-1 min-h-0 overflow-y-auto p-3.5 sm:p-4 space-y-4 bg-[var(--bg-surface-muted)]">
         {messages.map((m) => {
           const isAi = m.sender === "ai";
           const res = m.queryResult;
@@ -314,7 +312,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
               }`}
             >
               {isAi && (
-                <div className="w-7 h-7 rounded-xl bg-[#007AFF]/10 text-[#007AFF] dark:bg-[#0A84FF]/20 dark:text-[#0A84FF] shadow-2xs flex items-center justify-center shrink-0 mt-0.5">
+                <div className="w-7 h-7 rounded-xl bg-[var(--accent-sky)] text-[var(--accent-blue)] ring-1 ring-[var(--accent-blue)]/20 flex items-center justify-center shrink-0 mt-0.5">
                   <Sparkles size={13} strokeWidth={2.2} />
                 </div>
               )}
@@ -322,8 +320,8 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
               <div
                 className={`max-w-[90%] sm:max-w-[82%] px-4 py-3 text-xs sm:text-[13px] leading-relaxed break-words transition-all shadow-2xs ${
                   isAi
-                    ? "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#1C1C1E] dark:text-[#F2F2F7] rounded-3xl rounded-tl-sm"
-                    : "bg-[#007AFF] dark:bg-[#0A84FF] text-white font-medium rounded-3xl rounded-tr-sm"
+                    ? "bg-[var(--bg-surface)] text-[var(--text-main)] border border-[var(--border-ink-muted)] rounded-3xl rounded-tl-sm"
+                    : "bg-[var(--accent-blue)] text-[var(--text-on-accent)] font-medium rounded-3xl rounded-tr-sm"
                 }`}
               >
                 {/* Nội dung text chính */}
@@ -440,51 +438,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
                   </div>
                 )}
 
-                {/* CARD 3: STATS & PROGRESS CARD */}
-                {res && res.type === "stats_progress" && res.stats && (
-                  <div className="mt-3 p-3.5 rounded-2xl bg-white dark:bg-[#1C1C1E] shadow-2xs space-y-3">
-                    {/* Progress Bar Hôm Nay */}
-                    <div>
-                      <div className="flex items-center justify-between text-xs font-bold mb-1.5">
-                        <span className="text-[#8E8E93] dark:text-[#A1A1A6]">Tiến độ hôm nay</span>
-                        <span className="font-mono text-[#1C1C1E] dark:text-[#F2F2F7]">
-                          {res.stats.completedToday}/{res.stats.todayCount} ({res.stats.todayPercent}%)
-                        </span>
-                      </div>
-                      <div className="w-full h-2 rounded-full bg-black/[0.06] dark:bg-white/[0.1] overflow-hidden">
-                        <div
-                          className="h-full bg-[#007AFF] transition-all duration-500 rounded-full"
-                          style={{ width: `${res.stats.todayPercent}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Stat Badges */}
-                    <div className="grid grid-cols-2 gap-2 pt-1">
-                      <div className="p-2.5 rounded-xl bg-rose-500/10 flex items-center gap-2">
-                        <AlertTriangle size={14} className="text-rose-600 dark:text-rose-400 shrink-0" />
-                        <div>
-                          <div className="text-[10px] font-semibold text-[#8E8E93] dark:text-[#A1A1A6]">Quá hạn</div>
-                          <div className="text-xs font-bold text-rose-600 dark:text-rose-400 font-mono">
-                            {res.stats.overdueCount} việc
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="p-2.5 rounded-xl bg-amber-500/10 flex items-center gap-2">
-                        <TrendingUp size={14} className="text-amber-600 dark:text-amber-400 shrink-0" />
-                        <div>
-                          <div className="text-[10px] font-semibold text-[#8E8E93] dark:text-[#A1A1A6]">Việc gấp</div>
-                          <div className="text-xs font-bold text-amber-600 dark:text-amber-400 font-mono">
-                            {res.stats.urgentCount} việc
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* CARD 4: TASK QUERY INTERACTIVE LIST */}
+                {/* CARD 3: TASK QUERY INTERACTIVE LIST */}
                 {res && res.type === "task_query" && res.queriedTasks && (
                   <div className="mt-3 space-y-1.5 pt-2 border-t border-black/[0.06] dark:border-white/[0.08]">
                     {res.queriedTasks.map((t) => (
@@ -536,13 +490,13 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
 
         {isTyping && (
           <div className="flex items-start gap-2.5 justify-start">
-            <div className="w-7 h-7 rounded-xl bg-[#007AFF]/10 text-[#007AFF] dark:bg-[#0A84FF]/20 dark:text-[#0A84FF] shadow-2xs flex items-center justify-center shrink-0 mt-0.5">
+            <div className="w-7 h-7 rounded-xl bg-[var(--accent-sky)] text-[var(--accent-blue)] ring-1 ring-[var(--accent-blue)]/20 flex items-center justify-center shrink-0 mt-0.5">
               <Sparkles size={13} strokeWidth={2.2} />
             </div>
-            <div className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-3xl rounded-tl-sm bg-[#F2F2F7] dark:bg-[#2C2C2E] shadow-2xs w-fit">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#007AFF] animate-bounce" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#007AFF] animate-bounce [animation-delay:0.2s]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-[#007AFF] animate-bounce [animation-delay:0.4s]" />
+            <div className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-3xl rounded-tl-sm bg-[var(--bg-surface)] border border-[var(--border-ink-muted)] w-fit">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-blue)] animate-bounce" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-blue)] animate-bounce [animation-delay:0.2s]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-blue)] animate-bounce [animation-delay:0.4s]" />
             </div>
           </div>
         )}
@@ -550,7 +504,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
       </div>
 
       {/* 3. DYNAMIC SMART PROMPT CHIPS */}
-      <div className="px-3.5 py-2 bg-white dark:bg-[#1C1C1E] border-t border-black/[0.04] dark:border-white/[0.06] flex items-center gap-2 overflow-x-auto no-scrollbar">
+      <div className="px-3.5 py-2 bg-[var(--bg-surface)] border-t border-[var(--border-ink-muted)] flex items-center gap-2 overflow-x-auto no-scrollbar">
         {dynamicChips.map((chip) => (
           <button
             key={chip.id}
@@ -569,7 +523,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
           e.preventDefault();
           handleSend();
         }}
-        className={`p-3 bg-white dark:bg-[#1C1C1E] border-t border-black/[0.04] dark:border-white/[0.06] flex items-center gap-2 shrink-0 ${
+        className={`p-3 bg-[var(--bg-surface)] border-t border-[var(--border-ink-muted)] flex items-center gap-2 shrink-0 ${
           isStandalone ? "pb-[max(env(safe-area-inset-bottom),12px)]" : ""
         }`}
       >

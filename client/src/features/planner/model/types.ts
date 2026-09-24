@@ -55,12 +55,6 @@ export interface PlannerScreenModel {
   dayRegularTasks: TaskDto[];
   dayCompletedTasks: TaskDto[];
   dayEventTasks: TaskDto[];
-  dayProgress: {
-    completed: number;
-    total: number;
-    percent: number;
-  };
-
   // View state
   viewMode: PlannerViewMode;
   searchQuery: string;

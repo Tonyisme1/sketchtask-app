@@ -50,7 +50,7 @@ export function SketchTabs<TKey extends string>({
             }`}
           >
             {item.icon}
-            <span>{item.label}</span>
+            <span className="whitespace-nowrap">{item.label}</span>
             {item.badge}
           </button>
         );

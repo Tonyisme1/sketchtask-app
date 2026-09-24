@@ -3,21 +3,42 @@
 @tailwind utilities;
 
 :root {
-  --bg-canvas: #f8f9fa;          /* App shell / background: xám trắng tinh khiết, sạch sẽ */
-  --bg-surface: #ffffff;         /* Main content surface: trắng tinh */
-  --bg-surface-muted: #f1f3f5;   /* Vùng phụ, input, gutter */
-  --border-ink: #18181b;         /* Nét mực đen chuẩn tactile */
-  --border-ink-muted: #e4e4e7;   /* Đường phân cách phụ */
-  --text-main: #09090b;          /* Văn bản chính - Zinc 950 */
-  --text-strong: #000000;        /* Tiêu đề - Đen tuyệt đối */
-  --text-muted: #71717a;         /* Phụ đề, ngày giờ - Zinc 500 */
-  --text-subtle: #a1a1aa;        /* Placeholder, disabled - Zinc 400 */
-  --accent-blue: #2563eb;        /* Sự kiện (Event) - Royal Cobalt */
-  --accent-sky: #0284c7;         /* Công việc (Task) - Sky Blue */
-  --accent-coral: #dc2626;       /* Hạn chót / Quá hạn - Crimson Coral */
-  --accent-mint: #16a34a;        /* Hoàn thành / Success - Emerald */
-  --accent-yellow: #ca8a04;      /* Highlight - Amber */
-  --accent-lavender: #7c3aed;    /* Phân nhóm phụ - Violet */
+  --bg-canvas: #f5f7fa;          /* App shell / background */
+  --bg-surface: #ffffff;         /* Main content surface */
+  --bg-surface-muted: #eef2f6;   /* Vùng phụ, input, gutter */
+  --bg-interactive: #e3e9f0;     /* Hover/active surface */
+  --border-ink: #182230;         /* Nét viền chính */
+  --border-ink-muted: #d7dee7;   /* Đường phân cách phụ */
+  --text-main: #182230;          /* Văn bản chính */
+  --text-strong: #0d1622;        /* Tiêu đề */
+  --text-muted: #5f6b78;         /* Phụ đề, ngày giờ */
+  --text-subtle: #8995a3;        /* Placeholder, disabled */
+  --text-on-accent: #ffffff;     /* Chữ trên nền xanh đậm */
+  --text-on-soft-accent: #075985; /* Chữ trên nền xanh nhạt - Sky 800 */
+  --accent-blue: #1d4ed8;        /* Event / primary action */
+  --accent-blue-hover: #1e40af;
+  --accent-sky: #e0f2fe;         /* Task surface - Sky 100 tươi sáng */
+  --accent-sky-strong: #0284c7;  /* Task accent / links - Sky 600 */
+  --accent-coral: #c2413b;       /* Chỉ cảnh báo, lỗi, xóa */
+  --accent-coral-soft: #fde8e7;
+  --accent-mint: var(--accent-blue);     /* Legacy success alias */
+  --accent-yellow: var(--accent-sky-strong); /* Legacy highlight alias */
+  --accent-lavender: var(--accent-blue);     /* Legacy category alias */
+  --danger-text: #9f2f2a;
+  --danger-surface: #fde8e7;
+  --status-success: var(--accent-blue);
+  --status-warning: var(--accent-blue);
+  --status-category: var(--accent-blue);
+  /* Shared task surfaces: every list card and calendar item uses these tokens. */
+  --task-card-event-bg: var(--accent-blue);
+  --task-card-event-text: var(--text-on-accent);
+  --task-card-task-bg: var(--accent-sky);
+  --task-card-task-text: var(--text-on-soft-accent);
+  --task-card-task-meta: #0284c7;
+  --task-card-overdue-bg: var(--danger-surface);
+  --task-card-overdue-text: var(--danger-text);
+  --task-card-completed-bg: var(--bg-surface-muted);
+  --task-card-completed-text: var(--text-muted);
   --app-font-scale: 104%;
   /* One readable sans token for every shell; platform fonts keep the app usable offline. */
   --font-sans: "Inter", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
@@ -109,21 +130,41 @@ html:not(.dark) [class*="hover:bg-\[\#E7E5E4\]"]:hover {
 /* Layer 2: #25252A (Elevated Modal/Popover)  */
 /* ========================================== */
 .dark {
-  --bg-canvas: #121214;          /* Canvas: xám tối sâu chuẩn Material Design, chống nhòe (smearing) */
-  --bg-surface: #1c1c20;         /* Surface: bề mặt thẻ & thanh điều hướng */
-  --bg-surface-muted: #25252a;   /* Elevated: ô nhập liệu, popover, modal nổi */
-  --border-ink: #2e2e36;         /* Viền nét mực tối êm dịu, không gắt */
-  --border-ink-muted: #222228;   /* Đường kẻ lưới mờ */
-  --text-main: #ececf1;          /* Văn bản chính - Xám sáng 87% chống chói mắt */
-  --text-strong: #ffffff;        /* Tiêu đề - Trắng rõ ràng */
-  --text-muted: #a1a1aa;         /* Phụ đề, ngày giờ - Xám 60% đạt chuẩn WCAG */
-  --text-subtle: #71717a;        /* Placeholder, disabled - Xám 40% */
-  --accent-blue: #60a5fa;        /* Sự kiện (Event) - Soft Cobalt dịu mắt */
-  --accent-sky: #38bdf8;         /* Công việc (Task) - Soft Sky */
-  --accent-coral: #f87171;       /* Hạn chót / Quá hạn - Soft Coral */
-  --accent-mint: #4ade80;        /* Hoàn thành / Success - Soft Mint */
-  --accent-yellow: #fcd34d;      /* Highlight - Soft Amber */
-  --accent-lavender: #c084fc;    /* Phân nhóm phụ - Soft Violet */
+  --bg-canvas: #12161b;          /* Canvas đen sâu */
+  --bg-surface: #1e222a;         /* Bề mặt thẻ, box chứa đen xám tro */
+  --bg-surface-muted: #262c36;   /* Elevated / input / popover */
+  --bg-interactive: #2d3542;     /* Hover/active surface */
+  --border-ink: #3a4652;         /* Viền chính */
+  --border-ink-muted: #2b343d;   /* Đường kẻ lưới */
+  --text-main: #eef3f8;          /* Văn bản chính */
+  --text-strong: #ffffff;        /* Tiêu đề */
+  --text-muted: #b6c1cd;         /* Phụ đề, ngày giờ */
+  --text-subtle: #85919d;        /* Placeholder, disabled */
+  --text-on-accent: #ffffff;
+  --text-on-soft-accent: #ffffff;
+  --accent-blue: #1d4ed8;        /* Event / primary action */
+  --accent-blue-hover: #2563eb;
+  --accent-sky: #0284c7;         /* Task surface - Sky Blue tươi sáng */
+  --accent-sky-strong: #38bdf8;  /* Task accent / links - Bright Sky */
+  --accent-coral: #ff9f98;       /* Chỉ cảnh báo, lỗi, xóa */
+  --accent-coral-soft: #49262a;
+  --accent-mint: var(--accent-blue);
+  --accent-yellow: var(--accent-sky-strong);
+  --accent-lavender: var(--accent-blue);
+  --danger-text: #ffb4ae;
+  --danger-surface: #49262a;
+  --status-success: var(--accent-blue);
+  --status-warning: var(--accent-blue);
+  --status-category: var(--accent-blue);
+  --task-card-event-bg: var(--accent-blue);
+  --task-card-event-text: var(--text-on-accent);
+  --task-card-task-bg: var(--accent-sky);
+  --task-card-task-text: #ffffff;
+  --task-card-task-meta: #bae6fd;
+  --task-card-overdue-bg: var(--danger-surface);
+  --task-card-overdue-text: var(--danger-text);
+  --task-card-completed-bg: var(--bg-surface-muted);
+  --task-card-completed-text: var(--text-muted);
   color-scheme: dark;
 }
 
@@ -147,7 +188,6 @@ html:not(.dark) [class*="hover:bg-\[\#E7E5E4\]"]:hover {
 .dark .bg-\[\#FFFFFF\]:not([class*="dark:bg-white"]),
 .dark .bg-\[\#FFFDF8\],
 .dark .bg-\[\#FCFBF9\],
-.dark .task-card-shell,
 .dark .modal-content,
 .dark .popover-content,
 .dark .bottom-sheet {
@@ -159,11 +199,13 @@ html:not(.dark) [class*="hover:bg-\[\#E7E5E4\]"]:hover {
 .dark [class*="dark:bg-\[\#1c1c1e\]/"],
 .dark [class*="dark:bg-\[\#2C2C2E\]/"],
 .dark [class*="dark:bg-\[\#121214\]/"],
+.dark [class*="dark:bg-\[\#12161B\]/"],
+.dark [class*="dark:bg-\[\#12161b\]/"],
 .dark [class*="dark:bg-black/"],
 .dark [class*="bg-\[\#FAF8F3\]/"],
 .dark [class*="bg-\[\#F5F2EA\]/"],
 .dark [class*="bg-\[\#F2F2F7\]/"] {
-  background-color: rgba(28, 28, 32, 0.95) !important;
+  background-color: rgba(18, 22, 27, 0.98) !important;
 }
 
 /* NÚT CTA CHÍNH / ACTIVE TABS */
@@ -248,31 +290,33 @@ html:not(.dark) [class*="hover:bg-\[\#E7E5E4\]"]:hover {
 /* IOS MINIMAL STYLE (OPTIONAL APP SKIN)      */
 /* ========================================== */
 html[data-interface-style="ios"] {
-  --bg-canvas: #f2f2f7;
+  --bg-canvas: #f5f7fa;
   --bg-surface: #ffffff;
-  --bg-surface-muted: #e5e5ea;
-  --border-ink: #e5e5ea;
-  --border-ink-muted: #f2f2f7;
-  --text-main: #1c1c1e;
-  --text-strong: #000000;
-  --text-muted: #8e8e93;
-  --text-subtle: #aeaeb2;
-  --accent-yellow: #ffcc00;
-  --accent-blue: #007aff;
+  --bg-surface-muted: #eef2f6;
+  --bg-interactive: #e3e9f0;
+  --border-ink: #182230;
+  --border-ink-muted: #d7dee7;
+  --text-main: #182230;
+  --text-strong: #0d1622;
+  --text-muted: #5f6b78;
+  --text-subtle: #8995a3;
+  --accent-yellow: var(--accent-sky-strong);
+  --accent-blue: #1d4ed8;
 }
 
 html.dark[data-interface-style="ios"] {
-  --bg-canvas: #18181a;
-  --bg-surface: #000000;
-  --bg-surface-muted: #242426;
-  --border-ink: #2c2c2e;
-  --border-ink-muted: #1f1f21;
-  --text-main: #f2f2f7;
+  --bg-canvas: #12161b;
+  --bg-surface: #12161b;
+  --bg-surface-muted: #1c222b;
+  --bg-interactive: #252e3a;
+  --border-ink: #3a4652;
+  --border-ink-muted: #2b343d;
+  --text-main: #eef3f8;
   --text-strong: #ffffff;
-  --text-muted: #8e8e93;
-  --text-subtle: #636366;
-  --accent-yellow: #ffd60a;
-  --accent-blue: #0a84ff;
+  --text-muted: #b6c1cd;
+  --text-subtle: #85919d;
+  --accent-yellow: var(--accent-sky-strong);
+  --accent-blue: #1d4ed8;
 }
 
 html[data-interface-style="ios"] body {
@@ -415,9 +459,9 @@ html[data-interface-style="ios"] [class*="active:scale-"]:active {
 }
 
 /* Phản hồi chạm tinh gọn trên màn hình cảm ứng khi tắt dịch chuyển cơ học */
-html[data-interface-style="ios"] button:active,
-html[data-interface-style="ios"] [role="button"]:active,
-html[data-interface-style="ios"] [class*="cursor-pointer"]:active {
+html[data-interface-style="ios"] button:active:not(.planner-calendar-card),
+html[data-interface-style="ios"] [role="button"]:active:not(.planner-calendar-card),
+html[data-interface-style="ios"] [class*="cursor-pointer"]:active:not(.planner-calendar-card) {
   opacity: 0.76;
 }
 
@@ -427,7 +471,6 @@ html[data-interface-style="ios"] .task-card-shell {
   border: 1px solid var(--border-ink-muted) !important;
   border-radius: 16px !important;
   margin-bottom: 10px;
-  background-color: var(--bg-surface) !important;
 }
 
 html.dark[data-interface-style="ios"] .context-checkbox[data-checked="true"] {
@@ -626,14 +669,14 @@ body {
     justify-content: center !important;
     border: 0 !important;
     border-radius: 12px !important;
-    background: #f2f2f7 !important;
-    color: #1c1c1e !important;
+    background: var(--bg-surface-muted) !important;
+    color: var(--text-main) !important;
     box-shadow: none !important;
     transform: none;
   }
 
   .mobile-back-button:hover {
-    background: #e5e5ea !important;
+    background: var(--bg-interactive) !important;
   }
 
   .mobile-back-button:active {
@@ -651,12 +694,12 @@ body {
   }
 
   .dark .mobile-back-button {
-    background: #141416 !important;
-    color: #ffffff !important;
+    background: var(--bg-surface-muted) !important;
+    color: var(--text-main) !important;
   }
 
   .dark .mobile-back-button:hover {
-    background: #27272a !important;
+    background: var(--bg-interactive) !important;
   }
 }
 
@@ -673,24 +716,45 @@ body {
 }
 
 /* ========================================== */
-/* DARK PALETTE: GOOGLE CALENDAR REFERENCE    */
+/* CANONICAL DARK PALETTE                      */
 /* ========================================== */
 /* Keep the app chrome, working surface, and dividers as separate layers. */
 html.dark {
-  --bg-canvas: #202124;
-  --bg-surface: #121212;
-  --bg-surface-muted: #303134;
-  --border-ink: #3c4043;
-  --border-ink-muted: #303134;
-  --text-main: #e8eaed;
-  --text-strong: #f8f9fa;
-  --text-muted: #bdc1c6;
-  --text-subtle: #9aa0a6;
-  --accent-blue: #8ab4f8;
-  --accent-sky: #8ab4f8;
-  --accent-coral: #f28b82;
-  --accent-mint: #81c995;
-  --accent-yellow: #fdd663;
+  --bg-canvas: #12161b;
+  --bg-surface: #12161b;
+  --bg-surface-muted: #1c222b;
+  --bg-interactive: #323c47;
+  --border-ink: #3a4652;
+  --border-ink-muted: #2b343d;
+  --text-main: #eef3f8;
+  --text-strong: #ffffff;
+  --text-muted: #b6c1cd;
+  --text-subtle: #85919d;
+  --text-on-accent: #ffffff;
+  --text-on-soft-accent: #ffffff;
+  --accent-blue: #1d4ed8;
+  --accent-blue-hover: #2563eb;
+  --accent-sky: #0284c7;
+  --accent-sky-strong: #38bdf8;
+  --accent-coral: #ff9f98;
+  --accent-coral-soft: #49262a;
+  --accent-mint: var(--accent-blue);
+  --accent-yellow: var(--accent-sky-strong);
+  --accent-lavender: var(--accent-blue);
+  --danger-text: #ffb4ae;
+  --danger-surface: #49262a;
+  --status-success: var(--accent-blue);
+  --status-warning: var(--accent-blue);
+  --status-category: var(--accent-blue);
+  --task-card-event-bg: var(--accent-blue);
+  --task-card-event-text: var(--text-on-accent);
+  --task-card-task-bg: var(--accent-sky);
+  --task-card-task-text: #ffffff;
+  --task-card-task-meta: #bae6fd;
+  --task-card-overdue-bg: var(--danger-surface);
+  --task-card-overdue-text: var(--danger-text);
+  --task-card-completed-bg: var(--bg-surface-muted);
+  --task-card-completed-text: var(--text-muted);
 }
 
 html.dark header,
@@ -725,7 +789,7 @@ html.dark [class~="dark:bg-[#202023]"],
 html.dark [class~="dark:bg-[#242426]"],
 html.dark [class~="dark:bg-[#27272A]"],
 html.dark [class~="dark:bg-[#2C2C2E]"] {
-  background-color: var(--bg-canvas) !important;
+  background-color: var(--bg-surface) !important;
 }
 
 html.dark [class~="dark:bg-[#09090B]"],
@@ -845,4 +909,85 @@ html.dark [class~="dark:divide-[#2C2C2E]"] > :not([hidden]) ~ :not([hidden]) {
   .desktop-minimal [data-desktop-sidebar-summary] {
     display: none;
   }
+}
+
+/* ========================================== */
+/* SEMANTIC COLOR COMPATIBILITY LAYER          */
+/* ========================================== */
+/* Legacy feature classes resolve to the same palette until their JSX is migrated. */
+.app-surface { background-color: var(--bg-surface); color: var(--text-main); }
+.app-interactive { background-color: var(--bg-interactive); color: var(--text-main); }
+.app-accent { background-color: var(--accent-blue); color: var(--text-on-accent); }
+.app-task { background-color: var(--task-card-task-bg); color: var(--task-card-task-text); }
+.app-event { background-color: var(--task-card-event-bg); color: var(--task-card-event-text); }
+.app-danger { background-color: var(--danger-surface); color: var(--danger-text); }
+.app-completed { background-color: var(--task-card-completed-bg); color: var(--task-card-completed-text); }
+
+[class~="bg-[#007AFF]"],
+[class~="dark:bg-[#0A84FF]"],
+[class~="bg-[#0A84FF]"],
+[class~="dark:bg-[#0071E3]"],
+[class~="bg-[#0071E3]"],
+[class~="bg-[#34C759]"],
+[class~="bg-[#30D158]"] {
+  background-color: var(--accent-blue) !important;
+}
+
+[class~="text-[#007AFF]"],
+[class~="dark:text-[#0A84FF]"],
+[class~="text-[#0A84FF]"],
+[class~="dark:text-[#0071E3]"],
+[class~="text-[#0071E3]"],
+[class~="text-[#34C759]"],
+[class~="text-[#30D158]"],
+[class~="border-[#007AFF]"],
+[class~="ring-[#007AFF]"] {
+  color: var(--accent-blue) !important;
+  border-color: var(--accent-blue) !important;
+  --tw-ring-color: var(--accent-blue) !important;
+}
+
+[class*="bg-emerald-"],
+[class*="bg-green-"],
+[class*="bg-amber-"],
+[class*="bg-yellow-"],
+[class*="bg-purple-"],
+[class*="bg-violet-"],
+[class*="bg-teal-"],
+[class*="bg-indigo-"] {
+  background-color: var(--accent-sky) !important;
+}
+
+[class*="bg-emerald-"]:not([class*="/"]),
+[class*="bg-green-"]:not([class*="/"]),
+[class*="bg-amber-"]:not([class*="/"]),
+[class*="bg-yellow-"]:not([class*="/"]),
+[class*="bg-purple-"]:not([class*="/"]),
+[class*="bg-violet-"]:not([class*="/"]),
+[class*="bg-teal-"]:not([class*="/"]),
+[class*="bg-indigo-"]:not([class*="/"]) {
+  background-color: var(--accent-blue) !important;
+  color: var(--text-on-accent) !important;
+}
+
+[class*="text-emerald-"],
+[class*="text-green-"],
+[class*="text-amber-"],
+[class*="text-yellow-"],
+[class*="text-purple-"],
+[class*="text-violet-"],
+[class*="text-teal-"],
+[class*="text-indigo-"] {
+  color: var(--accent-blue) !important;
+}
+
+[class~="bg-[#D1FAE5]"],
+[class~="bg-[#FEF3C7]"],
+[class~="bg-[#FEF08A]"] {
+  background-color: var(--accent-sky) !important;
+}
+
+[class*="text-[#065F46]"],
+[class*="text-[#92400E]"] {
+  color: var(--text-on-soft-accent) !important;
 }

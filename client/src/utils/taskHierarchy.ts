@@ -1,5 +1,4 @@
 import { TaskDto } from "../types";
-import { getTaskItemType } from "./taskSemantics";
 
 // ==========================================
 // HELPER: Multi-Level Task Hierarchy (Cây Đa Tầng: Ông ➔ Cha ➔ Con ➔ Cháu)
@@ -22,27 +21,6 @@ export interface TaskHierarchyItem {
   isOutOfFilterContext?: boolean;
   isOrphanSubtask?: boolean;
 }
-
-/**
- * Parent chỉ là nhóm tiến độ; chỉ task lá có thể được hoàn thành và tính vào mẫu số.
- * Event không có checkbox nên cũng không được đưa vào tiến độ task.
- */
-export const getProgressLeafTasks = (tasks: TaskDto[]): TaskDto[] => {
-  const parentIds = new Set(
-    tasks
-      .map((task) => task.parentTaskId)
-      .filter((parentId): parentId is string => Boolean(parentId)),
-  );
-  return tasks.filter((task) => !parentIds.has(task.id) && getTaskItemType(task) !== "event");
-};
-
-export const getTaskProgress = (tasks: TaskDto[]) => {
-  const leafTasks = getProgressLeafTasks(tasks);
-  return {
-    total: leafTasks.length,
-    completed: leafTasks.filter((task) => task.completed).length,
-  };
-};
 
 /**
  * Xây dựng cây phân cấp đa tầng từ danh sách task hiển thị và toàn bộ task store

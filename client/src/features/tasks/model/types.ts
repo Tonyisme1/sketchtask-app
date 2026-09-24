@@ -10,12 +10,6 @@ export interface TaskScreenFilterState {
   hideCompleted: boolean;
 }
 
-export interface TaskProgressMetrics {
-  completed: number;
-  total: number;
-  percent: number;
-}
-
 export interface TaskGroup {
   dateStr: string;
   tasks: TaskDto[];
@@ -24,10 +18,6 @@ export interface TaskGroup {
 export interface TaskScreenModel {
   // Raw and Filtered Data
   tasks: TaskDto[];
-  todayTasks: TaskDto[];
-  activeScheduledTasks: TaskDto[];
-  activeTaskListItems: TaskDto[];
-  completedTodayTasks: TaskDto[];
   overdueTasks: TaskDto[];
   upcomingTasks: TaskDto[];
   overdueGroups: TaskGroup[];
@@ -36,11 +26,8 @@ export interface TaskScreenModel {
   junkTasks: TaskDto[];
   tags: string[];
 
-  // Derived Metrics
-  todayProgress: TaskProgressMetrics;
   overdueCount: number;
   upcomingCount: number;
-  activeCount: number;
 
   // State
   activeTaskSubTab: TaskSubTab;

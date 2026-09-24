@@ -16,7 +16,9 @@ import {
   getTaskEffectiveTime,
   getTaskEffectiveEndTime,
   getTaskItemType,
+  getTaskCardVisualStyle,
 } from "../../../utils/taskSemantics";
+import { getLocalTodayStr } from "../../../utils/date";
 import {
   buildTimelineGridLayout,
   PositionedScheduledBlock,
@@ -144,6 +146,7 @@ const ScheduledBlockCard: React.FC<{
   const { task } = block;
   const time = getTaskEffectiveTime(task);
   const isEvent = getTaskItemType(task) === "event";
+  const isPastEvent = isEvent && dateStr < getLocalTodayStr();
   const isCompleted = !isEvent && task.completed;
   const hasMultipleLanes = block.laneCount > 1;
 
@@ -166,11 +169,8 @@ const ScheduledBlockCard: React.FC<{
   const isTight = effectiveHeight < 32;
 
   // Event/task color is semantic, independent from scheduled/deadline time data.
-  const tone = `${
-    isEvent
-      ? "bg-[#E0F2FE] text-[#0C4A6E] dark:bg-[#163A52] dark:text-[#E0F2FE]"
-      : "bg-[var(--accent-blue)] text-white dark:bg-[#0B4F7A] dark:text-[#E8EAED]"
-  } border-none shadow-xs rounded-2xl hover:brightness-105 ${isCompleted ? "opacity-55" : ""}`;
+  const visualStyle = getTaskCardVisualStyle(task);
+  const tone = `border-none shadow-xs rounded-2xl hover:brightness-105 ${isCompleted ? "opacity-55" : isPastEvent ? "opacity-60" : ""}`;
 
   const duration = block.durationMinutes || 60;
 
@@ -178,6 +178,7 @@ const ScheduledBlockCard: React.FC<{
     return (
       <article
         style={{
+          ...visualStyle,
           top: block.top,
           left: `calc(${block.left}% + 1px)`,
           width: `calc(${block.width}% - 2px)`,
@@ -205,6 +206,7 @@ const ScheduledBlockCard: React.FC<{
   return (
     <article
       style={{
+        ...visualStyle,
         top: effectiveTop,
         // The selected card temporarily owns its time cell so the quick view has
         // an unambiguous visual source even when several cards share that slot.
@@ -282,7 +284,7 @@ const ScheduledBlockCard: React.FC<{
       } ${
         isTight ? "px-1 py-0" : isCompact ? "px-1.5 py-1" : "p-2"
       } ${
-        isActive ? "ring-2 ring-[#007AFF] dark:ring-[#0A84FF] shadow-md !z-40" : ""
+        isActive ? "ring-2 ring-[var(--accent-blue)] shadow-md !z-40" : ""
       } ${tone}`}
     >
       {/* Live Resizing Tooltip Time Indicator */}
@@ -320,8 +322,8 @@ const ScheduledBlockCard: React.FC<{
                 event.stopPropagation();
                 onToggleComplete(task.id);
               }}
-              className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[4px] border border-white/80 transition-colors ${
-                task.completed ? "bg-white text-[var(--accent-blue)]" : "bg-transparent"
+              className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[4px] border border-current/50 transition-colors ${
+                task.completed ? "bg-current text-[var(--bg-surface)]" : "bg-transparent"
               }`}
             >
               {task.completed && <Check size={10} strokeWidth={3} />}
@@ -403,16 +405,14 @@ const DeadlineMarkerCard: React.FC<{
   const pointerDragStartedRef = useRef(false);
   const hasMultipleLanes = marker.laneCount > 1;
 
-  const tone = `${
-    isEvent
-      ? "bg-[#E0F2FE] text-[#0C4A6E] dark:bg-[#163A52] dark:text-[#E0F2FE]"
-      : "bg-[var(--accent-blue)] text-white dark:bg-[#0B4F7A] dark:text-[#E8EAED]"
-  } border-none shadow-xs rounded-xl hover:brightness-105 ${isCompleted ? "opacity-55" : ""}`;
+  const visualStyle = getTaskCardVisualStyle(task);
+  const tone = `border-none shadow-xs rounded-xl hover:brightness-105 ${isCompleted ? "opacity-55" : ""}`;
 
   if (isGhost) {
     return (
       <article
         style={{
+          ...visualStyle,
           top: marker.top,
           left: `calc(${marker.left}% + 1px)`,
           width: `calc(${marker.width}% - 2px)`,
@@ -432,6 +432,7 @@ const DeadlineMarkerCard: React.FC<{
   return (
     <article
       style={{
+        ...visualStyle,
         top: marker.top,
         left: isActive ? "0%" : hasMultipleLanes ? `calc(${marker.left}% + 1px)` : "0%",
         width: isActive ? "100%" : hasMultipleLanes ? `calc(${marker.width}% - 2px)` : "100%",
@@ -998,31 +999,37 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
                   key={`allday-${day.dateStr}`}
                   className="flex flex-col gap-1 border-r border-[var(--border-ink-muted)] p-1 last:border-r-0"
                 >
-                  {visibleTasks.map((task) => (
-                    <button
-                      key={task.id}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                        if (onPreviewTask) {
-                          onPreviewTask(task, rect);
-                        } else {
-                          openTaskDetail(task.id);
-                        }
-                      }}
-                      className={`truncate rounded-xl px-2 py-1 text-[11px] font-semibold shadow-2xs transition-all active:scale-[0.98] text-left cursor-pointer ${
-                        task.completed
-                          ? "bg-black/[0.04] dark:bg-white/[0.06] line-through opacity-60 text-[#8E8E93] dark:text-[#A1A1A6]"
-                          : getTaskItemType(task) === "event"
-                            ? "bg-[#007AFF] text-white hover:bg-[#0071E3]"
-                            : "bg-sky-100 text-sky-700 hover:bg-sky-200 dark:bg-[#163A52] dark:text-[#E0F2FE] dark:hover:bg-[#1D4A66]"
-                      }`}
-                      title={task.title}
-                    >
-                      {task.title}
-                    </button>
-                  ))}
+                  {visibleTasks.map((task) => {
+                    const isPastEvent =
+                      getTaskItemType(task) === "event" && day.dateStr < getLocalTodayStr();
+
+                    return (
+                      <button
+                        key={task.id}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                          if (onPreviewTask) {
+                            onPreviewTask(task, rect);
+                          } else {
+                            openTaskDetail(task.id);
+                          }
+                        }}
+                        style={getTaskCardVisualStyle(task)}
+                        className={`planner-calendar-card truncate rounded-xl px-2 py-1 text-[11px] font-semibold shadow-2xs transition-all active:scale-[0.98] text-left cursor-pointer ${
+                          task.completed
+                            ? "line-through opacity-60"
+                            : isPastEvent
+                              ? "opacity-60"
+                              : "hover:brightness-95 dark:hover:brightness-110"
+                        }`}
+                        title={task.title}
+                      >
+                        {task.title}
+                      </button>
+                    );
+                  })}
 
                   {allDayTasks.length > 2 && (
                     <button
@@ -1111,16 +1118,20 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
                   {draftTask && draftTask.dateStr === day.dateStr && (
                     <div
                       style={{
+                        backgroundColor:
+                          draftTask.itemType === "event"
+                            ? "var(--task-card-event-bg)"
+                            : "var(--task-card-task-bg)",
+                        color:
+                          draftTask.itemType === "event"
+                            ? "var(--task-card-event-text)"
+                            : "var(--task-card-task-text)",
                         top: (draftTask.startMinutes / 60) * HOUR_HEIGHT,
                         left: "2px",
                         width: "calc(100% - 4px)",
                         height: HOUR_HEIGHT,
                       }}
-                      className={`absolute z-30 rounded-2xl p-2.5 flex flex-col justify-between select-none shadow-md animate-in fade-in zoom-in-95 duration-100 ${
-                        draftTask.itemType === "event"
-                          ? "bg-[#E0F2FE] text-[#0C4A6E] dark:bg-[#163A52] dark:text-[#E0F2FE]"
-                          : "bg-[var(--accent-blue)] text-white dark:bg-[#0B4F7A] dark:text-[#E8EAED]"
-                      }`}
+                      className="absolute z-30 rounded-2xl p-2.5 flex flex-col justify-between select-none shadow-md animate-in fade-in zoom-in-95 duration-100"
                     >
                       <div className="flex items-center gap-1.5 font-mono text-[10.5px] font-bold">
                         <Clock size={12} strokeWidth={2.4} className="shrink-0" />
@@ -1230,18 +1241,19 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
                   {draggingTaskState && draggingTaskState.currentDateStr === day.dateStr && (
                     <article
                       style={{
+                        ...getTaskCardVisualStyle(
+                          draggingTaskState.task,
+                          new Date(),
+                          draggingTaskState.isCompleted,
+                        ),
                         top: (draggingTaskState.currentStartMinutes / 60) * HOUR_HEIGHT,
                         left: "1px",
                         width: "calc(100% - 2px)",
                         height: Math.max(MIN_LANE_HEIGHT, (draggingTaskState.durationMinutes / 60) * HOUR_HEIGHT),
                         zIndex: 60,
                       }}
-                      className={`group absolute overflow-visible shadow-2xl select-none ring-2 ring-[var(--accent-blue)] pointer-events-none p-2 ${
-                        draggingTaskState.isCompleted
-                          ? "bg-[var(--accent-blue)] border-none shadow-xs rounded-2xl text-white opacity-55"
-                          : draggingTaskState.isEvent
-                            ? "bg-[#E0F2FE] border-none shadow-xs text-[#0C4A6E] dark:bg-[#163A52] dark:text-[#E0F2FE] rounded-2xl"
-                            : "bg-[var(--accent-blue)] border-none shadow-xs text-white dark:bg-[#0B4F7A] dark:text-[#E8EAED] rounded-2xl"
+                      className={`group absolute overflow-visible shadow-2xl select-none ring-2 ring-[var(--accent-blue)] pointer-events-none p-2 rounded-2xl ${
+                        draggingTaskState.isCompleted ? "opacity-55" : ""
                       }`}
                     >
                       {/* Live Dragging Tooltip Time Indicator */}

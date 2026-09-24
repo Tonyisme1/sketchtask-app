@@ -8,6 +8,7 @@ export type TaskStatus = "todo" | "in_progress" | "completed" | "archived";
 export type TaskItemType = "task" | "event";
 export type TaskTimeType = "scheduled" | "deadline" | "event" | "task";
 export type TaskSubTab = "all" | "today" | "planner" | "deadlines";
+export type MobileEventSubTab = "agenda" | "calendar";
 
 export interface TaskEditorInitialData {
   title?: string;
@@ -95,14 +96,14 @@ export type JournalEntry = JournalEntryDto;
 
 export type TabKey =
   | "tasks"
+  | "events"
   | "notes"
   | "today"
   | "planner"
   | "deadlines"
   | "journal"
   | "ai"
-  | "settings"
-  | "notifications";
+  | "settings";
 
 export interface NavigationTarget {
   taskId?: string;
@@ -124,5 +125,4 @@ export type SettingsSectionKey =
   | "notifications"
   | "data"
   | "security"
-  | "shortcuts"
-  | "about";
+  | "shortcuts";

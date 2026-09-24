@@ -15,7 +15,7 @@ interface GlobalSearchModalProps {
   onSelectTask?: (task: TaskDto) => void;
 }
 
-type SearchFilterType = "all" | "tasks" | "notes" | "journal";
+type SearchFilterType = "all" | "tasks" | "events" | "notes" | "journal";
 
 export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
   isOpen,
@@ -73,9 +73,9 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
   // Search Results
   const searchResults = useMemo(() => {
     const q = query.trim();
-    if (!q) return { tasks: [], notes: [], journal: [] };
+    if (!q) return { tasks: [], events: [], notes: [], journal: [] };
 
-    const matchingTasks = tasks.filter(
+    const matchingItems = tasks.filter(
       (t) =>
         matchesQuery(
           [t.title, t.description, t.tag]
@@ -84,6 +84,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
           q,
         )
     );
+    const matchingEvents = matchingItems.filter((task) => getTaskItemType(task) === "event");
+    const matchingTasks = matchingItems.filter((task) => getTaskItemType(task) !== "event");
 
     const matchingNotes = notes.filter(
       (n) =>
@@ -97,6 +99,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
 
     return {
       tasks: matchingTasks,
+      events: matchingEvents,
       notes: matchingNotes,
       journal: matchingJournal,
     };
@@ -104,6 +107,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
 
   const totalMatches =
     (filterType === "all" || filterType === "tasks" ? searchResults.tasks.length : 0) +
+    (filterType === "all" || filterType === "events" ? searchResults.events.length : 0) +
     (filterType === "all" || filterType === "notes" ? searchResults.notes.length : 0) +
     (filterType === "all" || filterType === "journal" ? searchResults.journal.length : 0);
 
@@ -111,19 +115,19 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-stretch sm:items-start justify-center p-0 sm:p-6 bg-black/50 select-none"
+      className="fixed inset-0 z-50 flex items-start justify-center sm:p-6 bg-[var(--bg-surface)] sm:bg-black/50 select-none"
       onClick={onClose}
     >
       <div
-        className={`relative w-full h-[100dvh] sm:h-auto sm:max-w-xl bg-[#FBF9F4] dark:bg-[#1C1C1E] rounded-t-[32px] sm:rounded-3xl shadow-none sm:shadow-2xl p-4 sm:p-6 pt-[max(env(safe-area-inset-top),16px)] sm:pt-6 pb-[max(env(safe-area-inset-bottom),16px)] sm:pb-6 space-y-4 sm:my-auto max-h-[100dvh] sm:max-h-[85vh] flex flex-col ${isClosing ? "mobile-panel-exit" : "mobile-panel-enter"}`}
+        className={`relative w-full h-full sm:h-auto sm:max-w-xl bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] sm:rounded-3xl shadow-none sm:shadow-2xl px-3 sm:px-6 pt-[max(env(safe-area-inset-top),12px)] sm:pt-6 pb-4 sm:pb-6 space-y-3 sm:space-y-4 flex flex-col ${isClosing ? "mobile-panel-exit" : "mobile-panel-enter"}`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Search Input with Back Arrow */}
-        <div className="flex items-center gap-2 pb-2.5">
+        <div className="flex items-center gap-2 pb-2.5 pt-2 sm:pt-0">
           <button
             type="button"
             onClick={onClose}
-            className="p-2.5 bg-white dark:bg-[#2C2C2E] rounded-2xl shadow-xs text-[#1C1917] dark:text-[#F2F2F7] hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 cursor-pointer shrink-0 transition-all"
+            className="flex h-9 w-9 items-center justify-center bg-black/[0.04] dark:bg-white/[0.06] rounded-2xl text-[var(--text-main)] hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 cursor-pointer shrink-0 transition-all"
             title="Quay lại"
           >
             <ArrowLeft size={17} strokeWidth={2.4} />
@@ -140,7 +144,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Tìm kiếm mọi thứ..."
-              className="w-full pl-10 pr-9 py-2.5 bg-white dark:bg-[#2C2C2E] rounded-2xl text-sm font-medium text-[#1C1917] dark:text-[#F2F2F7] placeholder:text-[#A8A29E] dark:placeholder:text-[#71717A] shadow-xs focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30"
+              className="w-full pl-10 pr-9 h-10 bg-black/[0.04] dark:bg-white/[0.06] rounded-2xl text-sm font-medium text-[var(--text-main)] placeholder:text-[#A8A29E] dark:placeholder:text-[#71717A] shadow-none focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]/30 transition-all"
             />
             {query && (
               <button
@@ -161,6 +165,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
             [
               { key: "all", label: "Tất cả" },
               { key: "tasks", label: `Việc (${searchResults.tasks.length})` },
+              { key: "events", label: `Sự kiện (${searchResults.events.length})` },
               { key: "notes", label: `Ghi chú (${searchResults.notes.length})` },
               { key: "journal", label: `Nhật ký (${searchResults.journal.length})` },
             ] as const
@@ -214,26 +219,18 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                           }
                           onClose();
                         }}
-                        className="bg-white dark:bg-[#2C2C2E] rounded-2xl p-3 shadow-xs hover:bg-[#FFFDF8] dark:hover:bg-[#3A3A3C] cursor-pointer flex items-center justify-between gap-2 group transition-all"
+                        className="bg-[#F5F7FA] dark:bg-[#12161B] rounded-2xl p-3 shadow-xs hover:bg-[#EEF2F6] dark:hover:bg-[#181C22] border border-black/[0.04] dark:border-white/[0.04] cursor-pointer flex items-center justify-between gap-2 group transition-all"
                       >
                         <div className="min-w-0 flex items-center gap-2.5">
-                          {getTaskItemType(task) === "event" ? (
-                            <span
-                              className="h-2.5 w-2.5 shrink-0 rounded-full bg-sky-500 shadow-2xs"
-                              aria-label="Sự kiện"
-                              title="Sự kiện không có trạng thái hoàn thành"
-                            />
-                          ) : (
-                            <input
-                              type="checkbox"
-                              checked={task.completed}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                toggleTask(task.id);
-                              }}
-                              className="w-4 h-4 rounded-full border-none accent-[#1C1917] cursor-pointer shrink-0"
-                            />
-                          )}
+                          <input
+                            type="checkbox"
+                            checked={task.completed}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              toggleTask(task.id);
+                            }}
+                            className="w-4 h-4 rounded-full border-none accent-[#1C1917] cursor-pointer shrink-0"
+                          />
                           <div className="min-w-0">
                             <p
                               className={`text-xs font-bold truncate leading-tight ${
@@ -263,7 +260,51 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                 </div>
               )}
 
-              {/* 2. Notes Results */}
+              {/* 2. Events Results */}
+              {(filterType === "all" || filterType === "events") && searchResults.events.length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  <div className="text-[11px] font-bold text-[#1C1917] dark:text-[#F2F2F7] font-mono uppercase tracking-wider flex items-center gap-1.5">
+                    <Calendar size={13} className="text-[var(--accent-blue)]" />
+                    <span>Sự kiện ({searchResults.events.length})</span>
+                  </div>
+                  {searchResults.events.map((event) => {
+                    const effectiveDate = getTaskEffectiveDate(event);
+                    const effectiveTime = getTaskEffectiveTime(event);
+                    return (
+                      <div
+                        key={event.id}
+                        onClick={() => {
+                          if (onSelectTask) onSelectTask(event);
+                          if (onNavigateTab) {
+                            onNavigateTab("events", { taskId: event.id, date: effectiveDate });
+                          }
+                          onClose();
+                        }}
+                        className="bg-[#F5F7FA] dark:bg-[#12161B] rounded-2xl p-3 shadow-xs hover:bg-[#EEF2F6] dark:hover:bg-[#181C22] border border-black/[0.04] dark:border-white/[0.04] cursor-pointer flex items-center justify-between gap-2 group transition-all"
+                      >
+                        <div className="min-w-0 flex items-center gap-2.5">
+                          <span
+                            className="h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--accent-blue)]"
+                            aria-label="Sự kiện"
+                          />
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold truncate leading-tight text-[#1C1917] dark:text-[#F2F2F7]">
+                              {event.title}
+                            </p>
+                            <div className="flex items-center gap-2 mt-0.5 text-[10px] text-[#78716C] dark:text-[#8E8E93] font-mono truncate">
+                              {effectiveDate && <span className="flex items-center gap-0.5"><Calendar size={10} /> {effectiveDate}</span>}
+                              {effectiveTime && <span className="flex items-center gap-0.5"><Clock size={10} /> {effectiveTime}</span>}
+                            </div>
+                          </div>
+                        </div>
+                        <ArrowRight size={13} className="text-[#A8A29E] group-hover:text-[#1C1917] dark:group-hover:text-white shrink-0" />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* 3. Notes Results */}
               {(filterType === "all" || filterType === "notes") && searchResults.notes.length > 0 && (
                 <div className="space-y-1.5 pt-1">
                   <div className="text-[11px] font-bold text-[#1C1917] dark:text-[#F2F2F7] font-mono uppercase tracking-wider flex items-center gap-1.5">
@@ -277,7 +318,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                         if (onNavigateTab) onNavigateTab("notes", { noteId: note.id });
                         onClose();
                       }}
-                      className="bg-white dark:bg-[#2C2C2E] rounded-2xl p-3 shadow-xs hover:bg-[#FFFDF8] dark:hover:bg-[#3A3A3C] cursor-pointer flex items-center justify-between gap-2 group transition-all"
+                      className="bg-[#F5F7FA] dark:bg-[#12161B] rounded-2xl p-3 shadow-xs hover:bg-[#EEF2F6] dark:hover:bg-[#181C22] border border-black/[0.04] dark:border-white/[0.04] cursor-pointer flex items-center justify-between gap-2 group transition-all"
                     >
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7] truncate">{note.title || "Ghi chú không tên"}</p>
@@ -289,7 +330,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                 </div>
               )}
 
-              {/* 3. Journal Results */}
+              {/* 4. Journal Results */}
               {(filterType === "all" || filterType === "journal") && searchResults.journal.length > 0 && (
                 <div className="space-y-1.5 pt-1">
                   <div className="text-[11px] font-bold text-[#1C1917] dark:text-[#F2F2F7] font-mono uppercase tracking-wider flex items-center gap-1.5">
@@ -303,7 +344,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
                         if (onNavigateTab) onNavigateTab("journal", { journalEntryId: journal.id });
                         onClose();
                       }}
-                      className="bg-white dark:bg-[#2C2C2E] rounded-2xl p-3 shadow-xs hover:bg-[#FFFDF8] dark:hover:bg-[#3A3A3C] cursor-pointer flex items-center justify-between gap-2 group transition-all"
+                      className="bg-[#F5F7FA] dark:bg-[#12161B] rounded-2xl p-3 shadow-xs hover:bg-[#EEF2F6] dark:hover:bg-[#181C22] border border-black/[0.04] dark:border-white/[0.04] cursor-pointer flex items-center justify-between gap-2 group transition-all"
                     >
                       <div className="min-w-0">
                         <p className="text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7] truncate">

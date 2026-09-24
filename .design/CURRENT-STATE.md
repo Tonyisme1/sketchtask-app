@@ -4,9 +4,11 @@
 
 - Desktop has one shared right dock. The narrow tool rail is always visible;
   its panel expands left from the rail when a utility is selected.
-- Search, notifications, overdue, and upcoming are compact utility panels.
-  Notes and journal are docked mini-apps that reuse their feature models and
-  editors. Opening a utility does not change the active Event or Task workspace.
+- Search opens the shared `GlobalSearchModal`; notes and journal are the docked mini-apps
+  that reuse their feature models and editors. Opening a utility does not change
+  the active Event or Task workspace.
+- Deadline work is managed only by the Task workspace's `Hạn định` context.
+  The right dock must not create a second notification, overdue, or upcoming feed.
 - Task detail and utility content share the same right-dock area. Opening a
   utility temporarily hides the inspector without clearing the selected task;
   closing the utility restores that inspector when a task is still selected.
@@ -60,7 +62,9 @@ Sidebar chính gồm:
 5. `Nhật ký`: danh sách ngày và sổ nhật ký đang mở.
 6. `AI`: trợ lý AI.
 
-Settings mở từ account control/header và hiển thị trong dialog có vùng cuộn riêng.
+Settings mở từ account control/header. Desktop giữ navigation theo nhóm và master-detail;
+tablet giữ nhóm theo hướng màn hình; mobile là một trang cài đặt cuộn liên tục, được
+ngăn nhịp bằng divider thay vì các card lớn hoặc drill-down riêng cho từng mục.
 
 ### Tablet
 
@@ -70,10 +74,10 @@ Dock dưới gồm `Hôm nay`, `Công việc`, `Ghi chép` và `Trợ lý AI`. `
 
 Dock dưới gồm:
 
-1. `Công việc` cho các subcontext hôm nay/kế hoạch/hạn định.
-2. `Ghi chép` cho ghi chú và nhật ký.
-3. Nút `+` mở create sheet để chọn thêm task hoặc note.
-4. `Thông báo` với badge khi có thông báo chưa đọc.
+1. `Việc` cho các subcontext công việc và kế hoạch.
+2. `Sự kiện` cho dòng sự kiện và lịch sự kiện.
+3. Nút `+` ở giữa để tạo đúng loại mục của workspace hiện tại.
+4. `Hạn` là lối tắt duy nhất vào `Hạn định`, có badge cho task deadline quá hạn hoặc trong bảy ngày tới; mở vào `Sắp đến` trước.
 5. `Cá nhân` để vào Settings.
 
 Dock tự ẩn khi bàn phím mở hoặc khi người dùng cuộn xuống, sau đó hiện lại theo hành vi của shell.
@@ -85,7 +89,9 @@ Không có workspace active riêng tên `Sổ tay`, `Dashboard` hoặc `Review`.
 - Store giữ task workspace bằng `activeTab = "tasks"` và `activeTaskSubTab` là `today`, `planner` hoặc `deadlines`.
 - `Hôm nay` ưu tiên danh sách task hiện tại, progress và các thao tác nhanh phù hợp platform.
 - `Kế hoạch` có overview, day detail, lịch trình và lịch tháng theo những view mà `PlannerTab` đang render. Desktop có weekly time chart; tablet/mobile ưu tiên danh sách bảy ngày và day detail dễ cuộn.
-- `Hạn định` có nhóm `Quá hạn` và `Sắp đến`; đây là task subcontext, không phải app-level tab mới.
+- `Hạn định` có nhóm `Quá hạn` và `Sắp đến`; trên mobile hai mục này chỉ nằm trong dropdown Header với `Sắp đến` đứng trước. Đây là task subcontext, không phải app-level tab mới.
+- `Hạn định` là nguồn duy nhất để xem, lọc và xử lý task deadline cần chú ý.
+  Không dựng inbox Thông báo thứ hai từ cùng tập task đó.
 - Task detail: desktop dùng panel/dock; tablet và mobile dùng detail surface toàn màn hình. Edit và view là hai trạng thái của cùng một detail flow.
 - Quick create không được nhân đôi trên cùng một màn hình: desktop mở `QuickTaskModal` từ sidebar/Today, tablet dùng contextual FAB, mobile dùng nút `+` và create sheet.
 

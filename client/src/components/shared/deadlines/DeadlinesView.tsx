@@ -7,12 +7,10 @@ import {
   CheckCheck,
   Hourglass,
   Trash2,
-  Search,
-  X,
 } from "lucide-react";
 import { TaskDto } from "../../../types";
 import { DeadlinesScreenModel } from "../../../features/deadlines/model/types";
-import { formatFullDate, getLocalTodayStr, getLocalTomorrowStr } from "../../../utils/date";
+import { formatFullDate, getLocalTodayStr } from "../../../utils/date";
 import { SketchTabs } from "../../layout/SketchTabs";
 import { ConfirmModal } from "../../ui/overlays/ConfirmModal";
 import { RescheduleDateModal } from "../../ui/overlays/RescheduleDateModal";
@@ -23,21 +21,24 @@ import {
   getTaskEffectiveDate,
   getTaskEffectiveTime,
   getTaskTemporalState,
+  isTaskDeadline,
   normalizeTaskTimeType,
-  getTaskTags,
 } from "../../../utils/taskSemantics";
 import { TaskList } from "../common/TaskList";
 import { TaskListSection } from "../common/TaskListSection";
 import type { TaskListProps } from "../common/TaskList";
 import { DesktopTaskGroup } from "../common/DesktopTaskGroup";
 
+export type DeadlineView = "overdue" | "upcoming";
+type BulkActionKind = "complete" | "delete";
+
 export interface DeadlinesViewProps extends DeadlinesScreenModel {
   onNavigateToTaskDate?: (dateStr: string, taskId: string) => void;
   taskListPresentation?: TaskListProps["presentation"];
+  view?: DeadlineView;
+  onViewChange?: (view: DeadlineView) => void;
+  hideViewTabs?: boolean;
 }
-
-type DeadlineView = "overdue" | "upcoming";
-type BulkActionKind = "complete" | "delete";
 
 interface PendingBulkAction {
   kind: BulkActionKind;
@@ -86,11 +87,13 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
   openTaskDetail,
   isMobile,
   taskListPresentation = "default",
+  view: controlledView,
+  onViewChange,
+  hideViewTabs = false,
 }) => {
   const todayStr = getLocalTodayStr(new Date());
-  const tomorrowStr = getLocalTomorrowStr();
-  const [view, setView] = useState<DeadlineView>("overdue");
-  const [searchQuery, setSearchQuery] = useState("");
+  const upcomingLimitStr = getLocalTodayStr(new Date(Date.now() + 6 * 24 * 60 * 60 * 1000));
+  const [uncontrolledView, setUncontrolledView] = useState<DeadlineView>("overdue");
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [pendingBulkAction, setPendingBulkAction] = useState<PendingBulkAction | null>(null);
   const [rescheduleModalState, setRescheduleModalState] = useState<{
@@ -99,46 +102,38 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
     taskTitle?: string;
   } | null>(null);
 
-  const filterBySearch = (list: TaskDto[]) => {
-    if (!searchQuery.trim()) return list;
-    const q = searchQuery.toLowerCase().trim();
-    return list.filter(
-      (task) =>
-        task.title.toLowerCase().includes(q) ||
-        task.description?.toLowerCase().includes(q) ||
-        getTaskTags(task).some((t) => t.toLowerCase().includes(q))
-    );
+  const view = controlledView ?? uncontrolledView;
+  const setView = (nextView: DeadlineView) => {
+    if (onViewChange) {
+      onViewChange(nextView);
+      return;
+    }
+    setUncontrolledView(nextView);
   };
 
   const overdueTasks = useMemo(
     () =>
       sortByDateAndTime(
-        filterBySearch(
-          tasks.filter((task) => {
-            if (task.completed) return false;
-            const state = getTaskTemporalState(task);
-            return state === "overdue" || state === "pastScheduled";
-          })
-        ),
+        tasks.filter((task) => {
+          if (task.completed || !isTaskDeadline(task)) return false;
+          return getTaskTemporalState(task) === "overdue";
+        }),
       ),
-    [tasks, searchQuery],
+    [tasks],
   );
 
   const upcomingTasks = useMemo(
     () =>
       sortByDateAndTime(
-        filterBySearch(
-          tasks.filter((task) => {
-            if (task.completed) return false;
-            const state = getTaskTemporalState(task);
-            if (state === "overdue" || state === "pastScheduled") return false;
-            if (normalizeTaskTimeType(task) !== "deadline") return false;
-            const date = getTaskDeadlineDate(task) || getTaskEffectiveDate(task);
-            return date === todayStr || date === tomorrowStr;
-          })
-        ),
+        tasks.filter((task) => {
+          if (task.completed || !isTaskDeadline(task)) return false;
+          const state = getTaskTemporalState(task);
+          if (state === "overdue") return false;
+          const date = getTaskDeadlineDate(task) || getTaskEffectiveDate(task);
+          return Boolean(date && date >= todayStr && date <= upcomingLimitStr);
+        }),
       ),
-    [tasks, todayStr, tomorrowStr, searchQuery],
+    [tasks, todayStr, upcomingLimitStr],
   );
 
   const overdueGroups = useMemo(() => groupByDate(overdueTasks), [overdueTasks]);
@@ -404,7 +399,8 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
       {/* 1. Header Toolbar */}
       {isMobile ? (
         <div className="space-y-2 select-none">
-          <SketchTabs
+          {!hideViewTabs && (
+            <SketchTabs
             ariaLabel="Chuyển loại hạn định"
             size="sm"
             className="w-full flex justify-center [&>button]:min-h-[36px] [&>button]:flex-1"
@@ -434,29 +430,8 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
                   ) : undefined,
               },
             ]}
-          />
-
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2.5 h-9 px-3 bg-black/[0.04] dark:bg-[#1C1C20] rounded-2xl border-none shadow-2xs focus-within:ring-2 focus-within:ring-[#007AFF]/30 focus-within:bg-white dark:focus-within:bg-[#25252A] transition-all flex-1">
-              <Search size={14} strokeWidth={2.2} className="text-[#71717A] dark:text-[#A1A1AA] shrink-0" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={`Tìm việc ${isOverdueView ? "quá hạn" : "sắp đến"}...`}
-                className="bg-transparent pl-1 text-xs text-[#18181B] dark:text-[#ECECF1] placeholder:text-[#71717A] dark:placeholder:text-[#71717A] focus:outline-none w-full font-sans"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery("")}
-                  className="text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7] cursor-pointer shrink-0 rounded-full p-0.5"
-                  title="Xóa tìm kiếm"
-                >
-                  <X size={13} strokeWidth={2.2} />
-                </button>
-              )}
-            </div>
+            />
+          )}
 
             {activeTasks.length > 0 && (
               <div className="flex items-center gap-1.5 shrink-0">
@@ -494,7 +469,6 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
                 )}
               </div>
             )}
-          </div>
         </div>
       ) : (
         /* GIAO DIỆN DESKTOP: Chỉ giữ thanh Tab Quá hạn / Sắp đến */

@@ -4,7 +4,7 @@ import { TaskPriority } from "../../types";
 import { TaskScreenModel } from "../../features/tasks/model/createTaskScreenModel";
 import { formatFullDate } from "../../utils/date";
 import { getTaskItemType, getTaskTags } from "../../utils/taskSemantics";
-import { DesktopTaskGroup } from "../../components/shared/common/DesktopTaskGroup";
+import { DesktopTaskGroup } from "../components/tasks/DesktopTaskGroup";
 import { groupDesktopTasksByDate } from "../../components/shared/common/desktopTaskListUtils";
 import { useAppStore } from "../../stores/appStore";
 import { CustomSelect } from "../../components/ui/pickers/select/CustomSelect";

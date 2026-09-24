@@ -3,9 +3,12 @@
 ### `DesktopRightDock`
 
 - Desktop-only utility rail on the outer right edge of the workspace.
-- Hosts exactly one open utility panel at a time. Notes and journal are
-  dedicated docked mini-apps that reuse their feature models, rather than
-  read-only previews.
+- Hosts exactly one open utility panel at a time: notes or journal. The search
+  rail button opens the shared `GlobalSearchModal` instead of a second search UI.
+  Notes and journal are dedicated docked mini-apps that reuse their feature
+  models, rather than read-only previews.
+- Deadline work belongs to the `Hạn định` task context, not to a right-dock
+  notification/overdue/upcoming feed.
 - Shares its available width with `DesktopTaskDetailPage`; it must never create
   a second full-height right sidebar beside the inspector.
 
@@ -37,9 +40,12 @@ Danh sách này mô tả component đang được mount hoặc được dùng ch
 - Chỉ hiển thị destination đang được App mount.
 - Task navigation dùng `activeTaskSubTab`; không tạo tab mới cho từng biến thể filter.
 - `MobileNav` giữ nút `+` ở giữa để chọn tạo task hoặc note; không thêm quick-add thứ hai nếu flow đã có modal/FAB.
+- `Hạn` trên mobile là lối tắt trực tiếp vào `Hạn định`; badge của nó chỉ đếm task deadline cần chú ý và luôn mở `Sắp đến` trước.
 
 ### `MobileHeader` và `mobile-back-button`
 
+- Khi đang ở `Hạn định`, dropdown header chỉ chứa `Sắp đến` và `Hạn`; count có task dùng token accent xanh.
+- Mobile không dựng thêm ô tìm kiếm cục bộ trong các tab; icon Header mở `GlobalSearchModal` chung.
 - Back button phải có aria-label, vùng chạm dễ bấm và gọi callback cấp màn hình.
 - Callback chỉ đóng child surface hoặc gọi navigation handler; không tự thao tác history riêng.
 - Header không được chiếm vùng status bar hoặc che nội dung khi detail mở.
@@ -94,10 +100,13 @@ Danh sách này mô tả component đang được mount hoặc được dùng ch
 
 ## 6. Overlay và system components
 
-### `GlobalSearchModal`, `NotificationDrawer`, `AuthModal`, `SettingsTab`, `AIAssistantTab`
+### `GlobalSearchModal`, `AuthModal`, `SettingsTab`, `AIAssistantTab`
 
-- Search và notification là overlay/system surface dùng chung cả ba shell, không lặp logic theo từng tab.
-- Settings: desktop dùng dialog/master-detail; tablet tùy orientation có master-detail hoặc drill-down; mobile dùng fullscreen category/detail flow.
+- Search là overlay/system surface dùng chung cho desktop, tablet và mobile. Không có notification drawer/page nội bộ;
+  deadline cần xử lý luôn được mở trong `Hạn định`.
+- Settings: desktop dùng dialog/master-detail theo nhóm; tablet tùy orientation có
+  master-detail hoặc danh sách nhóm; mobile giữ một trang cuộn dài, liên tục, không
+  bọc mỗi mục trong card lớn hoặc chuyển sang fullscreen detail.
 - AI: desktop/tablet có thể là workspace/panel; mobile có standalone detail với back rõ ràng.
 - AuthModal có login/register state và phải phù hợp viewport, không dùng kích thước desktop cho mobile.
 

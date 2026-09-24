@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { TabKey, NavigationTarget } from "../../types";
+import { MobileEventSubTab, TabKey, NavigationTarget } from "../../types";
 import { useAppStore } from "../../stores";
 import { DynamicIcon } from "../../components/ui";
 import { isNativePlatform } from "../../services";
@@ -9,17 +9,12 @@ import {
   FileText,
   BookOpen,
   ChevronDown,
-  Calendar as CalendarIcon,
   Hourglass,
-  Sun,
-  Check,
+  BellRing,
+  Search,
 } from "lucide-react";
 import {
-  getTaskTemporalState,
-  isTaskDueToday,
-  getLocalTodayStr,
-  getTaskEffectiveDate,
-  normalizeTaskTimeType,
+  getDeadlineAttentionSummary,
 } from "../../utils";
 
 const SETTINGS_SECTION_TITLES: Record<string, string> = {
@@ -36,16 +31,18 @@ export interface MobileHeaderProps {
   activeTab: TabKey;
   onTabChange: (tab: TabKey, target?: NavigationTarget) => void;
   onOpenSearch: () => void;
-  onOpenNotifications: () => void;
   onOpenSettings: () => void;
   onOpenLogin: () => void;
   onLogout: () => void;
   previousTab?: TabKey;
+  activeEventSubTab: MobileEventSubTab;
+  onEventSubTabChange: (subTab: MobileEventSubTab) => void;
 }
 
 export const MobileHeader: React.FC<MobileHeaderProps> = ({
   activeTab,
   onTabChange,
+  onOpenSearch,
   onOpenSettings,
   onOpenLogin,
   onLogout,
@@ -54,7 +51,8 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
   const {
     user,
     activeTaskSubTab,
-    setActiveTaskSubTab,
+    mobileDeadlineView,
+    setMobileDeadlineView,
     tasks,
     settingsMobileSubView,
     setSettingsMobileSubView,
@@ -112,35 +110,26 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const deadlineCount = useMemo(() => {
-    const overdue = tasks.filter((t) => {
-      if (t.completed) return false;
-      const temporal = getTaskTemporalState(t);
-      return temporal === "overdue" || temporal === "pastScheduled";
-    }).length;
-    const tomorrowStr = getLocalTodayStr(new Date(Date.now() + 86400000));
-    const todayStr = getLocalTodayStr(new Date());
-    const dueSoon = tasks.filter((t) => {
-      if (t.completed) return false;
-      const temporal = getTaskTemporalState(t);
-      if (temporal === "overdue" || temporal === "pastScheduled") return false;
-      const normTime = normalizeTaskTimeType(t);
-      const isDeadline = normTime === "deadline" || Boolean(t.deadlineTime);
-      const effectiveDate = getTaskEffectiveDate(t);
-      return isDeadline && (effectiveDate === todayStr || effectiveDate === tomorrowStr);
-    }).length;
-    return overdue + dueSoon;
-  }, [tasks]);
+  const deadlineSummary = useMemo(() => {
+    return getDeadlineAttentionSummary(tasks, new Date(now));
+  }, [tasks, now]);
+  const isDeadlineSection = activeTab === "deadlines" || activeTaskSubTab === "deadlines";
 
   const currentTitle = useMemo(() => {
-    if (activeTab === "today" || (activeTab === "tasks" && activeTaskSubTab === "today")) {
+    if (activeTab === "settings") {
+      return "Cá nhân";
+    }
+    if (activeTab === "events") {
+      return "Sự kiện";
+    }
+    if (isDeadlineSection) {
+      return mobileDeadlineView === "overdue" ? "Hạn" : "Sắp đến";
+    }
+    if (activeTab === "today") {
       return "Hôm nay";
     }
-    if (activeTab === "planner" || (activeTab === "tasks" && activeTaskSubTab === "planner")) {
-      return "Kế hoạch";
-    }
-    if (activeTab === "deadlines" || (activeTab === "tasks" && activeTaskSubTab === "deadlines")) {
-      return "Hạn định";
+    if (activeTab === "planner" || activeTab === "tasks") {
+      return "Công việc";
     }
     if (activeTab === "notes") {
       return "Ghi chú";
@@ -151,20 +140,14 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
     if (activeTab === "ai") {
       return "Trợ lý AI";
     }
-    if (activeTab === "notifications") {
-      return "Thông báo";
-    }
-    if (activeTab === "settings") {
-      return settingsMobileSubView ? SETTINGS_SECTION_TITLES[settingsMobileSubView] || "Cài đặt" : "Cá nhân";
-    }
     return "Công việc";
-  }, [activeTab, activeTaskSubTab, settingsMobileSubView]);
+  }, [activeTab, activeTaskSubTab, mobileDeadlineView, settingsMobileSubView, isDeadlineSection]);
 
   const isSettings = activeTab === "settings";
 
   return (
     <header
-      className={`sticky top-0 z-30 bg-[#F2F2F7]/95 dark:bg-[#18181A]/95 backdrop-blur-xl border-b border-black/[0.04] dark:border-white/[0.06] px-3.5 sm:px-5 ${
+      className={`sticky top-0 z-30 bg-[#F5F7FA] dark:bg-[#12161B] border-b border-transparent dark:border-transparent px-3.5 sm:px-5 ${
         isNativePlatform()
           ? "pt-11 pb-2.5"
           : "pt-[max(env(safe-area-inset-top),12px)] pb-2.5"
@@ -173,15 +156,13 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
       <div className="relative flex items-center justify-between min-h-[40px] w-full">
         {/* 1. KHU VỰC NHÃN TAB */}
         <div className="flex items-center gap-2 min-w-0 z-10">
-          {/* Nút Quay lại khi đang ở màn hình con của Cài đặt hoặc tab AI */}
-          {((isSettings && settingsMobileSubView) || activeTab === "ai") && (
+          {/* Nút Quay lại khi đang ở tab AI */}
+          {activeTab === "ai" && (
             <button
               type="button"
               onClick={() => {
                 if (activeTab === "ai") {
                   onTabChange(previousTab || "tasks");
-                } else {
-                  setSettingsMobileSubView(null);
                 }
               }}
               className="mobile-back-button w-9 h-9 bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] rounded-2xl flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7] active:scale-95 transition-all cursor-pointer shrink-0 shadow-2xs"
@@ -200,125 +181,104 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
             }`}
           >
             {activeTab === "tasks" || activeTab === "today" || activeTab === "planner" || activeTab === "deadlines" ? (
-              /* Dropdown chọn đổi giữa Hôm nay, Kế hoạch và Hạn định */
+              isDeadlineSection ? (
               <div ref={taskDropdownRef} className="relative">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (isScrolled) {
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    } else {
-                      setIsTaskDropdownOpen(!isTaskDropdownOpen);
-                    }
-                  }}
+                  onClick={() => setIsTaskDropdownOpen((open) => !open)}
+                  aria-expanded={isTaskDropdownOpen}
+                  aria-haspopup="menu"
                   className="flex items-center gap-1.5 px-2 py-1 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
                 >
                   <span className="font-black text-[20px] sm:text-[22px] text-[#1C1917] dark:text-[#F2F2F7] tracking-tight leading-none">
-                    {activeTaskSubTab === "today" ? "Hôm nay" : activeTaskSubTab === "deadlines" ? "Hạn định" : "Kế hoạch"}
+                    {mobileDeadlineView === "overdue" ? "Hạn" : "Sắp đến"}
                   </span>
                   <ChevronDown
                     size={18}
                     strokeWidth={2.6}
-                    className={`text-[#8E8E93] transition-all duration-200 ${
-                      isScrolled
-                        ? "opacity-0 w-0 -mr-1 scale-0 pointer-events-none"
-                        : `opacity-100 w-4.5 ${isTaskDropdownOpen ? "rotate-180" : ""}`
-                    }`}
+                    className={`w-4 text-[var(--text-main)] transition-transform duration-200 ${isTaskDropdownOpen ? "rotate-180" : ""}`}
                   />
                 </button>
 
-                {!isScrolled && isTaskDropdownOpen && (
-                  <div className="absolute left-0 top-full mt-2 w-52 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-none rounded-3xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in duration-150">
-                    {/* 1. Hôm nay */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onTabChange("tasks");
-                        setActiveTaskSubTab("today");
-                        setIsTaskDropdownOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-                        activeTaskSubTab === "today"
-                          ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]"
-                          : "hover:bg-black/5 dark:hover:bg-white/10 text-[#57534E] dark:text-[#aeaeb2]"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Sun size={16} strokeWidth={2.2} />
-                        <span>Hôm nay</span>
-                      </div>
-                      {activeTaskSubTab === "today" && <Check size={15} strokeWidth={2.6} />}
-                    </button>
+                {isTaskDropdownOpen && (
+                  <div className="absolute left-0 top-full mt-2 w-52 bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-1.5 shadow-xl z-50 space-y-1 animate-in fade-in duration-150">
+                    <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMobileDeadlineView("upcoming");
+                            setIsTaskDropdownOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+                            mobileDeadlineView === "upcoming"
+                              ? "bg-[var(--accent-blue)] text-[var(--text-on-accent)]"
+                              : "hover:bg-black/5 dark:hover:bg-white/10 text-[var(--text-muted)] hover:text-[var(--text-main)]"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <BellRing size={16} strokeWidth={2.2} />
+                            <span>Sắp đến</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            {deadlineSummary.upcoming > 0 && (
+                              <span
+                                aria-label={`${deadlineSummary.upcoming} việc sắp đến`}
+                                className={`h-2 w-2 shrink-0 rounded-full ${mobileDeadlineView === "upcoming" ? "bg-[var(--accent-sky)]" : "bg-[var(--accent-blue)]"}`}
+                              >
+                              </span>
+                            )}
+                          </div>
+                        </button>
 
-                    {/* 2. Kế hoạch */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onTabChange("tasks");
-                        setActiveTaskSubTab("planner");
-                        setIsTaskDropdownOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-                        activeTaskSubTab === "planner"
-                          ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]"
-                          : "hover:bg-black/5 dark:hover:bg-white/10 text-[#57534E] dark:text-[#aeaeb2]"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <CalendarIcon size={16} strokeWidth={2.2} />
-                        <span>Kế hoạch</span>
-                      </div>
-                      {activeTaskSubTab === "planner" && <Check size={15} strokeWidth={2.6} />}
-                    </button>
-
-                    {/* 3. Hạn định */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        onTabChange("tasks");
-                        setActiveTaskSubTab("deadlines");
-                        setIsTaskDropdownOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
-                        activeTaskSubTab === "deadlines"
-                          ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]"
-                          : "hover:bg-black/5 dark:hover:bg-white/10 text-[#57534E] dark:text-[#aeaeb2]"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Hourglass size={16} strokeWidth={2.2} />
-                        <span>Hạn định</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        {deadlineCount > 0 && (
-                          <span
-                            className={`font-mono text-xs px-2 py-0.5 rounded-full font-bold ${
-                              activeTaskSubTab === "deadlines"
-                                ? "bg-white text-[#1C1C1E]"
-                                : "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]"
-                            }`}
-                          >
-                            {deadlineCount}
-                          </span>
-                        )}
-                        {activeTaskSubTab === "deadlines" && <Check size={15} strokeWidth={2.6} />}
-                      </div>
-                    </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMobileDeadlineView("overdue");
+                            setIsTaskDropdownOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+                            mobileDeadlineView === "overdue"
+                              ? "bg-[var(--accent-blue)] text-[var(--text-on-accent)]"
+                              : "hover:bg-black/5 dark:hover:bg-white/10 text-[var(--text-muted)] hover:text-[var(--text-main)]"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <Hourglass size={16} strokeWidth={2.2} />
+                            <span>Hạn</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            {deadlineSummary.overdue > 0 && (
+                              <span
+                                aria-label={`${deadlineSummary.overdue} việc quá hạn`}
+                                className={`h-2 w-2 shrink-0 rounded-full ${mobileDeadlineView === "overdue" ? "bg-[var(--accent-sky)]" : "bg-[var(--accent-blue)]"}`}
+                              >
+                              </span>
+                            )}
+                          </div>
+                        </button>
+                    </>
                   </div>
                 )}
+              </div>
+              ) : (
+                <span className="px-2 py-1 font-black text-[20px] sm:text-[22px] text-[#1C1917] dark:text-[#F2F2F7] tracking-tight leading-none">
+                  Công việc
+                </span>
+              )
+            ) : activeTab === "events" ? (
+              <div className="relative">
+                <span className="px-2 py-1 font-black text-[20px] sm:text-[22px] text-[#1C1917] dark:text-[#F2F2F7] tracking-tight leading-none">
+                  Sự kiện
+                </span>
               </div>
             ) : activeTab === "notes" || activeTab === "journal" ? (
               /* Dropdown chọn đổi giữa Ghi chú và Nhật ký */
               <div ref={noteDropdownRef} className="relative">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (isScrolled) {
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    } else {
-                      setIsNoteDropdownOpen(!isNoteDropdownOpen);
-                    }
-                  }}
+                  onClick={() => setIsNoteDropdownOpen((open) => !open)}
+                  aria-expanded={isNoteDropdownOpen}
+                  aria-haspopup="menu"
                   className="flex items-center gap-1.5 px-2 py-1 rounded-xl hover:bg-black/5 dark:hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
                 >
                   <span className="font-black text-[20px] sm:text-[22px] text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight leading-none">
@@ -327,16 +287,12 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                   <ChevronDown
                     size={18}
                     strokeWidth={2.6}
-                    className={`text-[#8E8E93] transition-all duration-200 ${
-                      isScrolled
-                        ? "opacity-0 w-0 -mr-1 scale-0 pointer-events-none"
-                        : `opacity-100 w-4.5 ${isNoteDropdownOpen ? "rotate-180" : ""}`
-                    }`}
+                    className={`w-4 text-[var(--text-main)] transition-transform duration-200 ${isNoteDropdownOpen ? "rotate-180" : ""}`}
                   />
                 </button>
 
-                {!isScrolled && isNoteDropdownOpen && (
-                  <div className="absolute left-0 top-full mt-2 w-48 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-none rounded-3xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in duration-150">
+                {isNoteDropdownOpen && (
+                  <div className="absolute left-0 top-full mt-2 w-48 bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-1.5 shadow-xl z-50 space-y-1 animate-in fade-in duration-150">
                     <button
                       type="button"
                       onClick={() => {
@@ -345,15 +301,14 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                       }}
                       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                         activeTab === "notes"
-                          ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]"
-                          : "hover:bg-black/5 dark:hover:bg-white/10 text-[#57534E] dark:text-[#aeaeb2]"
+                          ? "bg-[#182230] dark:bg-white/[0.12] text-white"
+                          : "hover:bg-black/5 dark:hover:bg-white/10 text-[var(--text-muted)] hover:text-[var(--text-main)]"
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
                         <FileText size={16} strokeWidth={2.2} />
                         <span>Ghi chú</span>
                       </div>
-                      {activeTab === "notes" && <Check size={15} strokeWidth={2.6} />}
                     </button>
 
                     <button
@@ -364,15 +319,14 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                       }}
                       className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
                         activeTab === "journal"
-                          ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E]"
-                          : "hover:bg-black/5 dark:hover:bg-white/10 text-[#57534E] dark:text-[#aeaeb2]"
+                          ? "bg-[#182230] dark:bg-white/[0.12] text-white"
+                          : "hover:bg-black/5 dark:hover:bg-white/10 text-[var(--text-muted)] hover:text-[var(--text-main)]"
                       }`}
                     >
                       <div className="flex items-center gap-2.5">
                         <BookOpen size={16} strokeWidth={2.2} />
                         <span>Nhật ký</span>
                       </div>
-                      {activeTab === "journal" && <Check size={15} strokeWidth={2.6} />}
                     </button>
                   </div>
                 )}
@@ -385,16 +339,6 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
               >
                 <span className="font-black text-[20px] sm:text-[22px] text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight leading-none">
                   Trợ lý AI
-                </span>
-              </button>
-            ) : activeTab === "notifications" ? (
-              <button
-                type="button"
-                onClick={() => isScrolled && window.scrollTo({ top: 0, behavior: "smooth" })}
-                className={`flex items-center gap-1.5 py-1 ${isScrolled ? "cursor-pointer" : "cursor-default"}`}
-              >
-                <span className="font-black text-[20px] sm:text-[22px] text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight leading-none">
-                  Thông báo
                 </span>
               </button>
             ) : isSettings ? (
@@ -422,21 +366,33 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
         </div>
 
         {/* 2. GÓC PHẢI: TÀI KHOẢN (Mờ dần và trượt ẩn đi khi cuộn xuống) */}
-        {!settingsMobileSubView && (
-          <div
-            className={`flex items-center gap-2 shrink-0 ml-auto z-10 transition-all duration-250 ease-out ${
-              isScrolled
-                ? "opacity-0 translate-x-3 pointer-events-none scale-95"
-                : "opacity-100 translate-x-0 pointer-events-auto scale-100"
-            }`}
-          >
+        <div
+          className={`flex items-center gap-2 shrink-0 ml-auto z-10 transition-all duration-250 ease-out ${
+            isScrolled
+              ? "opacity-0 translate-x-3 pointer-events-none scale-95"
+              : "opacity-100 translate-x-0 pointer-events-auto scale-100"
+          }`}
+        >
+            <button
+              type="button"
+              onClick={() => {
+                setIsAccountDropdownOpen(false);
+                onOpenSearch();
+              }}
+              title="Tìm kiếm"
+              aria-label="Mở tìm kiếm"
+              className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[var(--bg-surface)] text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-muted)] active:scale-95 cursor-pointer"
+            >
+              <Search size={18} strokeWidth={2.2} />
+            </button>
+
             {/* Tài khoản Dropdown */}
             <div ref={accountDropdownRef} className="relative shrink-0">
               <button
                 type="button"
                 onClick={() => setIsAccountDropdownOpen((prev) => !prev)}
-                style={{ backgroundColor: user.avatarBg || "#FEF08A" }}
-                className="w-9 h-9 rounded-2xl border-none flex items-center justify-center text-[#1C1C1E] shadow-2xs active:scale-95 transition-all cursor-pointer overflow-hidden"
+                style={{ backgroundColor: "#09090B" }}
+                className="w-9 h-9 rounded-2xl border border-white flex items-center justify-center text-white shadow-2xs active:scale-95 transition-all cursor-pointer overflow-hidden"
                 title="Tài khoản & Cài đặt"
                 aria-label="Tài khoản & Cài đặt"
               >
@@ -444,11 +400,12 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                   name={user.avatar || (user.isSignedIn ? "lucide:UserCheck" : "lucide:User")}
                   size={18}
                   strokeWidth={2.2}
+                  className="text-white"
                 />
               </button>
 
               {isAccountDropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-52 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-none rounded-3xl p-2 shadow-2xl z-50 space-y-1 animate-in fade-in duration-150">
+                <div className="absolute right-0 top-full mt-2 w-52 bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] rounded-2xl p-1.5 shadow-xl z-50 space-y-1 animate-in fade-in duration-150">
                   <button
                     type="button"
                     onClick={() => {
@@ -476,9 +433,9 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
                       name={user.isSignedIn ? "lucide:LogOut" : "lucide:LogIn"}
                       size={16}
                       strokeWidth={2.2}
-                      className={user.isSignedIn ? "text-[#FF3B30]" : "text-[#34C759] dark:text-[#30D158]"}
+                      className={user.isSignedIn ? "text-[var(--accent-blue)]" : "text-[var(--text-muted)]"}
                     />
-                    <span className={`truncate ${user.isSignedIn ? "text-[#FF3B30]" : "text-[#34C759] dark:text-[#30D158]"}`}>
+                    <span className={`truncate ${user.isSignedIn ? "text-[var(--accent-blue)]" : "text-[var(--text-muted)]"}`}>
                       {user.isSignedIn ? "Đăng xuất" : "Đăng nhập / Đăng ký"}
                     </span>
                   </button>
@@ -486,7 +443,6 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
               )}
             </div>
           </div>
-        )}
       </div>
     </header>
   );

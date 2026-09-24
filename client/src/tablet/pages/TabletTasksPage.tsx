@@ -3,7 +3,7 @@ import { NavigationTarget } from "../../types";
 import { TabletTodayView } from "../tabs/TabletTodayView";
 import { TabletDeadlinesPage } from "../tabs/TabletDeadlinesPage";
 import { TabletPlannerPage } from "../tabs/TabletPlannerPage";
-import { getLocalTodayStr, getTaskEffectiveDate } from "../../utils";
+import { getTaskEffectiveDate } from "../../utils";
 import { TaskScreenModel, useTaskScreenModel } from "../../features/tasks/model/createTaskScreenModel";
 
 export interface TabletTasksPageProps {
@@ -26,10 +26,6 @@ export const TabletTasksPage: React.FC<TabletTasksPageProps> = ({
   const [plannerTargetDateStr, setPlannerTargetDateStr] = useState<string | undefined>(undefined);
   const [plannerTargetTaskId, setPlannerTargetTaskId] = useState<string | undefined>(undefined);
   const [plannerSourceTab, setPlannerSourceTab] = useState<"deadlines" | undefined>(undefined);
-  const [todayTargetTaskId, setTodayTargetTaskId] = useState<string | undefined>(undefined);
-
-  const todayStr = getLocalTodayStr(new Date());
-
   useEffect(() => {
     if (!navigationTarget?.taskId) return;
 
@@ -40,25 +36,17 @@ export const TabletTasksPage: React.FC<TabletTasksPageProps> = ({
     }
 
     const taskDate = navigationTarget.date || getTaskEffectiveDate(task);
-    if (taskDate === todayStr) {
-      setTodayTargetTaskId(task.id);
-      setActiveTaskSubTab("today");
-    } else {
-      setPlannerTargetDateStr(taskDate);
-      setPlannerTargetTaskId(task.id);
-      setActiveTaskSubTab("planner");
-    }
+    setPlannerTargetDateStr(taskDate);
+    setPlannerTargetTaskId(task.id);
+    setActiveTaskSubTab("planner");
     onClearNavigationTarget?.();
-  }, [navigationTarget, model.tasks, todayStr, setActiveTaskSubTab, onClearNavigationTarget]);
+  }, [navigationTarget, model.tasks, setActiveTaskSubTab, onClearNavigationTarget]);
 
   return (
     <div className="w-full min-w-0 select-none pb-12">
       {/* Content */}
       {activeTaskSubTab === "today" ? (
-        <TabletTodayView
-          targetTaskId={todayTargetTaskId}
-          onClearTarget={() => setTodayTargetTaskId(undefined)}
-        />
+        <TabletTodayView />
       ) : activeTaskSubTab === "planner" ? (
         <TabletPlannerPage
           targetDateStr={plannerTargetDateStr}
@@ -76,14 +64,10 @@ export const TabletTasksPage: React.FC<TabletTasksPageProps> = ({
       ) : (
         <TabletDeadlinesPage
           onNavigateToTaskDate={(dateStr, taskId) => {
-            if (dateStr === todayStr) {
-              setActiveTaskSubTab("today");
-            } else {
-              setPlannerTargetDateStr(dateStr);
-              setPlannerTargetTaskId(taskId);
-              setPlannerSourceTab("deadlines");
-              setActiveTaskSubTab("planner");
-            }
+            setPlannerTargetDateStr(dateStr);
+            setPlannerTargetTaskId(taskId);
+            setPlannerSourceTab("deadlines");
+            setActiveTaskSubTab("planner");
           }}
         />
       )}

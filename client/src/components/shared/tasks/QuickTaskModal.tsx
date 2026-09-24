@@ -49,7 +49,7 @@ const QuickTaskAccordion: React.FC<QuickTaskSectionProps> = ({
       className={`w-full min-h-[42px] px-3.5 py-2.5 flex items-center justify-between gap-2 text-left cursor-pointer transition-colors ${
         open
           ? "bg-black/[0.03] dark:bg-white/[0.05] text-[#1C1C1E] dark:text-[#F2F2F7]"
-          : "bg-white dark:bg-[#1C1C1E] hover:bg-black/[0.02] dark:hover:bg-white/[0.02] text-[#1C1C1E] dark:text-[#F2F2F7]"
+          : "bg-white dark:bg-[#1E222A] hover:bg-black/[0.02] dark:hover:bg-white/[0.02] text-[#1C1C1E] dark:text-[#F2F2F7]"
       } focus-visible:outline-none`}
     >
       <span className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] flex items-center gap-2.5">
@@ -62,7 +62,7 @@ const QuickTaskAccordion: React.FC<QuickTaskSectionProps> = ({
         {open ? <ChevronUp size={16} strokeWidth={2.2} /> : <ChevronDown size={16} strokeWidth={2.2} />}
       </span>
     </button>
-    {open && <div className="p-3.5 space-y-3.5 bg-white dark:bg-[#1C1C1E]">{children}</div>}
+    {open && <div className="p-3.5 space-y-3.5 bg-white dark:bg-[#1E222A]">{children}</div>}
   </section>
 );
 
@@ -257,11 +257,11 @@ export const QuickTaskModal: React.FC = () => {
 
       {/* Bottom sheet mobile bo hai góc trên; desktop và tablet bo đủ bốn góc. */}
       <div
-        className="relative z-[1000000] w-full max-w-lg bg-white dark:bg-[#1C1C1E] rounded-t-3xl md:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] md:max-h-[82vh] my-0 md:my-auto"
+        className="relative z-[1000000] w-full max-w-lg bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] rounded-t-3xl md:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] md:max-h-[82vh] my-0 md:my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-5 pt-4 pb-3 flex items-start justify-between bg-white/80 dark:bg-[#1C1C1E]/80 backdrop-blur-xl shrink-0">
+        <div className="px-5 pt-4 pb-3 flex items-start justify-between bg-white/80 dark:bg-[#1E222A]/90 backdrop-blur-xl shrink-0">
           <div>
             <span className="text-xs font-medium text-[#8E8E93] block">
               {contextName}
@@ -557,46 +557,47 @@ export const QuickTaskModal: React.FC = () => {
 
               </QuickTaskAccordion>
 
-              {itemType === "task" && (
-                <>
               {/* SECTION 2: PHÂN LOẠI & ƯU TIÊN */}
-                  <QuickTaskAccordion
+              <QuickTaskAccordion
                 title="Phân loại"
                 icon={<Sparkles size={13} />}
                 open={openSections.organize}
                 onToggle={() => toggleSection("organize")}
               >
                 <div className="space-y-3 text-sm">
-                  {/* Mức độ ưu tiên */}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-medium text-xs text-[#8E8E93] flex items-center gap-1.5 shrink-0">
-                      <Sparkles size={12} />
-                      <span>Ưu tiên:</span>
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      {[
-                        { key: "high", label: "Gấp", color: "text-[#FF3B30] bg-[#FF3B30]/10" },
-                        { key: "medium", label: "Vừa", color: "text-[#FF9500] bg-[#FF9500]/10" },
-                        { key: "low", label: "Thấp", color: "text-[#34C759] bg-[#34C759]/10" },
-                      ].map((p) => (
-                        <button
-                          key={p.key}
-                          type="button"
-                          onClick={() => setPriority(p.key as TaskPriority)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 ${
-                            priority === p.key
-                              ? `${p.color} shadow-2xs font-bold`
-                              : "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
-                          }`}
-                        >
-                          <span>{p.label}</span>
-                        </button>
-                      ))}
+                  {/* Mức độ ưu tiên (Chỉ dành cho Task) */}
+                  {itemType === "task" && (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium text-xs text-[#8E8E93] flex items-center gap-1.5 shrink-0">
+                        <Sparkles size={12} />
+                        <span>Ưu tiên:</span>
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        {[
+                          { key: "high", label: "Gấp", sym: "●" },
+                          { key: "medium", label: "Vừa", sym: "◐" },
+                          { key: "low", label: "Thấp", sym: "○" },
+                        ].map((p) => (
+                          <button
+                            key={p.key}
+                            type="button"
+                            onClick={() => setPriority(p.key as TaskPriority)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all active:scale-95 ${
+                              priority === p.key
+                                ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] shadow-2xs font-bold"
+                                : "bg-[#F2F2F7] dark:bg-[#2C2C2E] text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
+                            }`}
+                          >
+                            <span className="font-mono text-[10px]">{p.sym}</span>
+                            <span>{p.label}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Nhãn Tag (#) Đa Năng */}
-                  <div className="pt-2 border-t border-black/[0.04] dark:border-white/[0.06] space-y-1.5">
+                  <div className={`${itemType === "task" ? "pt-2 border-t border-black/[0.04] dark:border-white/[0.06]" : ""} space-y-1.5`}>
                     <span className="font-medium text-xs text-[#8E8E93] flex items-center gap-1.5">
                       <TagIcon size={12} />
                       <span>Nhãn (#Tag):</span>
@@ -608,9 +609,7 @@ export const QuickTaskModal: React.FC = () => {
                     />
                   </div>
                 </div>
-                  </QuickTaskAccordion>
-                </>
-              )}
+              </QuickTaskAccordion>
 
               {/* SECTION 3: GHI CHÚ */}
               <QuickTaskAccordion

@@ -14,8 +14,6 @@ import { PlannerTaskPreviewPopover } from "../../components/shared/planner/Plann
 import { TodayScheduleNotes } from "../../components/shared/today/TodayScheduleNotes";
 import { TaskList } from "../../components/shared/common/TaskList";
 import { FilterBar } from "../../components/shared/common/FilterBar";
-import { TodayProgressBar } from "../../components/shared/today/TodayProgressBar";
-import { getTaskProgress } from "../../utils/taskHierarchy";
 import { registerBackHandler } from "../../utils/backNavigation";
 import {
   PlannerScreenModel,
@@ -30,6 +28,13 @@ import {
 } from "lucide-react";
 
 const DAY_NAMES = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"];
+
+const shiftDateKey = (dateStr: string, offset: number) => {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  date.setDate(date.getDate() + offset);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+};
 
 export interface TabletPlannerPageProps {
   model?: PlannerScreenModel;
@@ -67,11 +72,11 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
     selectDay,
   } = model.actions;
 
-  const [viewMode, setViewMode] = useState<PlannerViewMode>("agenda");
+  const [viewMode, setViewMode] = useState<PlannerViewMode>("day");
   const [plannerScreen, setPlannerScreen] = useState<"overview" | "day">("overview");
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [monthOffset, setMonthOffset] = useState<number>(0);
-  const [selectedDateStr, setSelectedDateStr] = useState<string>(model.todayStr);
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(model.currentDayStr);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
@@ -106,7 +111,8 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
     if (!targetDateStr && !targetTaskId) return;
     if (targetDateStr) {
       setSelectedDateStr(targetDateStr);
-      setPlannerScreen("day");
+      setViewMode("day");
+      setPlannerScreen("overview");
     } else {
       setPlannerScreen("overview");
       if (targetTaskId) openTaskDetail(targetTaskId);
@@ -195,26 +201,39 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
     };
   }, [model.todayDate, monthOffset]);
 
-  const currentTitleLabel = viewMode === "agenda" ? weekLabel : monthLabel;
+  const getDayCompactTitle = () => {
+    const parts = selectedDateStr.split("-");
+    return parts.length === 3 ? `${Number(parts[2])}/${Number(parts[1])}` : selectedDateStr;
+  };
+
+  const currentTitleLabel = viewMode === "day"
+    ? getDayCompactTitle()
+    : viewMode === "agenda"
+      ? weekLabel
+      : monthLabel;
 
   const handlePrev = () => {
-    if (viewMode === "agenda") setWeekOffset((prev) => prev - 1);
+    if (viewMode === "day") setSelectedDateStr((dateStr) => shiftDateKey(dateStr, -1));
+    else if (viewMode === "agenda") setWeekOffset((prev) => prev - 1);
     else setMonthOffset((prev) => prev - 1);
   };
 
   const handleNext = () => {
-    if (viewMode === "agenda") setWeekOffset((prev) => prev + 1);
+    if (viewMode === "day") setSelectedDateStr((dateStr) => shiftDateKey(dateStr, 1));
+    else if (viewMode === "agenda") setWeekOffset((prev) => prev + 1);
     else setMonthOffset((prev) => prev + 1);
   };
 
   const handleResetToCurrent = () => {
-    if (viewMode === "agenda") setWeekOffset(0);
+    if (viewMode === "day") setSelectedDateStr(model.todayStr);
+    else if (viewMode === "agenda") setWeekOffset(0);
     else setMonthOffset(0);
   };
 
   const handleSelectDate = (dateStr: string) => {
     setSelectedDateStr(dateStr);
-    setPlannerScreen("day");
+    setViewMode("day");
+    setPlannerScreen("overview");
   };
 
   const selectedDayTasks = useMemo(() => {
@@ -297,8 +316,6 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
     (tagFilter !== "all" ? 1 : 0);
 
   const isPastDate = selectedDateStr < model.todayStr;
-  const { completed: completedCount, total: totalCount } = getTaskProgress(selectedDayTasks);
-
   return (
     <div className="w-full min-w-0 select-none space-y-4 pb-16 animate-in fade-in duration-150">
       {/* 1. MÀN HÌNH TỔNG QUAN */}
@@ -323,6 +340,26 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
               onDeleteTask={deleteTask}
               onUpdateTask={updateTask}
               onPreviewTask={handleOpenTaskPreview}
+            />
+          )}
+
+          {viewMode === "day" && (
+            <TaskList
+              tasks={filteredTasks}
+              emptyMessage="Chưa có công việc trong ngày này"
+              emptySubMessage="Chưa có công việc."
+              emptyActionText="+ Thêm việc vào ngày này"
+              onEmptyAction={() => openTaskDetail("new")}
+              onToggle={toggleTask}
+              onEdit={(task) => openTaskDetail(task.id)}
+              onDelete={deleteTask}
+              onMoveTomorrow={moveTaskToNextDay}
+              onClick={(task) => openTaskDetail(task.id)}
+              variant="planner"
+              hideDate={true}
+              baseDateStr={selectedDateStr}
+              activeTaskId={targetTaskId}
+              showQuickAdd={false}
             />
           )}
 
@@ -386,18 +423,7 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 sm:justify-start">
-                <div className="font-mono text-xs font-bold bg-white dark:bg-[#2C2C2E] px-3 py-1 rounded-full shadow-xs text-[#1C1C1E] dark:text-[#F2F2F7]">
-                  {completedCount}/{totalCount}
-                </div>
-              </div>
             </div>
-
-            <TodayProgressBar
-              completedCount={completedCount}
-              totalCount={totalCount}
-              label="Tiến độ ngày"
-            />
           </div>
 
           {/* Thanh tìm kiếm */}

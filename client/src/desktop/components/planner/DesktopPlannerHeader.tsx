@@ -6,10 +6,10 @@ export type PlannerViewMode = "day" | "agenda" | "month" | "year";
 export type DesktopPlannerSurface = "calendar" | "list";
 
 const VIEW_MODE_OPTIONS = [
+  { value: "day", label: "Ngày" },
   { value: "agenda", label: "Tuần" },
   { value: "month", label: "Tháng" },
   { value: "year", label: "Năm" },
-  { value: "day", label: "Ngày" },
 ];
 
 export interface DesktopPlannerHeaderProps {
@@ -41,7 +41,7 @@ export const DesktopPlannerHeader: React.FC<DesktopPlannerHeaderProps> = ({
           className="h-9 rounded-xl px-3 text-xs font-bold text-[var(--text-main)] transition-colors hover:bg-[var(--bg-surface-muted)] focus-visible:bg-[var(--bg-surface-muted)] active:scale-95 cursor-pointer shrink-0"
           title="Nhảy về ngày hôm nay"
         >
-          Hôm nay
+          Nay
         </button>
 
         {/* Nút Prev / Next bo tròn */}

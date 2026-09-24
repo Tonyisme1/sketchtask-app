@@ -14,6 +14,7 @@ import {
   DesktopUtilityPanel,
 } from "../layout/DesktopRightDock";
 import { useAppStore } from "../../stores";
+import { GlobalSearchModal } from "../../components/ui";
 import type { DesktopPlannerSurface } from "../components/planner/DesktopPlannerHeader";
 
 export interface DesktopWorkspaceProps {
@@ -37,6 +38,7 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
 }) => {
   const { activeDetailTaskId, closeTaskDetail, activeTaskSubTab } = useAppStore();
   const [activeUtility, setActiveUtility] = React.useState<DesktopUtilityPanel | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = React.useState(false);
 
   const renderMainTab = () => {
     switch (activeTab) {
@@ -130,6 +132,28 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isTaskDetailVisible, closeTaskDetail]);
 
+  // === PHAN 1: MOT TRENH TIM KIEM DUNG CHO CA BA GIAO DIEN ===
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const isInput = Boolean(
+        target &&
+          (target.tagName === "INPUT" ||
+            target.tagName === "TEXTAREA" ||
+            target.isContentEditable),
+      );
+
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k" && !isInput) {
+        event.preventDefault();
+        setActiveUtility(null);
+        setIsSearchOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const isPlannerView =
     activeTab === "planner" ||
     (activeTab === "tasks" && activeTaskSubTab === "planner");
@@ -177,6 +201,12 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
       <DesktopRightDock
         activeUtility={activeUtility}
         onUtilityChange={setActiveUtility}
+        onOpenSearch={() => setIsSearchOpen(true)}
+      />
+      <GlobalSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onNavigateTab={onNavigateTab}
       />
     </div>
   );

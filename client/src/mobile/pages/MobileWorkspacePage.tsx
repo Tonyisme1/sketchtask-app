@@ -1,15 +1,15 @@
 import React, { useEffect } from "react";
-import { TabKey, NavigationTarget } from "../../types";
+import { MobileEventSubTab, TabKey, NavigationTarget } from "../../types";
 import { MobileTasksPage } from "./MobileTasksPage";
 import { MobileTodayView } from "../tabs/MobileTodayView";
-import { MobileNotificationsView } from "../tabs/MobileNotificationsView";
 import { MobileNotesPage } from "../tabs/MobileNotesPage";
 import { MobileJournalPage } from "../tabs/MobileJournalPage";
 import { MobileAIAssistantPage } from "../tabs/MobileAIAssistantPage";
+import { MobileEventsPage } from "../tabs/MobileEventsPage";
 import { MobileSettingsPage } from "../tabs/MobileSettingsPage";
 import { MobileTaskDetailPage } from "../details/MobileTaskDetailPage";
 import { useAppStore } from "../../stores";
-import { getLocalTodayStr, getTaskEffectiveDate } from "../../utils";
+import { getTaskEffectiveDate } from "../../utils";
 
 export interface MobileWorkspaceProps {
   activeTab: TabKey;
@@ -18,6 +18,8 @@ export interface MobileWorkspaceProps {
   onNavigateTab: (tab: TabKey | string, target?: NavigationTarget) => void;
   onNavigateRoute: (path: string) => void;
   previousTab?: TabKey;
+  activeEventSubTab: MobileEventSubTab;
+  onEventSubTabChange: (subTab: MobileEventSubTab) => void;
 }
 
 export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
@@ -27,6 +29,8 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
   onNavigateTab,
   onNavigateRoute,
   previousTab,
+  activeEventSubTab,
+  onEventSubTabChange,
 }) => {
   const {
     activeDetailTaskId,
@@ -42,8 +46,6 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
     (activeTab === "notes" && Boolean(isMobileNoteDetailOpen)) ||
     (activeTab === "journal" && Boolean(isJournalBookOpen));
 
-  const todayStr = getLocalTodayStr(new Date());
-
   useEffect(() => {
     if (!navigationTarget?.taskId) return;
 
@@ -54,13 +56,9 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
     }
 
     const taskDate = navigationTarget.date || getTaskEffectiveDate(task);
-    if (taskDate === todayStr) {
-      setActiveTaskSubTab("today");
-    } else {
-      setActiveTaskSubTab("planner");
-    }
+    setActiveTaskSubTab("planner");
     onClearNavigationTarget?.();
-  }, [navigationTarget, tasks, todayStr, setActiveTaskSubTab, onClearNavigationTarget]);
+  }, [navigationTarget, tasks, setActiveTaskSubTab, onClearNavigationTarget]);
 
   // Nếu đang mở trang chi tiết task thì hiển thị panel chi tiết
   if (activeDetailTaskId) {
@@ -75,12 +73,12 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
   }
 
   const renderActiveView = () => {
-    // 1. Hôm nay (Nay)
-    if (activeTab === "today" || (activeTab === "tasks" && activeTaskSubTab === "today")) {
+    // 1. Hôm nay vẫn là điểm đến độc lập nếu app mở từ một route cũ.
+    if (activeTab === "today") {
       return <MobileTodayView />;
     }
 
-    // 2. Công việc (Việc - Kế hoạch & Hạn định)
+    // 2. Công việc (Danh sách, lịch công việc và hạn định)
     if (activeTab === "tasks" || activeTab === "planner" || activeTab === "deadlines") {
       return (
         <MobileTasksPage
@@ -90,7 +88,19 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
       );
     }
 
-    // 3. Ghi chú (Ghi)
+    // 3. Sự kiện: không trộn vào luồng công việc trên Mobile
+    if (activeTab === "events") {
+      return (
+        <MobileEventsPage
+          activeSubTab={activeEventSubTab}
+          onSubTabChange={onEventSubTabChange}
+          navigationTarget={navigationTarget}
+          onClearNavigationTarget={onClearNavigationTarget}
+        />
+      );
+    }
+
+    // 4. Ghi chú (Ghi)
     if (activeTab === "notes") {
       return (
         <MobileNotesPage
@@ -101,7 +111,7 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
       );
     }
 
-    // 4. Nhật ký (thuộc nhóm Ghi)
+    // 5. Nhật ký (thuộc nhóm Ghi)
     if (activeTab === "journal") {
       return (
         <MobileJournalPage
@@ -112,7 +122,7 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
       );
     }
 
-    // 5. Trợ lý AI (AI)
+    // 6. Trợ lý AI (AI)
     if (activeTab === "ai") {
       return (
         <MobileAIAssistantPage
@@ -120,11 +130,6 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
           isStandalone
         />
       );
-    }
-
-    // 6. Thông báo (Notifications Full Page)
-    if (activeTab === "notifications") {
-      return <MobileNotificationsView onNavigateTab={onNavigateTab} />;
     }
 
     // 7. Cài đặt

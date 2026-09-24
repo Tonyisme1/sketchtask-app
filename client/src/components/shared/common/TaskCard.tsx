@@ -8,6 +8,8 @@ import {
   getTaskTemporalState,
   getTaskItemType,
   normalizeTaskTimeType,
+  getTaskCardVisualStyle,
+  getTaskCardVisualTone,
 } from "../../../utils/taskSemantics";
 import {
   CornerDownRight,
@@ -70,7 +72,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   const temporal = getTaskTemporalState(task, now);
   const normTime = normalizeTaskTimeType(task);
   const isDesktop = presentation === "desktop";
-  const isEvent = (isDesktop || showEventTimeLabel) && getTaskItemType(task) === "event";
+  // Item type is the source of truth so an event never becomes a task card
+  // just because it was rendered by a different viewport or list.
+  const isEvent = getTaskItemType(task) === "event";
   const effectiveTime = getTaskEffectiveTime(task);
   const effectiveDate = getTaskEffectiveDate(task);
 
@@ -94,36 +98,35 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   // Nhãn thời gian giữ rõ ba ngữ nghĩa: event, lịch hẹn của task và hạn.
   const timeLabel = React.useMemo(() => {
     if (isEvent) {
-      if (effectiveTime) {
+      const explicitStart = task.startTime || effectiveTime;
+      if (explicitStart) {
         const range = task.endTime
-          ? `${effectiveTime} – ${task.endTime}`
-          : effectiveTime;
+          ? `${explicitStart} – ${task.endTime}`
+          : explicitStart;
         return `Sự kiện · ${range}`;
       }
       return "Sự kiện · Cả ngày";
     }
-    if (normTime === "scheduled" && effectiveTime) {
-      const range = task.endTime
-        ? `${effectiveTime} – ${task.endTime}`
-        : effectiveTime;
-      return `Lịch hẹn · ${range}`;
+    if (normTime === "scheduled") {
+      const explicitStart = task.startTime || effectiveTime;
+      if (explicitStart) {
+        const range = task.endTime
+          ? `${explicitStart} – ${task.endTime}`
+          : explicitStart;
+        return `Lịch hẹn · ${range}`;
+      }
     }
-    if (normTime === "deadline" && effectiveTime) {
-      return `Hạn · ${effectiveTime}`;
+    if (normTime === "deadline") {
+      const explicitDeadline = task.deadlineTime || effectiveTime;
+      if (explicitDeadline) {
+        return `Hạn · ${explicitDeadline}`;
+      }
     }
     if (effectiveTime) {
       return `Giờ · ${effectiveTime}`;
     }
     return null;
-  }, [isEvent, normTime, effectiveTime, task.endTime, showEventTimeLabel]);
-
-  const timeTone = showEventTimeLabel
-    ? "bg-[var(--accent-blue)] text-white border-[#1D4ED8] dark:border-[#3B82F6]"
-    : normTime === "scheduled"
-      ? "bg-[#E0F2FE] text-[#0C4A6E] border-[#0284C7] dark:bg-[#0F172A] dark:text-[#38BDF8] dark:border-[#38BDF8]"
-      : normTime === "deadline"
-        ? "bg-[#FEE2E2] text-[#991B1B] border-[#DC2626] dark:bg-[#450A0A] dark:text-[#FECDD3] dark:border-[#EF4444]"
-        : "bg-[var(--bg-surface-muted)] text-[var(--text-muted)] border-[var(--border-ink)]";
+  }, [isEvent, normTime, effectiveTime, task.endTime]);
 
   const hasChildren = childCount > 0;
   const indentLevel = Math.max(0, hierarchyDepth ?? (isSubtask ? 1 : 0));
@@ -165,6 +168,16 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
   const isEffectivelyCompleted =
     !isEvent && (task.completed || isPendingComplete);
+  const visualTone = getTaskCardVisualTone(task, now, isEffectivelyCompleted);
+  const visualStyle = getTaskCardVisualStyle(task, now, isEffectivelyCompleted);
+  const timeTone =
+    visualTone === "event"
+      ? "bg-[var(--task-card-event-bg)] text-[var(--task-card-event-text)] border-[var(--task-card-event-bg)]"
+      : visualTone === "overdue"
+        ? "bg-[var(--task-card-overdue-bg)] text-[var(--task-card-overdue-text)] border-[var(--accent-coral)]"
+        : visualTone === "completed"
+          ? "bg-[var(--task-card-completed-bg)] text-[var(--task-card-completed-text)] border-[var(--task-card-completed-bg)]"
+          : "bg-[var(--task-card-task-bg)] text-[var(--task-card-task-text)] border-[var(--accent-sky)]";
 
   const handleClickRow = () => {
     onClick?.(task);
@@ -193,29 +206,29 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         ? "text-[var(--text-muted)] line-through"
         : "text-[var(--text-main)]";
     const desktopMetaTone = isEvent
-      ? "text-white/80"
-      : "text-[var(--text-muted)]";
+      ? "text-[var(--task-card-event-text)]/80"
+      : visualTone === "overdue"
+        ? "text-[var(--task-card-overdue-text)]/80"
+        : isEffectivelyCompleted
+          ? "text-[var(--task-card-completed-text)]"
+          : "text-[var(--task-card-task-meta)]";
     const desktopTimeTone = isEvent
-      ? "text-white"
-      : isDesktopOverdue
-        ? "text-[var(--accent-coral)]"
-        : "text-[var(--text-main)]";
+      ? "text-[var(--task-card-event-text)]"
+      : isEffectivelyCompleted
+        ? "text-[var(--task-card-completed-text)]"
+        : "text-[var(--task-card-task-text)]";
     const desktopMarkerTone = isEvent
-      ? "bg-white ring-4 ring-white/25"
-      : "bg-[var(--accent-sky)] ring-4 ring-[var(--accent-sky)]/15";
+      ? "bg-[var(--task-card-event-text)] ring-4 ring-white/25"
+      : visualTone === "overdue"
+        ? "bg-[var(--accent-coral)] ring-4 ring-[var(--accent-coral)]/15"
+        : "bg-[var(--accent-sky)] ring-4 ring-[var(--accent-sky)]/15";
 
     return (
       <article
         style={{
+          ...visualStyle,
           marginLeft: indentPx > 0 ? `${indentPx}px` : undefined,
           width: indentPx > 0 ? `calc(100% - ${indentPx}px)` : undefined,
-          backgroundColor: isEvent
-            ? "var(--accent-blue)"
-            : isDesktopOverdue
-              ? "color-mix(in srgb, var(--accent-coral) 18%, var(--bg-surface))"
-              : isEffectivelyCompleted
-                ? "var(--bg-surface-muted)"
-                : "color-mix(in srgb, var(--accent-sky) 20%, var(--bg-surface))",
         }}
         className={`group relative flex min-h-[64px] items-center gap-3 overflow-hidden rounded-2xl px-4 py-3 transition-colors duration-150 shadow-xs ${desktopTone} ${
           isSelected
@@ -335,19 +348,16 @@ export const TaskCard: React.FC<TaskCardProps> = ({
   return (
     <div
       style={{
+        ...visualStyle,
         marginLeft: indentPx > 0 ? `${indentPx}px` : undefined,
         width: indentPx > 0 ? `calc(100% - ${indentPx}px)` : undefined,
       }}
       className={`task-card-shell relative overflow-hidden transition-all duration-200 rounded-2xl shadow-xs mb-1.5 ${
-        indentLevel > 0
-          ? "bg-black/[0.02] dark:bg-white/[0.02]"
-          : "bg-white dark:bg-[#1C1C1E]"
-      } ${
         isSelected
-          ? "bg-black/[0.05] dark:bg-white/[0.08] shadow-sm ring-2 ring-[var(--accent-blue)]/30"
+          ? "ring-2 ring-[var(--accent-blue)]/30"
           : isEffectivelyCompleted
             ? "opacity-50 hover:opacity-75"
-            : "hover:bg-black/[0.02] dark:hover:bg-white/[0.03]"
+            : "hover:brightness-[0.98] dark:hover:brightness-110"
       }`}
     >
       {/* 1. HÀNG CHÍNH (COMPACT SCAN-FRIENDLY TASK ROW) */}
@@ -382,7 +392,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
             </div>
           ) : (
             <div
-              className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[var(--accent-blue)] shadow-2xs"
+              className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[var(--task-card-event-text)] shadow-2xs"
               aria-label="Sự kiện"
               title="Sự kiện"
             />
@@ -394,8 +404,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               <span
                 className={`text-[13.5px] sm:text-sm font-semibold line-clamp-2 break-words leading-snug transition-all duration-200 ${
                   isEffectivelyCompleted
-                    ? "text-[#71717A] dark:text-[#A1A1AA] line-through opacity-80"
-                    : "text-[#09090B] dark:text-[#FFFFFF]"
+                    ? "text-[var(--task-card-completed-text)] line-through opacity-80"
+                    : isEvent
+                      ? "text-[var(--task-card-event-text)]"
+                      : "text-[var(--task-card-task-text)]"
                 }`}
               >
                 {task.title}
@@ -404,7 +416,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
               {/* Điểm ưu tiên gấp (chỉ hiện khi gấp ●) */}
               {task.priority === "high" && !isEffectivelyCompleted && (
                 <span
-                  className="w-1.5 h-1.5 rounded-full bg-[#DC2626] dark:bg-[#EF4444] shrink-0"
+                  className="w-1.5 h-1.5 rounded-full bg-[var(--accent-coral)] shrink-0"
                   title="Ưu tiên gấp"
                 />
               )}
@@ -417,7 +429,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                     e.stopPropagation();
                     onToggleExpand?.();
                   }}
-                  className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[10px] font-sans text-[#71717A] dark:text-[#A1A1AA] shrink-0 shadow-2xs"
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-sans font-semibold shrink-0 shadow-2xs transition-colors ${
+                    isEvent
+                      ? "bg-white/15 text-white hover:bg-white/25"
+                      : "bg-black/[0.06] dark:bg-black/25 text-[var(--task-card-task-text)] hover:bg-black/10"
+                  }`}
                   title={isExpanded ? "Thu gọn việc con" : "Mở rộng việc con"}
                 >
                   <Layers size={10} />
@@ -442,12 +458,12 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 {dateRangeLabel && (
                   <span
                     className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-sans text-[10px] sm:text-[10.5px] font-semibold leading-tight shadow-2xs ${
-                      showEventTimeLabel
-                        ? "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]"
-                        : "bg-[#FEF08A] text-[#1C1917]"
+                      isEvent
+                        ? "bg-white/20 text-white"
+                        : "bg-black/10 dark:bg-black/25 text-[var(--task-card-task-text)]"
                     }`}
                   >
-                    <Calendar size={10} className="shrink-0 text-[#1C1917]" />
+                    <Calendar size={10} className="shrink-0 text-current" />
                     <span>{dateRangeLabel}</span>
                   </span>
                 )}
@@ -459,7 +475,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   </span>
                 )}
                 {singleDateLabel && (
-                  <span className="font-sans text-[10px] sm:text-[10.5px] text-[#78716C] dark:text-[#A1A1AA]">
+                  <span className={`font-sans text-[10px] sm:text-[10.5px] ${
+                    isEvent ? "text-[var(--task-card-event-text)]/80" : "text-[var(--task-card-task-meta)]"
+                  }`}>
                     {singleDateLabel}
                   </span>
                 )}
@@ -467,9 +485,9 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                   (temporal === "overdue" || temporal === "pastScheduled") && (
                     <span
                       className={`shrink-0 rounded-full px-2 py-0.5 font-sans text-[10px] sm:text-[10.5px] font-bold shadow-2xs ${
-                        showEventTimeLabel
-                          ? "bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]"
-                          : "bg-[#FEE2E2] text-[#991B1B] dark:bg-[#450A0A] dark:text-[#FECDD3]"
+                        isEvent
+                          ? "bg-white/20 text-white"
+                          : "bg-[var(--task-card-overdue-bg)] text-[var(--task-card-overdue-text)] border border-[var(--accent-coral)]/30"
                       }`}
                     >
                       {temporal === "pastScheduled" ? "Đã qua" : "Quá hạn"}
@@ -480,8 +498,10 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
             {/* Dòng metadata phụ (Tag nếu có) */}
             {task.tag && (
-              <div className="flex items-center gap-1 text-[10px] sm:text-[10.5px] font-normal text-[#78716C] dark:text-[#A1A1AA] truncate mt-0.5">
-                <span className="font-sans text-[#57534E] dark:text-[#D4D4D8]">
+              <div className="flex items-center gap-1 text-[10px] sm:text-[10.5px] font-normal truncate mt-0.5">
+                <span className={`font-sans ${
+                  isEvent ? "text-[var(--task-card-event-text)]/80" : "text-[var(--task-card-task-meta)]"
+                }`}>
                   #{task.tag}
                 </span>
               </div>

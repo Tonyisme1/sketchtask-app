@@ -1,12 +1,12 @@
 import React from "react";
-import { SettingsView } from "../../components/shared/settings/SettingsView";
+import { DesktopSettingsView } from "../components/settings/DesktopSettingsView";
 import {
   SettingsScreenModel,
   useSettingsScreenModel,
 } from "../../features/settings/model/createSettingsScreenModel";
 
 export type DesktopSettingsPageProps = Omit<
-  React.ComponentProps<typeof SettingsView>,
+  React.ComponentProps<typeof DesktopSettingsView>,
   keyof SettingsScreenModel
 > & { model?: SettingsScreenModel };
 
@@ -17,5 +17,5 @@ export const DesktopSettingsPage: React.FC<DesktopSettingsPageProps> = ({
   const defaultModel = useSettingsScreenModel();
   const model = propModel || defaultModel;
 
-  return <SettingsView {...model} {...viewProps} platform="desktop" />;
+  return <DesktopSettingsView {...model} {...viewProps} />;
 };

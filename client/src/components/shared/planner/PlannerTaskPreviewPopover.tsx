@@ -23,6 +23,7 @@ import {
   getTaskEffectiveDate,
   getTaskItemType,
   normalizeTaskTimeType,
+  getTaskCardVisualStyle,
 } from "../../../utils/taskSemantics";
 
 export interface PlannerTaskPreviewPopoverProps {
@@ -148,6 +149,7 @@ export const PlannerTaskPreviewPopover: React.FC<PlannerTaskPreviewPopoverProps>
   const shortDate = dateStr ? formatShortDayMonth(dateStr) : "";
   const isEvent = getTaskItemType(task) === "event";
   const normType = normalizeTaskTimeType(task);
+  const visualStyle = getTaskCardVisualStyle(task);
 
   // Time label formulation
   let timeLabel = "Cả ngày";
@@ -184,10 +186,10 @@ export const PlannerTaskPreviewPopover: React.FC<PlannerTaskPreviewPopoverProps>
         aria-label={task.title || "Xem nhanh công việc"}
         style={{ left: position.left, top: position.top }}
         onClick={(e) => e.stopPropagation()}
-        className="fixed z-[1001] w-[min(340px,calc(100vw-24px))] rounded-3xl bg-white dark:bg-[#1E1E20] p-4 text-[#1C1C1E] dark:text-[#F2F2F7] shadow-2xl animate-in fade-in zoom-in-95 duration-150 select-none"
+        className="fixed z-[1001] w-[min(340px,calc(100vw-24px))] rounded-3xl border border-[var(--border-ink-muted)] bg-[var(--bg-surface)] p-4 text-[var(--text-main)] shadow-2xl animate-in fade-in zoom-in-95 duration-150 select-none"
       >
         {/* === HEADER ACTION BAR === */}
-        <div className="flex items-center justify-between pb-3 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="flex items-center justify-between border-b border-[var(--border-ink-muted)] pb-3">
           {/* Quick Complete Status */}
           {!isEvent && onToggleComplete && (
             <button
@@ -198,7 +200,7 @@ export const PlannerTaskPreviewPopover: React.FC<PlannerTaskPreviewPopoverProps>
               title={task.completed ? "Đánh dấu chưa hoàn thành" : "Đánh dấu đã hoàn thành"}
               className={`flex h-6 min-w-6 items-center justify-center gap-1 rounded-[5px] border px-1.5 text-xs font-semibold transition-colors cursor-pointer ${
                 task.completed
-                  ? "border-[var(--accent-blue)] bg-[var(--accent-blue)] text-white"
+                  ? "border-[var(--accent-blue)] bg-[var(--accent-blue)] text-[var(--text-on-accent)]"
                   : "border-[#8E8E93] bg-transparent text-[#8E8E93] hover:border-[var(--accent-blue)]"
               }`}
             >
@@ -218,7 +220,7 @@ export const PlannerTaskPreviewPopover: React.FC<PlannerTaskPreviewPopoverProps>
               }}
               title="Chỉnh sửa công việc (mở bảng bên phải)"
               aria-label="Chỉnh sửa"
-              className="flex h-8 w-8 items-center justify-center rounded-xl bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-[#1C1C1E] dark:text-[#F2F2F7] shadow-2xs transition-all cursor-pointer"
+              className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--bg-surface-muted)] text-[var(--text-main)] shadow-2xs transition-colors hover:bg-[var(--bg-interactive)] cursor-pointer"
             >
               <Pencil size={13} strokeWidth={2.2} />
             </button>
@@ -235,7 +237,7 @@ export const PlannerTaskPreviewPopover: React.FC<PlannerTaskPreviewPopoverProps>
                 }}
                 title="Xóa công việc"
                 aria-label="Xóa"
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-black/[0.04] dark:bg-white/[0.08] hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[#8E8E93] hover:text-rose-600 dark:hover:text-rose-400 shadow-2xs transition-all cursor-pointer"
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--bg-surface-muted)] text-[var(--text-muted)] shadow-2xs transition-colors hover:bg-[var(--danger-surface)] cursor-pointer"
               >
                 <Trash2 size={13} strokeWidth={2.2} />
               </button>
@@ -247,7 +249,7 @@ export const PlannerTaskPreviewPopover: React.FC<PlannerTaskPreviewPopoverProps>
               onClick={onClose}
               title="Đóng xem nhanh (Esc)"
               aria-label="Đóng"
-              className="flex h-8 w-8 items-center justify-center rounded-xl bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7] shadow-2xs transition-all cursor-pointer ml-0.5"
+              className="ml-0.5 flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--bg-surface-muted)] text-[var(--text-muted)] shadow-2xs transition-colors hover:bg-[var(--bg-interactive)] cursor-pointer"
             >
               <X size={14} strokeWidth={2.2} />
             </button>
@@ -259,15 +261,12 @@ export const PlannerTaskPreviewPopover: React.FC<PlannerTaskPreviewPopoverProps>
           {/* Title & Type Badge */}
           <div className="flex items-start gap-2.5">
             <span
-              className={`mt-1 h-3 w-3 shrink-0 rounded-full ${
-                isEvent
-                  ? "bg-[#7DD3FC]"
-                  : `bg-[var(--accent-blue)] ${task.completed ? "opacity-50" : ""}`
-              }`}
+              style={{ backgroundColor: visualStyle.backgroundColor }}
+              className={`mt-1 h-3 w-3 shrink-0 rounded-full ${task.completed ? "opacity-60" : ""}`}
             />
             <div className="min-w-0 flex-1">
               <h3
-                className={`text-sm font-bold leading-snug tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7] ${
+                className={`text-sm font-bold leading-snug tracking-tight text-[var(--text-strong)] ${
                   task.completed ? "line-through opacity-70" : ""
                 }`}
               >
@@ -277,14 +276,14 @@ export const PlannerTaskPreviewPopover: React.FC<PlannerTaskPreviewPopoverProps>
           </div>
 
           {/* Date & Time Row */}
-          <div className="flex items-center gap-2 text-xs text-[#8E8E93] dark:text-[#A1A1A6] pl-5">
+          <div className="flex items-center gap-2 pl-5 text-xs text-[var(--text-muted)]">
             <Clock size={13} strokeWidth={2.2} className="shrink-0" />
             <span className="font-medium truncate">{dateTimeSummary}</span>
           </div>
 
           {/* Notebook / Tag / Category Row */}
           {tagLabel && (
-            <div className="flex items-center gap-2 text-xs text-[#8E8E93] dark:text-[#A1A1A6] pl-5">
+            <div className="flex items-center gap-2 pl-5 text-xs text-[var(--text-muted)]">
               <Folder size={13} strokeWidth={2.2} className="shrink-0" />
               <span className="font-medium truncate">{tagLabel}</span>
             </div>
@@ -292,7 +291,7 @@ export const PlannerTaskPreviewPopover: React.FC<PlannerTaskPreviewPopoverProps>
 
           {/* Priority Row */}
           {task.priority && task.priority !== "low" && (
-            <div className="flex items-center gap-2 text-xs text-[#8E8E93] dark:text-[#A1A1A6] pl-5">
+            <div className="flex items-center gap-2 pl-5 text-xs text-[var(--text-muted)]">
               <AlertCircle size={13} strokeWidth={2.2} className="shrink-0 text-amber-500" />
               <span className="font-medium">
                 {task.priority === "high" ? "🔴 Ưu tiên gấp & quan trọng" : "🟡 Ưu tiên vừa"}
@@ -302,7 +301,7 @@ export const PlannerTaskPreviewPopover: React.FC<PlannerTaskPreviewPopoverProps>
 
           {/* Description snippet if present */}
           {task.description && (
-            <div className="flex items-start gap-2 text-xs text-[#8E8E93] dark:text-[#A1A1A6] pl-5 pt-2 border-t border-black/[0.04] dark:border-white/[0.06]">
+            <div className="flex items-start gap-2 border-t border-[var(--border-ink-muted)] pl-5 pt-2 text-xs text-[var(--text-muted)]">
               <FileText size={13} strokeWidth={2.2} className="shrink-0 mt-0.5" />
               <p className="line-clamp-2 italic">{task.description}</p>
             </div>

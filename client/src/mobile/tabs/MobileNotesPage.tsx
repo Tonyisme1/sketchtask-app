@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Search, X, AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { NoteMasterDetailView } from "../../components/shared/notes/NoteMasterDetailView";
 import { NavigationTarget, TabKey } from "../../types";
 import {
@@ -34,29 +34,6 @@ export const MobileNotesPage: React.FC<MobileNotesPageProps> = ({
 
   return (
     <div className={`w-full min-w-0 select-none ${isMobileEditorOpen ? "p-0" : "space-y-3.5 pb-12"}`}>
-      <div className={`items-center gap-2.5 border-b border-black/[0.04] dark:border-white/[0.06] pb-3 ${isMobileEditorOpen ? "hidden" : "flex"}`}>
-        <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-2xl border-none bg-white dark:bg-[#1C1C20] px-3.5 shadow-xs">
-          <Search size={14} strokeWidth={2.4} className="shrink-0 text-[#78716C] dark:text-[#A1A1AA]" />
-          <input
-            type="text"
-            value={model.searchQuery}
-            onChange={(event) => model.actions.setSearchQuery(event.target.value)}
-            placeholder="Tìm ghi chú..."
-            className="w-full bg-transparent py-2 pl-1 text-xs text-[#1C1917] dark:text-[#ECECF1] placeholder:text-[#A8A29E] dark:placeholder:text-[#71717A] focus:outline-none sm:text-sm"
-          />
-          {model.searchQuery && (
-            <button
-              type="button"
-              onClick={() => model.actions.setSearchQuery("")}
-              className="shrink-0 text-[#78716C] dark:text-[#A1A1AA] hover:text-[#1C1917] dark:hover:text-[#ECECF1] cursor-pointer"
-              title="Xóa tìm kiếm"
-            >
-              <X size={13} strokeWidth={2.4} />
-            </button>
-          )}
-        </div>
-      </div>
-
       {model.needsReviewCount > 0 && !isMobileEditorOpen && (
         <div className="flex items-center justify-between gap-3 rounded-2xl border-none bg-black/[0.03] dark:bg-white/[0.04] px-3.5 py-2.5 text-xs shadow-2xs">
           <div className="flex min-w-0 items-start gap-2 text-[#57534E] dark:text-[#A1A1AA]">

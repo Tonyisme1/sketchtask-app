@@ -7,10 +7,8 @@ import { ContextAwareFab } from "../../components/layout/ContextAwareFab";
 import { AuthModal } from "../../components/shared/auth/AuthModal";
 import { PinLockModal } from "../../components/shared/auth/PinLockModal";
 import { QuickTaskModal } from "../../components/shared/tasks/QuickTaskModal";
-import {
-  NotificationDrawer,
-} from "../../components/ui";
 import { NotesSectionTabs } from "./NotesSectionTabs";
+import { GlobalSearchModal } from "../../components/ui";
 
 export interface TabletShellProps {
   activeTab: TabKey;
@@ -43,8 +41,7 @@ export const TabletShell: React.FC<TabletShellProps> = ({
     isJournalBookOpen,
     openQuickTaskModal,
   } = useAppStore();
-
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
@@ -100,7 +97,7 @@ export const TabletShell: React.FC<TabletShellProps> = ({
 
   return (
     <div
-      className={`min-h-screen bg-[#F2F2F7] dark:bg-[#18181A] text-[#1C1C1E] dark:text-[#F2F2F7] font-sans flex flex-col selection:bg-[#FEF08A] selection:text-[#1C1917] ${
+      className={`min-h-screen bg-[#F2F2F7] dark:bg-[#18181A] text-[#1C1C1E] dark:text-[#F2F2F7] font-sans flex flex-col  ${
         !isTiltEnabled ? "no-tilt" : ""
       } ${paperStyle && paperStyle !== "blank" ? `paper-${paperStyle}` : ""}`}
     >
@@ -114,7 +111,8 @@ export const TabletShell: React.FC<TabletShellProps> = ({
             setSettingsMobileSubView(null);
             onTabChange("settings");
           }}
-          onOpenNotifications={() => setIsNotificationOpen(true)}
+          onOpenDeadlines={() => onTabChange("deadlines")}
+          onOpenSearch={() => setIsSearchOpen(true)}
           onOpenLogin={() => onNavigateRoute("/login")}
           onLogout={logout}
           previousTab={previousTab}
@@ -150,6 +148,11 @@ export const TabletShell: React.FC<TabletShellProps> = ({
         }}
       />
       <QuickTaskModal />
+      <GlobalSearchModal
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onNavigateTab={onTabChange}
+      />
 
       {pinCode && isPinLocked && (
         <PinLockModal
@@ -159,12 +162,6 @@ export const TabletShell: React.FC<TabletShellProps> = ({
           onSuccess={unlockWithPin}
         />
       )}
-
-      <NotificationDrawer
-        isOpen={isNotificationOpen}
-        onClose={() => setIsNotificationOpen(false)}
-        onNavigateTab={onTabChange}
-      />
 
       {/* Tablet Floating Action Button (Hidden when viewing task detail) */}
       {!isDetailOpen && !isSettingsView && (

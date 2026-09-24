@@ -10,7 +10,6 @@ import {
   getTaskTemporalState,
   getTaskTags,
 } from "../../../utils/taskSemantics";
-import { getTaskProgress } from "../../../utils/taskHierarchy";
 import {
   PlannerScreenModel,
   PlannerViewMode,
@@ -277,16 +276,6 @@ export const usePlannerScreenModel = (
     return filteredDayTasks.filter((t) => getTaskItemType(t) === "event");
   }, [filteredDayTasks]);
 
-  const dayProgress = useMemo(() => {
-    const actionable = rawDayTasks.filter((t) => getTaskItemType(t) !== "event");
-    const { completed, total } = getTaskProgress(actionable);
-    return {
-      completed,
-      total,
-      percent: total > 0 ? Math.round((completed / total) * 100) : 0,
-    };
-  }, [rawDayTasks]);
-
   return {
     currentDayStr,
     currentDate,
@@ -306,8 +295,6 @@ export const usePlannerScreenModel = (
     dayRegularTasks,
     dayCompletedTasks,
     dayEventTasks,
-    dayProgress,
-
     viewMode,
     searchQuery,
     isOverdueBackVisible: options?.fromTab === "deadlines",

@@ -4,8 +4,6 @@ import { useAppStore } from "../../stores";
 import { getLocalTodayStr, isTaskDueToday, normalizeTaskTimeType, getTaskTags } from "../../utils";
 import { TodayScheduleNotes } from "../../components/shared/today/TodayScheduleNotes";
 import { TodayTaskList } from "../../components/shared/today/TodayTaskList";
-import { TodayProgressBar } from "../../components/shared/today/TodayProgressBar";
-import { getTaskProgress } from "../../utils/taskHierarchy";
 
 export interface TabletTodayViewProps {
   targetTaskId?: string;
@@ -64,11 +62,6 @@ export const TabletTodayView: React.FC<TabletTodayViewProps> = ({
     return filteredTodayTasks.filter((task) => task.completed);
   }, [filteredTodayTasks, hideCompletedTasks]);
 
-  const { completed: completedTodayCount, total: totalTodayCount } = useMemo(
-    () => getTaskProgress(todayList),
-    [todayList],
-  );
-
   return (
     <div className="w-full min-w-0 space-y-2.5 select-none pb-6">
       {/* 1. Thanh tìm kiếm trên cùng */}
@@ -93,13 +86,7 @@ export const TabletTodayView: React.FC<TabletTodayViewProps> = ({
         )}
       </div>
 
-      {/* 2. Tiến độ tổng quan */}
-      <TodayProgressBar
-        completedCount={completedTodayCount}
-        totalCount={totalTodayCount}
-      />
-
-      {/* 3. Tablet View: danh sách dọc */}
+      {/* 2. Tablet View: danh sách dọc */}
       <div className="space-y-4 w-full">
         {/* Lịch hẹn chưa xong */}
         {activeScheduledTasks.length > 0 && (

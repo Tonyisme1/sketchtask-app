@@ -44,6 +44,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const {
     user,
     loginWithGoogle,
+    loginWithCredentials,
+    registerWithCredentials,
     logout,
     syncNow,
     syncStatus,
@@ -60,6 +62,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncDone, setSyncDone] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
 
   const initialSignedInRef = useRef(user.isSignedIn);
 
@@ -146,6 +153,40 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       console.warn("Google OAuth trigger failed:", err);
       setIsSubmitting(false);
       setErrorMessage("Không thể kích hoạt đăng nhập Google. Vui lòng thử lại.");
+    }
+  };
+
+  const handleCredentialAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      setErrorMessage("Vui lòng nhập đầy đủ email và mật khẩu.");
+      return;
+    }
+    if (authMode === "register" && !name) {
+      setErrorMessage("Vui lòng nhập tên hiển thị.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage("");
+    
+    try {
+      let result;
+      if (authMode === "register") {
+        result = await registerWithCredentials(name, email, password);
+      } else {
+        result = await loginWithCredentials(email, password);
+      }
+
+      if (result.success) {
+        onClose();
+      } else {
+        setErrorMessage(result.message || "Đăng nhập thất bại.");
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || "Đã xảy ra lỗi hệ thống.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -432,40 +473,50 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </div>
 
-            {/* Feature highlights */}
-            <div className="my-auto py-2 space-y-3 w-full">
-              <div className="bg-black/[0.03] dark:bg-white/[0.04] p-4 rounded-2xl shadow-xs space-y-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles size={16} className="text-amber-600 dark:text-amber-400 shrink-0" />
-                  <h4 className="font-bold text-xs text-[#1C1917] dark:text-[#F2F2F7]">
-                    Tự động đồng bộ đa thiết bị
-                  </h4>
+            {/* Auth Form */}
+            <form onSubmit={handleCredentialAuth} className="my-auto py-2 space-y-3 w-full">
+              {authMode === "register" && (
+                <div>
+                  <label className="block text-[11px] font-bold text-[#78716C] dark:text-[#A8A29E] uppercase tracking-wider mb-1.5 ml-1">
+                    Tên hiển thị
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="VD: Nguyễn Văn A"
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 bg-black/[0.04] dark:bg-white/[0.06] border-none rounded-2xl text-sm text-[#1C1917] dark:text-[#F2F2F7] placeholder-[#A8A29E] dark:placeholder-[#57534E] focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                  />
                 </div>
-                <p className="text-[11px] text-[#57534E] dark:text-[#A8A29E] leading-relaxed">
-                  Đăng nhập một chạm bằng tài khoản Google để giữ cho các công việc, ghi chú và nhật ký luôn được đồng bộ tức thời giữa điện thoại, máy tính bảng và máy tính.
-                </p>
+              )}
+
+              <div>
+                <label className="block text-[11px] font-bold text-[#78716C] dark:text-[#A8A29E] uppercase tracking-wider mb-1.5 ml-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="nhap@email.com"
+                  disabled={isSubmitting}
+                  className="w-full px-4 py-3 bg-black/[0.04] dark:bg-white/[0.06] border-none rounded-2xl text-sm text-[#1C1917] dark:text-[#F2F2F7] placeholder-[#A8A29E] dark:placeholder-[#57534E] focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                />
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="p-3 bg-black/[0.03] dark:bg-white/[0.04] rounded-2xl shadow-xs">
-                  <div className="flex items-center gap-1.5 font-bold text-[#1C1917] dark:text-[#F2F2F7] mb-1">
-                    <Cloud size={14} className="text-sky-600 dark:text-sky-400" />
-                    <span>Lưu Trữ Tức Thì</span>
-                  </div>
-                  <p className="text-[10px] text-[#78716C] dark:text-[#8E8E93] leading-snug">
-                    Không lo mất dữ liệu khi đổi thiết bị hoặc duyệt web ẩn danh.
-                  </p>
-                </div>
-
-                <div className="p-3 bg-black/[0.03] dark:bg-white/[0.04] rounded-2xl shadow-xs">
-                  <div className="flex items-center gap-1.5 font-bold text-[#1C1917] dark:text-[#F2F2F7] mb-1">
-                    <Zap size={14} className="text-emerald-600 dark:text-emerald-400" />
-                    <span>Nhanh & Bảo Mật</span>
-                  </div>
-                  <p className="text-[10px] text-[#78716C] dark:text-[#8E8E93] leading-snug">
-                    Xác thực trực tiếp từ Google, không cần ghi nhớ mật khẩu.
-                  </p>
-                </div>
+              <div>
+                <label className="block text-[11px] font-bold text-[#78716C] dark:text-[#A8A29E] uppercase tracking-wider mb-1.5 ml-1">
+                  Mật khẩu
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  disabled={isSubmitting}
+                  className="w-full px-4 py-3 bg-black/[0.04] dark:bg-white/[0.06] border-none rounded-2xl text-sm text-[#1C1917] dark:text-[#F2F2F7] placeholder-[#A8A29E] dark:placeholder-[#57534E] focus:outline-none focus:ring-2 focus:ring-[var(--accent-blue)]"
+                />
               </div>
 
               {errorMessage && (
@@ -474,15 +525,52 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <span>{errorMessage}</span>
                 </p>
               )}
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-3 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue-hover)] rounded-2xl shadow-xs text-sm font-bold text-white active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <span>
+                    {isSubmitting
+                      ? "Đang xử lý..."
+                      : authMode === "login"
+                      ? "Đăng nhập"
+                      : "Đăng ký tài khoản"}
+                  </span>
+                </button>
+              </div>
+
+              <div className="text-center pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode(authMode === "login" ? "register" : "login");
+                    setErrorMessage("");
+                  }}
+                  className="text-xs text-[var(--accent-blue)] font-semibold hover:underline cursor-pointer"
+                >
+                  {authMode === "login"
+                    ? "Chưa có tài khoản? Đăng ký ngay"
+                    : "Đã có tài khoản? Đăng nhập"}
+                </button>
+              </div>
+            </form>
+
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-black/10 dark:bg-white/10" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#78716C] dark:text-[#A8A29E]">Hoặc</span>
+              <div className="flex-1 h-px bg-black/10 dark:bg-white/10" />
             </div>
 
             {/* Google Login Action Button */}
-            <div className="pt-2 shrink-0 border-t border-black/10 dark:border-white/10 space-y-2">
+            <div className="shrink-0 space-y-2">
               <button
                 type="button"
                 onClick={handleGoogleClick}
                 disabled={isSubmitting}
-                className="w-full py-3 bg-black/[0.04] dark:bg-[#2C2C2E] hover:bg-black/[0.08] dark:hover:bg-[#3A3A3C] rounded-2xl shadow-xs text-sm font-bold text-[#1C1917] dark:text-[#F2F2F7] active:scale-95 transition-all flex items-center justify-center gap-3 cursor-pointer"
+                className="w-full py-3 bg-black/[0.04] dark:bg-[#2C2C2E] hover:bg-black/[0.08] dark:hover:bg-[#3A3A3C] rounded-2xl shadow-xs text-sm font-bold text-[#1C1917] dark:text-[#F2F2F7] active:scale-95 transition-all flex items-center justify-center gap-3 cursor-pointer disabled:opacity-50"
               >
                 {/* Google Official SVG Icon */}
                 <svg
@@ -510,12 +598,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   />
                 </svg>
                 <span>
-                  {isSubmitting ? "Đang kết nối Google..." : "Tiếp tục với Google"}
+                  {isSubmitting ? "Đang xử lý..." : "Tiếp tục với Google"}
                 </span>
               </button>
 
               <p className="text-[10px] text-center text-[#78716C] dark:text-[#8E8E93] font-mono">
-                Bằng việc tiếp tục, bạn đồng ý với Điều khoản sử dụng của SketchTask.
+                Bằng việc tiếp tục, bạn đồng ý với Điều khoản của SketchTask.
               </p>
             </div>
           </div>

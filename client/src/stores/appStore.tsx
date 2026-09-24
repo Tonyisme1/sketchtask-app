@@ -117,10 +117,6 @@ export interface AppContextType {
   setHideCompletedTasks: (hide: boolean) => void;
   isNotificationsEnabled: boolean;
   setIsNotificationsEnabled: (enabled: boolean) => void;
-  isNotificationPanelOpen: boolean;
-  notificationActiveTab: "all" | "unread" | "overdue" | "pastScheduled";
-  openNotificationPanel: (tab?: "all" | "unread" | "overdue" | "pastScheduled") => void;
-  closeNotificationPanel: () => void;
   isDarkMode: boolean;
   setIsDarkMode: (enabled: boolean) => void;
   isSidebarOpen: boolean;
@@ -216,6 +212,8 @@ export interface AppContextType {
   // Active Task SubTab (Tất cả | Hôm nay | Kế hoạch | Hạn định)
   activeTaskSubTab: TaskSubTab;
   setActiveTaskSubTab: (subTab: TaskSubTab) => void;
+  mobileDeadlineView: "upcoming" | "overdue";
+  setMobileDeadlineView: (view: "upcoming" | "overdue") => void;
   activeTaskListTags: string[];
   setActiveTaskListTags: (tags: string[]) => void;
   toggleActiveTaskListTag: (tag: string) => void;
@@ -551,22 +549,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     });
 
-  const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
-  const [notificationActiveTab, setNotificationActiveTab] = useState<
-    "all" | "unread" | "overdue" | "pastScheduled"
-  >("all");
-
-  const openNotificationPanel = (
-    tab: "all" | "unread" | "overdue" | "pastScheduled" = "all"
-  ) => {
-    setNotificationActiveTab(tab);
-    setIsNotificationPanelOpen(true);
-  };
-
-  const closeNotificationPanel = () => {
-    setIsNotificationPanelOpen(false);
-  };
-
   const setIsNotificationsEnabled = (enabled: boolean) => {
     setIsNotificationsEnabledState(enabled);
     notificationService.setEnabled(enabled);
@@ -635,7 +617,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   // --- Active Task SubTab (Tất cả | Hôm nay | Kế hoạch | Hạn định) ---
-  const [activeTaskSubTab, setActiveTaskSubTabState] = useState<TaskSubTab>("today");
+  const [activeTaskSubTab, setActiveTaskSubTabState] = useState<TaskSubTab>("planner");
   const setActiveTaskSubTab = useCallback((subTab: TaskSubTab) => {
     setActiveTaskSubTabState(subTab);
     if (typeof window !== "undefined") {
@@ -644,6 +626,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       document.body.scrollTop = 0;
     }
   }, []);
+  const [mobileDeadlineView, setMobileDeadlineViewState] = useState<
+    "upcoming" | "overdue"
+  >("upcoming");
+  const setMobileDeadlineView = useCallback(
+    (view: "upcoming" | "overdue") => setMobileDeadlineViewState(view),
+    [],
+  );
   const [activeTaskListTags, setActiveTaskListTags] = useState<string[]>([]);
   const toggleActiveTaskListTag = useCallback((tag: string) => {
     setActiveTaskListTags((currentTags) =>
@@ -2066,10 +2055,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setHideCompletedTasks,
         isNotificationsEnabled,
         setIsNotificationsEnabled,
-        isNotificationPanelOpen,
-        notificationActiveTab,
-        openNotificationPanel,
-        closeNotificationPanel,
         isDarkMode,
         setIsDarkMode,
         isSidebarOpen,
@@ -2126,6 +2111,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         dismissCompletedTaskPrompt,
         activeTaskSubTab,
         setActiveTaskSubTab,
+        mobileDeadlineView,
+        setMobileDeadlineView,
         activeTaskListTags,
         setActiveTaskListTags,
         toggleActiveTaskListTag,

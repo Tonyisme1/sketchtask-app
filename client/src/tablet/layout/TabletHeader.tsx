@@ -1,17 +1,18 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Bell } from "lucide-react";
+import { ArrowLeft, Hourglass, Search } from "lucide-react";
 import { TabKey, NavigationTarget } from "../../types";
 import { useAppStore } from "../../stores";
 import { BrandLogo } from "../../components/ui";
 import { AccountMenu } from "../../components/layout/AccountMenu";
-import { getTaskTemporalState, isTaskDueToday } from "../../utils";
+import { getDeadlineAttentionCount } from "../../utils";
 
 export interface TabletHeaderProps {
   activeTab: TabKey;
   onTabChange: (tab: TabKey, target?: NavigationTarget) => void;
   onNavigateRoute?: (path: string) => void;
   onOpenSettings?: () => void;
-  onOpenNotifications: () => void;
+  onOpenDeadlines: () => void;
+  onOpenSearch: () => void;
   onOpenLogin?: () => void;
   onLogout?: () => void;
   previousTab?: TabKey;
@@ -22,7 +23,8 @@ export const TabletHeader: React.FC<TabletHeaderProps> = ({
   onTabChange,
   onNavigateRoute,
   onOpenSettings,
-  onOpenNotifications,
+  onOpenDeadlines,
+  onOpenSearch,
   onOpenLogin,
   onLogout,
   previousTab,
@@ -40,19 +42,10 @@ export const TabletHeader: React.FC<TabletHeaderProps> = ({
     return () => window.clearInterval(timer);
   }, []);
 
-  const alertCount = useMemo(() => {
-    const overdue = tasks.filter((task) => {
-      if (task.completed) return false;
-      const temporal = getTaskTemporalState(task);
-      return temporal === "overdue" || temporal === "pastScheduled";
-    }).length;
-    const dueToday = tasks.filter((task) => {
-      if (task.completed || !isTaskDueToday(task)) return false;
-      const temporal = getTaskTemporalState(task);
-      return temporal !== "overdue" && temporal !== "pastScheduled";
-    }).length;
-    return overdue + dueToday;
-  }, [tasks, now]);
+  const deadlineAttentionCount = useMemo(
+    () => getDeadlineAttentionCount(tasks, new Date(now)),
+    [tasks, now],
+  );
 
   const settingsTitle =
     settingsMobileSubView === "account"
@@ -104,18 +97,27 @@ export const TabletHeader: React.FC<TabletHeaderProps> = ({
 
       {activeTab !== "settings" && (
         <div className="flex shrink-0 items-center gap-2.5">
+          <button
+            type="button"
+            onClick={onOpenSearch}
+            title="Tìm kiếm"
+            aria-label="Mở tìm kiếm"
+            className="flex h-10 w-10 items-center justify-center rounded-2xl border-none bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-white shadow-xs hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] transition-all cursor-pointer active:scale-95"
+          >
+            <Search size={18} strokeWidth={2.2} />
+          </button>
           <div className="relative">
             <button
               type="button"
-              onClick={onOpenNotifications}
-              title="Thông báo & Nhắc việc"
-              aria-label="Thông báo & Nhắc việc"
+              onClick={onOpenDeadlines}
+              title="Hạn định cần xử lý"
+              aria-label="Hạn định cần xử lý"
               className="flex h-10 w-10 items-center justify-center rounded-2xl border-none bg-white dark:bg-[#1C1C1E] text-[#1C1C1E] dark:text-white shadow-xs hover:bg-[#F2F2F7] dark:hover:bg-[#2C2C2E] transition-all cursor-pointer active:scale-95"
             >
-              <Bell size={18} strokeWidth={2.2} />
-              {alertCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-4.5 min-w-[17px] items-center justify-center rounded-full bg-rose-500 px-1 font-mono text-[10px] font-bold text-white border-none shadow-xs">
-                  {alertCount > 9 ? "9+" : alertCount}
+              <Hourglass size={18} strokeWidth={2.2} />
+              {deadlineAttentionCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex h-4.5 min-w-[17px] items-center justify-center rounded-full bg-[var(--accent-coral)] px-1 font-mono text-[10px] font-bold text-white border-none shadow-xs">
+                  {deadlineAttentionCount > 9 ? "9+" : deadlineAttentionCount}
                 </span>
               )}
             </button>

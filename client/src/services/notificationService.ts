@@ -68,7 +68,7 @@ const showWebNotification = async (
 
   // Android Chrome does not support the window Notification constructor in
   // every context. Do not retry with it there; the service worker is the
-  // supported path and the caller can still use the in-app notification panel.
+  // supported path; notification status remains available in Settings.
   if (/Android/i.test(navigator.userAgent)) return;
 
   // 2. Fallback cho máy tính Desktop

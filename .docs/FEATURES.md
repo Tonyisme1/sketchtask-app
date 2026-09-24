@@ -21,7 +21,9 @@ Ba mục trên dùng chung task store và được điều khiển bằng `activ
 ### System areas
 
 - `AI`: trợ lý AI dạng workspace/panel tùy platform.
-- `Thông báo`: drawer hoặc page system tùy shell, có badge unread.
+- `Hạn định` là nơi duy nhất quản lý task deadline quá hạn và sắp đến.
+- Thông báo hệ điều hành/trình duyệt được cấu hình trong Settings; không có inbox
+  Thông báo nội bộ lặp lại danh sách Hạn định.
 - `Cài đặt`: account, giao diện, typography, notification, data, security, shortcuts và about theo các category đang có.
 - Auth: login/register trong `AuthModal` hoặc trang auth theo route.
 
@@ -60,8 +62,11 @@ Quy tắc dữ liệu:
 
 ## 5. Search, notification và auth
 
+- Global search dùng cùng một `GlobalSearchModal` trên desktop, tablet và mobile; mobile không có thêm ô tìm kiếm cục bộ trong từng tab.
 - Global search có thể tìm các loại dữ liệu mà search service/store hiện hỗ trợ; không quảng cáo loại dữ liệu chưa được query.
-- Notification dùng notification service và permission của hệ điều hành/trình duyệt theo platform. UI phải phân biệt trạng thái chưa cấp quyền, đã bật, lỗi và không có thông báo.
+- Notification service chỉ quản lý quyền và lịch nhắc của hệ điều hành/trình duyệt
+  theo platform. Task cần xử lý luôn được xem trong `Hạn định`, không được render
+  thành một feed ứng dụng thứ hai.
 - Auth có login/register state; form phải responsive và giữ action đăng ký/đăng nhập trong viewport mobile.
 
 ## 6. Persistence và sync
@@ -74,7 +79,9 @@ Quy tắc dữ liệu:
 
 - Desktop: sidebar trái, header đầy đủ, dialog/panel và multi-column khi cần.
 - Tablet: workspace trung tâm, dock dưới, contextual FAB và detail riêng.
-- Mobile: bottom dock, nút `+` ở giữa, bottom sheet/full-screen detail, keyboard-safe editor.
+- Mobile: bottom dock, nút `+` ở giữa, shortcut `Hạn`, bottom sheet/full-screen
+  detail và keyboard-safe editor. Settings là một trang cuộn dài có divider phân
+  đoạn, không phải chuỗi dashboard card.
 - Cùng một feature có thể dùng khác composition, nhưng phải giữ cùng semantics, token, dữ liệu và back contract.
 
 ## 8. Versioning, PWA và update

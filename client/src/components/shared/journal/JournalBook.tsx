@@ -160,21 +160,21 @@ export const JournalBook: React.FC<JournalBookProps> = ({
       <div className="w-full min-w-0 space-y-4 pb-12 select-none">
         <div className="flex items-center justify-between gap-2.5 pb-2 border-b border-black/[0.04] dark:border-white/[0.06]">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#007AFF]/10 text-[#007AFF] dark:bg-[#0A84FF]/20 dark:text-[#0A84FF]">
+            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">
               <BookOpen size={15} strokeWidth={2.2} />
             </div>
             <span className="text-sm sm:text-base font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Nhật ký</span>
           </div>
           <span className="font-mono text-xs text-[#8E8E93] dark:text-[#A1A1A6]">{journalEntries.length} mục</span>
         </div>
-        <article className="mx-auto max-w-2xl rounded-3xl bg-white dark:bg-[#1C1C1E] p-6 sm:p-7 shadow-xs space-y-4">
+        <article className="mx-auto max-w-2xl rounded-3xl bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] p-6 sm:p-7 shadow-xs space-y-4">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-[#8E8E93] dark:text-[#A1A1A6] font-mono">Nhật ký theo ngày</p>
               <h2 className="mt-1.5 text-xl font-bold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">Nhật ký cá nhân</h2>
               <p className="mt-1 text-xs sm:text-sm leading-relaxed text-[#8E8E93] dark:text-[#A1A1A6]">Lưu lại suy nghĩ, bài học và những sự kiện đáng nhớ theo từng ngày.</p>
             </div>
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#AF52DE]/10 text-[#AF52DE] shadow-xs">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] shadow-xs">
               <BookOpen size={24} strokeWidth={2.2} />
             </div>
           </div>
@@ -184,7 +184,7 @@ export const JournalBook: React.FC<JournalBookProps> = ({
             <button
               type="button"
               onClick={() => { setSelectedDate(todayStr); setIsJournalBookOpen(true); }}
-              className="ml-auto rounded-2xl bg-[#007AFF] hover:bg-[#0071E3] dark:bg-[#0A84FF] dark:hover:bg-[#0071E3] px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs transition-all cursor-pointer flex items-center gap-1"
+              className="ml-auto rounded-2xl bg-[var(--accent-blue)] hover:bg-[var(--accent-blue-hover)] px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs transition-all cursor-pointer flex items-center gap-1"
             >
               <span>Mở nhật ký</span>
               <ChevronRight size={13} strokeWidth={2.4} />
@@ -213,8 +213,8 @@ export const JournalBook: React.FC<JournalBookProps> = ({
   }
 
   return (
-    <div className={`w-full min-w-0 select-none ${isMobile ? "bg-white dark:bg-[#1C1C1E] min-h-screen mobile-panel-enter" : "space-y-4 pb-10"}`}>
-      <div className={`flex flex-wrap items-center justify-between gap-2.5 border-b border-black/[0.04] dark:border-white/[0.06] ${isMobile ? `sticky top-0 z-30 bg-white/90 dark:bg-[#1C1C1E]/90 backdrop-blur-md px-3.5 sm:px-5 min-h-[52px] ${isNativePlatform() ? "pt-11 pb-2.5" : "pt-[max(env(safe-area-inset-top),8px)] pb-2.5"}` : "pb-3"}`}>
+    <div className={`w-full min-w-0 select-none ${isMobile ? "bg-[#F5F7FA] dark:bg-[#12161B] min-h-screen mobile-panel-enter" : "space-y-4 pb-10"}`}>
+      <div className={`flex flex-wrap items-center justify-between gap-2.5 border-b border-black/[0.04] dark:border-white/[0.06] ${isMobile ? `sticky top-0 z-30 bg-[#F5F7FA] dark:bg-[#12161B] px-3.5 sm:px-5 min-h-[52px] ${isNativePlatform() ? "pt-11 pb-2.5" : "pt-[max(env(safe-area-inset-top),8px)] pb-2.5"}` : "pb-3"}`}>
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"

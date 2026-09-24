@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { TaskDto } from "../../types";
 import {
   normalizeTaskTimeType,
   getTaskTags,
+  getTaskItemType,
 } from "../../utils";
 import {
   PlannerHeader,
@@ -14,8 +15,6 @@ import { PlannerTaskPreviewPopover } from "../../components/shared/planner/Plann
 import { TodayScheduleNotes } from "../../components/shared/today/TodayScheduleNotes";
 import { TaskList } from "../../components/shared/common/TaskList";
 import { FilterBar } from "../../components/shared/common/FilterBar";
-import { TodayProgressBar } from "../../components/shared/today/TodayProgressBar";
-import { getTaskProgress } from "../../utils/taskHierarchy";
 import { registerBackHandler } from "../../utils/backNavigation";
 import {
   PlannerScreenModel,
@@ -25,11 +24,14 @@ import {
   ArrowLeft,
   ListTodo,
   Lock,
-  Search,
-  X,
 } from "lucide-react";
 
-const DAY_NAMES = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"];
+const shiftDateKey = (dateStr: string, offset: number) => {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  date.setDate(date.getDate() + offset);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+};
 
 export interface MobilePlannerPageProps {
   model?: PlannerScreenModel;
@@ -67,13 +69,12 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
     selectDay,
   } = model.actions;
 
-  const [viewMode, setViewMode] = useState<PlannerViewMode>("agenda");
+  const [viewMode, setViewMode] = useState<PlannerViewMode>("day");
   const [plannerScreen, setPlannerScreen] = useState<"overview" | "day">("overview");
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [monthOffset, setMonthOffset] = useState<number>(0);
-  const [selectedDateStr, setSelectedDateStr] = useState<string>(model.todayStr);
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(model.currentDayStr);
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
   const [timeTypeFilter, setTimeTypeFilter] = useState<"all" | "scheduled" | "deadline">("all");
   const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all");
@@ -106,7 +107,8 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
     if (!targetDateStr && !targetTaskId) return;
     if (targetDateStr) {
       setSelectedDateStr(targetDateStr);
-      setPlannerScreen("day");
+      setViewMode("day");
+      setPlannerScreen("overview");
     } else {
       setPlannerScreen("overview");
       if (targetTaskId) openTaskDetail(targetTaskId);
@@ -147,7 +149,7 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
     const startD = new Date(monday);
     const endD = new Date(monday);
     endD.setDate(startD.getDate() + 6);
-    const label = `${startD.getDate()}/${startD.getMonth() + 1} - ${endD.getDate()}/${endD.getMonth() + 1}`;
+    const label = `${startD.getDate()}/${startD.getMonth() + 1}-${endD.getDate()}/${endD.getMonth() + 1}`;
     return { weekDays: days, weekLabel: label };
   }, [model.todayDate, model.todayStr, weekOffset]);
 
@@ -195,42 +197,67 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
     };
   }, [model.todayDate, monthOffset]);
 
-  const currentTitleLabel = viewMode === "agenda" ? weekLabel : monthLabel;
-
   const handlePrev = () => {
-    if (viewMode === "agenda") setWeekOffset((prev) => prev - 1);
+    if (viewMode === "day") setSelectedDateStr((dateStr) => shiftDateKey(dateStr, -1));
+    else if (viewMode === "agenda") setWeekOffset((prev) => prev - 1);
     else setMonthOffset((prev) => prev - 1);
   };
 
   const handleNext = () => {
-    if (viewMode === "agenda") setWeekOffset((prev) => prev + 1);
+    if (viewMode === "day") setSelectedDateStr((dateStr) => shiftDateKey(dateStr, 1));
+    else if (viewMode === "agenda") setWeekOffset((prev) => prev + 1);
     else setMonthOffset((prev) => prev + 1);
   };
 
   const handleResetToCurrent = () => {
+    setSelectedDateStr(model.todayStr);
     if (viewMode === "agenda") setWeekOffset(0);
-    else setMonthOffset(0);
+    if (viewMode === "month") setMonthOffset(0);
   };
 
   const handleSelectDate = (dateStr: string) => {
     setSelectedDateStr(dateStr);
-    setPlannerScreen("day");
+    setViewMode("day");
+    setPlannerScreen("overview");
   };
 
+  const getTaskOnlyForDate = useCallback(
+    (dateStr: string) =>
+      model
+        .getTasksForDate(dateStr)
+        .filter((task) => getTaskItemType(task) !== "event"),
+    [model],
+  );
+
+  const getTaskSummaryForDate = useCallback(
+    (dateStr: string) => {
+      const dayTasks = getTaskOnlyForDate(dateStr);
+      return dayTasks.reduce(
+        (summary, task) => {
+          const normalizedTimeType = normalizeTaskTimeType(task);
+          const temporalState = model.todayStr > dateStr ? "past" : "future";
+
+          summary.total += 1;
+          if (task.completed) summary.completed += 1;
+          else summary.active += 1;
+          if (!task.completed && normalizedTimeType === "scheduled") summary.scheduled += 1;
+          if (!task.completed && normalizedTimeType === "deadline" && temporalState === "past") {
+            summary.overdue += 1;
+          }
+          return summary;
+        },
+        { total: 0, completed: 0, active: 0, overdue: 0, pastScheduled: 0, scheduled: 0 },
+      );
+    },
+    [getTaskOnlyForDate, model.todayStr],
+  );
+
   const selectedDayTasks = useMemo(() => {
-    return model.getTasksForDate(selectedDateStr);
-  }, [model, selectedDateStr]);
+    return getTaskOnlyForDate(selectedDateStr);
+  }, [getTaskOnlyForDate, selectedDateStr]);
 
   const filteredTasks = useMemo(() => {
     return selectedDayTasks.filter((task) => {
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
-        const matchesTitle = task.title.toLowerCase().includes(q);
-        const matchesTag = getTaskTags(task).some((t) => t.toLowerCase().includes(q));
-        const matchesNote = task.description?.toLowerCase().includes(q);
-        if (!matchesTitle && !matchesTag && !matchesNote) return false;
-      }
-
       if (hideCompletedTasks && statusFilter === "all" && task.completed)
         return false;
 
@@ -268,7 +295,6 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
     });
   }, [
     selectedDayTasks,
-    searchQuery,
     hideCompletedTasks,
     statusFilter,
     timeTypeFilter,
@@ -279,17 +305,16 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
   const getDayFormattedTitle = () => {
     const parts = selectedDateStr.split("-");
     if (parts.length === 3) {
-      const d = new Date(
-        parseInt(parts[0], 10),
-        parseInt(parts[1], 10) - 1,
-        parseInt(parts[2], 10)
-      );
-      const dayOfWeekIndex = d.getDay() === 0 ? 6 : d.getDay() - 1;
-      const dayName = DAY_NAMES[dayOfWeekIndex] || "Ngày";
-      return `${dayName}, ${parts[2]}/${parts[1]}/${parts[0]}`;
+      return `${Number(parts[2])}/${Number(parts[1])}`;
     }
     return selectedDateStr;
   };
+
+  const currentTitleLabel = viewMode === "day"
+    ? getDayFormattedTitle()
+    : viewMode === "agenda"
+      ? weekLabel
+      : monthLabel;
 
   const activeAdvancedFilterCount =
     (timeTypeFilter !== "all" ? 1 : 0) +
@@ -297,8 +322,6 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
     (tagFilter !== "all" ? 1 : 0);
 
   const isPastDate = selectedDateStr < model.todayStr;
-  const { completed: completedCount, total: totalCount } = getTaskProgress(selectedDayTasks);
-
   return (
     <div className="w-full min-w-0 select-none space-y-4 pb-16">
       {/* 1. MÀN HÌNH TỔNG QUAN */}
@@ -317,7 +340,7 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
             <PlannerWeekView
               weekDays={weekDays}
               selectedDateStr={selectedDateStr}
-              getTasksForDate={model.getTasksForDate}
+              getTasksForDate={getTaskOnlyForDate}
               onSelectDate={handleSelectDate}
               onToggleTask={toggleTask}
               onDeleteTask={deleteTask}
@@ -326,14 +349,36 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
             />
           )}
 
+          {viewMode === "day" && (
+            <div className="space-y-3">
+              <TaskList
+                tasks={filteredTasks}
+                emptyMessage="Chưa có công việc trong ngày này"
+                emptySubMessage={isPastDate ? "Không có công việc trong ngày." : "Chưa có công việc."}
+                emptyActionText={isPastDate ? undefined : "+ Thêm việc vào ngày này"}
+                onEmptyAction={isPastDate ? undefined : () => openTaskDetail("new")}
+                onToggle={toggleTask}
+                onEdit={(task) => openTaskDetail(task.id)}
+                onDelete={deleteTask}
+                onMoveTomorrow={moveTaskToNextDay}
+                onClick={(task) => openTaskDetail(task.id)}
+                variant="planner"
+                hideDate={true}
+                baseDateStr={selectedDateStr}
+                activeTaskId={targetTaskId}
+                showQuickAdd={false}
+              />
+            </div>
+          )}
+
           {viewMode === "month" && (
             <PlannerCalendar
               selectedDateStr={selectedDateStr}
               onSelectDate={handleSelectDate}
               todayStr={model.todayStr}
               monthMatrix={monthMatrix}
-              getTasksForDate={model.getTasksForDate}
-              getTaskSummaryForDate={model.getTaskSummaryForDate}
+              getTasksForDate={getTaskOnlyForDate}
+              getTaskSummaryForDate={getTaskSummaryForDate}
             />
           )}
         </div>
@@ -361,10 +406,10 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
                   <span className="hidden sm:inline">
                     {fromTab === "deadlines"
                       ? "Quay lại Hạn định"
-                      : `Quay lại ${viewMode === "agenda" ? "Lịch trình" : "Lịch tháng"}`}
+                      : `Quay lại ${viewMode === "day" ? "Ngày" : viewMode === "agenda" ? "Lịch trình" : "Lịch tháng"}`}
                   </span>
                   <span className="sm:hidden">
-                    {fromTab === "deadlines" ? "Hạn" : viewMode === "agenda" ? "Lịch" : "Lịch tháng"}
+                    {fromTab === "deadlines" ? "Hạn" : viewMode === "day" ? "Ngày" : viewMode === "agenda" ? "Lịch" : "Lịch tháng"}
                   </span>
                 </button>
 
@@ -386,40 +431,7 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 sm:justify-start">
-                <div className="font-mono text-xs font-bold bg-white dark:bg-[#2C2C2E] px-3 py-1 rounded-full shadow-xs text-[#1C1C1E] dark:text-[#F2F2F7]">
-                  {completedCount}/{totalCount}
-                </div>
-              </div>
             </div>
-
-            <TodayProgressBar
-              completedCount={completedCount}
-              totalCount={totalCount}
-              label="Tiến độ ngày"
-            />
-          </div>
-
-          {/* Thanh tìm kiếm trên cùng của ngày */}
-          <div className="flex min-w-0 items-center gap-2.5 rounded-2xl border-none bg-white dark:bg-[#1C1C20] px-3.5 shadow-xs">
-            <Search size={14} strokeWidth={2.4} className="shrink-0 text-[#78716C] dark:text-[#A1A1AA]" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Tìm việc trong ngày này..."
-              className="w-full bg-transparent py-2 pl-1 text-xs text-[#1C1917] dark:text-[#ECECF1] placeholder:text-[#A8A29E] dark:placeholder:text-[#71717A] focus:outline-none sm:text-sm"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="shrink-0 text-[#78716C] dark:text-[#A1A1AA] hover:text-[#1C1917] dark:hover:text-[#ECECF1] cursor-pointer"
-                title="Xóa tìm kiếm"
-              >
-                <X size={13} strokeWidth={2.4} />
-              </button>
-            )}
           </div>
 
           {/* Bộ lọc 2 tầng */}

@@ -255,10 +255,10 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
             return (
               <article
                 key={note.id}
-                className={`w-full rounded-3xl shadow-xs transition-colors ${
+                className={`w-full rounded-3xl shadow-xs transition-colors border border-black/[0.04] dark:border-white/[0.04] ${
                   note.isPinned
-                    ? "bg-[#FEF08A]/45 dark:bg-amber-950/20"
-                    : "bg-[#FFFDF8] dark:bg-[#1C1C1E]"
+                    ? "bg-[var(--accent-sky)]/30 dark:bg-[var(--accent-sky)]/15"
+                    : "bg-white dark:bg-[#1E222A]"
                 }`}
               >
                 <div className="flex items-start gap-3 p-4">
@@ -339,9 +339,9 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   if (!selectedNote || notes.length === 0) {
     return (
       <div className="w-full min-w-0 select-none">
-        <div className="bg-[#FFFDF8] dark:bg-[#1C1C1E] rounded-3xl p-8 sm:p-12 text-center space-y-3 shadow-xs">
-          <div className="w-12 h-12 rounded-2xl bg-[#FEF08A] dark:bg-[#3A3A3C] flex items-center justify-center mx-auto shadow-xs">
-            <FileText size={22} className="text-[#1C1917] dark:text-white" />
+        <div className="bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-8 sm:p-12 text-center space-y-3 shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-[var(--accent-sky)] dark:bg-[var(--accent-sky)]/20 flex items-center justify-center mx-auto shadow-xs">
+            <FileText size={22} className="text-[var(--text-on-soft-accent)] dark:text-[var(--accent-sky-strong)]" />
           </div>
           <div className="space-y-1">
             <h3 className="text-base font-bold text-[#1C1917] dark:text-[#F2F2F7]">
@@ -351,7 +351,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
           <button
             type="button"
             onClick={onCreateClick}
-            className="px-4 py-2 bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1C1E] rounded-2xl text-xs font-bold active:scale-95 transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
+            className="px-4 py-2 bg-[var(--text-strong)] dark:bg-[var(--accent-blue)] text-white rounded-2xl text-xs font-bold active:scale-95 transition-all shadow-xs cursor-pointer inline-flex items-center gap-1.5"
           >
             <Plus size={15} strokeWidth={2.4} />
             <span>Tạo ghi chú</span>
@@ -367,26 +367,26 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   return (
     <div className={`w-full min-w-0 select-none ${
       isMobile
-        ? "bg-[#FFFDF8] min-h-screen mobile-panel-enter"
+        ? "bg-[#F5F7FA] dark:bg-[#12161B] min-h-screen mobile-panel-enter"
         : "space-y-4"
     }`}>
       {/* 1. Thanh thao tác ghi chú: quay lại, chọn sổ và xóa (Đồng bộ MobileHeader) */}
       <div className={`flex items-center justify-between gap-2 ${
         isMobile
-          ? `sticky top-0 z-30 bg-[#FFFDF8] px-3.5 sm:px-5 min-h-[56px] sm:min-h-[60px] ${
+          ? `sticky top-0 z-30 bg-[#F5F7FA] dark:bg-[#12161B] px-3.5 sm:px-5 min-h-[56px] sm:min-h-[60px] ${
               isNativePlatform()
                 ? "pt-11 pb-2.5"
                 : "pt-[max(env(safe-area-inset-top),10px)] pb-2.5"
             }`
-          : "rounded-3xl bg-[#FFFDF8] dark:bg-[#1C1C1E] p-2.5 shadow-xs sm:p-3"
+          : "rounded-3xl bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] p-2.5 shadow-xs sm:p-3"
       }`}>
         <button
           type="button"
           onClick={handleCloseNoteEditor}
           className={`inline-flex min-w-0 items-center gap-1.5 text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7] transition-all cursor-pointer ${
             isMobile
-              ? "mobile-back-button h-9 px-2.5 rounded-2xl bg-white shadow-xs active:translate-y-[0.5px]"
-              : "h-9 flex-1 rounded-2xl bg-white dark:bg-[#2C2C2E] px-3 shadow-xs hover:bg-[#FAF8F3] dark:hover:bg-[#3A3A3C] active:scale-95"
+              ? "mobile-back-button h-9 px-2.5 rounded-2xl bg-white dark:bg-[#1E222A] shadow-xs active:translate-y-[0.5px]"
+              : "h-9 flex-1 rounded-2xl bg-white dark:bg-[#262C36] px-3 shadow-xs hover:bg-[#FAF8F3] dark:hover:bg-[#2D3542] active:scale-95"
           }`}
           aria-label="Quay lại danh sách ghi chú"
           title="Quay lại danh sách ghi chú"
@@ -436,8 +436,8 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
       <div
         className={`flex flex-col overflow-hidden ${
           isMobile
-            ? "min-h-[calc(100dvh-70px)] bg-[#FFFDF8] px-4 py-4 sm:px-6 sm:py-5 pb-28"
-            : "h-[calc(100dvh-8.5rem)] min-h-[420px] max-h-[760px] rounded-3xl bg-[#FFFDF8] dark:bg-[#1C1C1E] p-4 shadow-xs sm:p-6 md:h-[calc(100dvh-12rem)] md:min-h-[520px] md:max-h-[820px] md:p-8"
+            ? "min-h-[calc(100dvh-70px)] bg-white dark:bg-[#1E222A] px-4 py-4 sm:px-6 sm:py-5 pb-28"
+            : "h-[calc(100dvh-8.5rem)] min-h-[420px] max-h-[760px] rounded-3xl bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] p-4 shadow-xs sm:p-6 md:h-[calc(100dvh-12rem)] md:min-h-[520px] md:max-h-[820px] md:p-8"
         }`}
       >
         {/* Tiêu đề ghi chú */}

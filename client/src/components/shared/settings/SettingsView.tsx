@@ -124,7 +124,7 @@ const SettingsSelect: React.FC<SettingsSelectProps> = ({
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`inline-flex items-center justify-between gap-2 px-3 py-1.5 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06] hover:bg-black/[0.08] dark:hover:bg-white/[0.1] text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] transition-all shadow-2xs cursor-pointer ${
+        className={`inline-flex items-center justify-between gap-2 px-3 py-1.5 rounded-2xl bg-[var(--bg-surface-muted)] dark:bg-[#12161B] hover:bg-[var(--bg-interactive)] dark:hover:bg-[#161B22] border border-black/[0.04] dark:border-white/[0.08] text-xs font-semibold text-[var(--text-main)] transition-all shadow-2xs cursor-pointer ${
           disabled ? "opacity-50 cursor-not-allowed" : ""
         }`}
       >
@@ -134,7 +134,7 @@ const SettingsSelect: React.FC<SettingsSelectProps> = ({
 
       {isOpen && (
         <div
-          className={`absolute z-50 mt-1.5 min-w-[150px] max-w-[260px] p-1.5 rounded-3xl bg-white dark:bg-[#1E1E22] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 ${
+          className={`absolute z-50 mt-1.5 min-w-[150px] max-w-[260px] p-1.5 rounded-2xl border border-[var(--border-ink-muted)] bg-white dark:bg-[#1E222A] shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 ${
             align === "right" ? "right-0" : "left-0"
           }`}
         >
@@ -151,8 +151,8 @@ const SettingsSelect: React.FC<SettingsSelectProps> = ({
                 }}
                 className={`w-full text-left px-3 py-2 rounded-2xl text-xs font-medium flex items-center justify-between gap-2 transition-colors cursor-pointer ${
                   isSelected
-                    ? "bg-[#007AFF]/10 text-[#007AFF] font-semibold dark:bg-[#0A84FF]/20 dark:text-[#0A84FF]"
-                    : "text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+                    ? "bg-[var(--accent-sky)] text-[var(--text-on-soft-accent)] font-semibold"
+                    : "text-[var(--text-main)] hover:bg-[var(--bg-interactive)]"
                 } ${option.disabled ? "opacity-40 cursor-not-allowed" : ""}`}
               >
                 <div>
@@ -161,7 +161,7 @@ const SettingsSelect: React.FC<SettingsSelectProps> = ({
                     <div className="text-[10px] text-[#8E8E93] dark:text-[#A1A1A6] font-normal">{option.description}</div>
                   )}
                 </div>
-                {isSelected && <Check size={13} className="shrink-0 text-[#007AFF] dark:text-[#0A84FF]" />}
+                {isSelected && <Check size={13} className="shrink-0 text-[var(--accent-blue)]" />}
               </button>
             );
           })}
@@ -195,17 +195,17 @@ const SettingsSwitch: React.FC<SettingsSwitchProps> = ({
       aria-label={label || "Toggle setting"}
       disabled={disabled}
       onClick={onChange}
-      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 ease-in-out focus:outline-none ${
+      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-xl transition-colors duration-200 ease-in-out focus:outline-none ${
         disabled ? "opacity-40 cursor-not-allowed" : ""
       } ${
         checked
-          ? "bg-[#34C759] dark:bg-[#30D158]"
-          : "bg-black/[0.12] dark:bg-white/[0.15]"
+          ? "bg-[var(--accent-blue)] shadow-inner"
+          : "bg-black/[0.08] dark:bg-white/[0.12]"
       }`}
     >
       <span
-        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition duration-200 ease-in-out ${
-          checked ? "translate-x-5.5" : "translate-x-0.5"
+        className={`pointer-events-none inline-block h-[18px] w-[18px] transform rounded-lg shadow-sm transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          checked ? "translate-x-[23px] bg-white" : "translate-x-[3px] bg-white dark:bg-[#E5E5EA]"
         }`}
       />
     </button>
@@ -224,9 +224,9 @@ interface SettingsRowProps {
 const SettingsRow: React.FC<SettingsRowProps> = ({ title, description, children }) => (
   <div className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0">
     <div className="min-w-0 flex-1">
-      <div className="text-xs sm:text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{title}</div>
+      <div className="text-sm font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">{title}</div>
       {description && (
-        <div className="text-[11px] sm:text-xs text-[#8E8E93] dark:text-[#A1A1A6] mt-0.5 leading-snug">{description}</div>
+        <div className="hidden sm:block text-[11px] sm:text-xs text-[#8E8E93] dark:text-[#A1A1A6] mt-0.5 leading-snug">{description}</div>
       )}
     </div>
     <div className="shrink-0">{children}</div>
@@ -240,7 +240,7 @@ interface SettingsGroupProps {
 }
 
 const SettingsGroup: React.FC<SettingsGroupProps> = ({ title, icon: Icon, children }) => (
-  <div className="rounded-3xl shadow-xs bg-white dark:bg-[#1C1C1E] p-4 sm:p-5 space-y-3.5">
+  <div className="space-y-3.5 border-b border-black/[0.06] dark:border-white/[0.08] pb-4 sm:pb-5 last:border-b-0 last:pb-0">
     <div className="flex items-center gap-2 pb-2.5 border-b border-black/[0.04] dark:border-white/[0.06]">
       {Icon && (
         <div className="w-6 h-6 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7]">
@@ -333,6 +333,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const isMasterDetail =
     platform === "desktop" || (platform === "tablet" && isLandscape);
   const isDesktopSettings = platform === "desktop";
+  const isMobileLongForm = platform === "mobile";
   const isNativeNotifications = isNativePlatform();
   const visibleSettingsMenuItems =
     platform === "desktop"
@@ -345,7 +346,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     data: `${tasks.length} việc · ${journalEntries.length} nhật ký`,
     security: pinCode ? "Đã bật mã PIN" : "Chưa bật mã PIN",
     shortcuts: platform === "desktop" ? "Ctrl + K và thao tác nhanh" : "Chỉ dùng trên desktop",
-    about: `SketchTask · v${CURRENT_APP_VERSION}`,
   };
   const activeMobileSection =
     !isMasterDetail &&
@@ -497,18 +497,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         return (
           <div className="space-y-4 sm:space-y-5">
             {/* Profile Info Card */}
-            <div className={`rounded-3xl bg-white dark:bg-[#1C1C1E] p-4 sm:p-5 space-y-4 ${isDesktopSettings ? "shadow-none" : "shadow-xs"}`}>
+            <div className="space-y-4 pb-5 sm:border-b sm:border-black/[0.06] sm:dark:border-white/[0.08] sm:last:border-b-0 sm:last:pb-0">
               <div className="flex items-start justify-between gap-3 min-w-0">
                 <div className="flex items-center gap-3.5 min-w-0 flex-1">
                   {/* Google Profile Avatar */}
                   <div
-                    className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl shadow-xs flex items-center justify-center shrink-0 overflow-hidden"
-                    style={{ backgroundColor: user.isSignedIn ? user.avatarBg || "#09090B" : "#09090B" }}
+                    className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border border-white shadow-xs flex items-center justify-center shrink-0 overflow-hidden"
+                    style={{ backgroundColor: "#09090B" }}
                   >
                     <DynamicIcon
                       name={user.avatar || (user.isSignedIn ? "lucide:UserCheck" : "lucide:User")}
                       size={28}
                       strokeWidth={2.2}
+                      className="text-white"
                     />
                   </div>
 
@@ -524,22 +525,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       {user.isSignedIn ? user.email : "Tài khoản cục bộ (Chưa đăng nhập)"}
                     </p>
 
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-[var(--accent-sky)] text-[var(--text-on-soft-accent)] whitespace-nowrap">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-blue)] animate-pulse shrink-0" />
                         {user.isSignedIn ? "Đã liên kết Google (Realtime)" : "Chế độ Offline"}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Right Action Button (Logout or Login) */}
-                <div className="shrink-0">
+                {/* Right Action Button (Logout or Login) - Hidden on mobile because it's at the bottom */}
+                <div className="hidden sm:block shrink-0">
                   {user.isSignedIn ? (
                     <button
                       type="button"
                       onClick={logout}
-                      className="px-3.5 py-1.5 bg-black/[0.04] hover:bg-rose-50 dark:bg-white/[0.08] dark:hover:bg-rose-950/40 rounded-2xl shadow-2xs text-xs font-semibold text-rose-600 dark:text-rose-400 cursor-pointer flex items-center gap-1.5 transition-all"
+                      className="px-3.5 py-1.5 bg-[var(--danger-surface)] hover:bg-[var(--accent-coral-soft)] rounded-2xl shadow-2xs text-xs font-semibold text-[var(--danger-text)] cursor-pointer flex items-center gap-1.5 transition-all"
                     >
                       <LogOut size={13} strokeWidth={2.2} />
                       <span>Đăng xuất</span>
@@ -551,7 +552,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         if (onOpenAuth) onOpenAuth();
                         else openAuthModal();
                       }}
-                      className="px-4 py-2 bg-[#007AFF] hover:bg-[#0071E3] dark:bg-[#0A84FF] dark:hover:bg-[#0071E3] rounded-2xl shadow-xs text-xs font-semibold text-white cursor-pointer flex items-center gap-1.5 transition-all"
+                      className="px-4 py-2 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue-hover)] rounded-2xl shadow-xs text-xs font-semibold text-[var(--text-on-accent)] cursor-pointer flex items-center gap-1.5 transition-all"
                     >
                       <span>Đăng nhập Google</span>
                       <ArrowRight size={13} strokeWidth={2.2} />
@@ -561,8 +562,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </div>
             </div>
 
-            {/* Dữ Liệu Đồng Bộ Summary */}
-            <div className={`rounded-3xl bg-white dark:bg-[#1C1C1E] p-4 sm:p-5 space-y-3.5 ${isDesktopSettings ? "shadow-none" : "shadow-xs"}`}>
+            {/* Dữ Liệu Đồng Bộ Summary - Hidden on mobile for cleaner UI */}
+            <div className="hidden sm:block space-y-3.5 border-b border-black/[0.06] dark:border-white/[0.08] pb-5 last:border-b-0 last:pb-0">
               <div className="flex items-center justify-between pb-2.5 border-b border-black/[0.04] dark:border-white/[0.06]">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#8E8E93] dark:text-[#A1A1A6] font-mono flex items-center gap-1.5">
                   <Cloud size={14} strokeWidth={2.2} />
@@ -579,7 +580,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                     {tasks.length}
                   </span>
                   <span className="text-[11px] text-[#8E8E93] dark:text-[#A1A1A6] font-medium flex items-center justify-center gap-1 mt-0.5">
-                    <CheckSquare size={12} className="shrink-0 text-[#007AFF]" />
+                    <CheckSquare size={12} className="shrink-0 text-[var(--accent-blue)]" />
                     <span>Công việc</span>
                   </span>
                 </div>
@@ -607,14 +608,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             {/* Thiết Bị & Kết Nối (Devices & Protection) */}
-            <div className={`rounded-3xl bg-white dark:bg-[#1C1C1E] p-4 sm:p-5 space-y-3.5 ${isDesktopSettings ? "shadow-none" : "shadow-xs"}`}>
+            <div className="hidden sm:block space-y-3.5 border-b border-black/[0.06] dark:border-white/[0.08] pb-5 last:border-b-0 last:pb-0">
               <div className="flex items-center justify-between pb-2.5 border-b border-black/[0.04] dark:border-white/[0.06]">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#8E8E93] dark:text-[#A1A1A6] font-mono flex items-center gap-1.5">
                   <ShieldCheck size={14} strokeWidth={2.2} />
                   <span>Thiết Bị & Kết Nối</span>
                 </span>
                 <span className="flex items-center gap-1 text-[11px] font-mono text-[#8E8E93] dark:text-[#A1A1A6] font-medium">
-                  <Radio size={12} className="animate-pulse text-emerald-500" />
+                  <Radio size={12} className="animate-pulse text-[var(--accent-blue)]" />
                   {user.isSignedIn ? "Online Realtime" : "Offline Cục Bộ"}
                 </span>
               </div>
@@ -622,10 +623,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               <div className="space-y-2 text-xs">
                 <div className={`flex items-center justify-between rounded-2xl p-3 ${isDesktopSettings ? "" : "bg-black/[0.02] dark:bg-white/[0.04]"}`}>
                   <span className="flex items-center gap-2 text-[#1C1C1E] dark:text-[#F2F2F7] font-medium">
-                    <Laptop size={15} strokeWidth={2} className="text-[#007AFF]" />
+                    <Laptop size={15} strokeWidth={2} className="text-[var(--accent-blue)]" />
                     <span>Thiết bị hiện tại</span>
                   </span>
-                  <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                  <span className="text-[11px] font-mono text-[var(--accent-blue)] font-semibold">
                     Đang hoạt động
                   </span>
                 </div>
@@ -643,32 +644,34 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             {/* Cloud Sync Group */}
-            <SettingsGroup title="Đồng bộ Đám mây & Thủ công" icon={Cloud}>
-              <SettingsRow
-                title="Đồng bộ thủ công"
-                description={
-                  lastSyncedAt
-                    ? `Lần đồng bộ gần nhất: ${lastSyncedAt}`
-                    : user.isSignedIn
-                    ? "Tất cả dữ liệu đã được tự động sao lưu"
-                    : "Đang lưu trữ ngoại tuyến trên thiết bị này"
-                }
-              >
-                {user.isSignedIn ? (
-                  <button
-                    type="button"
-                    onClick={handleManualSync}
-                    disabled={isSyncing}
-                    className="px-3.5 py-1.5 bg-[#007AFF] hover:bg-[#0071E3] dark:bg-[#0A84FF] dark:hover:bg-[#0071E3] rounded-2xl shadow-2xs text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <RefreshCw size={12} className={isSyncing ? "animate-spin" : ""} />
-                    <span>{syncDone ? "✓ Đã đồng bộ" : isSyncing ? "Đang gửi..." : "Đồng bộ ngay"}</span>
-                  </button>
-                ) : (
-                  <span className="text-xs font-mono text-[#8E8E93]">Lưu cục bộ</span>
-                )}
-              </SettingsRow>
-            </SettingsGroup>
+            <div className="hidden sm:block">
+              <SettingsGroup title="Đồng bộ Đám mây & Thủ công" icon={Cloud}>
+                <SettingsRow
+                  title="Đồng bộ thủ công"
+                  description={
+                    lastSyncedAt
+                      ? `Lần đồng bộ gần nhất: ${lastSyncedAt}`
+                      : user.isSignedIn
+                      ? "Tất cả dữ liệu đã được tự động sao lưu"
+                      : "Đang lưu trữ ngoại tuyến trên thiết bị này"
+                  }
+                >
+                  {user.isSignedIn ? (
+                    <button
+                      type="button"
+                      onClick={handleManualSync}
+                      disabled={isSyncing}
+                      className="px-3.5 py-1.5 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue-hover)] rounded-2xl shadow-2xs text-xs font-semibold text-[var(--text-on-accent)] flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <RefreshCw size={12} className={isSyncing ? "animate-spin" : ""} />
+                      <span>{syncDone ? "✓ Đã đồng bộ" : isSyncing ? "Đang gửi..." : "Đồng bộ ngay"}</span>
+                    </button>
+                  ) : (
+                    <span className="text-xs font-mono text-[#8E8E93]">Lưu cục bộ</span>
+                  )}
+                </SettingsRow>
+              </SettingsGroup>
+            </div>
           </div>
         );
 
@@ -771,7 +774,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               </SettingsRow>
 
               <SettingsRow
-                title="Tóm tắt công việc đầu ngày"
+                title="Tóm tắt đầu ngày"
                 description="Gửi thông báo danh sách việc cần làm vào mỗi buổi sáng"
               >
                 <SettingsSelect
@@ -847,71 +850,72 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       case "data":
         return (
           <div className="space-y-4 sm:space-y-5">
-            {/* Sao lưu & Khôi phục */}
-            <SettingsGroup title="Sao lưu & Phục hồi dữ liệu" icon={Download}>
-              <SettingsRow
-                title="Xuất file sao lưu (.json)"
-                description="Tải toàn bộ công việc, sổ tay, ghi chú và nhật ký về máy để cất giữ an toàn"
-              >
-                <button
-                  type="button"
-                  onClick={handleExportBackup}
-                  className="px-3.5 py-1.5 bg-[#007AFF] hover:bg-[#0071E3] dark:bg-[#0A84FF] dark:hover:bg-[#0071E3] rounded-2xl shadow-2xs text-xs font-semibold text-white flex items-center gap-1.5 cursor-pointer"
+            {/* Sao lưu & Khôi phục & Dữ liệu mẫu - Chỉ hiển thị trên PC */}
+            <div className="hidden sm:block space-y-4 sm:space-y-5">
+              <SettingsGroup title="Sao lưu & Phục hồi dữ liệu" icon={Download}>
+                <SettingsRow
+                  title="Xuất file sao lưu (.json)"
+                  description="Tải toàn bộ công việc, sổ tay, ghi chú và nhật ký về máy để cất giữ an toàn"
                 >
-                  <Download size={13} strokeWidth={2.2} />
-                  <span>Xuất file JSON</span>
-                </button>
-              </SettingsRow>
-
-              <SettingsRow
-                title="Khôi phục từ file sao lưu"
-                description="Nạp lại dữ liệu đã lưu từ file JSON trên máy tính hoặc điện thoại"
-              >
-                <>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".json"
-                    onChange={handleImportBackup}
-                    className="hidden"
-                  />
                   <button
                     type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-3.5 py-1.5 bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] rounded-2xl shadow-2xs text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] flex items-center gap-1.5 cursor-pointer"
+                    onClick={handleExportBackup}
+                      className="px-3.5 py-1.5 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue-hover)] rounded-2xl shadow-2xs text-xs font-semibold text-[var(--text-on-accent)] flex items-center gap-1.5 cursor-pointer"
                   >
-                    <Upload size={13} strokeWidth={2.2} />
-                    <span>Chọn file JSON</span>
+                    <Download size={13} strokeWidth={2.2} />
+                    <span>Xuất file JSON</span>
                   </button>
-                </>
-              </SettingsRow>
-            </SettingsGroup>
+                </SettingsRow>
 
-            {/* Dữ liệu mẫu (Khối phụ) */}
-            <SettingsGroup title="Dữ liệu mẫu để làm quen" icon={Zap}>
-              <SettingsRow
-                title="Nạp dữ liệu mẫu"
-                description="Tạo 100 task và sự kiện mẫu để xem cách các workspace vận hành"
-              >
-                <button
-                  type="button"
-                  onClick={() => setConfirmSampleOpen(true)}
-                  className="px-3.5 py-1.5 bg-[#FF9500]/15 hover:bg-[#FF9500]/25 rounded-2xl text-xs font-semibold text-[#FF9500] cursor-pointer"
+                <SettingsRow
+                  title="Khôi phục từ file sao lưu"
+                  description="Nạp lại dữ liệu đã lưu từ file JSON trên máy tính hoặc điện thoại"
                 >
-                  Nạp mẫu
-                </button>
-              </SettingsRow>
-            </SettingsGroup>
+                  <>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".json"
+                      onChange={handleImportBackup}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-3.5 py-1.5 bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] rounded-2xl shadow-2xs text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Upload size={13} strokeWidth={2.2} />
+                      <span>Chọn file JSON</span>
+                    </button>
+                  </>
+                </SettingsRow>
+              </SettingsGroup>
+
+              <SettingsGroup title="Dữ liệu mẫu để làm quen" icon={Zap}>
+                <SettingsRow
+                  title="Nạp dữ liệu mẫu"
+                  description="Tạo 100 task và sự kiện mẫu để xem cách các workspace vận hành"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setConfirmSampleOpen(true)}
+                    className="px-3.5 py-1.5 bg-[#FF9500]/15 hover:bg-[#FF9500]/25 rounded-2xl text-xs font-semibold text-[#FF9500] cursor-pointer"
+                  >
+                    Nạp mẫu
+                  </button>
+                </SettingsRow>
+              </SettingsGroup>
+            </div>
 
             {/* Vùng nguy hiểm */}
-            <div className="rounded-3xl shadow-xs bg-rose-50/50 dark:bg-rose-950/20 p-4 sm:p-5 space-y-3.5">
-              <div className="flex items-center gap-2 pb-2.5 border-b border-rose-200/40 dark:border-rose-800/30">
-                <AlertTriangle size={14} strokeWidth={2.2} className="text-rose-600 dark:text-rose-400" />
-                <h3 className="text-xs font-bold uppercase font-mono tracking-wider text-rose-700 dark:text-rose-400">
+            <div className="border-b border-[var(--accent-coral)]/30 pb-4 space-y-3.5">
+              <div className="flex items-center gap-2 pb-2.5 border-b border-[var(--accent-coral)]/30">
+                <AlertTriangle size={14} strokeWidth={2.2} className="text-[var(--danger-text)]" />
+                <h3 className="text-xs font-bold uppercase font-mono tracking-wider text-[var(--danger-text)]">
                   Vùng Nguy Hiểm (Danger Zone)
                 </h3>
               </div>
-              <div className="divide-y divide-rose-200/30 dark:divide-rose-800/20">
+              <div className="divide-y divide-[var(--accent-coral)]/20">
                 <SettingsRow
                   title="Xóa dữ liệu trên thiết bị"
                   description="Xóa toàn bộ task, sổ tay và ghi chú trên máy. Cài đặt và tài khoản vẫn giữ nguyên."
@@ -919,7 +923,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setConfirmDeleteAllOpen(true)}
-                    className="px-3.5 py-1.5 bg-white dark:bg-[#1C1C1E] hover:bg-rose-100/50 dark:hover:bg-rose-900/30 rounded-2xl text-xs font-semibold text-rose-600 dark:text-rose-400 shadow-2xs cursor-pointer"
+                      className="px-3.5 py-1.5 bg-[var(--bg-surface)] hover:bg-[var(--danger-surface)] rounded-2xl text-xs font-semibold text-[var(--danger-text)] shadow-2xs cursor-pointer"
                   >
                     Xóa dữ liệu
                   </button>
@@ -932,7 +936,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setConfirmResetOpen(true)}
-                    className="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 rounded-2xl text-xs font-semibold text-white shadow-2xs cursor-pointer"
+                      className="px-3.5 py-1.5 bg-[var(--accent-coral)] hover:bg-[var(--danger-text)] rounded-2xl text-xs font-semibold text-[var(--text-on-accent)] shadow-2xs cursor-pointer"
                   >
                     Đặt lại gốc
                   </button>
@@ -962,7 +966,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   onClick={() => setPinModalMode(pinCode ? "change" : "setup")}
                   className={`px-3.5 py-1.5 rounded-2xl text-xs font-semibold shadow-2xs cursor-pointer ${
                     pinCode
-                      ? "bg-[#007AFF] text-white hover:bg-[#0071E3]"
+                      ? "bg-[var(--accent-blue)] text-[var(--text-on-accent)] hover:bg-[var(--accent-blue-hover)]"
                       : "bg-black/[0.04] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] hover:bg-black/[0.08]"
                   }`}
                 >
@@ -978,7 +982,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <button
                     type="button"
                     onClick={() => setPinModalMode("disable")}
-                    className="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
+                    className="text-xs font-semibold text-[var(--danger-text)] hover:underline cursor-pointer"
                   >
                     Tắt mã PIN
                   </button>
@@ -1014,43 +1018,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         );
 
-      // ---------------------------------------------------------------------
-      // 7. TRỢ GIÚP & GIỚI THIỆU
-      // ---------------------------------------------------------------------
-      case "about":
-        return (
-          <div className="space-y-4 sm:space-y-5">
-            <div className="rounded-3xl shadow-xs bg-white dark:bg-[#1C1C1E] p-6 sm:p-8 text-center space-y-4 max-w-xl mx-auto">
-              <div className="w-16 h-16 mx-auto bg-black/[0.04] dark:bg-white/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] rounded-3xl shadow-xs flex items-center justify-center text-3xl font-black">
-                <Pencil size={28} strokeWidth={2.2} />
-              </div>
-              <div>
-                <h3 className="font-bold text-2xl text-[#1C1C1E] dark:text-[#F2F2F7]">
-                  SketchTask
-                </h3>
-                <p className="text-xs text-[#8E8E93] dark:text-[#A1A1A6] font-mono mt-1">
-                  Phiên bản: <strong className="text-[#1C1C1E] dark:text-[#F2F2F7]">v{CURRENT_APP_VERSION}</strong>
-                </p>
-              </div>
-
-              <p className="text-xs text-[#8E8E93] dark:text-[#A1A1A6] leading-relaxed max-w-md mx-auto">
-                Ứng dụng quản lý công việc và ghi chép cá nhân với thiết kế phẳng hiện đại, tinh gọn và đồng bộ tức thì trên mọi thiết bị.
-              </p>
-
-              <div className="pt-3 border-t border-black/[0.04] dark:border-white/[0.06] flex items-center justify-center gap-4 text-xs font-semibold">
-                <span className="text-[#1C1C1E] dark:text-[#F2F2F7] font-mono">Offline First</span>
-                <span className="text-[#8E8E93]">•</span>
-                <span className="text-[#1C1C1E] dark:text-[#F2F2F7] font-mono">Zero AI Slop</span>
-                <span className="text-[#8E8E93]">•</span>
-                <span className="text-[#1C1C1E] dark:text-[#F2F2F7] font-mono">Realtime Sync</span>
-              </div>
-
-              <p className="text-[10px] text-[#8E8E93] dark:text-[#A1A1A6] font-mono pt-2">
-                © 2026 SketchTask App. All rights reserved.
-              </p>
-            </div>
-          </div>
-        );
     }
   };
 
@@ -1098,7 +1065,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       )}
 
       {toastMessage && (
-        <div className="fixed bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] text-xs font-semibold rounded-2xl shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-150">
+        <div className="fixed bottom-20 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-[var(--text-strong)] text-[var(--bg-surface)] text-xs font-semibold rounded-xl shadow-none animate-in fade-in slide-in-from-bottom-2 duration-150">
           {toastMessage}
         </div>
       )}
@@ -1106,56 +1073,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   );
 
   // =========================================================================
-  // 1. MOBILE + TABLET PORTRAIT: SINGLE COLUMN DRILLDOWN
+  // MOBILE + TABLET PORTRAIT: FLATTENED SINGLE COLUMN VIEW
   // =========================================================================
-  if (activeMobileSection) {
-    const currentSection = SETTINGS_MENU_ITEMS.find((item) => item.key === activeMobileSection);
-    return (
-      <>
-        <div
-          className={`w-full mx-auto space-y-3.5 pb-4 select-none ${
-            platform === "mobile"
-              ? mobileTransitionDirection === "back"
-                ? "mobile-panel-back-enter"
-                : "mobile-panel-enter"
-              : "animate-in fade-in duration-150"
-          } ${
-            platform === "tablet" ? "max-w-3xl" : "max-w-xl"
-          }`}
-        >
-          {!hideMobileDetailHeader && (
-            <div className="flex items-center gap-2 pb-2.5 border-b border-black/[0.04] dark:border-white/[0.06]">
-              <button
-                type="button"
-                onClick={() => setSettingsMobileSubView(null)}
-                aria-label="Quay lại danh sách cài đặt"
-                className="mobile-back-button w-8 h-8 bg-black/[0.04] hover:bg-black/[0.08] dark:bg-white/[0.08] dark:hover:bg-white/[0.12] rounded-xl flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7] cursor-pointer shrink-0 transition-all"
-                title="Quay lại danh sách cài đặt"
-              >
-                <ArrowLeft size={16} strokeWidth={2.2} />
-              </button>
-              <div className="flex items-center gap-2 min-w-0 flex-1">
-                {currentSection && (
-                  <span className={`w-6 h-6 rounded-xl flex items-center justify-center shrink-0 ${currentSection.iconTone}`}>
-                    <currentSection.icon size={13} strokeWidth={2.2} />
-                  </span>
-                )}
-                <span className="font-bold text-base text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight truncate">
-                  {currentSection?.label || "Cài đặt"}
-                </span>
-              </div>
-            </div>
-          )}
-          {renderDetailContent(activeMobileSection)}
-        </div>
-        {renderSettingsOverlays()}
-      </>
-    );
-  }
-
-  const completedTasksCount = tasks.filter((t) => t.completed).length;
-  const activeTasksCount = tasks.filter((t) => !t.completed).length;
-
   return (
     <>
       {isMasterDetail ? (
@@ -1174,213 +1093,48 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
           {/* Detail Content Pane */}
           <div className="min-w-0 flex-1 overflow-y-auto">
-            {renderDetailContent(activeSection)}
+            <div className="rounded-3xl p-5 sm:p-6 bg-white dark:bg-[#1E222A] border border-black/[0.04] dark:border-white/[0.04] shadow-xs">
+              {renderDetailContent(activeSection)}
+            </div>
           </div>
         </div>
-      ) : platform === "mobile" ? (
-        /* TRANG CÁ NHÂN (PERSONAL PROFILE HUB TRÊN MOBILE) */
-        <div className="w-full max-w-xl mx-auto space-y-3.5 pb-32 sm:pb-36 select-none animate-in fade-in duration-150">
-          {/* 1. Thẻ Hồ Sơ Người Dùng */}
-          <section className="rounded-3xl shadow-xs bg-white dark:bg-[#1C1C1E] p-4 space-y-3">
-            <div className="flex items-center gap-3">
-              <div
-                className="relative w-12 h-12 rounded-2xl shadow-xs flex items-center justify-center shrink-0 overflow-hidden"
-                style={{ backgroundColor: user.avatarBg || "#FEF08A" }}
+      ) : (
+        <div
+          className={
+            isMobileLongForm
+              ? "w-full max-w-xl mx-auto pb-8 select-none animate-in fade-in duration-150"
+              : "w-full max-w-xl mx-auto space-y-4 pb-28 sm:pb-36 select-none animate-in fade-in duration-150"
+          }
+        >
+          <div
+            className={
+              isMobileLongForm
+                ? "divide-y divide-[var(--border-ink-muted)]"
+                : "space-y-4"
+            }
+          >
+            {visibleSettingsMenuItems.map((item) => (
+              <section
+                key={item.key}
+                className={
+                  isMobileLongForm
+                    ? "py-7 first:pt-1 last:pb-0"
+                    : "rounded-3xl p-4 sm:p-5 bg-white dark:bg-[#1E222A] border border-black/[0.04] dark:border-white/[0.04] shadow-xs"
+                }
               >
-                <DynamicIcon
-                  name={user.avatar || (user.isSignedIn ? "lucide:UserCheck" : "lucide:User")}
-                  size={24}
-                  strokeWidth={2.2}
-                />
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <h2 className="font-bold text-sm text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight truncate">
-                    {user.name || (user.isSignedIn ? "Người dùng" : "Khách (Offline)")}
-                  </h2>
-                </div>
-                <p className="text-xs text-[#8E8E93] dark:text-[#A1A1A6] font-mono truncate">
-                  {user.isSignedIn ? user.email : "Chưa đăng nhập Google"}
-                </p>
-              </div>
-
-              <div className="shrink-0">
-                {user.isSignedIn ? (
-                  <button
-                    type="button"
-                    onClick={logout}
-                    className="p-2 bg-black/[0.04] dark:bg-white/[0.08] hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 rounded-xl shadow-2xs cursor-pointer transition-colors"
-                    title="Đăng xuất"
-                  >
-                    <LogOut size={14} strokeWidth={2.2} />
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (onOpenAuth) onOpenAuth();
-                      else openAuthModal();
-                    }}
-                    className="px-3 py-1.5 bg-[#007AFF] hover:bg-[#0071E3] dark:bg-[#0A84FF] dark:hover:bg-[#0071E3] text-white text-xs font-semibold rounded-2xl shadow-2xs cursor-pointer transition-colors"
-                  >
-                    Đăng nhập
-                  </button>
-                )}
-              </div>
-            </div>
-          </section>
-
-          {/* 2. Tổng Quan Năng Suất Cá Nhân */}
-          <section className="grid grid-cols-3 gap-2.5">
-            <div className="rounded-2xl shadow-xs bg-white dark:bg-[#1C1C1E] p-3 text-center">
-              <span className="font-mono text-base font-bold text-[#1C1C1E] dark:text-[#F2F2F7] block">
-                {completedTasksCount}
-              </span>
-              <span className="text-[11px] font-medium text-[#8E8E93] dark:text-[#A1A1A6] block mt-0.5">
-                Việc đã xong
-              </span>
-            </div>
-
-            <div className="rounded-2xl shadow-xs bg-white dark:bg-[#1C1C1E] p-3 text-center">
-              <span className="font-mono text-base font-bold text-[#1C1C1E] dark:text-[#F2F2F7] block">
-                {journalEntries.length}
-              </span>
-              <span className="text-[11px] font-medium text-[#8E8E93] dark:text-[#A1A1A6] block mt-0.5">
-                Nhật ký
-              </span>
-            </div>
-
-            <div className="rounded-2xl shadow-xs bg-white dark:bg-[#1C1C1E] p-3 text-center">
-              <span className="font-mono text-base font-bold text-[#1C1C1E] dark:text-[#F2F2F7] block">
-                {activeTasksCount}
-              </span>
-              <span className="text-[11px] font-medium text-[#8E8E93] dark:text-[#A1A1A6] block mt-0.5">
-                Cần làm
-              </span>
-            </div>
-          </section>
-
-          {/* 3. Danh Mục Tính Năng & Cài Đặt */}
-          <div className="space-y-2">
-            {/* Hồ sơ & Tài khoản */}
-            <button
-              type="button"
-              onClick={() => setSettingsMobileSubView("account")}
-              className="w-full flex items-center justify-between p-3.5 bg-white dark:bg-[#1C1C1E] hover:bg-black/[0.02] dark:hover:bg-white/[0.04] rounded-2xl shadow-xs transition-all cursor-pointer text-left group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <User size={18} strokeWidth={2.2} />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Tài khoản & Hồ sơ cá nhân</p>
-                  <p className="text-[11px] text-[#8E8E93] dark:text-[#A1A1A6] mt-0.5">Đổi tên, màu đại diện & đồng bộ đám mây</p>
-                </div>
-              </div>
-              <ChevronRight size={16} strokeWidth={2.2} className="text-[#8E8E93]" />
-            </button>
-
-            {/* Cài đặt hệ thống */}
-            <button
-              type="button"
-              onClick={() => setSettingsMobileSubView("general")}
-              className="w-full flex items-center justify-between p-3.5 bg-white dark:bg-[#1C1C1E] hover:bg-black/[0.02] dark:hover:bg-white/[0.04] rounded-2xl shadow-xs transition-all cursor-pointer text-left group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <Settings size={18} strokeWidth={2.2} />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Cài đặt hệ thống</p>
-                  <p className="text-[11px] text-[#8E8E93] dark:text-[#A1A1A6] mt-0.5">Giao diện, âm thanh, thông báo & font chữ</p>
-                </div>
-              </div>
-              <ChevronRight size={16} strokeWidth={2.2} className="text-[#8E8E93]" />
-            </button>
-
-            {/* Thông báo */}
-            <button
-              type="button"
-              onClick={() => setSettingsMobileSubView("notifications")}
-              className="w-full flex items-center justify-between p-3.5 bg-white dark:bg-[#1C1C1E] hover:bg-black/[0.02] dark:hover:bg-white/[0.04] rounded-2xl shadow-xs transition-all cursor-pointer text-left group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <Bell size={18} strokeWidth={2.2} />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Thông báo & Nhắc việc</p>
-                  <p className="text-[11px] text-[#8E8E93] dark:text-[#A1A1A6] mt-0.5">{isNotificationsEnabled ? "Đang bật" : "Đang tắt"}</p>
-                </div>
-              </div>
-              <ChevronRight size={16} strokeWidth={2.2} className="text-[#8E8E93]" />
-            </button>
-
-            {/* Dữ liệu & Bộ nhớ */}
-            <button
-              type="button"
-              onClick={() => setSettingsMobileSubView("data")}
-              className="w-full flex items-center justify-between p-3.5 bg-white dark:bg-[#1C1C1E] hover:bg-black/[0.02] dark:hover:bg-white/[0.04] rounded-2xl shadow-xs transition-all cursor-pointer text-left group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <Cloud size={18} strokeWidth={2.2} />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Dữ liệu & Sao lưu</p>
-                  <p className="text-[11px] text-[#8E8E93] dark:text-[#A1A1A6] mt-0.5">Đồng bộ đám mây, xuất nhập JSON</p>
-                </div>
-              </div>
-              <ChevronRight size={16} strokeWidth={2.2} className="text-[#8E8E93]" />
-            </button>
-
-            {/* Bảo mật PIN */}
-            <button
-              type="button"
-              onClick={() => setSettingsMobileSubView("security")}
-              className="w-full flex items-center justify-between p-3.5 bg-white dark:bg-[#1C1C1E] hover:bg-black/[0.02] dark:hover:bg-white/[0.04] rounded-2xl shadow-xs transition-all cursor-pointer text-left group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <ShieldCheck size={18} strokeWidth={2.2} />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Bảo mật & Mã PIN</p>
-                  <p className="text-[11px] text-[#8E8E93] dark:text-[#A1A1A6] mt-0.5">{pinCode ? "Đã bật mã PIN" : "Chưa đặt mã PIN"}</p>
-                </div>
-              </div>
-              <ChevronRight size={16} strokeWidth={2.2} className="text-[#8E8E93]" />
-            </button>
-
-            {/* Giới thiệu & Trợ giúp */}
-            <button
-              type="button"
-              onClick={() => setSettingsMobileSubView("about")}
-              className="w-full flex items-center justify-between p-3.5 bg-white dark:bg-[#1C1C1E] hover:bg-black/[0.02] dark:hover:bg-white/[0.04] rounded-2xl shadow-xs transition-all cursor-pointer text-left group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <Sparkles size={18} strokeWidth={2.2} />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Giới thiệu ứng dụng</p>
-                  <p className="text-[11px] text-[#8E8E93] dark:text-[#A1A1A6] mt-0.5">SketchTask App · Phiên bản v{CURRENT_APP_VERSION}</p>
-                </div>
-              </div>
-              <ChevronRight size={16} strokeWidth={2.2} className="text-[#8E8E93]" />
-            </button>
+                {renderDetailContent(item.key)}
+              </section>
+            ))}
           </div>
 
-          {/* 4. Đăng nhập / Đăng xuất */}
-          <div className="pt-2">
+          <div className={isMobileLongForm ? "pt-7" : "pt-2"}>
             {user.isSignedIn ? (
               <button
                 type="button"
                 onClick={logout}
-                className="w-full py-3 px-4 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 text-xs font-semibold rounded-2xl shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
+                className="w-full min-h-12 py-3.5 px-4 bg-[var(--danger-surface)] text-[var(--danger-text)] text-sm font-semibold rounded-2xl flex items-center justify-center gap-2 cursor-pointer transition-colors hover:brightness-95"
               >
-                <LogOut size={15} strokeWidth={2.2} />
+                <LogOut size={16} strokeWidth={2.2} />
                 <span>Đăng xuất tài khoản</span>
               </button>
             ) : (
@@ -1390,24 +1144,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   if (onOpenAuth) onOpenAuth();
                   else openAuthModal();
                 }}
-                className="w-full py-3 px-4 bg-[#007AFF] hover:bg-[#0071E3] text-white text-xs font-semibold rounded-2xl shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
+                className="w-full min-h-12 py-3.5 px-4 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue-hover)] text-white text-sm font-semibold rounded-2xl flex items-center justify-center gap-2 cursor-pointer transition-colors"
               >
-                <LogIn size={15} strokeWidth={2.2} />
+                <LogIn size={16} strokeWidth={2.2} />
                 <span>Đăng nhập / Đăng ký đồng bộ</span>
               </button>
             )}
           </div>
-        </div>
-      ) : (
-        <div className="w-full max-w-xl mx-auto space-y-4 pb-12 select-none">
-          <SettingsSectionNav
-            variant="list"
-            platform={platform}
-            items={visibleSettingsMenuItems}
-            subtitles={settingsSubtitles}
-            activeSection={activeSection}
-            onSelect={(sec) => setSettingsMobileSubView(sec)}
-          />
         </div>
       )}
       {renderSettingsOverlays()}

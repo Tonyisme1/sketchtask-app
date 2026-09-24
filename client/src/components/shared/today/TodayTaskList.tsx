@@ -14,6 +14,7 @@ export interface TodayTaskListProps {
   emptyActionText?: string;
   onEmptyAction?: () => void;
   showQuickAdd?: boolean;
+  showCompletionSection?: boolean;
 }
 
 export const TodayTaskList: React.FC<TodayTaskListProps> = ({
@@ -28,6 +29,7 @@ export const TodayTaskList: React.FC<TodayTaskListProps> = ({
   emptyActionText,
   onEmptyAction,
   showQuickAdd = false,
+  showCompletionSection = true,
 }) => {
   return (
     <TaskList
@@ -46,6 +48,7 @@ export const TodayTaskList: React.FC<TodayTaskListProps> = ({
       hideDate={true}
       activeTaskId={activeTaskId}
       showQuickAdd={showQuickAdd}
+      showCompletionSection={showCompletionSection}
     />
   );
 };

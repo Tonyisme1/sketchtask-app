@@ -6,47 +6,50 @@
 
 | Token                | Light     | Dark      | Dùng cho                                                              |
 | -------------------- | --------- | --------- | --------------------------------------------------------------------- |
-| `--bg-canvas`        | `#F4F4F6` | `#121214` | Nền app (Canvas xám tối sâu chống smearing/nhòe và giảm chói mắt)    |
-| `--bg-surface`       | `#FFFFFF` | `#1C1C20` | Bề mặt thẻ Card, panel thanh bên, bottom sheet                        |
-| `--bg-surface-muted` | `#EAEBEE` | `#25252A` | Ô nhập liệu (Input), popover, elevated modal, gutter lịch             |
-| `--border-ink`       | `#262626` | `#2E2E36` | Viền nét mực chính của card, nút bấm, divider (dịu mắt, không gắt)    |
-| `--border-ink-muted` | `#E4E4E7` | `#222228` | Divider/kẻ lưới lịch mờ                                               |
-| `--text-main`        | `#18181B` | `#ECECF1` | Văn bản chính (xám sáng 87% chống chói mắt, đạt chuẩn WCAG > 12:1)    |
-| `--text-strong`      | `#09090B` | `#FFFFFF` | Heading hoặc tiêu đề quan trọng                                       |
-| `--text-muted`       | `#71717A` | `#A1A1AA` | Metadata, subtitle, ngày giờ (xám 60% đạt chuẩn WCAG)                 |
-| `--text-subtle`      | `#A1A1AA` | `#71717A` | Placeholder, disabled, hint                                           |
+| `--bg-canvas`        | `#F5F7FA` | `#12161B` | Nền app, shell và vùng trống                                          |
+| `--bg-surface`       | `#FFFFFF` | `#1E222A` | Bề mặt thẻ, panel, box chứa đen xám tro, bottom sheet                |
+| `--bg-surface-muted` | `#EEF2F6` | `#262C36` | Input, popover và surface nâng cao                                    |
+| `--bg-interactive`   | `#E3E9F0` | `#2D3542` | Hover/active surface                                                   |
+| `--border-ink`       | `#182230` | `#3A4652` | Viền chính                                                            |
+| `--border-ink-muted` | `#D7DEE7` | `#2B343D` | Divider và lưới lịch                                                  |
+| `--text-main`        | `#182230` | `#EEF3F8` | Văn bản chính                                                         |
+| `--text-strong`      | `#0D1622` | `#FFFFFF` | Heading hoặc tiêu đề quan trọng                                       |
+| `--text-muted`       | `#5F6B78` | `#B6C1CD` | Metadata, subtitle, ngày giờ                                          |
+| `--text-subtle`      | `#8995A3` | `#85919D` | Placeholder, disabled, hint                                           |
 
 ### Palette Dark Mode đang áp dụng
 
-Lớp ghi đè Dark Mode trong `client/src/index.css` dùng palette theo ảnh tham chiếu Google Calendar dưới đây. Các giá trị này có ưu tiên cao hơn bảng token cũ ở trên.
+Dark mode dùng canvas đen/xám đen và surface xám đen riêng biệt để giữ chiều sâu mà không tạo nền trắng.
 
 | Token | Giá trị Dark | Vai trò |
 | --- | --- | --- |
-| `--bg-canvas` | `#202124` | Header, sidebar và app chrome |
-| `--bg-surface` | `#121212` | Vùng nội dung chính và card |
-| `--bg-surface-muted` | `#202124` | Input và bề mặt công cụ nâng cao |
-| `--border-ink` | `#3C4043` | Lưới calendar và viền chính |
-| `--border-ink-muted` | `#303134` | Divider và hover |
-| `--text-main` / `--text-muted` | `#E8EAED` / `#BDC1C6` | Chữ chính và metadata |
-| `--accent-blue` / `--accent-sky` | `#8AB4F8` | Accent lịch và task |
-| `--accent-coral` / `--accent-mint` / `--accent-yellow` | `#F28B82` / `#81C995` / `#FDD663` | Accent trạng thái ngữ nghĩa |
+| `--bg-canvas` | `#12161B` | Header, sidebar và app chrome |
+| `--bg-surface` | `#1E222A` | Bề mặt thẻ, box nhóm cài đặt ("đen xám tro") |
+| `--bg-surface-muted` | `#262C36` | Input, search bar và bề mặt công cụ nâng cao |
+| `--border-ink` / `--border-ink-muted` | `#3A4652` / `#2B343D` | Viền chính và divider |
+| `--text-main` / `--text-muted` | `#EEF3F8` / `#B6C1CD` | Chữ chính và metadata |
+| `--accent-blue` | `#1D4ED8` | Event, primary action, active state |
+| `--accent-sky` | `#0284C7` | Task surface (Xanh da trời tươi sáng) |
+| `--accent-coral` | `#FF9F98` | Chỉ quá hạn, lỗi và thao tác nguy hiểm |
 
 Dark Mode surface invariant: không dùng nền trắng, trắng trong suốt, hoặc
 `dark:bg-white` cho card, CTA, active state, input hay popover. Các surface
 phải dùng `--bg-surface` hoặc `--bg-surface-muted`; chữ chính dùng
 `--text-main` thay vì trắng tuyệt đối.
 
-## 2. Hệ 4 Màu Ngữ Nghĩa Độc Quyền (Exclusive Semantic Palette - Desaturated in Dark Mode)
+## 2. Hệ 4 Màu Ngữ Nghĩa Độc Quyền (Exclusive Semantic Palette)
 
-| Ngữ Nghĩa                | Token CSS         | Light Mode            | Dark Mode (Desaturated)     | Ý nghĩa & Vị trí sử dụng                    |
+| Ngữ Nghĩa                | Token CSS         | Light Mode            | Dark Mode                   | Ý nghĩa & Vị trí sử dụng                    |
 | :----------------------- | :---------------- | :-------------------- | :-------------------------- | :------------------------------------------ |
-| **Sự kiện (Event)**      | `--accent-blue`   | `#2563EB`             | `#60A5FA` / `rgba(...,0.15)`| Sự kiện trên lịch, tab active, link, focus  |
-| **Công việc (Task)**     | `--accent-sky`    | `#0284C7` / `#E0F2FE` | `#38BDF8` / `rgba(...,0.15)`| Thẻ công việc trên lịch, khung giờ làm việc |
-| **Hạn chót / Quá hạn**   | `--accent-coral`  | `#EF4444` / `#FEE2E2` | `#F87171` / `rgba(...,0.15)`| Quá hạn, mốc hạn chót, lỗi, cảnh báo đỏ     |
-| **Hoàn thành / Success** | `--accent-mint`   | `#10B981`             | `#4ADE80`                   | Trạng thái đã xong, kết nối thành công      |
-| **Highlight phụ**        | `--accent-yellow` | `#F59E0B`             | `#FCD34D`                   | Sticky note, điểm nhấn ghi chú              |
+| **Sự kiện (Event)**      | `--task-card-event-bg` / `--task-card-event-text` | `#1D4ED8` / `#FFFFFF` | `#1D4ED8` / `#FFFFFF` | Card event, timeline event |
+| **Công việc (Task)**     | `--task-card-task-bg` / `--task-card-task-text` | `#E0F2FE` / `#075985` | `#0284C7` / `#FFFFFF` | Card task, timeline task (Sky Blue tươi sáng) |
+| **Hạn chót / Quá hạn**   | `--task-card-overdue-bg` / `--task-card-overdue-text` | `#FDE8E7` / `#9F2F2A` | `#49262A` / `#FFB4AE` | Quá hạn, lỗi, thao tác nguy hiểm |
+| **Hoàn thành**           | `--task-card-completed-bg` / `--task-card-completed-text` | `#EEF2F6` / `#5F6B78` | `#283039` / `#B6C1CD` | Card đã xong, metadata muted |
+| **Accent phụ**           | `--accent-blue` / `--accent-sky` | Xanh dương | Xanh da trời tươi | Highlight, category và AI status |
 
 Badge hoặc trạng thái phải kết hợp màu với text/icon. Không dùng chấm màu đơn độc cho thông tin quan trọng.
+
+Các alias legacy `--accent-mint`, `--accent-yellow` và `--accent-lavender` vẫn tồn tại để không làm hỏng component cũ, nhưng đều trỏ về palette xanh mới. Không tạo màu riêng theo feature.
 
 ## 3. Typography
 

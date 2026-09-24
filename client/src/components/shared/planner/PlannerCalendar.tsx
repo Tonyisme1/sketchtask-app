@@ -6,6 +6,7 @@ import {
   getTaskEffectiveTime,
   getTaskTemporalState,
   normalizeTaskTimeType,
+  getTaskCardVisualStyle,
 } from "../../../utils/taskSemantics";
 
 export interface PlannerCalendarProps {
@@ -14,6 +15,7 @@ export interface PlannerCalendarProps {
   todayStr: string;
   monthMatrix: Array<{ dayNum: number; dateStr: string; isCurrentMonth: boolean }>;
   getTasksForDate: (dateStr: string) => TaskDto[];
+  itemLabel?: string;
   getTaskSummaryForDate: (dateStr: string) => {
     total: number;
     completed: number;
@@ -40,6 +42,7 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
   todayStr,
   monthMatrix,
   getTasksForDate,
+  itemLabel = "việc",
   getTaskSummaryForDate,
 }) => {
   const [previewDateStr, setPreviewDateStr] = useState<string | null>(null);
@@ -82,15 +85,15 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-black/[0.04] dark:border-white/[0.06] px-3 py-2 text-[11px] font-medium text-[#8E8E93] dark:text-[#A1A1A6] sm:justify-end sm:px-4">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-rose-500" />
+          <span className="h-2 w-2 rounded-full bg-[var(--accent-coral)]" />
           Quá hạn
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-amber-500" />
+          <span className="h-2 w-2 rounded-full bg-[var(--accent-sky)]" />
           Sắp đến
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          <span className="h-2 w-2 rounded-full bg-[var(--text-muted)]" />
           Đã xong
         </span>
       </div>
@@ -120,14 +123,14 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
             if (isToday) labelParts.push("Hôm nay");
             labelParts.push(formatShortDayMonth(item.dateStr));
             if (isSelected) labelParts.push("Đang chọn");
-            if (taskCount > 0) {
-              labelParts.push(`${taskCount} việc`);
+              if (taskCount > 0) {
+                labelParts.push(`${taskCount} ${itemLabel}`);
               if (summary.overdue > 0) labelParts.push(`${summary.overdue} quá hạn`);
               if (summary.pastScheduled > 0) labelParts.push(`${summary.pastScheduled} lịch hẹn đã qua`);
               if (summary.scheduled > 0) labelParts.push(`${summary.scheduled} lịch hẹn`);
               if (summary.completed > 0) labelParts.push(`${summary.completed} đã xong`);
-            } else {
-              labelParts.push("Chưa có việc");
+              } else {
+                labelParts.push(`Chưa có ${itemLabel}`);
             }
             dateAriaLabel = labelParts.join(", ");
           }
@@ -136,24 +139,24 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
           if (!isCurrentMonth) {
             bgClass = "opacity-30 pointer-events-none";
           } else if (isSelected) {
-            bgClass = "bg-[#007AFF]/15 dark:bg-[#0A84FF]/25 shadow-xs";
+            bgClass = "bg-[var(--accent-sky)] shadow-xs";
           } else if (isToday) {
-            bgClass = "bg-emerald-500/10 dark:bg-emerald-500/20 hover:bg-emerald-500/15";
+            bgClass = "bg-[var(--accent-sky)] hover:bg-[var(--bg-interactive)]";
           } else if (isPast) {
-            bgClass = "bg-black/[0.015] dark:bg-white/[0.025] hover:bg-black/[0.04] dark:hover:bg-white/[0.05]";
+            bgClass = "bg-[var(--bg-surface)] hover:bg-[var(--bg-interactive)]";
           } else {
-            bgClass = "bg-black/[0.02] dark:bg-white/[0.04] hover:bg-black/[0.05] dark:hover:bg-white/[0.08]";
+            bgClass = "bg-[var(--bg-surface-muted)] hover:bg-[var(--bg-interactive)]";
           }
 
           let dayNumColor = "";
           if (!isCurrentMonth) {
-            dayNumColor = "text-[#8E8E93] dark:text-[#636366]";
+            dayNumColor = "text-[var(--text-subtle)]";
           } else if (isSelected) {
-            dayNumColor = "text-[#007AFF] dark:text-[#0A84FF] font-bold";
+            dayNumColor = "text-[var(--text-on-soft-accent)] font-bold";
           } else if (isToday) {
-            dayNumColor = "text-emerald-600 dark:text-emerald-400 font-bold";
+            dayNumColor = "text-[var(--text-on-soft-accent)] font-bold";
           } else {
-            dayNumColor = "text-[#1C1C1E] dark:text-[#F2F2F7] font-semibold";
+            dayNumColor = "text-[var(--text-main)] font-semibold";
           }
 
           return (
@@ -179,7 +182,7 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
 
                 {taskCount > 0 && isCurrentMonth && (
                   <span className="font-mono text-[10px] font-semibold text-[#8E8E93] dark:text-[#A1A1A6] sm:text-xs shrink-0">
-                    {taskCount} <span className="hidden sm:inline">việc</span>
+                    {taskCount} <span className="hidden sm:inline">{itemLabel}</span>
                   </span>
                 )}
               </div>
@@ -188,20 +191,20 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
               {taskCount > 0 && isCurrentMonth ? (
                 <div className="flex min-h-4 min-w-0 max-w-full items-center gap-1.5 overflow-hidden text-[10px] font-semibold sm:gap-2 sm:text-xs">
                   {overdueCount > 0 && (
-                    <span className="inline-flex shrink-0 items-center gap-1 text-rose-600 dark:text-rose-400" title={`${overdueCount} việc quá hạn`}>
-                      <span className="h-2 w-2 rounded-full bg-rose-500" />
+                    <span className="inline-flex shrink-0 items-center gap-1 text-[var(--danger-text)]" title={`${overdueCount} việc quá hạn`}>
+                      <span className="h-2 w-2 rounded-full bg-[var(--accent-coral)]" />
                       <span className="hidden md:inline">{overdueCount}</span>
                     </span>
                   )}
                   {upcomingCount > 0 && (
-                    <span className="inline-flex shrink-0 items-center gap-1 text-amber-600 dark:text-amber-400" title={`${upcomingCount} việc sắp đến`}>
-                      <span className="h-2 w-2 rounded-full bg-amber-500" />
+                    <span className="inline-flex shrink-0 items-center gap-1 text-[var(--accent-blue)]" title={`${upcomingCount} việc sắp đến`}>
+                      <span className="h-2 w-2 rounded-full bg-[var(--accent-blue)]" />
                       <span className="hidden md:inline">{upcomingCount}</span>
                     </span>
                   )}
                   {summary.completed > 0 && (
-                    <span className="inline-flex shrink-0 items-center gap-1 text-emerald-600 dark:text-emerald-400" title={`${summary.completed} việc đã xong`}>
-                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="inline-flex shrink-0 items-center gap-1 text-[var(--text-muted)]" title={`${summary.completed} việc đã xong`}>
+                      <span className="h-2 w-2 rounded-full bg-[var(--text-muted)]" />
                       <span className="hidden md:inline">{summary.completed}</span>
                     </span>
                   )}
@@ -222,12 +225,6 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs font-bold uppercase tracking-wider text-[#8E8E93] dark:text-[#A1A1A6] font-mono">
-                Tóm tắt ngày
-              </p>
-              <h3 className="mt-0.5 truncate text-base font-bold text-[#1C1C1E] dark:text-[#F2F2F7] sm:text-lg">
-                {formatShortDayMonth(previewDateStr)}
-              </h3>
               <p className="mt-1 text-xs text-[#8E8E93] dark:text-[#A1A1A6]">
                 {previewSummary.total} việc · {previewSummary.completed} đã xong · {previewSummary.active} chưa xong
               </p>
@@ -255,12 +252,13 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
                 return (
                   <div
                     key={task.id}
-                    className="min-w-0 rounded-2xl bg-white dark:bg-[#1C1C1E] px-3.5 py-2.5 shadow-2xs"
+                    style={getTaskCardVisualStyle(task)}
+                    className="min-w-0 rounded-2xl px-3.5 py-2.5 shadow-2xs"
                   >
-                    <p className={`truncate text-xs font-semibold ${isCompleted ? "text-emerald-600 dark:text-emerald-400 line-through" : "text-[#1C1C1E] dark:text-[#F2F2F7]"}`}>
+                    <p className={`truncate text-xs font-semibold ${isCompleted ? "line-through opacity-70" : ""}`}>
                       {task.title || "Công việc không có tiêu đề"}
                     </p>
-                    <p className={`mt-0.5 text-[11px] font-medium ${isCompleted ? "text-emerald-600 dark:text-emerald-400" : isOverdue ? "text-rose-600 dark:text-rose-400" : "text-amber-600 dark:text-amber-400"}`}>
+                    <p className={`mt-0.5 text-[11px] font-medium opacity-75 ${isOverdue ? "font-semibold" : ""}`}>
                       {meta}
                     </p>
                   </div>
@@ -278,7 +276,7 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
             <button
               type="button"
               onClick={() => onSelectDate(previewDateStr)}
-              className="inline-flex min-h-9 items-center gap-1.5 rounded-2xl bg-[#007AFF] hover:bg-[#0071E3] dark:bg-[#0A84FF] dark:hover:bg-[#0071E3] px-4 py-2 text-xs font-semibold text-white shadow-xs cursor-pointer transition-all"
+              className="inline-flex min-h-9 items-center gap-1.5 rounded-2xl bg-[var(--accent-blue)] hover:bg-[var(--accent-blue-hover)] px-4 py-2 text-xs font-semibold text-[var(--text-on-accent)] shadow-xs cursor-pointer transition-all"
             >
               <span>Xem chi tiết ngày</span>
               <ChevronRight size={14} strokeWidth={2.4} />

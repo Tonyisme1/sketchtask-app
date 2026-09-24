@@ -48,9 +48,9 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
         </div>
         <button
           type="button"
-          onClick={() => onTabChange("today")}
+          onClick={() => onTabChange("tasks")}
           className="flex cursor-pointer items-center gap-2 pl-0 transition-opacity hover:opacity-85"
-          aria-label="Về Hôm nay"
+          aria-label="Về Tất cả việc"
         >
           <BrandLogo size="lg" />
         </button>
