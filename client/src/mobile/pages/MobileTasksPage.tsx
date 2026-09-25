@@ -26,7 +26,6 @@ export const MobileTasksPage: React.FC<MobileTasksPageProps> = ({
 
   const [plannerTargetDateStr, setPlannerTargetDateStr] = useState<string | undefined>(undefined);
   const [plannerTargetTaskId, setPlannerTargetTaskId] = useState<string | undefined>(undefined);
-  const [plannerSourceTab, setPlannerSourceTab] = useState<"deadlines" | undefined>(undefined);
 
 
   useEffect(() => {
@@ -58,11 +57,6 @@ export const MobileTasksPage: React.FC<MobileTasksPageProps> = ({
         <MobilePlannerPage
           targetDateStr={plannerTargetDateStr}
           targetTaskId={plannerTargetTaskId}
-          fromTab={plannerSourceTab}
-          onBackToDeadlines={() => {
-            setActiveTaskSubTab("deadlines");
-            setPlannerSourceTab(undefined);
-          }}
           onClearTarget={() => {
             setPlannerTargetDateStr(undefined);
             setPlannerTargetTaskId(undefined);
@@ -72,12 +66,6 @@ export const MobileTasksPage: React.FC<MobileTasksPageProps> = ({
         <MobileDeadlinesPage
           view={mobileDeadlineView}
           onViewChange={setMobileDeadlineView}
-          onNavigateToTaskDate={(dateStr, taskId) => {
-            setPlannerTargetDateStr(dateStr);
-            setPlannerTargetTaskId(taskId);
-            setPlannerSourceTab("deadlines");
-            setActiveTaskSubTab("planner");
-          }}
         />
       )}
     </div>

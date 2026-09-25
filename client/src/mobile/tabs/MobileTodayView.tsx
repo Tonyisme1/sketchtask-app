@@ -111,7 +111,7 @@ export const MobileTodayView: React.FC<MobileTodayViewProps> = ({
 
         {/* Việc đã xong luôn đóng khi vào màn hình; chỉ mở khi người dùng chủ động bấm. */}
         {completedTodayTasks.length > 0 && (
-          <section className="mt-5 border-t border-black/[0.04] pt-3 dark:border-white/[0.06]">
+          <section className="mt-5 pt-3">
             <button
               type="button"
               onClick={() => setIsCompletedSectionOpen((open) => !open)}

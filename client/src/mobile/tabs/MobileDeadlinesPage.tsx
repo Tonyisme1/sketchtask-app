@@ -10,14 +10,12 @@ import {
 
 export interface MobileDeadlinesPageProps {
   model?: DeadlinesScreenModel;
-  onNavigateToTaskDate?: (dateStr: string, taskId: string) => void;
   view: DeadlineView;
   onViewChange: (view: DeadlineView) => void;
 }
 
 export const MobileDeadlinesPage: React.FC<MobileDeadlinesPageProps> = ({
   model: propModel,
-  onNavigateToTaskDate,
   view,
   onViewChange,
 }) => {
@@ -29,8 +27,6 @@ export const MobileDeadlinesPage: React.FC<MobileDeadlinesPageProps> = ({
       {...model}
       view={view}
       onViewChange={onViewChange}
-      hideViewTabs
-      onNavigateToTaskDate={onNavigateToTaskDate}
     />
   );
 };

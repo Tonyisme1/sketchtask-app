@@ -47,23 +47,23 @@ export const DesktopPlannerListView: React.FC<DesktopPlannerListViewProps> = ({
 
   return (
     <section className="flex-1 min-h-0 overflow-y-auto bg-[var(--bg-canvas)] px-5 py-5 select-none">
-      <div className="w-full max-w-none space-y-6 pb-16">
-        {/* === PHẦN 1: Tóm tắt tuần === */}
-        <header className="flex items-center justify-between gap-3 pb-2">
+      <div className="w-full max-w-none space-y-5 pb-16">
+        {/* === PHẦN 1: Tóm tắt dòng thời gian === */}
+        <header className="flex items-center justify-between gap-3 px-1 pb-1">
           <div className="flex min-w-0 items-center">
             <div className="min-w-0">
               <h2 className="truncate text-base font-extrabold text-[var(--text-main)]">
                 {isEventStream ? "Dòng sự kiện trong tuần" : "Dòng công việc trong tuần"}
               </h2>
               <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-[var(--text-muted)]">
-                <span>{totalTaskCount} {isEventStream ? "sự kiện" : "công việc"}</span>
+                <span>{totalTaskCount} {isEventStream ? "sự kiện đã xếp lịch" : "công việc trong tuần"}</span>
               </div>
             </div>
           </div>
         </header>
 
-        {/* === PHẦN 2: Header ngày và card trực tiếp === */}
-        {visibleDayEntries.map(({ day, tasks }) => {
+        {/* === PHẦN 2: Mỗi ngày là một block timeline có điểm nhấn riêng === */}
+        {visibleDayEntries.map(({ day, tasks }, index) => {
           const dayTotalCount = tasks.length;
 
           return (
@@ -84,6 +84,8 @@ export const DesktopPlannerListView: React.FC<DesktopPlannerListViewProps> = ({
               onAddTask={() => openQuickTaskModal({ dueDate: day.dateStr, itemType, lockItemType: true })}
               itemLabel={isEventStream ? "sự kiện" : "việc"}
               showCompletionSection={!isEventStream}
+              visualStyle={isEventStream ? "event" : "tag"}
+              accentIndex={index}
             />
           );
         })}

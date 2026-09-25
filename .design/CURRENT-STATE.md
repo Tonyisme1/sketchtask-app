@@ -4,11 +4,11 @@
 
 - Desktop has one shared right dock. The narrow tool rail is always visible;
   its panel expands left from the rail when a utility is selected.
-- Search opens the shared `GlobalSearchModal`; notes and journal are the docked mini-apps
-  that reuse their feature models and editors. Opening a utility does not change
-  the active Event or Task workspace.
-- Deadline work is managed only by the Task workspace's `Hạn định` context.
-  The right dock must not create a second notification, overdue, or upcoming feed.
+- Search opens the shared `GlobalSearchModal`; `Ghi chép` is one docked parent
+  with child tabs for notes and journal. Opening a utility does not change the
+  active Event or Task workspace.
+- Deadline metadata is read in the Task workspace; the right dock must not create
+  a second notification, overdue, or upcoming feed.
 - Task detail and utility content share the same right-dock area. Opening a
   utility temporarily hides the inspector without clearing the selected task;
   closing the utility restores that inspector when a task is still selected.
@@ -55,20 +55,26 @@ Không thay đổi luồng thao tác mobile chỉ để làm desktop/tablet gi�
 
 Sidebar chính gồm:
 
-1. `Hôm nay`: task của ngày hiện tại.
-2. `Kế hoạch`: planner theo tuần/ngày.
-3. `Hạn định`: task theo deadline, gồm quá hạn và sắp đến.
-4. `Ghi chú`: danh sách và trình soạn thảo note.
-5. `Nhật ký`: danh sách ngày và sổ nhật ký đang mở.
-6. `AI`: trợ lý AI.
+1. `Công việc`: backlog, filter tag đa chọn và task detail.
+2. `Ghi chép`: một parent, bên trong chuyển giữa danh sách ghi chú và sổ nhật ký.
+3. `AI`: trợ lý AI.
+
+Lịch chỉ thuộc workspace `Sự kiện` ở Desktop. `Hôm nay` và planner của task là
+route legacy: nếu một liên kết cũ còn mở chúng, app trả về `Công việc` thay vì tạo
+một workspace task thứ hai.
+
+Trong `Công việc`, task được nhóm theo tag/danh sách. Dải tag ngay workspace Desktop
+cho phép chọn một hoặc nhiều tag; task không có tag nằm ở `Chưa gắn tag`.
 
 Settings mở từ account control/header. Desktop giữ navigation theo nhóm và master-detail;
 tablet giữ nhóm theo hướng màn hình; mobile là một trang cài đặt cuộn liên tục, được
-ngăn nhịp bằng divider thay vì các card lớn hoặc drill-down riêng cho từng mục.
+ngăn nhịp bằng khoảng cách và typography thay vì các card lớn, divider hoặc drill-down riêng cho từng mục.
 
 ### Tablet
 
-Dock dưới gồm `Hôm nay`, `Công việc`, `Ghi chép` và `Trợ lý AI`. `Công việc` vẫn dùng các subcontext task là `today`, `planner`, `deadlines`; không tạo thêm một tab dashboard trung gian.
+Dock tablet gồm `Công việc`, `Sự kiện`, `Ghi chép` và `AI`. `Ghi chép` mở hai tab
+con `Ghi chú` và `Nhật ký`; `Sự kiện` là workspace độc lập, dùng dữ liệu event và
+nút tạo event theo context.
 
 ### Mobile
 
@@ -77,7 +83,8 @@ Dock dưới gồm:
 1. `Việc` cho các subcontext công việc và kế hoạch.
 2. `Sự kiện` cho dòng sự kiện và lịch sự kiện.
 3. Nút `+` ở giữa để tạo đúng loại mục của workspace hiện tại.
-4. `Hạn` là lối tắt duy nhất vào `Hạn định`, có badge cho task deadline quá hạn hoặc trong bảy ngày tới; mở vào `Sắp đến` trước.
+4. `Ghi chép` gom `Ghi chú` và `Nhật ký`; header của khu vực này mở dropdown để
+   chuyển giữa hai surface mà không chiếm thêm một ô dock.
 5. `Cá nhân` để vào Settings.
 
 Dock tự ẩn khi bàn phím mở hoặc khi người dùng cuộn xuống, sau đó hiện lại theo hành vi của shell.
@@ -86,12 +93,12 @@ Không có workspace active riêng tên `Sổ tay`, `Dashboard` hoặc `Review`.
 
 ## 4. Task workspace
 
-- Store giữ task workspace bằng `activeTab = "tasks"` và `activeTaskSubTab` là `today`, `planner` hoặc `deadlines`.
-- `Hôm nay` ưu tiên danh sách task hiện tại, progress và các thao tác nhanh phù hợp platform.
-- `Kế hoạch` có overview, day detail, lịch trình và lịch tháng theo những view mà `PlannerTab` đang render. Desktop có weekly time chart; tablet/mobile ưu tiên danh sách bảy ngày và day detail dễ cuộn.
-- `Hạn định` có nhóm `Quá hạn` và `Sắp đến`; trên mobile hai mục này chỉ nằm trong dropdown Header với `Sắp đến` đứng trước. Đây là task subcontext, không phải app-level tab mới.
-- `Hạn định` là nguồn duy nhất để xem, lọc và xử lý task deadline cần chú ý.
-  Không dựng inbox Thông báo thứ hai từ cùng tập task đó.
+- Store vẫn giữ `activeTaskSubTab` legacy để tương thích dữ liệu cũ. Không có tab
+  `Sắp đến` hoặc `Hạn định` trong navigation; state cũ tự trở về Công việc.
+- Lịch tuần/ngày/tháng là surface của workspace `Sự kiện` trên cả ba shell. Event
+  giữ khoảng bắt đầu-kết thúc, còn task chỉ có deadline.
+- Hạn và trạng thái quá hạn là metadata của từng task trong Công việc, không dựng
+  inbox hoặc destination thứ hai từ cùng tập task đó.
 - Task detail: desktop dùng panel/dock; tablet và mobile dùng detail surface toàn màn hình. Edit và view là hai trạng thái của cùng một detail flow.
 - Quick create không được nhân đôi trên cùng một màn hình: desktop mở `QuickTaskModal` từ sidebar/Today, tablet dùng contextual FAB, mobile dùng nút `+` và create sheet.
 
@@ -129,10 +136,19 @@ Browser back, Android/Capacitor back và nút back trong UI phải đi qua cùng
 
 - `scheduled` và `deadline` là hai field thời gian khác nhau; không suy diễn scheduled thành overdue deadline.
 - `parentTaskId` là nguồn xác định task con; UI phải thụt cấp theo quan hệ dữ liệu, không chỉ dựa vào vị trí mảng.
+- `tag` là phân loại đơn của task. Trường mảng `tags` chỉ đọc để chuyển đổi dữ liệu cũ,
+  rồi bị loại khi task được nạp, tạo hoặc cập nhật.
+- Task con giữ quan hệ cha khi sửa. Xóa cha chỉ nâng các con trực tiếp lên thành task độc lập; event không tham gia cây task.
 - Note, journal và task có thể dùng notebook để phân loại; notebook không được biến thành navigation surface riêng.
 - Mọi async surface cần có loading, empty, error và success phù hợp. Error phải có hành động khắc phục hoặc retry.
 
-## 9. Legacy và Planned
+## 9. First-run onboarding và AI
+
+- Lần đầu vào app, `AppOnboardingTour` dùng coach mark theo platform để trỏ vào điều hướng và thao tác cốt lõi. Có thể bỏ qua, và khi hoàn thành sẽ không tự hiện lại.
+- AI chỉ sinh proposal. Mỗi task, bước chia nhỏ hoặc thao tác dữ liệu là một lựa chọn riêng, mặc định chưa được chọn; không có lệnh áp dụng hàng loạt mặc định.
+- AI không tự chia nhỏ mục tiêu nếu người dùng chưa yêu cầu, không tự mặc định số bước, không tự gán ngày khi thiếu dữ kiện và phải hỏi lại một câu khi mục tiêu chưa đủ rõ.
+
+## 10. Legacy và Planned
 
 Các file sau có thể còn để tương thích nhưng không phải luật runtime mới:
 

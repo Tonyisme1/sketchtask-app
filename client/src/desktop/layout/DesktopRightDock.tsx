@@ -1,16 +1,14 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  BookOpen,
   FilePenLine,
   Search,
   X,
 } from "lucide-react";
 import { DesktopJournalTool } from "../tools/DesktopJournalTool";
 import { DesktopNotesTool } from "../tools/DesktopNotesTool";
+import { NotesSectionTabs } from "../../components/shared/notes/NotesSectionTabs";
 
-export type DesktopUtilityPanel =
-  "notes"
-  | "journal";
+export type DesktopUtilityPanel = "writing";
 
 export interface DesktopRightDockProps {
   activeUtility: DesktopUtilityPanel | null;
@@ -19,8 +17,7 @@ export interface DesktopRightDockProps {
 }
 
 const utilityTitles: Record<DesktopUtilityPanel, string> = {
-  notes: "Ghi chú",
-  journal: "Nhật ký",
+  writing: "Ghi chép",
 };
 
 // Keep every utility surface aligned with the Desktop task-detail sidebar.
@@ -33,6 +30,7 @@ export const DesktopRightDock: React.FC<DesktopRightDockProps> = ({
   onOpenSearch,
 }) => {
   const dockRef = useRef<HTMLElement>(null);
+  const [writingTab, setWritingTab] = useState<"notes" | "journal">("notes");
 
   useEffect(() => {
     if (!activeUtility) return;
@@ -55,20 +53,11 @@ export const DesktopRightDock: React.FC<DesktopRightDockProps> = ({
   const toggleUtility = (utility: DesktopUtilityPanel) => {
     onUtilityChange(activeUtility === utility ? null : utility);
   };
-  const renderPanelContent = () => {
-    switch (activeUtility) {
-      case "notes":
-        return <DesktopNotesTool />;
-      case "journal":
-        return <DesktopJournalTool />;
-      default:
-        return null;
-    }
-  };
+  const renderPanelContent = () =>
+    writingTab === "journal" ? <DesktopJournalTool /> : <DesktopNotesTool />;
 
   const utilityButtons: Array<{ id: DesktopUtilityPanel; label: string; icon: React.ReactNode; count?: number }> = [
-    { id: "notes", label: "Ghi chú", icon: <FilePenLine size={19} strokeWidth={2.2} /> },
-    { id: "journal", label: "Nhật ký", icon: <BookOpen size={19} strokeWidth={2.2} /> },
+    { id: "writing", label: "Ghi chép", icon: <FilePenLine size={19} strokeWidth={2.2} /> },
   ];
 
   return (
@@ -96,6 +85,13 @@ export const DesktopRightDock: React.FC<DesktopRightDockProps> = ({
               <X size={17} strokeWidth={2.3} />
             </button>
           </header>
+          <div className="px-3 pb-2">
+            <NotesSectionTabs
+              activeTab={writingTab}
+              onTabChange={setWritingTab}
+              className="mb-0"
+            />
+          </div>
           {renderPanelContent()}
         </section>
       )}

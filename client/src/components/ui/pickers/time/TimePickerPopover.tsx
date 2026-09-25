@@ -347,7 +347,7 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
         onClick={(event) => event.stopPropagation()}
       >
         {/* Header: Title */}
-        <div className="px-4 py-3 flex items-center justify-between border-b border-black/[0.04] dark:border-white/[0.06] bg-[#FAF8F3] dark:bg-[#202023]">
+        <div className="px-4 py-3 flex items-center justify-between bg-[#FAF8F3] dark:bg-[#202023]">
           <h3 className="text-sm font-bold text-[#1C1917] dark:text-[#F2F2F7] tracking-tight">
             Chọn giờ ({selectedHour}:{selectedMinute})
           </h3>
@@ -390,7 +390,7 @@ export const TimePickerPopover: React.FC<TimePickerPopoverProps> = ({
         </div>
 
         {/* Bottom Actions */}
-        <div className="px-4 py-3 bg-[#FAF8F3] dark:bg-[#1C1C1E] border-t border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between gap-2.5">
+        <div className="px-4 py-3 bg-[#FAF8F3] dark:bg-[#1C1C1E] flex items-center justify-between gap-2.5">
           <button
             type="button"
             onClick={handleClear}

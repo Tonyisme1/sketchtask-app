@@ -168,7 +168,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   const orderedRootNodes = [...rootNodes].sort(
     (a, b) => Number(a.task.completed) - Number(b.task.completed),
   );
-  const completedTaskCount = orderedRootNodes.filter((node) => node.task.completed).length;
+  const completedTaskCount = tasks.filter((task) => task.completed).length;
 
   const toggleParentCollapse = (parentId: string) => {
     setCollapsedParents((prev) => ({

@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { CheckSquare, FilePenLine, Sun, LucideIcon } from "lucide-react";
+import {
+  CalendarDays,
+  CheckSquare,
+  FilePenLine,
+  LucideIcon,
+  Sparkles,
+} from "lucide-react";
 import { TabKey, TaskSubTab } from "../../types";
 
 export interface TabletNavProps {
@@ -14,9 +20,10 @@ const navItems: Array<{
   shortLabel: string;
   icon: LucideIcon;
 }> = [
-  { key: "today", label: "Hôm nay", shortLabel: "Nay", icon: Sun },
   { key: "tasks", label: "Công việc", shortLabel: "Việc", icon: CheckSquare },
-  { key: "notes", label: "Ghi chép", shortLabel: "Ghi", icon: FilePenLine },
+  { key: "events", label: "Sự kiện", shortLabel: "Sự kiện", icon: CalendarDays },
+  { key: "notes", label: "Ghi chép", shortLabel: "Ghi chép", icon: FilePenLine },
+  { key: "ai", label: "Trợ lý AI", shortLabel: "AI", icon: Sparkles },
 ];
 
 const isNavItemActive = (
@@ -24,11 +31,8 @@ const isNavItemActive = (
   activeTaskSubTab: TabletNavProps["activeTaskSubTab"],
   key: TabKey,
 ) => {
-  if (key === "today") {
-    return activeTab === "today" || (activeTab === "tasks" && activeTaskSubTab === "today");
-  }
   if (key === "tasks") {
-    return activeTab === "tasks" && activeTaskSubTab !== "today";
+    return activeTab === "tasks";
   }
   if (key === "notes") return activeTab === "notes" || activeTab === "journal";
   return activeTab === key;
@@ -118,6 +122,7 @@ export const TabletNav: React.FC<TabletNavProps> = ({
             <button
               key={key}
               type="button"
+              data-onboarding={key === "tasks" ? "tablet-tasks" : undefined}
               onClick={() => onTabChange(key)}
               aria-label={label}
               title={label}

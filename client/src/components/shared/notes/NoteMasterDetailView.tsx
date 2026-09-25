@@ -320,7 +320,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
                         return next;
                       });
                     }}
-                    className="w-full border-t border-black/[0.04] dark:border-white/[0.06] px-3 py-2 text-left text-[11px] font-semibold text-[#57534E] dark:text-[#8E8E93] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E] hover:text-[#1C1917] dark:hover:text-[#F2F2F7] cursor-pointer rounded-b-3xl"
+                    className="w-full px-3 py-2 text-left text-[11px] font-semibold text-[#57534E] dark:text-[#8E8E93] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E] hover:text-[#1C1917] dark:hover:text-[#F2F2F7] cursor-pointer rounded-b-3xl"
                   >
                     {isPreviewExpanded ? "Thu gọn" : "Xem thêm"}
                   </button>

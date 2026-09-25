@@ -26,11 +26,8 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
   onOpenAIModal,
 }) => {
   const { user, toggleSidebar } = useAppStore();
-  const isEventWorkspace = activeTab === "planner";
-  const isTaskWorkspace =
-    activeTab === "tasks" ||
-    activeTab === "today" ||
-    activeTab === "deadlines";
+  const isEventWorkspace = activeTab === "events";
+  const isTaskWorkspace = activeTab === "tasks";
 
   return (
     <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center justify-between bg-[var(--bg-canvas)] px-0 pr-5 text-[var(--text-main)] lg:pr-6 xl:pr-8 select-none">
@@ -50,7 +47,7 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
           type="button"
           onClick={() => onTabChange("tasks")}
           className="flex cursor-pointer items-center gap-2 pl-0 transition-opacity hover:opacity-85"
-          aria-label="Về Tất cả việc"
+          aria-label="Về Công việc"
         >
           <BrandLogo size="lg" />
         </button>
@@ -61,7 +58,7 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({
         <div className="hidden items-center gap-1.5 lg:flex" role="group" aria-label="Không gian Desktop">
           <button
             type="button"
-            onClick={() => onTabChange("planner")}
+            onClick={() => onTabChange("events")}
             aria-current={isEventWorkspace ? "page" : undefined}
             className={`flex h-9 items-center gap-1.5 rounded-2xl px-3 text-xs font-bold transition-all cursor-pointer active:scale-95 ${
               isEventWorkspace

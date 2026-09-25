@@ -1,18 +1,13 @@
 import React, { useMemo, useState } from "react";
 import {
   AlertTriangle,
-  ArrowRight,
   BellRing,
-  CalendarPlus,
-  CheckCheck,
-  Hourglass,
-  Trash2,
+  CalendarClock,
 } from "lucide-react";
 import { TaskDto } from "../../../types";
 import { DeadlinesScreenModel } from "../../../features/deadlines/model/types";
-import { formatFullDate, getLocalTodayStr } from "../../../utils/date";
+import { formatFullDate, getLocalTodayStr, getLocalTomorrowStr } from "../../../utils/date";
 import { SketchTabs } from "../../layout/SketchTabs";
-import { ConfirmModal } from "../../ui/overlays/ConfirmModal";
 import { RescheduleDateModal } from "../../ui/overlays/RescheduleDateModal";
 import { formatDisplayDate } from "../../ui/pickers/time/DatePickerPopover";
 import { dispatchToast } from "../../../utils/toast";
@@ -20,9 +15,8 @@ import {
   getTaskDeadlineDate,
   getTaskEffectiveDate,
   getTaskEffectiveTime,
-  getTaskTemporalState,
-  isTaskDeadline,
-  normalizeTaskTimeType,
+  getDeadlineTaskBuckets,
+  moveTaskToDate,
 } from "../../../utils/taskSemantics";
 import { TaskList } from "../common/TaskList";
 import { TaskListSection } from "../common/TaskListSection";
@@ -30,19 +24,11 @@ import type { TaskListProps } from "../common/TaskList";
 import { DesktopTaskGroup } from "../common/DesktopTaskGroup";
 
 export type DeadlineView = "overdue" | "upcoming";
-type BulkActionKind = "complete" | "delete";
 
 export interface DeadlinesViewProps extends DeadlinesScreenModel {
-  onNavigateToTaskDate?: (dateStr: string, taskId: string) => void;
   taskListPresentation?: TaskListProps["presentation"];
   view?: DeadlineView;
   onViewChange?: (view: DeadlineView) => void;
-  hideViewTabs?: boolean;
-}
-
-interface PendingBulkAction {
-  kind: BulkActionKind;
-  tasks: TaskDto[];
 }
 
 const sortByDateAndTime = (tasks: TaskDto[]) =>
@@ -72,14 +58,14 @@ const groupByDate = (tasks: TaskDto[]) => {
   }));
 };
 
-// Chỉ nhận diện chuỗi test lặp rất rõ; không tự suy đoán task thật là rác.
-const isLikelyJunkTask = (task: TaskDto) => {
-  const compactTitle = task.title.trim().toLocaleLowerCase().replace(/[^a-z0-9]/g, "");
-  return compactTitle.length >= 6 && /^(add|test|asdf|qwer)+$/.test(compactTitle);
+const getDeadlineGroupLabel = (dateStr: string) => {
+  if (dateStr === "no-date") return "Chưa đặt ngày";
+  if (dateStr === getLocalTodayStr()) return "Hôm nay";
+  if (dateStr === getLocalTomorrowStr()) return "Ngày mai";
+  return formatFullDate(dateStr);
 };
 
 export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
-  onNavigateToTaskDate,
   tasks,
   toggleTask,
   deleteTask,
@@ -89,13 +75,9 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
   taskListPresentation = "default",
   view: controlledView,
   onViewChange,
-  hideViewTabs = false,
 }) => {
-  const todayStr = getLocalTodayStr(new Date());
-  const upcomingLimitStr = getLocalTodayStr(new Date(Date.now() + 6 * 24 * 60 * 60 * 1000));
-  const [uncontrolledView, setUncontrolledView] = useState<DeadlineView>("overdue");
+  const [uncontrolledView, setUncontrolledView] = useState<DeadlineView>("upcoming");
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
-  const [pendingBulkAction, setPendingBulkAction] = useState<PendingBulkAction | null>(null);
   const [rescheduleModalState, setRescheduleModalState] = useState<{
     isOpen: boolean;
     tasks: TaskDto[];
@@ -111,39 +93,12 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
     setUncontrolledView(nextView);
   };
 
-  const overdueTasks = useMemo(
-    () =>
-      sortByDateAndTime(
-        tasks.filter((task) => {
-          if (task.completed || !isTaskDeadline(task)) return false;
-          return getTaskTemporalState(task) === "overdue";
-        }),
-      ),
-    [tasks],
-  );
-
-  const upcomingTasks = useMemo(
-    () =>
-      sortByDateAndTime(
-        tasks.filter((task) => {
-          if (task.completed || !isTaskDeadline(task)) return false;
-          const state = getTaskTemporalState(task);
-          if (state === "overdue") return false;
-          const date = getTaskDeadlineDate(task) || getTaskEffectiveDate(task);
-          return Boolean(date && date >= todayStr && date <= upcomingLimitStr);
-        }),
-      ),
-    [tasks, todayStr, upcomingLimitStr],
-  );
+  const deadlineBuckets = useMemo(() => getDeadlineTaskBuckets(tasks), [tasks]);
+  const overdueTasks = useMemo(() => sortByDateAndTime(deadlineBuckets.overdue), [deadlineBuckets.overdue]);
+  const upcomingTasks = useMemo(() => sortByDateAndTime(deadlineBuckets.upcoming), [deadlineBuckets.upcoming]);
 
   const overdueGroups = useMemo(() => groupByDate(overdueTasks), [overdueTasks]);
   const upcomingGroups = useMemo(() => groupByDate(upcomingTasks), [upcomingTasks]);
-
-  const activeTasks = view === "overdue" ? overdueTasks : upcomingTasks;
-  const junkTasks = useMemo(
-    () => activeTasks.filter(isLikelyJunkTask),
-    [activeTasks],
-  );
 
   const handleSmartReschedule = (taskId: string) => {
     const task = tasks.find((item) => item.id === taskId);
@@ -159,13 +114,8 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
     if (!rescheduleModalState || rescheduleModalState.tasks.length === 0) return;
     const { tasks: selectedTasks } = rescheduleModalState;
     for (const task of selectedTasks) {
-      if (task.dueDate) {
-        updateTask(task.id, { dueDate: targetDate });
-      } else if (task.deadlineDate) {
-        updateTask(task.id, { deadlineDate: targetDate });
-      } else {
-        updateTask(task.id, { dueDate: targetDate });
-      }
+      // Giữ nguyên ngữ nghĩa deadline và giờ khi người dùng chỉ đổi ngày.
+      updateTask(task.id, moveTaskToDate(task, targetDate));
     }
     const formatted = formatDisplayDate(targetDate);
     dispatchToast({
@@ -179,27 +129,6 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
 
   const handleTaskClick = (task: TaskDto) => {
     openTaskDetail(task.id);
-  };
-
-  const requestBulkAction = (kind: BulkActionKind, selectedTasks: TaskDto[]) => {
-    if (selectedTasks.length === 0) return;
-    setPendingBulkAction({ kind, tasks: selectedTasks });
-  };
-
-  const performBulkAction = () => {
-    if (!pendingBulkAction) return;
-
-    const { kind, tasks: selectedTasks } = pendingBulkAction;
-    if (kind === "complete") {
-      selectedTasks.filter((task) => !task.completed).forEach((task) => toggleTask(task.id));
-      dispatchToast({ message: `Đã hoàn thành ${selectedTasks.length} việc.` });
-    }
-    if (kind === "delete") {
-      selectedTasks.forEach((task) => deleteTask(task.id));
-      dispatchToast({ message: `Đã dọn ${selectedTasks.length} task rác.` });
-    }
-
-    setPendingBulkAction(null);
   };
 
   const renderGroups = (
@@ -251,15 +180,9 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
           (() => {
             const groupKey = `${view}:${group.dateStr}`;
             const isCollapsed = collapsedGroups[groupKey] ?? group.tasks.length > 8;
-            const scheduledCount = group.tasks.filter(
-              (task) => normalizeTaskTimeType(task) === "scheduled",
-            ).length;
-            const deadlineCount = group.tasks.filter(
-              (task) => normalizeTaskTimeType(task) === "deadline",
-            ).length;
 
-            const groupTitle =
-              group.dateStr === "no-date" ? "Chưa đặt ngày" : formatFullDate(group.dateStr);
+            const groupTitle = getDeadlineGroupLabel(group.dateStr);
+            const groupSubtitle = variant === "overdue" ? "Đã quá hạn" : "Hạn chót";
 
             if (taskListPresentation === "desktop") {
               return (
@@ -268,7 +191,7 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
                   title={groupTitle}
                   dateStr={group.dateStr}
                   tasks={group.tasks}
-                  subtitle={`${scheduledCount} lịch · ${deadlineCount} hạn`}
+                  subtitle={groupSubtitle}
                   collapsed={isCollapsed}
                   onCollapsedChange={(nextCollapsed) => {
                     setCollapsedGroups((previous) => ({
@@ -281,41 +204,6 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
                   onOpenTask={handleTaskClick}
                   onDelete={deleteTask}
                   onMoveTomorrow={handleSmartReschedule}
-                  headerAction={(
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setRescheduleModalState({
-                            isOpen: true,
-                            tasks: group.tasks.filter((task) => !task.completed),
-                            taskTitle: `Nhóm ${groupTitle}`,
-                          });
-                        }}
-                        className="inline-flex h-7 items-center gap-1 rounded-xl bg-black/[0.04] px-2.5 text-[11px] font-semibold text-[#1C1C1E] transition-colors hover:bg-black/[0.08] dark:bg-white/[0.08] dark:text-[#F2F2F7] dark:hover:bg-white/[0.12]"
-                        title={`Dời tất cả việc của ${groupTitle}`}
-                      >
-                        <CalendarPlus size={12} strokeWidth={2.2} />
-                        <span className="hidden sm:inline">Dời nhóm</span>
-                      </button>
-                      {group.tasks.some((task) => !task.completed) && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            requestBulkAction(
-                              "complete",
-                              group.tasks.filter((task) => !task.completed),
-                            )
-                          }
-                          className="inline-flex h-7 items-center gap-1 rounded-xl bg-[#34C759]/15 px-2.5 text-[11px] font-semibold text-[#34C759] transition-colors hover:bg-[#34C759]/25 dark:text-[#30D158]"
-                          title={`Hoàn thành tất cả việc của ${groupTitle}`}
-                        >
-                          <CheckCheck size={12} strokeWidth={2.2} />
-                          <span className="hidden sm:inline">Xong nhóm</span>
-                        </button>
-                      )}
-                    </>
-                  )}
                 />
               );
             }
@@ -323,11 +211,11 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
             return (
               <TaskListSection
                 key={group.dateStr}
-                title={formatFullDate(group.dateStr)}
-                subtitle={`${scheduledCount} lịch · ${deadlineCount} hạn`}
+                title={groupTitle}
+                subtitle={groupSubtitle}
                 tasks={group.tasks}
                 tone={variant === "overdue" ? "danger" : "info"}
-                icon={<Hourglass size={15} strokeWidth={2.2} />}
+                icon={<CalendarClock size={15} strokeWidth={2.2} />}
                 collapsed={isCollapsed}
                 onCollapsedChange={(nextCollapsed) => {
                   setCollapsedGroups((previous) => ({
@@ -335,41 +223,6 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
                     [groupKey]: nextCollapsed,
                   }));
                 }}
-                headerAction={(
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setRescheduleModalState({
-                          isOpen: true,
-                          tasks: group.tasks.filter((t) => !t.completed),
-                          taskTitle: `Nhóm ${formatFullDate(group.dateStr)}`,
-                        });
-                      }}
-                      className="inline-flex h-7 items-center gap-1 rounded-xl bg-black/[0.04] px-2.5 text-[11px] font-semibold text-[#1C1C1E] transition-colors hover:bg-black/[0.08] dark:bg-white/[0.08] dark:text-[#F2F2F7] dark:hover:bg-white/[0.12]"
-                      title={`Dời tất cả việc của ngày ${formatFullDate(group.dateStr)}`}
-                    >
-                      <CalendarPlus size={12} strokeWidth={2.2} />
-                      <span className="hidden sm:inline">Dời nhóm</span>
-                    </button>
-                    {group.tasks.some((t) => !t.completed) && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          requestBulkAction(
-                            "complete",
-                            group.tasks.filter((t) => !t.completed),
-                          )
-                        }
-                        className="inline-flex h-7 items-center gap-1 rounded-xl bg-[#34C759]/15 px-2.5 text-[11px] font-semibold text-[#34C759] transition-colors hover:bg-[#34C759]/25 dark:text-[#30D158]"
-                        title={`Hoàn thành tất cả việc của ngày ${formatFullDate(group.dateStr)}`}
-                      >
-                        <CheckCheck size={12} strokeWidth={2.2} />
-                        <span className="hidden sm:inline">Xong nhóm</span>
-                      </button>
-                    )}
-                  </>
-                )}
                 onToggle={toggleTask}
                 onEdit={handleTaskClick}
                 onDelete={deleteTask}
@@ -391,148 +244,76 @@ export const DeadlinesView: React.FC<DeadlinesViewProps> = ({
 
   const isOverdueView = view === "overdue";
   const activeCount = isOverdueView ? overdueTasks.length : upcomingTasks.length;
+  const activeTitle = isOverdueView ? "Việc quá hạn" : "Việc sắp đến hạn";
+  const activeDescription = isOverdueView
+    ? "Deadline đã qua, cần xử lý lại."
+    : "Deadline trong 7 ngày tới.";
+  const tabs = [
+    {
+      key: "upcoming" as const,
+      label: "Sắp đến",
+      icon: <BellRing size={14} strokeWidth={2.2} />,
+      badge: upcomingTasks.length > 0 ? (
+        <span className="min-w-[18px] rounded-full bg-[var(--bg-surface-muted)] px-1.5 py-0.5 text-center font-mono text-[10px] leading-none font-semibold text-[var(--accent-blue)]">
+          {upcomingTasks.length}
+        </span>
+      ) : undefined,
+    },
+    {
+      key: "overdue" as const,
+      label: "Quá hạn",
+      icon: <AlertTriangle size={14} strokeWidth={2.2} />,
+      badge: overdueTasks.length > 0 ? (
+        <span className="min-w-[18px] rounded-full bg-[var(--bg-surface-muted)] px-1.5 py-0.5 text-center font-mono text-[10px] leading-none font-semibold text-[var(--accent-coral)]">
+          {overdueTasks.length}
+        </span>
+      ) : undefined,
+    },
+  ];
 
   return (
-    <div className={`space-y-3.5 w-full min-w-0 pb-16 select-none ${
+    <div className={`w-full min-w-0 select-none pb-24 sm:pb-10 ${
       isMobile ? "" : "animate-in fade-in duration-150"
     }`}>
-      {/* 1. Header Toolbar */}
+      {/* === PHẦN 1: Ngữ cảnh deadline và bộ chuyển trạng thái === */}
       {isMobile ? (
-        <div className="space-y-2 select-none">
-          {!hideViewTabs && (
-            <SketchTabs
-            ariaLabel="Chuyển loại hạn định"
-            size="sm"
-            className="w-full flex justify-center [&>button]:min-h-[36px] [&>button]:flex-1"
-            value={view}
-            onChange={setView}
-            items={[
-              {
-                key: "overdue",
-                label: "Quá hạn",
-                icon: <AlertTriangle size={13} strokeWidth={2.2} />,
-                badge:
-                  overdueTasks.length > 0 ? (
-                    <span className="min-w-[18px] rounded-full bg-[#FF3B30] text-white px-2 py-0.5 text-center font-mono text-[10px] leading-none font-semibold shadow-2xs">
-                      {overdueTasks.length}
-                    </span>
-                  ) : undefined,
-              },
-              {
-                key: "upcoming",
-                label: "Sắp đến",
-                icon: <BellRing size={13} strokeWidth={2.2} />,
-                badge:
-                  upcomingTasks.length > 0 ? (
-                    <span className="min-w-[18px] rounded-full bg-[#007AFF] text-white px-2 py-0.5 text-center font-mono text-[10px] leading-none font-semibold shadow-2xs">
-                      {upcomingTasks.length}
-                    </span>
-                  ) : undefined,
-              },
-            ]}
-            />
-          )}
-
-            {activeTasks.length > 0 && (
-              <div className="flex items-center gap-1.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => requestBulkAction("complete", activeTasks)}
-                  className="h-9 rounded-2xl bg-[#34C759]/15 hover:bg-[#34C759]/25 text-[#34C759] dark:text-[#30D158] px-3 text-xs font-semibold active:scale-[0.98] transition-all cursor-pointer inline-flex items-center shadow-2xs"
-                  title="Hoàn thành tất cả"
-                >
-                  <CheckCheck size={14} />
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setRescheduleModalState({
-                      isOpen: true,
-                      tasks: activeTasks,
-                      taskTitle: isOverdueView ? "Tất cả việc quá hạn" : "Tất cả việc sắp đến hạn",
-                    })
-                  }
-                  className="h-9 rounded-2xl bg-black/[0.05] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] text-[#1C1917] dark:text-[#F2F2F7] px-3 text-xs font-semibold active:scale-[0.98] transition-all cursor-pointer inline-flex items-center shadow-2xs"
-                  title={`Dời ngày (${activeTasks.length})`}
-                >
-                  <CalendarPlus size={14} />
-                </button>
-                {junkTasks.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => requestBulkAction("delete", junkTasks)}
-                    className="h-9 rounded-2xl bg-[#FF3B30]/15 hover:bg-[#FF3B30]/25 text-[#FF3B30] px-3 text-xs font-semibold active:scale-[0.98] transition-all cursor-pointer inline-flex items-center shadow-2xs"
-                    title={`Xóa rác (${junkTasks.length})`}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                )}
-              </div>
-            )}
-        </div>
+        <header className="mb-3 flex items-center justify-between gap-3 pb-3">
+          <div className="min-w-0">
+            <h1 className="text-sm font-bold text-[var(--text-main)]">{activeTitle}</h1>
+            <p className="mt-0.5 truncate text-xs text-[var(--text-muted)]">{activeDescription}</p>
+          </div>
+          <span
+            aria-label={`${activeCount} việc`}
+            className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold ${
+              isOverdueView
+                ? "bg-[var(--accent-coral)]/15 text-[var(--accent-coral)]"
+                : "bg-[var(--accent-blue)]/12 text-[var(--accent-blue)]"
+            }`}
+          >
+            {activeCount} việc
+          </span>
+        </header>
       ) : (
-        /* GIAO DIỆN DESKTOP: Chỉ giữ thanh Tab Quá hạn / Sắp đến */
-        <div className="flex items-center justify-between pb-3 select-none">
-          {/* Nhóm Trái: Segmented Switcher Quá hạn / Sắp đến */}
+        <header className="mb-4 flex flex-col gap-3 pb-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-lg font-bold tracking-tight text-[var(--text-strong)]">Hạn định</h1>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">{activeDescription}</p>
+          </div>
           <SketchTabs
             ariaLabel="Chuyển loại hạn định"
-            size="sm"
-            className="w-auto flex-none"
+            size="md"
+            className="w-full sm:w-auto [&>button]:min-h-10 [&>button]:flex-1 sm:[&>button]:flex-none"
             value={view}
             onChange={setView}
-            items={[
-              {
-                key: "overdue",
-                label: "Quá hạn",
-                icon: <AlertTriangle size={13} strokeWidth={2.2} />,
-                badge:
-                  overdueTasks.length > 0 ? (
-                    <span className="min-w-[18px] rounded-full bg-[#FF3B30] text-white px-2 py-0.5 text-center font-mono text-[10px] leading-none font-semibold shadow-2xs">
-                      {overdueTasks.length}
-                    </span>
-                  ) : undefined,
-              },
-              {
-                key: "upcoming",
-                label: "Sắp đến",
-                icon: <BellRing size={13} strokeWidth={2.2} />,
-                badge:
-                  upcomingTasks.length > 0 ? (
-                    <span className="min-w-[18px] rounded-full bg-[#007AFF] text-white px-2 py-0.5 text-center font-mono text-[10px] leading-none font-semibold shadow-2xs">
-                      {upcomingTasks.length}
-                    </span>
-                  ) : undefined,
-              },
-            ]}
+            items={tabs}
           />
-        </div>
+        </header>
       )}
 
-      {/* 4. Danh Sách Nhóm Việc Theo Ngày */}
+      {/* === PHẦN 2: Danh sách deadline theo ngày === */}
       {isOverdueView
         ? renderGroups(overdueGroups, "Không có việc quá hạn", "Mọi task đang trong kế hoạch.", "overdue")
         : renderGroups(upcomingGroups, "Không có việc sắp đến hạn", "Bạn có thể thêm hạn khi tạo hoặc sửa task.", "planner")}
-
-      <ConfirmModal
-        isOpen={Boolean(pendingBulkAction)}
-        onCancel={() => setPendingBulkAction(null)}
-        onConfirm={performBulkAction}
-        title={
-          pendingBulkAction?.kind === "complete"
-            ? "Hoàn thành nhiều việc?"
-            : "Xóa task rác?"
-        }
-        message={
-          pendingBulkAction?.kind === "complete"
-            ? `Thao tác này sẽ đánh dấu ${pendingBulkAction?.tasks.length || 0} việc là đã xong.`
-            : `Chỉ ${pendingBulkAction?.tasks.length || 0} task có tiêu đề lặp kiểu test đã được nhận diện. Bạn có chắc muốn xóa chúng?`
-        }
-        confirmText={
-          pendingBulkAction?.kind === "complete"
-            ? "Hoàn thành"
-            : "Xóa task rác"
-        }
-      />
 
       {/* Reschedule Date Modal */}
       {rescheduleModalState && (

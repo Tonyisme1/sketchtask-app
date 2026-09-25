@@ -19,8 +19,10 @@ import {
   constrainTaskToParent,
   getInheritedParentSchedule,
   getTaskItemType,
+  getTaskTag,
   getTaskEffectiveDate,
   moveTaskToDate,
+  normalizeTaskTagFields,
   wouldCreateTaskCycle,
 } from "../utils/taskSemantics";
 import { calculateConsecutiveStreak } from "../utils/habitSemantics";
@@ -155,6 +157,7 @@ export interface AppContextType {
     deadlineTime?: string;
     status?: TaskStatus;
     tag?: string;
+    /** Legacy input accepted only so older integrations can be normalized. */
     tags?: string[];
     parentTaskId?: string;
     priority?: TaskPriority;
@@ -762,7 +765,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             if (!t || !t.id || seen.has(t.id)) return false;
             seen.add(t.id);
             return true;
-          });
+          }).map((task) => normalizeTaskTagFields(task as TaskDto));
         }
       }
       return [];
@@ -1484,6 +1487,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     completed?: boolean;
     status?: TaskStatus;
     tag?: string;
+    /** Legacy input accepted only so older integrations can be normalized. */
     tags?: string[];
     startDate?: string;
     endDate?: string;
@@ -1491,18 +1495,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     parentTaskId?: string;
     priority?: TaskPriority;
   }) => {
-    // Thu thập tags đầy đủ
-    const taskTagsList: string[] = [];
-    if (Array.isArray(taskData.tags)) {
-      taskData.tags.forEach((t) => {
-        const clean = t.replace(/^#+/, "").trim();
-        if (clean && !taskTagsList.includes(clean)) taskTagsList.push(clean);
-      });
-    }
-    if (taskData.tag) {
-      const clean = taskData.tag.replace(/^#+/, "").trim();
-      if (clean && !taskTagsList.includes(clean)) taskTagsList.push(clean);
-    }
+    // One task belongs to exactly one list/tag. `tags` is accepted only to migrate legacy callers.
+    const taskTag = getTaskTag(taskData);
 
     const resolvedTimeType = taskData.timeType || (taskData.itemType === "event" ? "event" : undefined);
     const newTask: TaskDto = {
@@ -1518,8 +1512,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       endTime: taskData.endTime,
       deadlineDate: taskData.deadlineDate,
       deadlineTime: taskData.deadlineTime,
-      tag: taskTagsList[0] || undefined,
-      tags: taskTagsList.length > 0 ? taskTagsList : undefined,
+      tag: taskTag,
+      tags: undefined,
       parentTaskId: taskData.parentTaskId,
       completed: taskData.completed ?? false,
       status: taskData.status || (taskData.completed ? "completed" : "todo"),
@@ -1530,17 +1524,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     forgetDeletion("tasks", newTask.id);
 
     // Tự động thêm tag mới vào hệ thống nếu chưa có
-    taskTagsList.forEach((t) => {
-      if (t && !tags.includes(t)) {
-        addTag(t);
-      }
-    });
+    if (taskTag && !tags.includes(taskTag)) addTag(taskTag);
 
     const parentTask = taskData.parentTaskId
       ? tasks.find((candidate) => candidate.id === taskData.parentTaskId)
       : undefined;
     if (
       !parentTask ||
+      getTaskItemType(parentTask) === "event" ||
+      getTaskItemType(newTask) === "event" ||
       wouldCreateTaskCycle(newTask.id, taskData.parentTaskId, tasks)
     ) {
       newTask.parentTaskId = undefined;
@@ -1597,17 +1589,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const deleteTask = (id: string) => {
     const taskToDelete = tasks.find((t) => t.id === id);
     if (!taskToDelete) return;
+    const childCount = tasks.filter((task) => task.parentTaskId === id).length;
 
     notificationService.cancelTask(id);
     rememberDeletion("tasks", id);
 
     setTasks((prev) => {
-      const next = prev.filter((t) => t.id !== id);
+      const updatedAt = new Date().toISOString();
+      // Preserve direct child work by promoting it when the parent is deleted.
+      const next = prev.flatMap((task) => {
+        if (task.id === id) return [];
+        if (task.parentTaskId === id) return [{ ...task, parentTaskId: undefined, updatedAt }];
+        return [task];
+      });
       triggerDebouncedPush({ tasks: next });
       return next;
     });
 
-    dispatchToast({ message: `Đã xóa "${taskToDelete.title}".` });
+    dispatchToast({
+      message: childCount
+        ? `Đã xóa "${taskToDelete.title}". ${childCount} việc con được giữ lại.`
+        : `Đã xóa "${taskToDelete.title}".`,
+    });
   };
 
   const moveTaskToNextDay = (id: string, baseDateStr?: string) => {
@@ -1676,16 +1679,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         ? updates.parentTaskId
         : oldTask.parentTaskId;
       let safeUpdates = updates;
+      const nextItemType = updates.itemType || getTaskItemType(oldTask);
+      const parentTask = requestedParentId
+        ? prev.find((candidate) => candidate.id === requestedParentId)
+        : undefined;
 
       if (
         requestedParentId &&
-        wouldCreateTaskCycle(id, requestedParentId, prev)
+        (
+          !parentTask ||
+          nextItemType === "event" ||
+          getTaskItemType(parentTask) === "event" ||
+          wouldCreateTaskCycle(id, requestedParentId, prev)
+        )
       ) {
         safeUpdates = { ...safeUpdates, parentTaskId: undefined };
       } else {
-        const parentTask = requestedParentId
-          ? prev.find((candidate) => candidate.id === requestedParentId)
-          : undefined;
         if (hasParentUpdate && parentTask) {
           safeUpdates = {
             ...safeUpdates,
@@ -1697,11 +1706,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const next = prev.map((t) =>
         t.id === id
-          ? {
+          ? normalizeTaskTagFields({
               ...t,
               ...safeUpdates,
               updatedAt: new Date().toISOString(),
-            }
+            })
           : t,
       );
       triggerDebouncedPush({ tasks: next });

@@ -158,7 +158,7 @@ export const JournalBook: React.FC<JournalBookProps> = ({
   if (!isBookOpen) {
     return (
       <div className="w-full min-w-0 space-y-4 pb-12 select-none">
-        <div className="flex items-center justify-between gap-2.5 pb-2 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="flex items-center justify-between gap-2.5 pb-2">
           <div className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">
               <BookOpen size={15} strokeWidth={2.2} />
@@ -178,7 +178,7 @@ export const JournalBook: React.FC<JournalBookProps> = ({
               <BookOpen size={24} strokeWidth={2.2} />
             </div>
           </div>
-          <div className="pt-4 flex flex-wrap items-center gap-2.5 border-t border-black/[0.04] dark:border-white/[0.06] text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+          <div className="pt-4 flex flex-wrap items-center gap-2.5 text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
             <span className="bg-black/[0.04] dark:bg-white/[0.08] px-3 py-1 rounded-full">{journalEntries.length} ghi chép</span>
             <span className="text-[#8E8E93] dark:text-[#A1A1A6]">{recentDates.length} ngày đã viết</span>
             <button
@@ -214,7 +214,7 @@ export const JournalBook: React.FC<JournalBookProps> = ({
 
   return (
     <div className={`w-full min-w-0 select-none ${isMobile ? "bg-[#F5F7FA] dark:bg-[#12161B] min-h-screen mobile-panel-enter" : "space-y-4 pb-10"}`}>
-      <div className={`flex flex-wrap items-center justify-between gap-2.5 border-b border-black/[0.04] dark:border-white/[0.06] ${isMobile ? `sticky top-0 z-30 bg-[#F5F7FA] dark:bg-[#12161B] px-3.5 sm:px-5 min-h-[52px] ${isNativePlatform() ? "pt-11 pb-2.5" : "pt-[max(env(safe-area-inset-top),8px)] pb-2.5"}` : "pb-3"}`}>
+      <div className={`flex flex-wrap items-center justify-between gap-2.5 ${isMobile ? `sticky top-0 z-30 bg-[#F5F7FA] dark:bg-[#12161B] px-3.5 sm:px-5 min-h-[52px] ${isNativePlatform() ? "pt-11 pb-2.5" : "pt-[max(env(safe-area-inset-top),8px)] pb-2.5"}` : "pb-3"}`}>
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -259,7 +259,7 @@ export const JournalBook: React.FC<JournalBookProps> = ({
       </div>
 
       <div className={isMobile ? "space-y-4 px-3.5 py-3.5 pb-28 sm:px-6" : "space-y-4 pt-1"}>
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/[0.04] dark:border-white/[0.06] pb-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
           <div className="flex items-center gap-2.5">
             <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[#007AFF]/10 text-[#007AFF] dark:bg-[#0A84FF]/20 dark:text-[#0A84FF] shadow-2xs">
               <BookOpen size={14} strokeWidth={2.2} />

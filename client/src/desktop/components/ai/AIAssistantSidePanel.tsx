@@ -8,9 +8,6 @@ import {
   Send,
   RotateCcw,
   Sparkles,
-  ListPlus,
-  Check,
-  Plus,
   ExternalLink,
   Clock,
 } from "lucide-react";
@@ -19,7 +16,6 @@ import { TaskPriority } from "../../../types";
 import {
   generateDynamicPromptChips,
   AIQueryResult,
-  GoalPlanBreakdown,
 } from "../../../services/aiAgentService";
 import { askGeminiAIAssistant } from "../../../services/geminiAiService";
 import { HandDrawnCheckbox } from "../../../components/ui/core/HandDrawnCheckbox";
@@ -57,7 +53,7 @@ export const AIAssistantSidePanel: React.FC<AIAssistantSidePanelProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { tasks, addTask, toggleTask, openTaskDetail } = useAppStore();
+  const { tasks, toggleTask, openTaskDetail } = useAppStore();
   const now = new Date();
 
   const [messages, setMessages] = useState<StoredChatMessage[]>(() => {
@@ -77,7 +73,6 @@ export const AIAssistantSidePanel: React.FC<AIAssistantSidePanelProps> = ({
 
   const [inputVal, setInputVal] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [addedBreakdownGoals, setAddedBreakdownGoals] = useState<{ [goalTitle: string]: boolean }>({});
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -157,41 +152,6 @@ export const AIAssistantSidePanel: React.FC<AIAssistantSidePanelProps> = ({
     } finally {
       setIsTyping(false);
     }
-  };
-
-  const handleAddAllBreakdownTasks = (breakdown: GoalPlanBreakdown) => {
-    if (!breakdown || addedBreakdownGoals[breakdown.goalTitle]) return;
-
-    for (const item of breakdown.subtasks) {
-      addTask({
-        title: item.title,
-        dueDate: item.dueDate,
-        timeType: item.timeType,
-        startTime: item.startTime,
-        deadlineTime: item.deadlineTime,
-        priority: item.priority,
-        tag: item.tag || "Mục tiêu",
-        description: item.description,
-      });
-    }
-
-    setAddedBreakdownGoals((prev) => ({
-      ...prev,
-      [breakdown.goalTitle]: true,
-    }));
-  };
-
-  const handleAddSingleSubtask = (st: GoalPlanBreakdown["subtasks"][0]) => {
-    addTask({
-      title: st.title,
-      dueDate: st.dueDate,
-      timeType: st.timeType,
-      startTime: st.startTime,
-      deadlineTime: st.deadlineTime,
-      priority: st.priority,
-      tag: st.tag || "Mục tiêu",
-      description: st.description,
-    });
   };
 
   const handleClearChat = () => {
@@ -365,74 +325,6 @@ export const AIAssistantSidePanel: React.FC<AIAssistantSidePanelProps> = ({
                         </button>
                       </div>
                     ))}
-                  </div>
-                )}
-
-                {/* CARD 2: GOAL BREAKDOWN PLAN CARD */}
-                {res && res.type === "goal_breakdown" && res.breakdownPlan && (
-                  <div className="mt-3 p-3 rounded-2xl bg-[#FBF9F4] dark:bg-[#18181B] shadow-xs space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#1C1917] dark:text-[#FAFAFA] flex items-center gap-1.5">
-                        <ListPlus size={14} className="text-[#1C1917] dark:text-[#FAFAFA]" />
-                        <span>{res.breakdownPlan.subtasks.length} bước đề xuất</span>
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleAddAllBreakdownTasks(res.breakdownPlan!)}
-                        disabled={addedBreakdownGoals[res.breakdownPlan.goalTitle]}
-                        className={`px-2.5 py-1 rounded-xl text-xs font-bold transition-all flex items-center gap-1 cursor-pointer ${
-                          addedBreakdownGoals[res.breakdownPlan.goalTitle]
-                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300"
-                            : "bg-[#1C1917] dark:bg-[#FAFAFA] text-white dark:text-[#18181B] shadow-xs active:scale-95"
-                        }`}
-                      >
-                        {addedBreakdownGoals[res.breakdownPlan.goalTitle] ? (
-                          <>
-                            <Check size={12} strokeWidth={2.6} />
-                            <span>Đã thêm</span>
-                          </>
-                        ) : (
-                          <>
-                            <Plus size={12} strokeWidth={2.6} />
-                            <span>Thêm tất cả</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      {res.breakdownPlan.subtasks.map((st, idx) => (
-                        <div
-                          key={idx}
-                          className="p-2.5 rounded-2xl bg-white dark:bg-[#27272A] shadow-xs flex items-center justify-between gap-2 text-xs"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="w-4 h-4 rounded-full bg-[#262626] text-white dark:bg-[#FAFAFA] dark:text-[#18181B] text-[10px] font-mono font-bold flex items-center justify-center shrink-0">
-                              {idx + 1}
-                            </span>
-                            <span className="font-semibold text-[#1C1917] dark:text-[#FAFAFA] truncate">
-                              {st.title}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            {st.startTime && (
-                              <span className="text-[10px] font-mono text-[#78716C] dark:text-[#A1A1AA]">
-                                {st.startTime}
-                              </span>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => handleAddSingleSubtask(st)}
-                              title="Thêm bước này"
-                              className="p-1 rounded-xl bg-[#F3EFE6] dark:bg-[#3F3F46] hover:bg-[#E5E0D4] text-[#1C1917] dark:text-[#FAFAFA] cursor-pointer active:scale-95 transition-all shadow-xs"
-                            >
-                              <Plus size={12} strokeWidth={2.4} />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
                   </div>
                 )}
 

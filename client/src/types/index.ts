@@ -23,6 +23,7 @@ export interface TaskEditorInitialData {
   endTime?: string;
   deadlineTime?: string;
   priority?: TaskPriority;
+  /** Legacy initial value; editors keep only the first entry. */
   tags?: string[];
   mode?: "view" | "edit";
   lockItemType?: boolean;
@@ -43,6 +44,7 @@ export interface TaskDto {
   deadlineDate?: string;
   deadlineTime?: string;
   tag?: TaskTag;
+  /** Legacy import field. Runtime normalizes every task to the scalar `tag`. */
   tags?: TaskTag[];
   priority?: TaskPriority;
   status: TaskStatus;

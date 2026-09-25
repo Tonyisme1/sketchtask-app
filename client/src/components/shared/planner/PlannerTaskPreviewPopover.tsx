@@ -21,6 +21,7 @@ import { TaskDto } from "../../../types";
 import { formatShortDayMonth, parseDateString } from "../../../utils/date";
 import {
   getTaskEffectiveDate,
+  getTaskTag,
   getTaskItemType,
   normalizeTaskTimeType,
   getTaskCardVisualStyle,
@@ -167,7 +168,7 @@ export const PlannerTaskPreviewPopover: React.FC<PlannerTaskPreviewPopoverProps>
     ? `${weekday}, ${shortDate} · ${timeLabel}`
     : timeLabel;
 
-  const tagLabel = task.tag || task.tags?.[0];
+  const tagLabel = getTaskTag(task);
 
   return createPortal(
     <>
@@ -189,7 +190,7 @@ export const PlannerTaskPreviewPopover: React.FC<PlannerTaskPreviewPopoverProps>
         className="fixed z-[1001] w-[min(340px,calc(100vw-24px))] rounded-3xl border border-[var(--border-ink-muted)] bg-[var(--bg-surface)] p-4 text-[var(--text-main)] shadow-2xl animate-in fade-in zoom-in-95 duration-150 select-none"
       >
         {/* === HEADER ACTION BAR === */}
-        <div className="flex items-center justify-between border-b border-[var(--border-ink-muted)] pb-3">
+        <div className="flex items-center justify-between pb-3">
           {/* Quick Complete Status */}
           {!isEvent && onToggleComplete && (
             <button
@@ -301,7 +302,7 @@ export const PlannerTaskPreviewPopover: React.FC<PlannerTaskPreviewPopoverProps>
 
           {/* Description snippet if present */}
           {task.description && (
-            <div className="flex items-start gap-2 border-t border-[var(--border-ink-muted)] pl-5 pt-2 text-xs text-[var(--text-muted)]">
+            <div className="flex items-start gap-2 pl-5 pt-2 text-xs text-[var(--text-muted)]">
               <FileText size={13} strokeWidth={2.2} className="shrink-0 mt-0.5" />
               <p className="line-clamp-2 italic">{task.description}</p>
             </div>

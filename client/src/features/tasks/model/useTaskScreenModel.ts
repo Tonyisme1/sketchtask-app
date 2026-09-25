@@ -1,15 +1,12 @@
 import { useMemo, useState, useCallback } from "react";
 import { useAppStore } from "../../../stores/appStore";
 import { TaskDto, TaskPriority } from "../../../types";
-import { getLocalTodayStr, getLocalTomorrowStr } from "../../../utils/date";
 import {
-  normalizeTaskTimeType,
   getTaskTags,
-  getTaskTemporalState,
   getTaskDeadlineDate,
   getTaskEffectiveDate,
   getTaskEffectiveTime,
-  getTaskItemType,
+  getDeadlineTaskBuckets,
 } from "../../../utils/taskSemantics";
 import { TaskScreenModel, TaskScreenFilterState, TaskGroup } from "./types";
 
@@ -66,8 +63,7 @@ export const useTaskScreenModel = (): TaskScreenModel => {
   const [selectedNotebook, setSelectedNotebook] = useState<string | undefined>();
 
   const now = new Date();
-  const todayStr = getLocalTodayStr(now);
-  const tomorrowStr = getLocalTomorrowStr();
+  const deadlineBuckets = useMemo(() => getDeadlineTaskBuckets(tasks, now), [tasks, now]);
 
   const resetFilters = useCallback(() => {
     setSearchQuery("");
@@ -115,7 +111,7 @@ export const useTaskScreenModel = (): TaskScreenModel => {
       if (selectedTag) {
         result = result.filter((task) => getTaskTags(task).includes(selectedTag));
       } else if (activeTaskListTags.length > 0) {
-        // A task may be assigned to multiple lists; selecting several lists uses OR logic.
+        // Each task has one list; selecting several lists still uses OR logic.
         result = result.filter((task) =>
           getTaskTags(task).some((tag) => activeTaskListTags.includes(tag)),
         );
@@ -128,27 +124,13 @@ export const useTaskScreenModel = (): TaskScreenModel => {
 
   // 1. Task Quá Hạn (Overdue)
   const overdueTasks = useMemo(() => {
-    const list = tasks.filter((task) => {
-      if (getTaskItemType(task) === "event") return false;
-      if (task.completed) return false;
-      const state = getTaskTemporalState(task);
-      return state === "overdue" || state === "pastScheduled";
-    });
-    return sortByDateAndTime(applyGeneralFilters(list));
-  }, [tasks, applyGeneralFilters]);
+    return sortByDateAndTime(applyGeneralFilters(deadlineBuckets.overdue));
+  }, [deadlineBuckets.overdue, applyGeneralFilters]);
 
   // 2. Task Sắp Đến (Upcoming)
   const upcomingTasks = useMemo(() => {
-    const list = tasks.filter((task) => {
-      if (task.completed) return false;
-      const state = getTaskTemporalState(task);
-      if (state === "overdue" || state === "pastScheduled") return false;
-      if (normalizeTaskTimeType(task) !== "deadline") return false;
-      const date = getTaskDeadlineDate(task) || getTaskEffectiveDate(task);
-      return date === todayStr || date === tomorrowStr;
-    });
-    return sortByDateAndTime(applyGeneralFilters(list));
-  }, [tasks, todayStr, tomorrowStr, applyGeneralFilters]);
+    return sortByDateAndTime(applyGeneralFilters(deadlineBuckets.upcoming));
+  }, [deadlineBuckets.upcoming, applyGeneralFilters]);
 
   const overdueGroups = useMemo(() => groupByDate(overdueTasks), [overdueTasks]);
   const upcomingGroups = useMemo(() => groupByDate(upcomingTasks), [upcomingTasks]);

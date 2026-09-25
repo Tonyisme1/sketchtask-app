@@ -4,19 +4,14 @@ import {
   Send,
   RotateCcw,
   ExternalLink,
-  Plus,
   Sparkles,
   Clock,
-  ListPlus,
-  Check,
 } from "lucide-react";
 import { TaskPriority } from "../../../types";
 import { AIScreenModel } from "../../../features/ai/model/types";
 import {
   generateDynamicPromptChips,
   AIQueryResult,
-  GoalPlanBreakdown,
-  ParsedTaskIntent,
 } from "../../../services/aiAgentService";
 import { askGeminiAIAssistant } from "../../../services/geminiAiService";
 import { HandDrawnCheckbox } from "../../ui/core/HandDrawnCheckbox";
@@ -58,7 +53,6 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
   onBack,
   isStandalone = false,
   tasks,
-  addTask,
   toggleTask,
   openTaskDetail,
 }) => {
@@ -82,7 +76,6 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
 
   const [inputVal, setInputVal] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [addedBreakdownGoals, setAddedBreakdownGoals] = useState<{ [goalTitle: string]: boolean }>({});
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -171,45 +164,6 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
     localStorage.removeItem(CHAT_STORAGE_KEY);
   };
 
-  // Handle Add All Subtasks from Goal Breakdown
-  const handleAddAllBreakdownTasks = (plan: GoalPlanBreakdown) => {
-    if (addedBreakdownGoals[plan.goalTitle]) return;
-
-    for (const subtask of plan.subtasks) {
-      addTask(subtask);
-    }
-
-    setAddedBreakdownGoals((prev) => ({ ...prev, [plan.goalTitle]: true }));
-
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `ai-added-${Date.now()}`,
-          sender: "ai",
-          text: `✓ Đã thêm toàn bộ **${plan.subtasks.length} công việc** của kế hoạch *"${plan.goalTitle}"* vào danh sách việc của bạn!`,
-          time: getTimeLabel(),
-        },
-      ]);
-    }, 150);
-  };
-
-  // Handle Add Individual Subtask
-  const handleAddSingleSubtask = (subtask: ParsedTaskIntent) => {
-    addTask(subtask);
-    setTimeout(() => {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `ai-added-${Date.now()}`,
-          sender: "ai",
-          text: `✓ Đã thêm: **"${subtask.title}"** vào danh sách!`,
-          time: getTimeLabel(),
-        },
-      ]);
-    }, 120);
-  };
-
   // Render Priority Badge (Strict Hand-Drawn Sketch Tokens)
   const renderPriorityBadge = (priority: TaskPriority) => {
     switch (priority) {
@@ -271,7 +225,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
     >
       {/* 1. MINIMALIST TOPBAR */}
       <div
-        className={`px-4 py-3 bg-[var(--bg-surface)] border-b border-[var(--border-ink-muted)] flex items-center justify-between shrink-0 ${
+        className={`px-4 py-3 bg-[var(--bg-surface)] flex items-center justify-between shrink-0 ${
           isStandalone ? "pt-[max(env(safe-area-inset-top),12px)]" : ""
         }`}
       >
@@ -340,7 +294,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
 
                 {/* CARD 1: TASK CREATED CARD (ĐƠN LẺ & BATCH) */}
                 {res && (res.type === "created_task" || res.type === "batch_created") && res.createdTasks && (
-                  <div className="mt-3 space-y-2 pt-2.5 border-t border-black/[0.06] dark:border-white/[0.08]">
+                  <div className="mt-3 space-y-2 pt-2.5">
                     {res.createdTasks.map((t) => (
                       <div
                         key={t.id}
@@ -379,77 +333,9 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
                   </div>
                 )}
 
-                {/* CARD 2: GOAL BREAKDOWN PLAN CARD */}
-                {res && res.type === "goal_breakdown" && res.breakdownPlan && (
-                  <div className="mt-3 p-3 rounded-2xl bg-white dark:bg-[#1C1C1E] shadow-2xs space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7] flex items-center gap-1.5">
-                        <ListPlus size={14} className="text-[#007AFF]" />
-                        <span>{res.breakdownPlan.subtasks.length} bước đề xuất</span>
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleAddAllBreakdownTasks(res.breakdownPlan!)}
-                        disabled={addedBreakdownGoals[res.breakdownPlan.goalTitle]}
-                        className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all flex items-center gap-1 cursor-pointer shadow-2xs ${
-                          addedBreakdownGoals[res.breakdownPlan.goalTitle]
-                            ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                            : "bg-[#007AFF] hover:bg-[#0071E3] text-white"
-                        }`}
-                      >
-                        {addedBreakdownGoals[res.breakdownPlan.goalTitle] ? (
-                          <>
-                            <Check size={12} strokeWidth={2.6} />
-                            <span>Đã thêm</span>
-                          </>
-                        ) : (
-                          <>
-                            <Plus size={12} strokeWidth={2.6} />
-                            <span>Thêm tất cả</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      {res.breakdownPlan.subtasks.map((st, idx) => (
-                        <div
-                          key={idx}
-                          className="p-2.5 rounded-xl bg-black/[0.02] dark:bg-white/[0.04] flex items-center justify-between gap-2 text-xs"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="w-5 h-5 rounded-full bg-black/[0.06] dark:bg-white/[0.1] text-[#1C1C1E] dark:text-[#F2F2F7] text-[10px] font-mono font-bold flex items-center justify-center shrink-0">
-                              {idx + 1}
-                            </span>
-                            <span className="font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] truncate">
-                              {st.title}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            {st.startTime && (
-                              <span className="text-[10px] font-mono text-[#8E8E93] dark:text-[#A1A1A6]">
-                                {st.startTime}
-                              </span>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => handleAddSingleSubtask(st)}
-                              title="Thêm bước này"
-                              className="p-1 rounded-lg bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] text-[#1C1C1E] dark:text-[#F2F2F7] cursor-pointer transition-all"
-                            >
-                              <Plus size={12} strokeWidth={2.4} />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {/* CARD 3: TASK QUERY INTERACTIVE LIST */}
                 {res && res.type === "task_query" && res.queriedTasks && (
-                  <div className="mt-3 space-y-1.5 pt-2 border-t border-black/[0.06] dark:border-white/[0.08]">
+                  <div className="mt-3 space-y-1.5 pt-2">
                     {res.queriedTasks.map((t) => (
                       <div
                         key={t.id}
@@ -513,7 +399,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
       </div>
 
       {/* 3. DYNAMIC SMART PROMPT CHIPS */}
-      <div className="px-3.5 py-2 bg-[var(--bg-surface)] border-t border-[var(--border-ink-muted)] flex items-center gap-2 overflow-x-auto no-scrollbar">
+      <div className="px-3.5 py-2 bg-[var(--bg-surface)] flex items-center gap-2 overflow-x-auto no-scrollbar">
         {dynamicChips.map((chip) => (
           <button
             key={chip.id}
@@ -532,7 +418,7 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
           e.preventDefault();
           handleSend();
         }}
-        className={`p-3 bg-[var(--bg-surface)] border-t border-[var(--border-ink-muted)] flex items-center gap-2 shrink-0 ${
+        className={`p-3 bg-[var(--bg-surface)] flex items-center gap-2 shrink-0 ${
           isStandalone ? "pb-[max(env(safe-area-inset-bottom),12px)]" : ""
         }`}
       >

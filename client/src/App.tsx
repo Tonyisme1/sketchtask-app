@@ -15,6 +15,7 @@ import { MobileShell, MobileWorkspace } from "./mobile";
 import { AuthPage } from "./components/shared/auth/AuthPage";
 import { ToastViewport } from "./components/ui/feedback/ToastViewport";
 import { UpdateModal } from "./components/ui/overlays/UpdateModal";
+import { AppOnboardingTour } from "./components/shared/onboarding/AppOnboardingTour";
 import { checkForAppUpdates, type UpdateInfo } from "./services/updateService";
 import {
   consumeSkippedPopState,
@@ -78,22 +79,21 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     };
     let nextLocation: AppLocation;
 
-    // Desktop owns an independent Event workspace. Smaller layouts retain the
-    // legacy planner-as-task-subtab route so their existing navigation remains intact.
-    if (tab === "events" && (isDesktop || isTablet)) {
-      nextLocation = {
-        tab: "tasks",
-        taskSubTab: isDesktop ? "all" : "today",
-      };
-    } else if (tab === "events") {
+    // Sự kiện là workspace độc lập trên cả ba nền tảng.
+    if (tab === "events") {
       nextLocation = { tab: "events", taskSubTab: activeTaskSubTab };
     } else if (tab === "planner" && isDesktop) {
-      nextLocation = { tab: "planner", taskSubTab: activeTaskSubTab };
+      // Điều hướng desktop cũ vẫn gọi planner; chuẩn hóa về Sự kiện.
+      nextLocation = { tab: "events", taskSubTab: activeTaskSubTab };
     } else if (tab === "today" || tab === "planner" || tab === "deadlines") {
       nextLocation = {
         tab: "tasks",
         taskSubTab:
-          tab === "today"
+          tab === "deadlines"
+            ? isDesktop
+              ? "all"
+              : "planner"
+            : tab === "today"
             ? isDesktop
               ? "all"
               : isTablet
@@ -137,13 +137,23 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     setActiveTab(nextLocation.tab);
   }, [activeTab, activeTaskSubTab, closeTaskDetail, isDesktop, isTablet, setActiveTaskSubTab, setIsJournalBookOpen, setIsMobileNoteDetailOpen, setSettingsMobileSubView]);
 
-  // Desktop has no Today destination. Restore legacy state into All tasks only
-  // at the Desktop breakpoint, preserving the smaller-screen navigation model.
+  // Retired task destinations never remain visible after a shell change.
   useEffect(() => {
-    if (isDesktop && activeTab === "tasks" && activeTaskSubTab === "today") {
-      setActiveTaskSubTab("all");
+    if (
+      activeTab === "tasks" &&
+      (activeTaskSubTab === "deadlines" ||
+        (isDesktop &&
+          (activeTaskSubTab === "today" || activeTaskSubTab === "planner")))
+    ) {
+      setActiveTaskSubTab(isDesktop ? "all" : "planner");
     }
   }, [isDesktop, activeTab, activeTaskSubTab, setActiveTaskSubTab]);
+
+  useEffect(() => {
+    if (activeTab !== "deadlines") return;
+    setActiveTaskSubTab(isDesktop ? "all" : "planner");
+    setActiveTab("tasks");
+  }, [activeTab, isDesktop, setActiveTaskSubTab]);
 
   // Desktop mở danh sách tổng; Mobile mở Công việc ở lịch Ngày, Tablet giữ lối tắt Hôm nay riêng.
   const handleDesktopTaskSubTabChange = useCallback((subTab: TaskSubTab) => {
@@ -151,7 +161,10 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
       tab: activeTab,
       taskSubTab: activeTaskSubTab,
     };
-    const nextLocation: AppLocation = { tab: "tasks", taskSubTab: subTab };
+    const nextLocation: AppLocation = {
+      tab: "tasks",
+      taskSubTab: subTab === "deadlines" ? "all" : subTab,
+    };
 
     if (getLocationKey(currentLocation) !== getLocationKey(nextLocation)) {
       const stack = appNavigationStackRef.current;
@@ -468,6 +481,7 @@ export default function App() {
   return (
     <AppProvider>
       <AppRouter />
+      <AppOnboardingTour />
       <ToastViewport />
     </AppProvider>
   );

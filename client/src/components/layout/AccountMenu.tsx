@@ -73,7 +73,7 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({
           aria-label="Menu tài khoản"
           className="absolute right-0 top-full z-[80] mt-2 w-60 rounded-3xl border-none bg-white/95 dark:bg-[#1C1C1E]/95 backdrop-blur-xl p-2 text-[#1C1C1E] dark:text-[#F2F2F7] shadow-2xl animate-in fade-in slide-in-from-top-1 duration-150"
         >
-          <div className="border-b border-black/[0.04] dark:border-white/[0.06] px-3 py-2.5 mb-1">
+          <div className="px-3 py-2.5 mb-1">
             <div className="flex items-center gap-2.5">
               <span
                 className={`w-7 h-7 rounded-full flex items-center justify-center ${avatarForeground} text-xs font-semibold shrink-0 shadow-xs overflow-hidden`}

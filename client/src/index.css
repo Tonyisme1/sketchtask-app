@@ -870,10 +870,6 @@ html.dark [class~="dark:divide-[#2C2C2E]"] > :not([hidden]) ~ :not([hidden]) {
 /* ========================================== */
 /* Desktop retains its information density while removing the stacked-card feel. */
 @media (min-width: 1024px) {
-  .desktop-minimal > header {
-    border-bottom: 1px solid var(--border-ink-muted);
-  }
-
   .desktop-minimal .rounded-3xl {
     border-radius: 12px !important;
   }

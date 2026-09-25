@@ -52,7 +52,7 @@ export const TodayScheduleNotes: React.FC<TodayScheduleNotesProps> = ({
     return (
       <section className="space-y-3 select-none">
         {!hideHeader && (
-          <div className="flex items-center justify-between border-b border-black/[0.04] dark:border-white/[0.06] pb-2">
+          <div className="flex items-center justify-between pb-2">
             <div className="flex items-center gap-2 text-sm font-semibold text-[#1C1917] dark:text-[#F2F2F7]">
               <Clock size={16} className="text-[#1C1917] dark:text-[#F2F2F7]" strokeWidth={2.2} />
               <span>{title} ({sortedTasks.length})</span>

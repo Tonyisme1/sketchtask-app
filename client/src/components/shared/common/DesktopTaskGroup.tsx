@@ -28,6 +28,8 @@ export interface DesktopTaskGroupProps {
   onAddTask?: () => void;
   itemLabel?: "việc" | "sự kiện";
   showCompletionSection?: boolean;
+  visualStyle?: "plain" | "tag" | "event";
+  accentIndex?: number;
 }
 
 export const DesktopTaskGroup: React.FC<DesktopTaskGroupProps> = ({
@@ -54,10 +56,21 @@ export const DesktopTaskGroup: React.FC<DesktopTaskGroupProps> = ({
   onAddTask,
   itemLabel = "việc",
   showCompletionSection = true,
+  visualStyle = "plain",
+  accentIndex = 0,
 }) => {
   const [internalCollapsed, setInternalCollapsed] = useState(false);
   const isCollapsed = collapsed ?? internalCollapsed;
   const orderedTasks = sortDesktopTasks(tasks);
+  const isCollection = visualStyle !== "plain";
+  const accentClass =
+    visualStyle === "event"
+      ? "bg-[var(--accent-blue)]"
+      : accentIndex % 3 === 1
+        ? "bg-[var(--accent-blue)]"
+        : accentIndex % 3 === 2
+          ? "bg-[var(--text-muted)]"
+          : "bg-[var(--accent-sky-strong)]";
 
   const setCollapsed = (nextCollapsed: boolean) => {
     onCollapsedChange?.(nextCollapsed);
@@ -65,9 +78,17 @@ export const DesktopTaskGroup: React.FC<DesktopTaskGroupProps> = ({
   };
 
   return (
-    <section className="w-full min-w-0">
-      {/* === PHẦN 1: Header nhóm bo góc hoàn toàn === */}
-      <header className="flex min-h-10 items-center justify-between gap-3 border-b border-black/[0.04] dark:border-white/[0.06] px-1 py-2">
+    <section
+      className={`w-full min-w-0 ${
+        isCollection ? "rounded-2xl bg-[var(--bg-surface)] p-3 md:p-4" : ""
+      }`}
+    >
+      {/* === PHẦN 1: Nhận diện nhóm bằng bề mặt và điểm nhấn, không dùng divider === */}
+      <header
+        className={`flex min-h-10 items-center justify-between gap-3 ${
+          isCollection ? "rounded-xl bg-[var(--bg-surface-muted)] px-3 py-2" : "px-1 py-2"
+        }`}
+      >
         <div className="flex min-w-0 items-center gap-2.5">
           <button
             type="button"
@@ -78,6 +99,7 @@ export const DesktopTaskGroup: React.FC<DesktopTaskGroupProps> = ({
           >
             {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
           </button>
+          {isCollection && <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${accentClass}`} aria-hidden="true" />}
           <div className="min-w-0">
             <div className="flex min-w-0 items-center gap-2">
               <h2 className="truncate text-sm font-bold text-[var(--text-main)]">{title}</h2>
@@ -115,9 +137,9 @@ export const DesktopTaskGroup: React.FC<DesktopTaskGroupProps> = ({
         </div>
       </header>
 
-      {/* === PHẦN 2: Card nằm trực tiếp dưới header === */}
+      {/* === PHẦN 2: Nội dung của nhóm giữ nhịp bằng khoảng cách, không thêm đường kẻ === */}
       {!isCollapsed && (
-        <div className="pt-2">
+        <div className={isCollection ? "pt-3" : "pt-2"}>
           <TaskList
             tasks={orderedTasks}
             emptyMessage={emptyMessage}

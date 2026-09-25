@@ -387,7 +387,7 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
       {/* 2. MÀN HÌNH CHI TIẾT NGÀY */}
       {plannerScreen === "day" && (
         <div className="space-y-4 mobile-panel-enter">
-          <div className="pb-2 border-b border-black/[0.04] dark:border-white/[0.06] space-y-1.5 select-none">
+          <div className="pb-2 space-y-1.5 select-none">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-center gap-2">
                 <button
@@ -486,7 +486,7 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
 
               return (
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between pb-1 border-b border-black/[0.04] dark:border-white/[0.06]">
+                  <div className="flex items-center justify-between pb-1">
                     <div className="flex items-center gap-1.5 text-sm font-bold text-[#1C1917]">
                       <ListTodo size={14} className="text-[#57534E]" />
                       <span>Công việc ({todoDayTasks.length})</span>

@@ -80,7 +80,7 @@ export const JournalTaskLinkPopover: React.FC<JournalTaskLinkPopoverProps> = ({
       }`}
     >
       {/* 1. Header & Nút Đóng */}
-      <div className="flex items-center justify-between gap-1.5 pb-2 border-b border-black/[0.04] dark:border-white/[0.06]">
+      <div className="flex items-center justify-between gap-1.5 pb-2">
         <div className="flex items-center gap-1.5 min-w-0">
           <LinkIcon size={13} strokeWidth={2.2} className="text-[#007AFF] dark:text-[#0A84FF] shrink-0" />
           <span className="text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7] tracking-tight truncate">

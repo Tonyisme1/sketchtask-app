@@ -1,6 +1,7 @@
 import { TaskDto, HabitDto, JournalEntryDto, DeletedEntityIds } from "../types";
 import { StickyNoteItem } from "../stores/appStore";
 import { calculateConsecutiveStreak } from "./habitSemantics";
+import { normalizeTaskTagFields } from "./taskSemantics";
 
 // ==========================================
 // UTILS: Smart Merge Engine (Giải quyết xung đột Offline-First & Đăng nhập)
@@ -71,7 +72,7 @@ export function mergeTasks(localTasks: TaskDto[], remoteTasks: TaskDto[]): TaskD
     const timeA = new Date(a.createdAt || 0).getTime();
     const timeB = new Date(b.createdAt || 0).getTime();
     return timeB - timeA;
-  });
+  }).map(normalizeTaskTagFields);
 }
 
 /**

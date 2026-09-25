@@ -278,7 +278,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onNavigate }) => {
             )}
           </form>
 
-          <div className="mt-6 border-t border-black/[0.04] dark:border-white/[0.06] pt-5 text-center">
+          <div className="mt-6 pt-5 text-center">
             <p className="text-sm leading-5 text-[#78716C] dark:text-[#A1A1AA]">
             Dữ liệu cục bộ vẫn dùng được khi offline. Đăng nhập để đồng bộ giữa các thiết bị.
             </p>

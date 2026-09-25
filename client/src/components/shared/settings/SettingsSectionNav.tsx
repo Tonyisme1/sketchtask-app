@@ -91,7 +91,7 @@ export const SettingsSectionNav: React.FC<SettingsSectionNavProps> = ({
                     ? "bg-transparent text-[var(--text-muted)] hover:bg-[var(--bg-interactive)] hover:text-[var(--text-main)]"
                     : "bg-transparent text-[var(--text-muted)] hover:bg-[var(--bg-interactive)] hover:text-[var(--text-main)]"
               }`
-            : `flex w-full items-center justify-between border-b border-[var(--border-ink-muted)] px-4 text-left text-[var(--text-main)] transition-colors last:border-b-0 hover:bg-[var(--bg-interactive)] focus-visible:outline-none ${
+            : `flex w-full items-center justify-between px-4 text-left text-[var(--text-main)] transition-colors hover:bg-[var(--bg-interactive)] focus-visible:outline-none ${
                 platform === "tablet" ? "min-h-[62px] py-3.5" : "min-h-[58px] py-3"
               }`
         }

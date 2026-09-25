@@ -45,7 +45,7 @@ export const PlannerHeader: React.FC<PlannerHeaderProps> = ({
   const activeViewLabel = viewMode === "day" ? "Ngày" : viewMode === "month" ? "Tháng" : "Tuần";
 
   return (
-    <div className="flex items-center justify-between gap-2 pb-3 border-b border-black/[0.04] dark:border-white/[0.06] select-none overflow-visible">
+    <div className="flex items-center justify-between gap-2 pb-3 select-none overflow-visible">
       {/* 1. Bộ điều hướng thời gian */}
       <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
         {/* Nút Chuyển Mốc Thời Gian (< Label >) */}

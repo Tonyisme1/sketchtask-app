@@ -33,7 +33,7 @@ export const TabletNotesPage: React.FC<TabletNotesPageProps> = ({
 
   return (
     <div className="w-full min-w-0 select-none space-y-3.5 pb-12 animate-in fade-in duration-150">
-      <div className="flex items-center gap-2.5 border-b border-black/[0.04] dark:border-white/[0.06] pb-3">
+      <div className="flex items-center gap-2.5 pb-3">
         <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-2xl border-none bg-white dark:bg-[#1C1C20] px-3.5 shadow-xs">
           <Search size={14} strokeWidth={2.4} className="shrink-0 text-[#78716C] dark:text-[#A1A1AA]" />
           <input

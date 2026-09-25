@@ -1,11 +1,9 @@
 import React from "react";
 import { TabKey, NavigationTarget } from "../../types";
 import { DesktopTasksPage } from "./DesktopTasksPage";
-import { DesktopTodayView } from "../tabs/DesktopTodayView";
 import { DesktopPlannerPage } from "../tabs/DesktopPlannerPage";
 import { DesktopNotesPage } from "../tabs/DesktopNotesPage";
 import { DesktopJournalPage } from "../tabs/DesktopJournalPage";
-import { DesktopDeadlinesPage } from "../tabs/DesktopDeadlinesPage";
 import { DesktopAIAssistantPage } from "../tabs/DesktopAIAssistantPage";
 import { DesktopSettingsPage } from "../tabs/DesktopSettingsPage";
 import { DesktopTaskDetailPage } from "../details/DesktopTaskDetailPage";
@@ -15,6 +13,7 @@ import {
 } from "../layout/DesktopRightDock";
 import { useAppStore } from "../../stores";
 import { GlobalSearchModal } from "../../components/ui";
+import { NotesSectionTabs } from "../../components/shared/notes/NotesSectionTabs";
 import type { DesktopPlannerSurface } from "../components/planner/DesktopPlannerHeader";
 
 export interface DesktopWorkspaceProps {
@@ -36,7 +35,7 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
   previousTab,
   desktopPlannerSurface,
 }) => {
-  const { activeDetailTaskId, closeTaskDetail, activeTaskSubTab } = useAppStore();
+  const { activeDetailTaskId, closeTaskDetail } = useAppStore();
   const [activeUtility, setActiveUtility] = React.useState<DesktopUtilityPanel | null>(null);
   const [isSearchOpen, setIsSearchOpen] = React.useState(false);
 
@@ -44,12 +43,12 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
     switch (activeTab) {
       case "today":
         return (
-          <DesktopTodayView
-            targetTaskId={navigationTarget?.taskId}
-            onClearTarget={onClearNavigationTarget}
+          <DesktopTasksPage
+            navigationTarget={navigationTarget}
+            onClearNavigationTarget={onClearNavigationTarget}
           />
         );
-      case "planner":
+      case "events":
         return (
           <DesktopPlannerPage
             workspaceKind="event"
@@ -57,14 +56,6 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
             targetTaskId={navigationTarget?.taskId}
             onClearTarget={onClearNavigationTarget}
             desktopSurface={desktopPlannerSurface}
-          />
-        );
-      case "deadlines":
-        return (
-          <DesktopDeadlinesPage
-            onNavigateToTaskDate={(dateStr, taskId) => {
-              onNavigateTab("planner", { date: dateStr, taskId });
-            }}
           />
         );
       case "tasks":
@@ -76,19 +67,25 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
         );
       case "notes":
         return (
-          <DesktopNotesPage
-            navigationTarget={navigationTarget}
-            onClearNavigationTarget={onClearNavigationTarget}
-            onNavigateTab={onNavigateTab}
-          />
+          <div className="w-full min-w-0">
+            <NotesSectionTabs activeTab={activeTab} onTabChange={(tab) => onNavigateTab(tab)} />
+            <DesktopNotesPage
+              navigationTarget={navigationTarget}
+              onClearNavigationTarget={onClearNavigationTarget}
+              onNavigateTab={onNavigateTab}
+            />
+          </div>
         );
       case "journal":
         return (
-          <DesktopJournalPage
-            navigationTarget={navigationTarget}
-            onClearNavigationTarget={onClearNavigationTarget}
-            onNavigateTab={onNavigateTab}
-          />
+          <div className="w-full min-w-0">
+            <NotesSectionTabs activeTab={activeTab} onTabChange={(tab) => onNavigateTab(tab)} />
+            <DesktopJournalPage
+              navigationTarget={navigationTarget}
+              onClearNavigationTarget={onClearNavigationTarget}
+              onNavigateTab={onNavigateTab}
+            />
+          </div>
         );
       case "ai":
         return <DesktopAIAssistantPage />;
@@ -102,9 +99,9 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
         );
       default:
         return (
-          <DesktopTodayView
-            targetTaskId={navigationTarget?.taskId}
-            onClearTarget={onClearNavigationTarget}
+          <DesktopTasksPage
+            navigationTarget={navigationTarget}
+            onClearNavigationTarget={onClearNavigationTarget}
           />
         );
     }
@@ -154,9 +151,7 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const isPlannerView =
-    activeTab === "planner" ||
-    (activeTab === "tasks" && activeTaskSubTab === "planner");
+  const isPlannerView = activeTab === "events";
 
   return (
     <div className="relative w-full flex-1 flex min-h-0 overflow-hidden">

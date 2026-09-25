@@ -10,7 +10,7 @@ import {
 
 export interface ParsedTaskIntent {
   title: string;
-  dueDate: string;
+  dueDate?: string;
   timeType: TaskTimeType;
   startTime?: string;
   endTime?: string;
@@ -18,7 +18,6 @@ export interface ParsedTaskIntent {
   deadlineDate?: string;
   priority: TaskPriority;
   tag?: string;
-  tags?: string[];
   description?: string;
 }
 
@@ -173,7 +172,7 @@ export function generateDynamicPromptChips(
   chips.push({
     id: "breakdown",
     label: "Chia nhỏ mục tiêu",
-    query: "Lập kế hoạch dọn dẹp nhà cửa cuối tuần",
+    query: "Tôi muốn chia nhỏ một mục tiêu. Hãy hỏi mình mục tiêu và thời hạn trước khi đề xuất các bước.",
   });
 
   return chips.slice(0, 5);

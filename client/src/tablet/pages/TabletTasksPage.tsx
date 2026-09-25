@@ -25,7 +25,6 @@ export const TabletTasksPage: React.FC<TabletTasksPageProps> = ({
 
   const [plannerTargetDateStr, setPlannerTargetDateStr] = useState<string | undefined>(undefined);
   const [plannerTargetTaskId, setPlannerTargetTaskId] = useState<string | undefined>(undefined);
-  const [plannerSourceTab, setPlannerSourceTab] = useState<"deadlines" | undefined>(undefined);
   useEffect(() => {
     if (!navigationTarget?.taskId) return;
 
@@ -51,25 +50,13 @@ export const TabletTasksPage: React.FC<TabletTasksPageProps> = ({
         <TabletPlannerPage
           targetDateStr={plannerTargetDateStr}
           targetTaskId={plannerTargetTaskId}
-          fromTab={plannerSourceTab}
-          onBackToDeadlines={() => {
-            setActiveTaskSubTab("deadlines");
-            setPlannerSourceTab(undefined);
-          }}
           onClearTarget={() => {
             setPlannerTargetDateStr(undefined);
             setPlannerTargetTaskId(undefined);
           }}
         />
       ) : (
-        <TabletDeadlinesPage
-          onNavigateToTaskDate={(dateStr, taskId) => {
-            setPlannerTargetDateStr(dateStr);
-            setPlannerTargetTaskId(taskId);
-            setPlannerSourceTab("deadlines");
-            setActiveTaskSubTab("planner");
-          }}
-        />
+        <TabletDeadlinesPage />
       )}
     </div>
   );

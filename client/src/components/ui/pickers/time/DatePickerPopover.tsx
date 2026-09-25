@@ -211,7 +211,7 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
           onClick={(event) => event.stopPropagation()}
         >
           {/* Header Tháng / Năm & Nút Đóng */}
-          <div className="flex items-center justify-between pb-2 mb-2 border-b border-black/[0.04] dark:border-white/[0.06]">
+          <div className="flex items-center justify-between pb-2 mb-2">
             <button
               type="button"
               onClick={handlePrevMonth}
@@ -270,7 +270,7 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
           </div>
 
           {/* Nút hành động đáy */}
-          <div className="flex items-center justify-between pt-3 mt-2.5 border-t border-black/[0.04] dark:border-white/[0.06] text-xs font-mono font-bold">
+          <div className="flex items-center justify-between pt-3 mt-2.5 text-xs font-mono font-bold">
             <button
               type="button"
               onClick={handleClear}
@@ -308,7 +308,7 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
         }}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between pb-2 mb-1.5 border-b border-black/[0.04] dark:border-white/[0.06]">
+        <div className="flex items-center justify-between pb-2 mb-1.5">
           <button
             type="button"
             onClick={handlePrevMonth}
@@ -362,7 +362,7 @@ export const DatePickerPopover: React.FC<DatePickerPopoverProps> = ({
           })}
         </div>
 
-        <div className={`flex items-center ${showClear ? "justify-between" : "justify-end"} pt-2.5 mt-2 border-t border-black/[0.04] dark:border-white/[0.06] text-xs font-mono font-bold`}>
+        <div className={`flex items-center ${showClear ? "justify-between" : "justify-end"} pt-2.5 mt-2 text-xs font-mono font-bold`}>
           {showClear && (
             <button
               type="button"

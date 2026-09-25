@@ -34,7 +34,7 @@ export const InlineQuickAddRow: React.FC<InlineQuickAddRowProps> = ({
       dueDate: effectiveDueDate,
       parentTaskId: parentTaskId || undefined,
       priority: "medium",
-      timeType: "deadline",
+      timeType: "task",
     });
 
     setTitle("");

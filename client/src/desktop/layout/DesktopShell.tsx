@@ -80,7 +80,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
       ) {
         e.preventDefault();
         openQuickTaskModal({
-          itemType: activeTab === "planner" ? "event" : "task",
+          itemType: activeTab === "events" ? "event" : "task",
           lockItemType: true,
         });
       }

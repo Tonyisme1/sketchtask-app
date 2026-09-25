@@ -32,7 +32,7 @@ export const DesktopPlannerHeader: React.FC<DesktopPlannerHeaderProps> = ({
   onToday,
 }) => {
   return (
-    <header className="flex h-[60px] shrink-0 select-none items-center justify-between gap-2 border-b border-[var(--border-ink-muted)] bg-[var(--bg-canvas)] px-4">
+    <header className="flex h-[60px] shrink-0 select-none items-center justify-between gap-2 bg-[var(--bg-canvas)] px-4">
       {/* 1. Bộ điều hướng thời gian chuẩn Desktop (Hôm nay + Prev/Next + Tiêu đề lớn) */}
       <div className="flex items-center gap-2 min-w-0">
         <button

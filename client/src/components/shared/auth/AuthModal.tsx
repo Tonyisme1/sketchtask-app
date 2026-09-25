@@ -236,7 +236,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {user.isSignedIn && initialSignedInRef.current ? (
           <div className="flex-1 flex flex-col justify-start w-full max-w-sm mx-auto min-h-0 space-y-4 pt-1">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-black/10 dark:border-white/10 shrink-0">
+            <div className="flex items-center justify-between pb-3 shrink-0">
               <div className="flex items-center gap-2.5">
                 <button
                   type="button"
@@ -382,7 +382,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
 
             {/* Bottom Actions */}
-            <div className="pt-2 space-y-2 shrink-0 border-t border-black/10 dark:border-white/10">
+            <div className="pt-2 space-y-2 shrink-0">
               <button
                 type="button"
                 onClick={handleManualSync}
@@ -441,7 +441,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           /* ========================================== */
           <div className="flex-1 flex flex-col justify-between w-full max-w-sm mx-auto min-h-0 space-y-4">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-black/10 dark:border-white/10 shrink-0">
+            <div className="flex items-center justify-between pb-3 shrink-0">
               <div className="flex items-center gap-2">
                 <button
                   type="button"

@@ -71,7 +71,7 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
 
   return (
     <section className="w-full min-w-0 overflow-hidden rounded-3xl bg-white dark:bg-[#1C1C1E] shadow-xs select-none">
-      <div className="grid grid-cols-7 border-b border-black/[0.04] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.03]">
+      <div className="grid grid-cols-7 bg-black/[0.02] dark:bg-white/[0.03]">
         {WEEKDAYS.map((day) => (
           <div
             key={day.short}
@@ -83,7 +83,7 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-black/[0.04] dark:border-white/[0.06] px-3 py-2 text-[11px] font-medium text-[#8E8E93] dark:text-[#A1A1A6] sm:justify-end sm:px-4">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 px-3 py-2 text-[11px] font-medium text-[#8E8E93] dark:text-[#A1A1A6] sm:justify-end sm:px-4">
         <span className="inline-flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-[var(--accent-coral)]" />
           Quá hạn
@@ -221,7 +221,7 @@ export const PlannerCalendar: React.FC<PlannerCalendarProps> = ({
         <div
           role="dialog"
           aria-label={`Tóm tắt ${formatShortDayMonth(previewDateStr)}`}
-          className="border-t border-black/[0.04] dark:border-white/[0.06] bg-black/[0.01] dark:bg-white/[0.02] p-4 sm:p-5"
+          className="bg-black/[0.01] dark:bg-white/[0.02] p-4 sm:p-5"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">

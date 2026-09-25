@@ -172,7 +172,7 @@ export const PlannerQuickCreatePopover: React.FC<PlannerQuickCreatePopoverProps>
       onClick={(e) => e.stopPropagation()}
     >
       {/* 1. Header: Segmented Switch & Actions */}
-      <div className="flex items-center justify-between gap-2 pb-3 border-b border-black/[0.04] dark:border-white/[0.06]">
+      <div className="flex items-center justify-between gap-2 pb-3">
         {!itemTypeLocked && (
           <div className="flex items-center p-1 rounded-2xl bg-black/[0.04] dark:bg-white/[0.06]">
             <button
@@ -247,7 +247,7 @@ export const PlannerQuickCreatePopover: React.FC<PlannerQuickCreatePopoverProps>
       </div>
 
       {/* 3. Footer: Action Buttons */}
-      <div className="flex items-center justify-between gap-2 pt-2 border-t border-black/[0.04] dark:border-white/[0.06]">
+      <div className="flex items-center justify-between gap-2 pt-2">
         {onOpenFullDetail ? (
           <button
             type="button"

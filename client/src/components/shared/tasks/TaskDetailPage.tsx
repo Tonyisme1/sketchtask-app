@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAppStore } from "../../../stores/appStore";
 import { TaskDto, TaskItemType, TaskPriority, TaskTimeType } from "../../../types";
 import { getLocalTodayStr, getLocalTomorrowStr, formatFullDate, formatShortDayMonth } from "../../../utils/date";
-import { getTaskItemType, normalizeEndTimeForStart, getTaskTags, extractTagsFromTitle, getTaskTemporalState, isTaskDueToday, getTaskEffectiveTime } from "../../../utils/taskSemantics";
+import { getTaskItemType, normalizeEndTimeForStart, getTaskTag, extractTagsFromTitle, getTaskTemporalState, isTaskDueToday, getTaskEffectiveTime } from "../../../utils/taskSemantics";
 import { useResponsiveLayout } from "../../../hooks";
 import { isNativePlatform } from "../../../services/notificationService";
 import { dispatchToast } from "../../../utils/toast";
@@ -133,7 +133,14 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     )
   );
   const [priority, setPriority] = useState<TaskPriority>(existingTask?.priority || activeTaskDetailInitialData?.priority || "medium");
-  const [selectedTags, setSelectedTags] = useState<string[]>(existingTask ? getTaskTags(existingTask) : activeTaskDetailInitialData?.tags || (activeTaskDetailInitialData?.tag ? [activeTaskDetailInitialData.tag] : []));
+  const [selectedTag, setSelectedTag] = useState<string | undefined>(
+    existingTask
+      ? getTaskTag(existingTask)
+      : activeTaskDetailInitialData?.tag || activeTaskDetailInitialData?.tags?.[0],
+  );
+  const [selectedParentTaskId, setSelectedParentTaskId] = useState(
+    parentTaskId || existingTask?.parentTaskId || "",
+  );
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [saveStatus, setSaveStatus] = useState<"saved" | "unsaved" | "saving">("saved");
   const [isOptionsMenuOpen, setIsOptionsMenuOpen] = useState(false);
@@ -186,7 +193,12 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
       activeTaskDetailInitialData?.timeType === "scheduled"
     );
     setPriority(task?.priority || activeTaskDetailInitialData?.priority || "medium");
-    setSelectedTags(task ? getTaskTags(task) : activeTaskDetailInitialData?.tags || (activeTaskDetailInitialData?.tag ? [activeTaskDetailInitialData.tag] : []));
+    setSelectedTag(
+      task
+        ? getTaskTag(task)
+        : activeTaskDetailInitialData?.tag || activeTaskDetailInitialData?.tags?.[0],
+    );
+    setSelectedParentTaskId(parentTaskId || task?.parentTaskId || "");
     setSaveStatus("saved");
     setIsOptionsMenuOpen(false);
     setMode(taskId === "new" || activeTaskDetailInitialData?.mode === "edit" ? "edit" : "view");
@@ -197,7 +209,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
       notes: false,
       subtasks: false,
     });
-  }, [taskId, initialDate, todayStr, activeTaskDetailInitialData]);
+  }, [taskId, initialDate, todayStr, activeTaskDetailInitialData, parentTaskId]);
 
   // Autofocus khi ở chế độ edit
   useEffect(() => {
@@ -271,7 +283,8 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     if (!trimmedTitle) return;
 
     const { cleanTitle, extractedTags } = extractTagsFromTitle(trimmedTitle);
-    const combinedTags = Array.from(new Set([...selectedTags, ...extractedTags]));
+    const resolvedTag = selectedTag || extractedTags[0];
+    setSelectedTag(resolvedTag);
 
     setSaveStatus("saving");
     const resolvedStartTime = !isDateRange ? startTime : "";
@@ -304,9 +317,8 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
           : undefined,
       deadlineTime: resolvedTimeType === "deadline" ? resolvedStartTime || undefined : undefined,
       priority,
-      tag: combinedTags[0] || undefined,
-      tags: combinedTags.length > 0 ? combinedTags : undefined,
-      parentTaskId: parentTaskId || undefined,
+      tag: resolvedTag || undefined,
+      parentTaskId: selectedParentTaskId || undefined,
     };
 
     if (!currentTaskId) {
@@ -361,8 +373,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
       startTime: resolvedStartTime || undefined,
       endTime: resolvedEndTime,
       priority,
-      tag: selectedTags[0] || undefined,
-      tags: selectedTags.length > 0 ? selectedTags : undefined,
+      tag: selectedTag,
     });
     dispatchToast({ message: "Đã nhân bản công việc" });
     onBack();
@@ -372,6 +383,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
 
   const handleAddSubtask = (e?: React.FormEvent) => {
     e?.preventDefault();
+    if (itemType !== "task") return;
     const trimmed = newSubtaskTitle.trim();
     if (!trimmed) return;
 
@@ -383,8 +395,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
         itemType,
         timeType: editorTimeType,
         priority,
-        tag: selectedTags[0] || undefined,
-        tags: selectedTags.length > 0 ? selectedTags : undefined,
+        tag: selectedTag,
       });
       parentId = parentCreated.id;
       setCurrentTaskId(parentId);
@@ -396,7 +407,6 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
       dueDate: dueDate || todayStr,
       priority: "medium",
       itemType: "task",
-      timeType: "task",
     });
 
     setNewSubtaskTitle("");
@@ -420,7 +430,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   return (
     <div className="task-detail-editor w-full h-full bg-[#F5F7FA] dark:bg-[#12161B] text-[#1C1C1E] dark:text-[#F2F2F7] select-none flex flex-col overflow-y-auto">
       {/* 1. TOPBAR */}
-      <div className={`shrink-0 z-30 sticky top-0 bg-[#F5F7FA] dark:bg-[#12161B] border-b border-transparent dark:border-transparent px-3 sm:px-4 flex items-center justify-between min-h-[46px] sm:min-h-[48px] ${
+      <div className={`shrink-0 z-30 sticky top-0 bg-[#F5F7FA] dark:bg-[#12161B] px-3 sm:px-4 flex items-center justify-between min-h-[46px] sm:min-h-[48px] ${
         isMobile || isTablet
           ? isNativePlatform()
             ? "pt-10 pb-1.5"
@@ -458,7 +468,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                   );
                   setCompleted(existingTask.completed);
                   setPriority(existingTask.priority || "medium");
-                  setSelectedTags(getTaskTags(existingTask));
+                  setSelectedTag(getTaskTag(existingTask));
                 }
                 setMode("view");
               }
@@ -697,7 +707,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             )}
 
             {/* Thời gian */}
-            <div className="flex items-center justify-between gap-2 pt-2 border-t border-black/[0.04] dark:border-white/[0.06]">
+            <div className="flex items-center justify-between gap-2 pt-2">
               <span className="text-[#8E8E93] dark:text-[#aeaeb2] font-medium text-[11px]">Thời gian:</span>
               <span className="font-bold text-[#1C1C1E] dark:text-[#F2F2F7] text-right">
                 {isDateRange && startDate && endDate && startDate !== endDate
@@ -712,25 +722,18 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             </div>
 
             {/* Nhãn */}
-            {selectedTags.length > 0 && (
-              <div className="flex items-center justify-between gap-2 pt-2 border-t border-black/[0.04] dark:border-white/[0.06]">
+            {selectedTag && (
+              <div className="flex items-center justify-between gap-2 pt-2">
                 <span className="text-[#8E8E93] dark:text-[#aeaeb2] font-medium text-[11px]">Nhãn:</span>
-                <div className="flex flex-wrap gap-1.5 justify-end">
-                  {selectedTags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[11px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
+                <span className="px-2 py-0.5 rounded-full bg-black/[0.04] dark:bg-white/[0.06] text-[11px] font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
+                  #{selectedTag}
+                </span>
               </div>
             )}
             
             {/* Ngày tạo */}
             {existingTask?.createdAt && (
-              <div className="flex items-center justify-between gap-2 pt-2 border-t border-black/[0.04] dark:border-white/[0.06]">
+              <div className="flex items-center justify-between gap-2 pt-2">
                 <span className="text-[#8E8E93] dark:text-[#aeaeb2] font-medium text-[11px]">Ngày tạo:</span>
                 <span className="font-medium text-[#8E8E93] dark:text-[#aeaeb2] text-[11px]">
                   {formatFullDate(existingTask.createdAt.split("T")[0])}
@@ -890,7 +893,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             open={openSections.timing}
             onToggle={() => toggleSection("timing")}
           >
-            <div className="flex items-center justify-between pb-2 border-b border-black/[0.04] dark:border-white/[0.06] text-xs">
+            <div className="flex items-center justify-between pb-2 text-xs">
               <span className="font-medium text-[#8E8E93] dark:text-[#aeaeb2] text-[11px]">Kiểu ngày:</span>
               <div className="flex items-center gap-1 bg-[#F2F2F7] dark:bg-[#2C2C2E] p-1 rounded-xl">
                 <button
@@ -1071,7 +1074,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                   </div>
                 </div>
 
-                <p className="border-t border-black/[0.04] dark:border-white/[0.06] pt-2 text-[11px] font-medium text-[#8E8E93] dark:text-[#aeaeb2]">
+                <p className="pt-2 text-[11px] font-medium text-[#8E8E93] dark:text-[#aeaeb2]">
                   Khoảng ngày là lịch cả ngày, không dùng giờ bắt đầu và kết thúc.
                 </p>
               </div>
@@ -1118,17 +1121,17 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                 </div>
               )}
 
-              <div className={`${itemType === "task" ? "pt-2 border-t border-black/[0.04] dark:border-white/[0.06]" : ""} space-y-1`}>
+              <div className={`${itemType === "task" ? "pt-2" : ""} space-y-1`}>
                 <span className="font-medium text-[11px] text-[#8E8E93] dark:text-[#aeaeb2]">
                   Nhãn:
                 </span>
                 <TagInputSelector
-                  selectedTags={selectedTags}
-                  onChange={(newTags) => {
-                    setSelectedTags(newTags);
+                  selectedTag={selectedTag}
+                  onChange={(newTag) => {
+                    setSelectedTag(newTag);
                     markDraftChanged();
                   }}
-                  placeholder="Thêm nhãn (vd: CongViec, Gap...)"
+                  placeholder="Tạo nhãn (vd: Học tập)"
                 />
               </div>
             </div>

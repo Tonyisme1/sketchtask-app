@@ -1,15 +1,14 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import {
   CheckSquare,
   CalendarDays,
-  Hourglass,
+  FilePenLine,
   UserRound,
   Plus,
   LucideIcon,
 } from "lucide-react";
 import { TabKey, TaskSubTab } from "../../types";
 import { useAppStore } from "../../stores/appStore";
-import { getDeadlineAttentionCount } from "../../utils/taskSemantics";
 
 export interface MobileNavProps {
   activeTab: TabKey;
@@ -41,13 +40,8 @@ const isNavItemActive = (
       activeTab === "planner"
     );
   }
-  if (key === "deadlines") {
-    return (
-      activeTab === "deadlines" ||
-      (activeTab === "tasks" && activeTaskSubTab === "deadlines")
-    );
-  }
   if (key === "events") return activeTab === "events";
+  if (key === "notes") return activeTab === "notes" || activeTab === "journal";
   if (key === "settings") return activeTab === "settings";
   return activeTab === key;
 };
@@ -57,14 +51,9 @@ export const MobileNav: React.FC<MobileNavProps> = ({
   activeTaskSubTab,
   onTabChange,
 }) => {
-  const { tasks, openTaskDetail, setMobileDeadlineView } = useAppStore();
+  const { openTaskDetail } = useAppStore();
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isScrollingDown, setIsScrollingDown] = useState(false);
-
-  const deadlineAttentionCount = useMemo(
-    () => getDeadlineAttentionCount(tasks),
-    [tasks],
-  );
 
   useEffect(() => {
     const initialHeight = window.visualViewport?.height || window.innerHeight;
@@ -154,7 +143,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
     <>
       {/* 1. THANH ĐIỀU HƯỚNG DƯỚI ĐÁY TỐI GIẢN */}
       <nav
-        className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#F5F7FA] dark:bg-[#12161B] border-t border-transparent dark:border-transparent px-2.5 py-2 pb-[max(env(safe-area-inset-bottom),8px)] select-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform shadow-[0_-1px_10px_rgba(0,0,0,0.03)] ${
+        className={`md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#F5F7FA] dark:bg-[#12161B] px-2.5 py-2 pb-[max(env(safe-area-inset-bottom),8px)] select-none transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform shadow-[0_-1px_10px_rgba(0,0,0,0.03)] ${
           shouldHideNav
             ? "translate-y-full pointer-events-none"
             : "translate-y-0"
@@ -169,6 +158,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
               <button
                 key={key}
                 type="button"
+                data-onboarding={key === "tasks" ? "mobile-tasks" : "mobile-events"}
                 onClick={() => onTabChange(key)}
                 aria-label={label}
                 title={label}
@@ -190,6 +180,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
           <div className="flex items-center justify-center">
             <button
               type="button"
+              data-onboarding="mobile-create"
               onClick={handleCreateCurrentItem}
               aria-label={activeTab === "events" ? "Tạo sự kiện mới" : "Tạo công việc mới"}
               title="Tạo mới"
@@ -199,39 +190,29 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             </button>
           </div>
 
-          {/* Nút 4: Hạn định là lối tắt duy nhất tới việc cần xử lý. */}
+          {/* Nút 4: Ghi chép gom Ghi chú và Nhật ký để không chồng vào AI nổi. */}
           <button
             type="button"
-            onClick={() => {
-              setMobileDeadlineView("upcoming");
-              onTabChange("deadlines");
-            }}
-            aria-label="Hạn định"
-            title="Hạn định"
+            data-onboarding="mobile-notes"
+            onClick={() => onTabChange("notes")}
+            aria-label="Ghi chép"
+            title="Ghi chép"
             className={`relative min-h-[52px] flex flex-col items-center justify-center gap-1 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
-              isNavItemActive(activeTab, activeTaskSubTab, "deadlines")
+              isNavItemActive(activeTab, activeTaskSubTab, "notes")
                 ? "text-[#1C1C1E] dark:text-white font-bold bg-black/[0.05] dark:bg-white/[0.08]"
                 : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
             } active:scale-95`}
           >
-            <div className="relative">
-              <Hourglass
+            <FilePenLine
               size={21}
-                strokeWidth={
-                  isNavItemActive(activeTab, activeTaskSubTab, "deadlines")
-                    ? 2.4
-                    : 1.9
-                }
-              />
-              {deadlineAttentionCount > 0 && (
-                <span
-                  aria-label={`${deadlineAttentionCount} việc cần chú ý`}
-                  className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-[var(--accent-blue)] ring-2 ring-[var(--bg-canvas)]"
-                />
-              )}
-            </div>
+              strokeWidth={
+                isNavItemActive(activeTab, activeTaskSubTab, "notes")
+                  ? 2.4
+                  : 1.9
+              }
+            />
             <span className="text-xs leading-tight whitespace-nowrap">
-              Hạn
+              Ghi chép
             </span>
           </button>
 

@@ -25,7 +25,6 @@ import {
   FileText,
   Cloud,
   RefreshCw,
-  Zap,
   Pencil,
   Check,
   LogOut,
@@ -240,8 +239,8 @@ interface SettingsGroupProps {
 }
 
 const SettingsGroup: React.FC<SettingsGroupProps> = ({ title, icon: Icon, children }) => (
-  <div className="space-y-3.5 border-b border-black/[0.06] dark:border-white/[0.08] pb-4 sm:pb-5 last:border-b-0 last:pb-0">
-    <div className="flex items-center gap-2 pb-2.5 border-b border-black/[0.04] dark:border-white/[0.06]">
+  <div className="space-y-3.5 pb-4 sm:pb-5 last:pb-0">
+    <div className="flex items-center gap-2 pb-2.5">
       {Icon && (
         <div className="w-6 h-6 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7]">
           <Icon size={14} strokeWidth={2.2} />
@@ -251,7 +250,7 @@ const SettingsGroup: React.FC<SettingsGroupProps> = ({ title, icon: Icon, childr
         {title}
       </h3>
     </div>
-    <div className="divide-y divide-black/[0.04] dark:divide-white/[0.06]">
+    <div>
       {children}
     </div>
   </div>
@@ -299,7 +298,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   setPaperStyle,
   pinCode,
   setPinCode,
-  loadSampleData,
   tasks,
   stickyNotes,
   journalEntries,
@@ -310,7 +308,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 }) => {
   const [activeSection, setActiveSection] = useState<SettingsSectionKey>("account");
 
-  const [confirmSampleOpen, setConfirmSampleOpen] = useState(false);
   const [confirmDeleteAllOpen, setConfirmDeleteAllOpen] = useState(false);
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
   const [pinModalMode, setPinModalMode] = useState<"setup" | "change" | "disable" | null>(null);
@@ -461,12 +458,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     e.target.value = "";
   };
 
-  const handleLoadSampleData = () => {
-    loadSampleData();
-    setConfirmSampleOpen(false);
-    showToast("Đã nạp dữ liệu mẫu.");
-  };
-
   const handleDeleteAllData = () => {
     LOCAL_DATA_KEYS.forEach((key) => localStorage.removeItem(key));
     void notificationService.cancelAll();
@@ -497,7 +488,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         return (
           <div className="space-y-4 sm:space-y-5">
             {/* Profile Info Card */}
-            <div className="space-y-4 pb-5 sm:border-b sm:border-black/[0.06] sm:dark:border-white/[0.08] sm:last:border-b-0 sm:last:pb-0">
+            <div className="space-y-4 pb-5 sm:last:pb-0">
               <div className="flex items-start justify-between gap-3 min-w-0">
                 <div className="flex items-center gap-3.5 min-w-0 flex-1">
                   {/* Google Profile Avatar */}
@@ -563,8 +554,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             {/* Dữ Liệu Đồng Bộ Summary - Hidden on mobile for cleaner UI */}
-            <div className="hidden sm:block space-y-3.5 border-b border-black/[0.06] dark:border-white/[0.08] pb-5 last:border-b-0 last:pb-0">
-              <div className="flex items-center justify-between pb-2.5 border-b border-black/[0.04] dark:border-white/[0.06]">
+            <div className="hidden sm:block space-y-3.5 pb-5 last:pb-0">
+              <div className="flex items-center justify-between pb-2.5">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#8E8E93] dark:text-[#A1A1A6] font-mono flex items-center gap-1.5">
                   <Cloud size={14} strokeWidth={2.2} />
                   <span>Dữ Liệu Đồng Bộ Đám Mây</span>
@@ -608,8 +599,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
 
             {/* Thiết Bị & Kết Nối (Devices & Protection) */}
-            <div className="hidden sm:block space-y-3.5 border-b border-black/[0.06] dark:border-white/[0.08] pb-5 last:border-b-0 last:pb-0">
-              <div className="flex items-center justify-between pb-2.5 border-b border-black/[0.04] dark:border-white/[0.06]">
+            <div className="hidden sm:block space-y-3.5 pb-5 last:pb-0">
+              <div className="flex items-center justify-between pb-2.5">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#8E8E93] dark:text-[#A1A1A6] font-mono flex items-center gap-1.5">
                   <ShieldCheck size={14} strokeWidth={2.2} />
                   <span>Thiết Bị & Kết Nối</span>
@@ -850,7 +841,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       case "data":
         return (
           <div className="space-y-4 sm:space-y-5">
-            {/* Sao lưu & Khôi phục & Dữ liệu mẫu - Chỉ hiển thị trên PC */}
+            {/* Sao lưu & khôi phục chỉ hiển thị trên PC. */}
             <div className="hidden sm:block space-y-4 sm:space-y-5">
               <SettingsGroup title="Sao lưu & Phục hồi dữ liệu" icon={Download}>
                 <SettingsRow
@@ -891,31 +882,17 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 </SettingsRow>
               </SettingsGroup>
 
-              <SettingsGroup title="Dữ liệu mẫu để làm quen" icon={Zap}>
-                <SettingsRow
-                  title="Nạp dữ liệu mẫu"
-                  description="Tạo 100 task và sự kiện mẫu để xem cách các workspace vận hành"
-                >
-                  <button
-                    type="button"
-                    onClick={() => setConfirmSampleOpen(true)}
-                    className="px-3.5 py-1.5 bg-[#FF9500]/15 hover:bg-[#FF9500]/25 rounded-2xl text-xs font-semibold text-[#FF9500] cursor-pointer"
-                  >
-                    Nạp mẫu
-                  </button>
-                </SettingsRow>
-              </SettingsGroup>
             </div>
 
             {/* Vùng nguy hiểm */}
-            <div className="border-b border-[var(--accent-coral)]/30 pb-4 space-y-3.5">
-              <div className="flex items-center gap-2 pb-2.5 border-b border-[var(--accent-coral)]/30">
+            <div className="pb-4 space-y-3.5">
+              <div className="flex items-center gap-2 pb-2.5">
                 <AlertTriangle size={14} strokeWidth={2.2} className="text-[var(--danger-text)]" />
                 <h3 className="text-xs font-bold uppercase font-mono tracking-wider text-[var(--danger-text)]">
                   Vùng Nguy Hiểm (Danger Zone)
                 </h3>
               </div>
-              <div className="divide-y divide-[var(--accent-coral)]/20">
+              <div>
                 <SettingsRow
                   title="Xóa dữ liệu trên thiết bị"
                   description="Xóa toàn bộ task, sổ tay và ghi chú trên máy. Cài đặt và tài khoản vẫn giữ nguyên."
@@ -1024,15 +1001,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const renderSettingsOverlays = () => (
     <>
       <ConfirmModal
-        isOpen={confirmSampleOpen}
-        onCancel={() => setConfirmSampleOpen(false)}
-        onConfirm={handleLoadSampleData}
-        title="Nạp dữ liệu mẫu?"
-        message="Dữ liệu hiện có sẽ được thay bằng 100 task và sự kiện mẫu."
-        confirmText="Nạp dữ liệu"
-      />
-
-      <ConfirmModal
         isOpen={confirmDeleteAllOpen}
         onCancel={() => setConfirmDeleteAllOpen(false)}
         onConfirm={handleDeleteAllData}
@@ -1109,7 +1077,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div
             className={
               isMobileLongForm
-                ? "divide-y divide-[var(--border-ink-muted)]"
+              ? ""
                 : "space-y-4"
             }
           >

@@ -8,12 +8,10 @@ import { getTaskItemType } from "../../utils/taskSemantics";
 
 export interface DesktopDeadlinesPageProps {
   model?: DeadlinesScreenModel;
-  onNavigateToTaskDate?: (dateStr: string, taskId: string) => void;
 }
 
 export const DesktopDeadlinesPage: React.FC<DesktopDeadlinesPageProps> = ({
   model: propModel,
-  onNavigateToTaskDate,
 }) => {
   const defaultModel = useDeadlinesScreenModel();
   const model = propModel || defaultModel;
@@ -26,9 +24,6 @@ export const DesktopDeadlinesPage: React.FC<DesktopDeadlinesPageProps> = ({
   );
 
   return (
-    <DesktopDeadlinesView
-      {...desktopTaskModel}
-      onNavigateToTaskDate={onNavigateToTaskDate}
-    />
+    <DesktopDeadlinesView {...desktopTaskModel} />
   );
 };

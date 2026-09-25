@@ -94,7 +94,7 @@ export const QuickTaskModal: React.FC = () => {
   const [endTime, setEndTime] = useState("");
   const [showEndTime, setShowEndTime] = useState(false);
   const [priority, setPriority] = useState<TaskPriority>("medium");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTag, setSelectedTag] = useState<string | undefined>();
   const [showDetails, setShowDetails] = useState(false);
   const [openSections, setOpenSections] = useState<Record<QuickTaskSection, boolean>>({
     timing: true,
@@ -130,7 +130,7 @@ export const QuickTaskModal: React.FC = () => {
           quickTaskInitialData?.timeType === "scheduled"
       );
       setPriority("medium");
-      setSelectedTags(quickTaskInitialData?.tag ? [quickTaskInitialData.tag] : []);
+      setSelectedTag(quickTaskInitialData?.tag);
       setShowDetails(false);
       setOpenSections({
         timing: true,
@@ -189,7 +189,7 @@ export const QuickTaskModal: React.FC = () => {
       endTime: resolvedTimeType === "scheduled" || resolvedTimeType === "event" ? resolvedEndTime : undefined,
       deadlineTime: resolvedTimeType === "deadline" ? resolvedStartTime : undefined,
       priority,
-      tags: selectedTags,
+      tag: selectedTag,
     });
 
     closeQuickTaskModal();
@@ -217,7 +217,7 @@ export const QuickTaskModal: React.FC = () => {
       dueDate: isDateRange ? startDate || todayStr : dueDate || todayStr,
       startDate: isDateRange ? startDate || todayStr : undefined,
       endDate: isDateRange ? endDate || undefined : undefined,
-      tag: selectedTags[0],
+      tag: selectedTag,
       itemType,
       lockItemType: isItemTypeLocked,
       timeType: resolvedTimeType,
@@ -225,7 +225,6 @@ export const QuickTaskModal: React.FC = () => {
       endTime: resolvedTimeType === "scheduled" || resolvedTimeType === "event" ? resolvedEndTime : undefined,
       deadlineTime: resolvedTimeType === "deadline" ? resolvedStartTime : undefined,
       priority,
-      tags: selectedTags,
     });
     closeQuickTaskModal();
   };
@@ -369,7 +368,7 @@ export const QuickTaskModal: React.FC = () => {
               >
 
                 {/* Chuyển đổi giữa Trong ngày & Khoảng ngày */}
-                <div className="flex items-center justify-between pb-2 border-b border-black/[0.04] dark:border-white/[0.06] text-xs">
+                <div className="flex items-center justify-between pb-2 text-xs">
                   <span className="font-medium text-[#8E8E93] flex items-center gap-1.5">
                     <Calendar size={13} />
                     <span>Kiểu hiển thị:</span>
@@ -549,7 +548,7 @@ export const QuickTaskModal: React.FC = () => {
                       </div>
                     </div>
 
-                    <p className="border-t border-black/[0.04] dark:border-white/[0.06] pt-2 text-xs font-medium text-[#8E8E93]">
+                    <p className="pt-2 text-xs font-medium text-[#8E8E93]">
                       Khoảng ngày là lịch cả ngày, không dùng giờ bắt đầu và kết thúc.
                     </p>
                   </div>
@@ -596,16 +595,16 @@ export const QuickTaskModal: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Nhãn Tag (#) Đa Năng */}
-                  <div className={`${itemType === "task" ? "pt-2 border-t border-black/[0.04] dark:border-white/[0.06]" : ""} space-y-1.5`}>
+                  {/* Một task chỉ thuộc một nhãn/danh sách. */}
+                  <div className={`${itemType === "task" ? "pt-2" : ""} space-y-1.5`}>
                     <span className="font-medium text-xs text-[#8E8E93] flex items-center gap-1.5">
                       <TagIcon size={12} />
-                      <span>Nhãn (#Tag):</span>
+                      <span>Nhãn:</span>
                     </span>
                     <TagInputSelector
-                      selectedTags={selectedTags}
-                      onChange={setSelectedTags}
-                      placeholder="Thêm nhãn (vd: CongViec, Gap...)"
+                      selectedTag={selectedTag}
+                      onChange={setSelectedTag}
+                      placeholder="Tạo nhãn (vd: Học tập)"
                     />
                   </div>
                 </div>

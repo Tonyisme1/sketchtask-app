@@ -9,15 +9,13 @@ import {
 
 export interface TabletDeadlinesPageProps {
   model?: DeadlinesScreenModel;
-  onNavigateToTaskDate?: (dateStr: string, taskId: string) => void;
 }
 
 export const TabletDeadlinesPage: React.FC<TabletDeadlinesPageProps> = ({
   model: propModel,
-  onNavigateToTaskDate,
 }) => {
   const defaultModel = useDeadlinesScreenModel();
   const model = propModel || defaultModel;
 
-  return <DeadlinesView {...model} onNavigateToTaskDate={onNavigateToTaskDate} />;
+  return <DeadlinesView {...model} />;
 };

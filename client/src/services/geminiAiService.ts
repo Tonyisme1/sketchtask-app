@@ -1,6 +1,11 @@
 import { TaskDto, TaskPriority, TaskTimeType } from "../types";
 import { getLocalTodayStr } from "../utils/date";
-import { getTaskItemType, getTaskTemporalState, isTaskDueToday } from "../utils/taskSemantics";
+import {
+  getTaskItemType,
+  getTaskTemporalState,
+  isTaskDeadline,
+  isTaskDueToday,
+} from "../utils/taskSemantics";
 import { AI_CONFIG, getEffectiveGeminiApiKey } from "../config/aiConfig";
 import {
   AIActionProposal,
@@ -72,7 +77,7 @@ const normalizeTimeType = (value: unknown): TaskTimeType => {
   return "task";
 };
 
-const parseTaskIntent = (value: unknown, todayStr: string): ParsedTaskIntent | null => {
+const parseTaskIntent = (value: unknown): ParsedTaskIntent | null => {
   if (!isObject(value) || typeof value.title !== "string" || !value.title.trim()) return null;
 
   const timeType = normalizeTimeType(value.timeType ?? value.itemType);
@@ -80,7 +85,7 @@ const parseTaskIntent = (value: unknown, todayStr: string): ParsedTaskIntent | n
     ? value.dueDate
     : isValidDate(value.date)
       ? value.date
-      : todayStr;
+      : undefined;
   const startTime = isValidTime(value.startTime) ? value.startTime : undefined;
   const endTime = isValidTime(value.endTime) ? value.endTime : undefined;
   const deadlineTime = isValidTime(value.deadlineTime) ? value.deadlineTime : undefined;
@@ -89,9 +94,12 @@ const parseTaskIntent = (value: unknown, todayStr: string): ParsedTaskIntent | n
     : timeType === "deadline"
       ? dueDate
       : undefined;
-  const tags = Array.isArray(value.tags)
+  const legacyTags = Array.isArray(value.tags)
     ? value.tags.filter((tag): tag is string => typeof tag === "string" && Boolean(tag.trim())).slice(0, 8)
     : undefined;
+  const tag = typeof value.tag === "string"
+    ? value.tag.trim().slice(0, 64) || undefined
+    : legacyTags?.[0]?.trim().slice(0, 64) || undefined;
 
   return {
     title: value.title.trim().slice(0, 240),
@@ -102,11 +110,20 @@ const parseTaskIntent = (value: unknown, todayStr: string): ParsedTaskIntent | n
     deadlineTime,
     deadlineDate,
     priority: normalizePriority(value.priority),
-    tag: typeof value.tag === "string" ? value.tag.trim().slice(0, 64) || undefined : undefined,
-    tags,
+    tag,
     description:
       typeof value.description === "string" ? value.description.trim().slice(0, 2000) || undefined : undefined,
   };
+};
+
+const uniqueTaskIntents = (intents: ParsedTaskIntent[]) => {
+  const seenTitles = new Set<string>();
+  return intents.filter((intent) => {
+    const key = intent.title.trim().toLocaleLowerCase();
+    if (seenTitles.has(key)) return false;
+    seenTitles.add(key);
+    return true;
+  });
 };
 
 const taskExists = (tasks: TaskDto[], taskId: unknown) =>
@@ -121,24 +138,32 @@ const parseAction = (
 
   if (action === "create_tasks" && Array.isArray(payload.tasks)) {
     const parsedTasks = payload.tasks
-      .map((task) => parseTaskIntent(task, todayStr))
+      .map((task) => parseTaskIntent(task))
       .filter((task): task is ParsedTaskIntent => Boolean(task))
-      .slice(0, 20);
-    return parsedTasks.length ? { type: "create_tasks", tasks: parsedTasks } : null;
+      .slice(0, 8);
+    const uniqueTasks = uniqueTaskIntents(parsedTasks);
+    return uniqueTasks.length ? { type: "create_tasks", tasks: uniqueTasks } : null;
   }
 
-  if (action === "breakdown_plan" && isObject(payload.plan)) {
-    const steps = Array.isArray(payload.plan.steps)
-      ? payload.plan.steps
-          .map((step) => parseTaskIntent(step, todayStr))
+  const planPayload = payload.plan;
+  if (action === "breakdown_plan" && isObject(planPayload)) {
+    const steps = Array.isArray(planPayload.steps)
+      ? planPayload.steps
+          .map((step) => parseTaskIntent(step))
           .filter((step): step is ParsedTaskIntent => Boolean(step))
-          .slice(0, 20)
+          .slice(0, 7)
       : [];
-    if (typeof payload.plan.goalTitle === "string" && payload.plan.goalTitle.trim() && steps.length) {
+    const uniqueSteps = uniqueTaskIntents(steps);
+    const targetTask = taskExists(tasks, planPayload.targetTaskId)
+      ? tasks.find((task) => task.id === planPayload.targetTaskId)
+      : undefined;
+    if (typeof planPayload.goalTitle === "string" && planPayload.goalTitle.trim() && uniqueSteps.length >= 2) {
       const plan: GoalPlanBreakdown = {
-        goalTitle: payload.plan.goalTitle.trim().slice(0, 240),
-        subtasks: steps,
-        targetTaskId: taskExists(tasks, payload.plan.targetTaskId) ? String(payload.plan.targetTaskId) : undefined,
+        goalTitle: planPayload.goalTitle.trim().slice(0, 240),
+        subtasks: uniqueSteps,
+        targetTaskId: targetTask && getTaskItemType(targetTask) !== "event"
+          ? targetTask.id
+          : undefined,
       };
       return { type: "breakdown_goal", plan };
     }
@@ -237,7 +262,9 @@ Nếu người dùng yêu cầu thay đổi dữ liệu, hãy trả lời ngắn
   "journal": { "date": "YYYY-MM-DD", "time": "HH:MM", "content": "...", "linkedTaskId": "id chính xác nếu có" },
   "note": { "title": "...", "content": "..." }
 }
-Quy tắc xử lý: phân biệt task có deadline, lịch hẹn/event có thời gian bắt đầu-kết thúc và việc thường; giữ đúng ngày/giờ người dùng nêu; hiểu ngày tương đối theo ngày hiện tại; nếu thiếu thông tin quan trọng thì hỏi lại thay vì đoán. Chỉ dùng action khi người dùng thật sự yêu cầu thay đổi. Không tự nhận đã tạo, xóa hoặc hoàn thành dữ liệu. Event không có checkbox hoàn thành. Với hoàn thành/xóa, chỉ dùng taskId có trong danh mục, không đoán theo tên.
+Quy tắc xử lý: phân biệt việc thường, task có deadline, và lịch hẹn/event có thời gian bắt đầu-kết thúc. Chỉ điền ngày, giờ, ưu tiên và nhãn khi người dùng nêu rõ hoặc có ngữ cảnh chắc chắn; nếu không biết thì bỏ trường đó, tuyệt đối không mặc định là hôm nay. Hiểu ngày tương đối theo ngày hiện tại. Chỉ dùng action khi người dùng thật sự yêu cầu thay đổi, và không tự nhận đã tạo, xóa hoặc hoàn thành dữ liệu. Event không có checkbox hoàn thành. Với hoàn thành/xóa, chỉ dùng taskId có trong danh mục, không đoán theo tên.
+
+Quy tắc chia nhỏ mục tiêu: chỉ dùng "breakdown_plan" khi người dùng nói rõ muốn chia nhỏ/lập kế hoạch. Không bao giờ tự chọn một số lượng cố định như 4 bước. Chỉ đề xuất số bước ít nhất đủ để làm được việc (tối đa 7); nếu mục tiêu, thời hạn hoặc mức độ chi tiết chưa rõ thì hỏi đúng một câu làm rõ và không trả JSON action. Không bịa thêm bước trùng nhau. Mọi action chỉ là đề xuất để người dùng chọn từng mục ở giao diện.
 `;
 
 export async function askGeminiAIAssistant(
@@ -254,9 +281,9 @@ export async function askGeminiAIAssistant(
   const todayStr = getLocalTodayStr(now);
   const todayTasks = context.tasks.filter((task) => isTaskDueToday(task, now));
   const overdueTasks = context.tasks.filter((task) => {
-    if (task.completed || getTaskItemType(task) === "event") return false;
+    if (task.completed || !isTaskDeadline(task)) return false;
     const state = getTaskTemporalState(task, now);
-    return state === "overdue" || state === "pastScheduled";
+    return state === "overdue";
   });
   const taskCatalog = context.tasks.slice(0, 400).map((task) => ({
     id: task.id,
@@ -266,7 +293,6 @@ export async function askGeminiAIAssistant(
     timeType: task.timeType || "task",
     priority: task.priority || "medium",
     tag: task.tag,
-    tags: task.tags,
     description: task.description?.slice(0, 400),
     dueDate: task.dueDate,
     deadlineDate: task.deadlineDate,

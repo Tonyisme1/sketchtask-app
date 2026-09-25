@@ -100,6 +100,7 @@ const daysBetweenIsoDates = (startDate: string, endDate: string): number => {
 
 const LEGACY_TIME_TYPES: Record<string, NormalizedTaskTimeType> = {
   event: "scheduled",
+  // A task has a due point; an event has a start and an end.
   task: "deadline",
 };
 
@@ -282,33 +283,52 @@ export interface DeadlineAttentionSummary {
   upcoming: number;
 }
 
+export interface DeadlineTaskBuckets {
+  overdue: TaskDto[];
+  upcoming: TaskDto[];
+}
+
+/**
+ * Deadline work is deliberately separate from calendar events and ordinary tasks.
+ * Every entry point uses this helper so the two deadline views cannot drift apart.
+ */
+export const getDeadlineTaskBuckets = (
+  tasks: TaskDto[],
+  now: Date = new Date(),
+  daysAhead = 7,
+): DeadlineTaskBuckets => {
+  const todayStr = getLocalTodayStr(now);
+  const limitDate = new Date(now);
+  limitDate.setDate(limitDate.getDate() + Math.max(0, daysAhead - 1));
+  const limitStr = getLocalTodayStr(limitDate);
+
+  return tasks.reduce<DeadlineTaskBuckets>(
+    (buckets, task) => {
+      if (task.completed || !isTaskDeadline(task)) return buckets;
+
+      if (getTaskTemporalState(task, now) === "overdue") {
+        buckets.overdue.push(task);
+        return buckets;
+      }
+
+      const deadlineDate = getTaskDeadlineDate(task) || getTaskEffectiveDate(task);
+      if (deadlineDate && deadlineDate >= todayStr && deadlineDate <= limitStr) {
+        buckets.upcoming.push(task);
+      }
+      return buckets;
+    },
+    { overdue: [], upcoming: [] },
+  );
+};
+
 /** Keep every deadline entry point on the same overdue/upcoming split. */
 export const getDeadlineAttentionSummary = (
   tasks: TaskDto[],
   now: Date = new Date(),
   daysAhead = 7,
 ): DeadlineAttentionSummary => {
-  const todayStr = getLocalTodayStr(now);
-  const limitDate = new Date(now);
-  limitDate.setDate(limitDate.getDate() + Math.max(0, daysAhead - 1));
-  const limitStr = getLocalTodayStr(limitDate);
-
-  return tasks.reduce<DeadlineAttentionSummary>(
-    (summary, task) => {
-      if (task.completed || !isTaskDeadline(task)) return summary;
-      if (getTaskTemporalState(task, now) === "overdue") {
-        summary.overdue += 1;
-        return summary;
-      }
-
-      const deadlineDate = getTaskDeadlineDate(task) || getTaskEffectiveDate(task);
-      if (deadlineDate && deadlineDate >= todayStr && deadlineDate <= limitStr) {
-        summary.upcoming += 1;
-      }
-      return summary;
-    },
-    { overdue: 0, upcoming: 0 },
-  );
+  const buckets = getDeadlineTaskBuckets(tasks, now, daysAhead);
+  return { overdue: buckets.overdue.length, upcoming: buckets.upcoming.length };
 };
 
 /** Count overdue work plus deadline work due within the current seven-day window. */
@@ -660,7 +680,7 @@ export const buildParentSelectOptions = (
   return options;
 };
 
-// === PHẦN 7: Xử lý Nhãn (#Tag) & Multi-tags ===
+// === PHẦN 7: Xử lý Nhãn (#Tag) đơn ===
 
 /** Chuẩn hóa tên tag (bỏ # ở đầu, cắt khoảng trắng thừa) */
 export const normalizeTagName = (tag: string): string => {
@@ -668,20 +688,26 @@ export const normalizeTagName = (tag: string): string => {
   return tag.replace(/^#+/, "").trim();
 };
 
-/** Lấy toàn bộ danh sách tags của một task (tương thích cả `tags: string[]` và `tag: string`) */
+/** Resolve the one tag allowed for a task, including legacy records with `tags`. */
+export const getTaskTag = (task: Pick<TaskDto, "tag" | "tags">): string | undefined => {
+  const candidates = [task.tag, ...(Array.isArray(task.tags) ? task.tags : [])];
+  for (const candidate of candidates) {
+    const clean = normalizeTagName(candidate || "");
+    if (clean) return clean;
+  }
+  return undefined;
+};
+
+/** Compatibility boundary for existing callers: task tags now contain zero or one value. */
 export const getTaskTags = (task: Pick<TaskDto, "tag" | "tags">): string[] => {
-  const result = new Set<string>();
-  if (Array.isArray(task.tags)) {
-    task.tags.forEach((t) => {
-      const clean = normalizeTagName(t);
-      if (clean) result.add(clean);
-    });
-  }
-  if (task.tag) {
-    const clean = normalizeTagName(task.tag);
-    if (clean) result.add(clean);
-  }
-  return Array.from(result);
+  const tag = getTaskTag(task);
+  return tag ? [tag] : [];
+};
+
+/** Persist only the canonical scalar tag after reading legacy multi-tag data. */
+export const normalizeTaskTagFields = (task: TaskDto): TaskDto => {
+  const tag = getTaskTag(task);
+  return { ...task, tag, tags: undefined };
 };
 
 /** Bóc tách hashtag tự động khi người dùng gõ trong ô tiêu đề */

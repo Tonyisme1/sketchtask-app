@@ -7,8 +7,8 @@ import { ContextAwareFab } from "../../components/layout/ContextAwareFab";
 import { AuthModal } from "../../components/shared/auth/AuthModal";
 import { PinLockModal } from "../../components/shared/auth/PinLockModal";
 import { QuickTaskModal } from "../../components/shared/tasks/QuickTaskModal";
-import { NotesSectionTabs } from "./NotesSectionTabs";
 import { GlobalSearchModal } from "../../components/ui";
+import { NotesSectionTabs } from "../../components/shared/notes/NotesSectionTabs";
 
 export interface TabletShellProps {
   activeTab: TabKey;
@@ -56,17 +56,17 @@ export const TabletShell: React.FC<TabletShellProps> = ({
   const isSettingsView = activeTab === "settings";
 
   const TAB_POSITION_MAP: Record<string, number> = {
-    today: 0,
-    tasks: 1,
+    tasks: 0,
+    events: 1,
     notes: 2,
     journal: 2,
-    settings: 3,
+    ai: 3,
+    settings: 4,
   };
 
   const SUBTAB_POSITION_MAP: Record<string, number> = {
     today: 0,
     planner: 1,
-    deadlines: 2,
   };
 
   const previousTabRef = React.useRef<TabKey>(activeTab);
@@ -111,7 +111,6 @@ export const TabletShell: React.FC<TabletShellProps> = ({
             setSettingsMobileSubView(null);
             onTabChange("settings");
           }}
-          onOpenDeadlines={() => onTabChange("deadlines")}
           onOpenSearch={() => setIsSearchOpen(true)}
           onOpenLogin={() => onNavigateRoute("/login")}
           onLogout={logout}
@@ -131,9 +130,12 @@ export const TabletShell: React.FC<TabletShellProps> = ({
         }`}
       >
         <div className="w-full max-w-4xl mx-auto min-w-0">
-          {!isDetailOpen && (activeTab === "notes" || activeTab === "journal") ? (
-            <NotesSectionTabs activeTab={activeTab} onTabChange={onTabChange} />
-          ) : null}
+          {!isDetailOpen && (activeTab === "notes" || activeTab === "journal") && (
+            <NotesSectionTabs
+              activeTab={activeTab}
+              onTabChange={(tab) => onTabChange(tab)}
+            />
+          )}
           {children}
         </div>
       </main>
@@ -169,6 +171,7 @@ export const TabletShell: React.FC<TabletShellProps> = ({
           activeTab={activeTab}
           activeTaskSubTab={activeTaskSubTab}
           onCreateTask={openQuickTaskModal}
+          onCreateEvent={() => openQuickTaskModal({ itemType: "event", lockItemType: true })}
           showOnTablet
         />
       )}

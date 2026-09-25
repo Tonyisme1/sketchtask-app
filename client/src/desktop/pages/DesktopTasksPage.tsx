@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { NavigationTarget } from "../../types";
 import { DesktopDeadlinesPage } from "../tabs/DesktopDeadlinesPage";
-import { DesktopPlannerPage } from "../tabs/DesktopPlannerPage";
 import { DesktopAllTasksView } from "../tabs/DesktopAllTasksView";
-import { getTaskEffectiveDate } from "../../utils";
 import {
   TaskScreenModel,
   useTaskScreenModel,
@@ -24,14 +22,8 @@ export const DesktopTasksPage: React.FC<DesktopTasksPageProps> = ({
   const model = propModel || defaultModel;
 
   const { activeTaskSubTab } = model;
-  const { setActiveTaskSubTab } = model.actions;
+  const { openTaskDetail } = model.actions;
 
-  const [plannerTargetDateStr, setPlannerTargetDateStr] = useState<
-    string | undefined
-  >(undefined);
-  const [plannerTargetTaskId, setPlannerTargetTaskId] = useState<
-    string | undefined
-  >(undefined);
   useEffect(() => {
     if (!navigationTarget?.taskId) return;
 
@@ -43,48 +35,22 @@ export const DesktopTasksPage: React.FC<DesktopTasksPageProps> = ({
       return;
     }
 
-    const taskDate = navigationTarget.date || getTaskEffectiveDate(task);
-    setPlannerTargetDateStr(taskDate);
-    setPlannerTargetTaskId(task.id);
-    setActiveTaskSubTab("planner");
+    // Desktop no longer has a task-planner destination: search opens the task itself.
+    openTaskDetail(task.id);
     onClearNavigationTarget?.();
   }, [
     navigationTarget,
     model.tasks,
-    setActiveTaskSubTab,
+    openTaskDetail,
     onClearNavigationTarget,
   ]);
 
-  const isPlannerSubTab = activeTaskSubTab === "planner";
-
   return (
-    <div
-      className={`w-full min-w-0 select-none animate-in fade-in duration-150 ${
-        isPlannerSubTab ? "h-full flex flex-col min-h-0 w-full" : "pb-12"
-      }`}
-    >
-      {/* Content */}
-      {activeTaskSubTab === "planner" ? (
-        <DesktopPlannerPage
-          workspaceKind="task"
-          targetDateStr={plannerTargetDateStr}
-          targetTaskId={plannerTargetTaskId}
-          onClearTarget={() => {
-            setPlannerTargetDateStr(undefined);
-            setPlannerTargetTaskId(undefined);
-          }}
-          desktopSurface="calendar"
-        />
-      ) : activeTaskSubTab === "all" ? (
-        <DesktopAllTasksView model={model} />
+    <div className="w-full min-w-0 select-none animate-in fade-in duration-150 pb-12">
+      {activeTaskSubTab === "deadlines" ? (
+        <DesktopDeadlinesPage />
       ) : (
-        <DesktopDeadlinesPage
-          onNavigateToTaskDate={(dateStr, taskId) => {
-            setPlannerTargetDateStr(dateStr);
-            setPlannerTargetTaskId(taskId);
-            setActiveTaskSubTab("planner");
-          }}
-        />
+        <DesktopAllTasksView model={model} />
       )}
     </div>
   );

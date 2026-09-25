@@ -2,12 +2,13 @@ import React from "react";
 import { Plus } from "lucide-react";
 import { TabKey, TaskSubTab } from "../../types";
 
-type CreateAction = "task" | "note" | "journal";
+type CreateAction = "task" | "event" | "note" | "journal";
 
 interface ContextAwareFabProps {
   activeTab: TabKey;
   activeTaskSubTab?: TaskSubTab;
   onCreateTask: () => void;
+  onCreateEvent?: () => void;
   showOnDesktop?: boolean;
   showOnTablet?: boolean;
 }
@@ -16,6 +17,7 @@ const actionByTab: Partial<Record<TabKey, { type: CreateAction; label: string }>
   tasks: { type: "task", label: "Tạo task mới" },
   planner: { type: "task", label: "Tạo task trong kế hoạch" },
   deadlines: { type: "task", label: "Tạo task có hạn" },
+  events: { type: "event", label: "Tạo sự kiện mới" },
   notes: { type: "note", label: "Tạo ghi chú mới" },
   journal: { type: "journal", label: "Viết nhật ký mới" },
 };
@@ -32,6 +34,7 @@ export const ContextAwareFab: React.FC<ContextAwareFabProps> = ({
   activeTab,
   activeTaskSubTab = "today",
   onCreateTask,
+  onCreateEvent,
   showOnDesktop = false,
   showOnTablet = false,
 }) => {
@@ -68,12 +71,17 @@ export const ContextAwareFab: React.FC<ContextAwareFabProps> = ({
       onCreateTask();
       return;
     }
+    if (action?.type === "event") {
+      onCreateEvent?.();
+      return;
+    }
     dispatchCreateRequest(action.type);
   };
 
   return (
     <button
       type="button"
+      data-onboarding={showOnDesktop ? "desktop-create" : showOnTablet ? "tablet-create" : "mobile-create"}
       onClick={handleClick}
       aria-label={action.label}
       title={action.label}

@@ -53,7 +53,7 @@ export const TimelineTaskOverflowPopover: React.FC<TimelineTaskOverflowPopoverPr
         style={{ left: position.left, top: position.top }}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="flex items-center justify-between gap-2 px-2 pb-2 border-b border-black/[0.04] dark:border-white/[0.06] text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
+        <div className="flex items-center justify-between gap-2 px-2 pb-2 text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">
           <span>Việc còn lại</span>
           <button
             type="button"
