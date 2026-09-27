@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Sparkles } from "lucide-react";
-import { MobileEventSubTab, TabKey, NavigationTarget } from "../../types";
+import { TabKey, NavigationTarget } from "../../types";
 import { useAppStore } from "../../stores";
 import { MobileHeader } from "./MobileHeader";
 import { MobileNav } from "./MobileNav";
-import { ContextAwareFab } from "../../components/layout/ContextAwareFab";
 import { AuthModal } from "../../components/shared/auth/AuthModal";
 import { PinLockModal } from "../../components/shared/auth/PinLockModal";
 import { QuickTaskModal } from "../../components/shared/tasks/QuickTaskModal";
@@ -15,8 +14,6 @@ export interface MobileShellProps {
   onTabChange: (tab: TabKey, target?: NavigationTarget) => void;
   onNavigateRoute: (path: string) => void;
   previousTab?: TabKey;
-  activeEventSubTab: MobileEventSubTab;
-  onEventSubTabChange: (subTab: MobileEventSubTab) => void;
   children: React.ReactNode;
 }
 
@@ -25,8 +22,6 @@ export const MobileShell: React.FC<MobileShellProps> = ({
   onTabChange,
   onNavigateRoute,
   previousTab,
-  activeEventSubTab,
-  onEventSubTabChange,
   children,
 }) => {
   const {
@@ -35,7 +30,6 @@ export const MobileShell: React.FC<MobileShellProps> = ({
     isPinLocked,
     unlockWithPin,
     paperStyle,
-    activeTaskSubTab,
     isAuthModalOpen,
     logout,
     closeAuthModal,
@@ -68,14 +62,13 @@ export const MobileShell: React.FC<MobileShellProps> = ({
     };
   }, []);
 
-  // Cuộn lên đầu trang khi chuyển tab, sub-tab, hoặc mở/đóng bất kỳ mục chi tiết nào
+  // Cuộn lên đầu khi đổi workspace hoặc mở/đóng child surface.
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
   }, [
     activeTab,
-    activeTaskSubTab,
     activeDetailTaskId,
     isMobileNoteDetailOpen,
     isJournalBookOpen,
@@ -108,8 +101,6 @@ export const MobileShell: React.FC<MobileShellProps> = ({
           onOpenLogin={() => onNavigateRoute("/login")}
           onLogout={logout}
           previousTab={previousTab}
-          activeEventSubTab={activeEventSubTab}
-          onEventSubTabChange={onEventSubTabChange}
         />
       )}
 
@@ -145,14 +136,14 @@ export const MobileShell: React.FC<MobileShellProps> = ({
       />
 
       {/* 3. FAB trợ lý AI: công cụ nổi, không chiếm một ô điều hướng chính */}
-      {!isFullScreenView && !isKeyboardOpen && (
+      {!isFullScreenView && !isKeyboardOpen && activeTab !== "settings" && (
         <button
           type="button"
           onClick={() => onTabChange("ai")}
           aria-label="Mở Trợ lý AI"
           title="Trợ lý AI"
           style={{ bottom: "calc(env(safe-area-inset-bottom) + 84px)" }}
-          className="fixed right-3.5 z-[45] flex h-12 w-12 items-center justify-center rounded-full border-[1.5px] border-[var(--border-ink)] bg-[var(--accent-blue)] text-white shadow-[2px_2px_0px_var(--border-ink)] transition-transform hover:brightness-105 active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none md:hidden"
+          className="fixed right-3.5 z-[45] flex h-11 w-11 items-center justify-center rounded-2xl border-[1.5px] border-[var(--border-ink)] bg-[var(--accent-blue)] text-white shadow-[2px_2px_0px_var(--border-ink)] transition-transform hover:brightness-105 active:translate-x-[1.5px] active:translate-y-[1.5px] active:shadow-none md:hidden"
         >
           <Sparkles size={18} strokeWidth={2.2} />
         </button>
@@ -162,7 +153,6 @@ export const MobileShell: React.FC<MobileShellProps> = ({
       {!isFullScreenView && (
         <MobileNav
           activeTab={activeTab}
-          activeTaskSubTab={activeTaskSubTab}
           onTabChange={onTabChange}
         />
       )}

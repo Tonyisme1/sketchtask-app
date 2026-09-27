@@ -1,5 +1,14 @@
+import type { Task as PrismaTask } from "@prisma/client";
 import { prisma } from "../db.js";
-import { TaskDto, CreateTaskRequest, UpdateTaskRequest } from "../types/index.js";
+import {
+  TaskDto,
+  TaskItemType,
+  TaskPriority,
+  TaskStatus,
+  TaskTimeType,
+  CreateTaskRequest,
+  UpdateTaskRequest,
+} from "../types/index.js";
 
 const parseTaskTags = (value: string | null | undefined): string[] => {
   if (!value) return [];
@@ -9,6 +18,45 @@ const parseTaskTags = (value: string | null | undefined): string[] => {
   } catch {
     return [];
   }
+};
+
+const isTaskItemType = (value: string | null): value is TaskItemType =>
+  value === "task" || value === "event";
+
+const isTaskTimeType = (value: string | null): value is TaskTimeType =>
+  value === "scheduled" || value === "deadline" || value === "event" || value === "task";
+
+const isTaskPriority = (value: string | null): value is TaskPriority =>
+  value === "low" || value === "medium" || value === "high";
+
+const isTaskStatus = (value: string): value is TaskStatus =>
+  value === "todo" || value === "in_progress" || value === "completed" || value === "archived";
+
+/** Convert database nulls and legacy tag arrays into the stable transport contract. */
+const toTaskDto = (task: PrismaTask): TaskDto => {
+  const tags = parseTaskTags(task.tags);
+  return {
+    id: task.id,
+    title: task.title,
+    description: task.description || undefined,
+    completed: task.completed,
+    dueDate: task.dueDate || undefined,
+    itemType: isTaskItemType(task.itemType) ? task.itemType : undefined,
+    timeType: isTaskTimeType(task.timeType) ? task.timeType : undefined,
+    startTime: task.startTime || undefined,
+    endTime: task.endTime || undefined,
+    deadlineDate: task.deadlineDate || undefined,
+    deadlineTime: task.deadlineTime || undefined,
+    startDate: task.startDate || undefined,
+    endDate: task.endDate || undefined,
+    tag: task.tag || tags[0] || undefined,
+    tags: tags.length > 0 ? tags : undefined,
+    priority: isTaskPriority(task.priority) ? task.priority : undefined,
+    status: isTaskStatus(task.status) ? task.status : "todo",
+    parentTaskId: task.parentTaskId || undefined,
+    createdAt: task.createdAt.toISOString(),
+    updatedAt: task.updatedAt.toISOString(),
+  };
 };
 
 export class TaskService {
@@ -21,28 +69,7 @@ export class TaskService {
       orderBy: { createdAt: "desc" },
     });
 
-    return tasks.map((t) => ({
-      id: t.id,
-      title: t.title,
-      description: t.description,
-      completed: t.completed,
-      dueDate: t.dueDate,
-      itemType: t.itemType,
-      timeType: t.timeType,
-      startTime: t.startTime,
-      endTime: t.endTime,
-      deadlineDate: t.deadlineDate,
-      deadlineTime: t.deadlineTime,
-      startDate: t.startDate,
-      endDate: t.endDate,
-      tag: t.tag,
-      tags: parseTaskTags(t.tags),
-      priority: t.priority,
-      status: t.status,
-      parentTaskId: t.parentTaskId,
-      createdAt: t.createdAt.toISOString(),
-      updatedAt: t.updatedAt.toISOString(),
-    }));
+    return tasks.map(toTaskDto);
   }
 
   /**
@@ -57,7 +84,7 @@ export class TaskService {
         completed: false,
         dueDate: data.dueDate || null,
         itemType: data.itemType || (data.timeType === "event" ? "event" : "task"),
-        timeType: data.timeType || (data.itemType === "event" ? "event" : "deadline"),
+        timeType: data.timeType || (data.itemType === "event" ? "event" : "task"),
         startTime: data.startTime || null,
         endTime: data.endTime || null,
         deadlineDate: data.deadlineDate || null,
@@ -72,28 +99,7 @@ export class TaskService {
       },
     });
 
-    return {
-      id: created.id,
-      title: created.title,
-      description: created.description,
-      completed: created.completed,
-      dueDate: created.dueDate,
-      itemType: created.itemType,
-      timeType: created.timeType,
-      startTime: created.startTime,
-      endTime: created.endTime,
-      deadlineDate: created.deadlineDate,
-      deadlineTime: created.deadlineTime,
-      startDate: created.startDate,
-      endDate: created.endDate,
-      tag: created.tag,
-      tags: parseTaskTags(created.tags),
-      priority: created.priority,
-      status: created.status,
-      parentTaskId: created.parentTaskId,
-      createdAt: created.createdAt.toISOString(),
-      updatedAt: created.updatedAt.toISOString(),
-    };
+    return toTaskDto(created);
   }
 
   /**
@@ -139,28 +145,7 @@ export class TaskService {
       },
     });
 
-    return {
-      id: updated.id,
-      title: updated.title,
-      description: updated.description,
-      completed: updated.completed,
-      dueDate: updated.dueDate,
-      itemType: updated.itemType,
-      timeType: updated.timeType,
-      startTime: updated.startTime,
-      endTime: updated.endTime,
-      deadlineDate: updated.deadlineDate,
-      deadlineTime: updated.deadlineTime,
-      startDate: updated.startDate,
-      endDate: updated.endDate,
-      tag: updated.tag,
-      tags: parseTaskTags(updated.tags),
-      priority: updated.priority,
-      status: updated.status,
-      parentTaskId: updated.parentTaskId,
-      createdAt: updated.createdAt.toISOString(),
-      updatedAt: updated.updatedAt.toISOString(),
-    };
+    return toTaskDto(updated);
   }
 
   /**

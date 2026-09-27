@@ -113,25 +113,26 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   const [title, setTitle] = useState(existingTask?.title || activeTaskDetailInitialData?.title || "");
   const [description, setDescription] = useState(existingTask?.description || activeTaskDetailInitialData?.description || "");
   const [completed, setCompleted] = useState(existingTask ? existingTask.completed : false);
-  const [dueDate, setDueDate] = useState(existingTask?.dueDate || activeTaskDetailInitialData?.dueDate || initialDate || todayStr);
+  const [dueDate, setDueDate] = useState(
+    existingTask?.dueDate ||
+      activeTaskDetailInitialData?.dueDate ||
+      initialDate ||
+      (activeTaskDetailInitialData?.itemType === "event" ? todayStr : ""),
+  );
   const [isDateRange, setIsDateRange] = useState<boolean>(Boolean(existingTask?.startDate && existingTask?.endDate) || Boolean(activeTaskDetailInitialData?.startDate && activeTaskDetailInitialData?.endDate));
-  const [startDate, setStartDate] = useState(existingTask?.startDate || activeTaskDetailInitialData?.startDate || existingTask?.dueDate || initialDate || todayStr);
+  const [startDate, setStartDate] = useState(
+    existingTask?.startDate ||
+      activeTaskDetailInitialData?.startDate ||
+      existingTask?.dueDate ||
+      initialDate ||
+      (activeTaskDetailInitialData?.itemType === "event" ? todayStr : ""),
+  );
   const [endDate, setEndDate] = useState(existingTask?.endDate || activeTaskDetailInitialData?.endDate || "");
   const [itemType, setItemType] = useState<TaskItemType>(
     existingTask ? getEditorItemType(existingTask) : activeTaskDetailInitialData?.itemType || "task",
   );
   const [startTime, setStartTime] = useState(existingTask?.startTime || activeTaskDetailInitialData?.startTime || existingTask?.deadlineTime || activeTaskDetailInitialData?.deadlineTime || "");
   const [endTime, setEndTime] = useState(existingTask?.endTime || activeTaskDetailInitialData?.endTime || "");
-  const [showEndTime, setShowEndTime] = useState<boolean>(
-    Boolean(
-      existingTask?.endTime ||
-      activeTaskDetailInitialData?.endTime ||
-      (existingTask?.timeType === "scheduled" && existingTask?.startTime) ||
-      (activeTaskDetailInitialData?.timeType === "scheduled" && activeTaskDetailInitialData?.startTime) ||
-      existingTask?.itemType === "event" ||
-      activeTaskDetailInitialData?.itemType === "event"
-    )
-  );
   const [priority, setPriority] = useState<TaskPriority>(existingTask?.priority || activeTaskDetailInitialData?.priority || "medium");
   const [selectedTag, setSelectedTag] = useState<string | undefined>(
     existingTask
@@ -175,23 +176,24 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     setTitle(task?.title || activeTaskDetailInitialData?.title || "");
     setDescription(task?.description || activeTaskDetailInitialData?.description || "");
     setCompleted(task ? task.completed : false);
-    const initialDue = task?.dueDate || activeTaskDetailInitialData?.dueDate || initialDate || todayStr;
+    const initialItemType = task
+      ? getEditorItemType(task)
+      : activeTaskDetailInitialData?.itemType ||
+        (activeTaskDetailInitialData?.timeType === "event" ? "event" : "task");
+    const initialDue =
+      task?.dueDate ||
+      activeTaskDetailInitialData?.dueDate ||
+      initialDate ||
+      (initialItemType === "event" ? todayStr : "");
     setDueDate(initialDue);
     setStartDate(task?.startDate || activeTaskDetailInitialData?.startDate || initialDue);
     setEndDate(task?.endDate || activeTaskDetailInitialData?.endDate || "");
     setIsDateRange(Boolean(task?.startDate && task?.endDate) || Boolean(activeTaskDetailInitialData?.startDate && activeTaskDetailInitialData?.endDate));
-    const initialItemType = task ? getEditorItemType(task) : activeTaskDetailInitialData?.itemType || (activeTaskDetailInitialData?.timeType === "event" ? "event" : "task");
     setItemType(initialItemType);
     const nextStartTime = task?.startTime || activeTaskDetailInitialData?.startTime || task?.deadlineTime || activeTaskDetailInitialData?.deadlineTime || "";
     const nextEndTime = task?.endTime || activeTaskDetailInitialData?.endTime || "";
     setStartTime(nextStartTime);
     setEndTime(normalizeEndTimeForStart(nextStartTime, nextEndTime) || "");
-    setShowEndTime(
-      initialItemType === "event" ||
-      Boolean(nextEndTime) ||
-      task?.timeType === "scheduled" ||
-      activeTaskDetailInitialData?.timeType === "scheduled"
-    );
     setPriority(task?.priority || activeTaskDetailInitialData?.priority || "medium");
     setSelectedTag(
       task
@@ -239,13 +241,11 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onBack, isOptionsMenuOpen, mode, taskId, activeTaskDetailInitialData]);
 
-  // Phân tích trạng thái thời gian theo ngữ cảnh
+  // === PHẦN THỜI GIAN: Task chỉ có hạn, Event mới có khoảng giờ ===
   const editorTimeType: TaskTimeType =
     itemType === "event"
       ? "event"
-      : !isDateRange && startTime && showEndTime
-      ? "scheduled"
-      : !isDateRange && startTime
+      : !isDateRange && startTime && dueDate
       ? "deadline"
       : "task";
 
@@ -258,8 +258,8 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     itemType,
     deadlineDate: dueDate,
     timeType: editorTimeType,
-    startTime: editorTimeType === "scheduled" || editorTimeType === "event" ? startTime : undefined,
-    endTime: editorTimeType === "scheduled" || editorTimeType === "event" ? endTime : undefined,
+    startTime: editorTimeType === "event" ? startTime || undefined : undefined,
+    endTime: editorTimeType === "event" ? endTime || undefined : undefined,
     deadlineTime: editorTimeType === "deadline" ? startTime : undefined,
     completed,
     priority,
@@ -271,6 +271,8 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
   const isOverdue = temporal === "overdue" || temporal === "pastScheduled";
   const isDueTodayTask = isTaskDueToday(taskForTemporal);
   const effectiveTime = getTaskEffectiveTime(taskForTemporal);
+  const isLegacyScheduledTask =
+    itemType === "task" && existingTask?.timeType === "scheduled";
 
   const markDraftChanged = () => setSaveStatus("unsaved");
 
@@ -282,6 +284,11 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     const trimmedTitle = title.trim();
     if (!trimmedTitle) return;
 
+    if (isLegacyScheduledTask) {
+      dispatchToast({ message: "Lịch cũ có khoảng giờ. Hãy đổi sang Sự kiện trước khi lưu." });
+      return;
+    }
+
     const { cleanTitle, extractedTags } = extractTagsFromTitle(trimmedTitle);
     const resolvedTag = selectedTag || extractedTags[0];
     setSelectedTag(resolvedTag);
@@ -289,7 +296,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     setSaveStatus("saving");
     const resolvedStartTime = !isDateRange ? startTime : "";
     const resolvedEndTime =
-      !isDateRange && (itemType === "event" || showEndTime)
+      !isDateRange && itemType === "event" && endTime
         ? normalizeEndTimeForStart(resolvedStartTime, endTime)
         : undefined;
 
@@ -308,11 +315,11 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
           : undefined,
       timeType: resolvedTimeType,
       startTime:
-        resolvedTimeType === "scheduled" || resolvedTimeType === "event"
+        resolvedTimeType === "event"
           ? resolvedStartTime || undefined
           : undefined,
       endTime:
-        resolvedTimeType === "scheduled" || resolvedTimeType === "event"
+        resolvedTimeType === "event"
           ? resolvedEndTime
           : undefined,
       deadlineTime: resolvedTimeType === "deadline" ? resolvedStartTime || undefined : undefined,
@@ -356,13 +363,13 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
 
   const handleDuplicateTask = () => {
     const resolvedStartTime = !isDateRange ? startTime : "";
-    const resolvedEndTime = !isDateRange
+    const resolvedEndTime = !isDateRange && itemType === "event" && endTime
       ? normalizeEndTimeForStart(resolvedStartTime, endTime)
       : undefined;
     addTask({
       title: `${title.trim() || "Công việc"} (Bản sao)`,
       description: description.trim() || undefined,
-      dueDate: dueDate || todayStr,
+      dueDate: dueDate || undefined,
       startDate: isDateRange ? startDate : undefined,
       endDate: isDateRange ? endDate : undefined,
       itemType,
@@ -370,8 +377,8 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
         ? (isDateRange ? endDate || startDate || dueDate : dueDate)
         : undefined,
       timeType: editorTimeType,
-      startTime: resolvedStartTime || undefined,
-      endTime: resolvedEndTime,
+      startTime: itemType === "event" ? resolvedStartTime || undefined : undefined,
+      endTime: itemType === "event" ? resolvedEndTime : undefined,
       priority,
       tag: selectedTag,
     });
@@ -391,7 +398,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     if (!parentId) {
       const parentCreated = addTask({
         title: title.trim() || "Công việc mới",
-        dueDate: dueDate || todayStr,
+        dueDate: dueDate || undefined,
         itemType,
         timeType: editorTimeType,
         priority,
@@ -404,7 +411,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
     addTask({
       title: trimmed,
       parentTaskId: parentId,
-      dueDate: dueDate || todayStr,
+      dueDate: dueDate || undefined,
       priority: "medium",
       itemType: "task",
     });
@@ -458,8 +465,8 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                 if (existingTask) {
                   setTitle(existingTask.title);
                   setDescription(existingTask.description || "");
-                  setDueDate(existingTask.dueDate || todayStr);
-                  setStartDate(existingTask.startDate || existingTask.dueDate || todayStr);
+                  setDueDate(existingTask.dueDate || "");
+                  setStartDate(existingTask.startDate || existingTask.dueDate || "");
                   setEndDate(existingTask.endDate || "");
                   setItemType(getEditorItemType(existingTask));
                   setStartTime(existingTask.startTime || "");
@@ -817,6 +824,8 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               type="button"
               onClick={() => {
                 setItemType("task");
+                setIsDateRange(false);
+                setEndTime("");
                 markDraftChanged();
               }}
               className={`flex min-h-10 items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-all cursor-pointer ${
@@ -833,6 +842,8 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
               onClick={() => {
                 setItemType("event");
                 setCompleted(false);
+                setDueDate((current) => current || todayStr);
+                setStartDate((current) => current || todayStr);
                 markDraftChanged();
               }}
               className={`flex min-h-10 items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-all cursor-pointer ${
@@ -893,7 +904,25 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
             open={openSections.timing}
             onToggle={() => toggleSection("timing")}
           >
-            <div className="flex items-center justify-between pb-2 text-xs">
+            {isLegacyScheduledTask && (
+              <div className="mb-3 flex items-center justify-between gap-3 rounded-xl bg-[var(--danger-surface)] px-3 py-2 text-xs text-[var(--danger-text)]">
+                <span>Đây là task lịch cũ có khoảng giờ. Hãy phân loại lại trước khi lưu.</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setItemType("event");
+                    setCompleted(false);
+                    setDueDate((current) => current || todayStr);
+                    setStartDate((current) => current || todayStr);
+                    markDraftChanged();
+                  }}
+                  className="shrink-0 rounded-lg bg-[var(--accent-blue)] px-2 py-1 font-semibold text-[var(--text-on-accent)] active:scale-95"
+                >
+                  Đổi thành sự kiện
+                </button>
+              </div>
+            )}
+            {itemType === "event" && <div className="flex items-center justify-between pb-2 text-xs">
               <span className="font-medium text-[#8E8E93] dark:text-[#aeaeb2] text-[11px]">Kiểu ngày:</span>
               <div className="flex items-center gap-1 bg-[#F2F2F7] dark:bg-[#2C2C2E] p-1 rounded-xl">
                 <button
@@ -935,7 +964,7 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                   Khoảng ngày
                 </button>
               </div>
-            </div>
+            </div>}
 
             {!isDateRange ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
@@ -955,33 +984,16 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                 </div>
 
                 <div className="space-y-1">
-                  {itemType === "task" && !showEndTime ? (
+                  {itemType === "task" ? (
                     <>
-                      <div className="flex items-center justify-between">
-                        <label className="text-[11px] font-medium text-[#8E8E93] dark:text-[#aeaeb2]">
-                          Giờ hạn chót:
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowEndTime(true);
-                            if (!endTime) {
-                              setEndTime(normalizeEndTimeForStart(startTime, "") || "");
-                            }
-                            markDraftChanged();
-                          }}
-                          className="text-[10.5px] font-bold text-[var(--accent-blue)] hover:underline flex items-center gap-0.5 cursor-pointer"
-                        >
-                          <span>+ Thêm giờ kết thúc</span>
-                        </button>
-                      </div>
+                      <label className="text-[11px] font-medium text-[#8E8E93] dark:text-[#aeaeb2]">
+                        Giờ hạn chót:
+                      </label>
                       <TimePickerPopover
                         value={startTime}
                         onChange={(val) => {
                           setStartTime(val);
-                          setEndTime((currentEndTime) =>
-                            normalizeEndTimeForStart(val, currentEndTime) || "",
-                          );
+                          if (val && !dueDate) setDueDate(todayStr);
                           markDraftChanged();
                         }}
                         placeholder="Chọn giờ hạn chót"
@@ -994,29 +1006,12 @@ export const TaskDetailPage: React.FC<TaskDetailPageProps> = ({
                         <label className="text-[11px] font-medium text-[#8E8E93] dark:text-[#aeaeb2]">
                           Khung giờ:
                         </label>
-                        {itemType === "task" && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowEndTime(false);
-                              setEndTime("");
-                              markDraftChanged();
-                            }}
-                            className="text-[10.5px] font-medium text-[#8E8E93] hover:text-[#FF3B30] flex items-center gap-0.5 cursor-pointer"
-                            title="Thu về một mốc hạn chót"
-                          >
-                            <span>✕ Bỏ giờ kết thúc</span>
-                          </button>
-                        )}
                       </div>
                       <div className="flex items-center gap-1.5">
                         <TimePickerPopover
                           value={startTime}
                           onChange={(val) => {
                             setStartTime(val);
-                            setEndTime((currentEndTime) =>
-                              normalizeEndTimeForStart(val, currentEndTime) || "",
-                            );
                             markDraftChanged();
                           }}
                           placeholder="Bắt đầu"

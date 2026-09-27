@@ -3,42 +3,8 @@ import { useAppStore } from "../../../stores/appStore";
 import { TaskDto, TaskPriority } from "../../../types";
 import {
   getTaskTags,
-  getTaskDeadlineDate,
-  getTaskEffectiveDate,
-  getTaskEffectiveTime,
-  getDeadlineTaskBuckets,
 } from "../../../utils/taskSemantics";
-import { TaskScreenModel, TaskScreenFilterState, TaskGroup } from "./types";
-
-const isLikelyJunkTask = (task: TaskDto) => {
-  const compactTitle = task.title.trim().toLocaleLowerCase().replace(/[^a-z0-9]/g, "");
-  return compactTitle.length >= 6 && /^(add|test|asdf|qwer)+$/.test(compactTitle);
-};
-
-const sortByDateAndTime = (tasks: TaskDto[]): TaskDto[] =>
-  [...tasks].sort((taskA, taskB) => {
-    const dateA = getTaskDeadlineDate(taskA) || getTaskEffectiveDate(taskA) || "9999-99-99";
-    const dateB = getTaskDeadlineDate(taskB) || getTaskEffectiveDate(taskB) || "9999-99-99";
-    const dateOrder = dateA.localeCompare(dateB);
-    if (dateOrder !== 0) return dateOrder;
-    return (getTaskEffectiveTime(taskA) || "99:99").localeCompare(
-      getTaskEffectiveTime(taskB) || "99:99",
-    );
-  });
-
-const groupByDate = (tasksList: TaskDto[]): TaskGroup[] => {
-  const groups = new Map<string, TaskDto[]>();
-  for (const task of tasksList) {
-    const date = getTaskDeadlineDate(task) || getTaskEffectiveDate(task) || "no-date";
-    const group = groups.get(date) || [];
-    group.push(task);
-    groups.set(date, group);
-  }
-  return [...groups.entries()].map(([dateStr, groupTasks]) => ({
-    dateStr,
-    tasks: sortByDateAndTime(groupTasks),
-  }));
-};
+import { TaskScreenModel, TaskScreenFilterState } from "./types";
 
 export const useTaskScreenModel = (): TaskScreenModel => {
   const {
@@ -50,8 +16,6 @@ export const useTaskScreenModel = (): TaskScreenModel => {
     openTaskDetail,
     openQuickTaskModal,
     updateTask,
-    activeTaskSubTab,
-    setActiveTaskSubTab,
     activeTaskListTags,
     setActiveTaskListTags,
   } = useAppStore();
@@ -60,10 +24,6 @@ export const useTaskScreenModel = (): TaskScreenModel => {
   const [filterType, setFilterType] = useState<"all" | "active" | "completed">("all");
   const [selectedPriority, setSelectedPriority] = useState<TaskPriority | undefined>();
   const [selectedTag, setSelectedTag] = useState<string | undefined>();
-  const [selectedNotebook, setSelectedNotebook] = useState<string | undefined>();
-
-  const now = new Date();
-  const deadlineBuckets = useMemo(() => getDeadlineTaskBuckets(tasks, now), [tasks, now]);
 
   const resetFilters = useCallback(() => {
     setSearchQuery("");
@@ -71,7 +31,6 @@ export const useTaskScreenModel = (): TaskScreenModel => {
     setSelectedPriority(undefined);
     setSelectedTag(undefined);
     setActiveTaskListTags([]);
-    setSelectedNotebook(undefined);
   }, []);
 
   // Tất cả các tag có sẵn
@@ -122,54 +81,10 @@ export const useTaskScreenModel = (): TaskScreenModel => {
     [searchQuery, filterType, selectedPriority, selectedTag, activeTaskListTags]
   );
 
-  // 1. Task Quá Hạn (Overdue)
-  const overdueTasks = useMemo(() => {
-    return sortByDateAndTime(applyGeneralFilters(deadlineBuckets.overdue));
-  }, [deadlineBuckets.overdue, applyGeneralFilters]);
-
-  // 2. Task Sắp Đến (Upcoming)
-  const upcomingTasks = useMemo(() => {
-    return sortByDateAndTime(applyGeneralFilters(deadlineBuckets.upcoming));
-  }, [deadlineBuckets.upcoming, applyGeneralFilters]);
-
-  const overdueGroups = useMemo(() => groupByDate(overdueTasks), [overdueTasks]);
-  const upcomingGroups = useMemo(() => groupByDate(upcomingTasks), [upcomingTasks]);
-
-  // 3. Tất cả công việc (All tasks)
+  // Danh sách dùng chung cho desktop, tablet và mobile.
   const allTasks = useMemo(() => {
     return applyGeneralFilters(tasks);
   }, [tasks, applyGeneralFilters]);
-
-  const junkTasks = useMemo(() => {
-    return tasks.filter((t) => !t.completed && isLikelyJunkTask(t));
-  }, [tasks]);
-
-  // Bulk Actions
-  const bulkComplete = useCallback(
-    (targetTasks: TaskDto[]) => {
-      targetTasks.filter((t) => !t.completed).forEach((t) => toggleTask(t.id));
-    },
-    [toggleTask]
-  );
-
-  const bulkDelete = useCallback(
-    (targetTasks: TaskDto[]) => {
-      targetTasks.forEach((t) => deleteTask(t.id));
-    },
-    [deleteTask]
-  );
-
-  const bulkReschedule = useCallback(
-    (targetTasks: TaskDto[], newDateStr: string) => {
-      targetTasks.forEach((t) => {
-        updateTask(t.id, {
-          dueDate: newDateStr,
-          startDate: newDateStr,
-        });
-      });
-    },
-    [updateTask]
-  );
 
   const filters: TaskScreenFilterState = {
     searchQuery,
@@ -177,28 +92,17 @@ export const useTaskScreenModel = (): TaskScreenModel => {
     selectedPriority,
     selectedTag,
     selectedListTags: activeTaskListTags,
-    selectedNotebook,
     hideCompleted: hideCompletedTasks,
   };
 
   return {
     tasks,
-    overdueTasks,
-    upcomingTasks,
-    overdueGroups,
-    upcomingGroups,
     allTasks,
-    junkTasks,
     tags,
 
-    overdueCount: overdueTasks.length,
-    upcomingCount: upcomingTasks.length,
-
-    activeTaskSubTab,
     filters,
 
     actions: {
-      setActiveTaskSubTab,
       setSearchQuery,
       setFilterType,
       setSelectedPriority,
@@ -206,16 +110,12 @@ export const useTaskScreenModel = (): TaskScreenModel => {
         setActiveTaskListTags([]);
         setSelectedTag(tag);
       },
-      setSelectedNotebook,
       resetFilters,
       toggleTask,
       deleteTask,
       moveTaskToTomorrow,
       openTaskDetail,
       openQuickAdd: openQuickTaskModal,
-      bulkComplete,
-      bulkDelete,
-      bulkReschedule,
     },
   };
 };

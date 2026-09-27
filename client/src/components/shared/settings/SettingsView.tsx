@@ -50,6 +50,7 @@ import {
   Smartphone,
   Radio,
   CheckSquare,
+  Info,
   Lightbulb,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -211,6 +212,8 @@ const SettingsSwitch: React.FC<SettingsSwitchProps> = ({
   );
 };
 
+const SettingsMobileLongFormContext = React.createContext(false);
+
 // ---------------------------------------------------------------------------
 // 3. SETTINGS ROW & GROUP
 // ---------------------------------------------------------------------------
@@ -238,22 +241,32 @@ interface SettingsGroupProps {
   children: React.ReactNode;
 }
 
-const SettingsGroup: React.FC<SettingsGroupProps> = ({ title, icon: Icon, children }) => (
-  <div className="space-y-3.5 pb-4 sm:pb-5 last:pb-0">
-    <div className="flex items-center gap-2 pb-2.5">
-      {Icon && (
-        <div className="w-6 h-6 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7]">
-          <Icon size={14} strokeWidth={2.2} />
+const SettingsGroupContent: React.FC<SettingsGroupProps> = ({ title, icon: Icon, children }) => {
+  const hideHeading = React.useContext(SettingsMobileLongFormContext);
+
+  return (
+    <div className={`${hideHeading ? "space-y-1 pb-3" : "space-y-3.5 pb-4 sm:pb-5"} last:pb-0`}>
+      {!hideHeading && (
+        <div className="flex items-center gap-2 pb-2.5">
+          {Icon && (
+            <div className="w-6 h-6 rounded-xl bg-black/[0.04] dark:bg-white/[0.08] flex items-center justify-center text-[#1C1C1E] dark:text-[#F2F2F7]">
+              <Icon size={14} strokeWidth={2.2} />
+            </div>
+          )}
+          <h3 className="text-xs font-bold uppercase tracking-wider text-[#8E8E93] dark:text-[#A1A1A6] font-mono">
+            {title}
+          </h3>
         </div>
       )}
-      <h3 className="text-xs font-bold uppercase tracking-wider text-[#8E8E93] dark:text-[#A1A1A6] font-mono">
-        {title}
-      </h3>
+      <div>
+        {children}
+      </div>
     </div>
-    <div>
-      {children}
-    </div>
-  </div>
+  );
+};
+
+const SettingsGroup: React.FC<SettingsGroupProps> = ({ title, icon: Icon, children }) => (
+  <SettingsGroupContent title={title} icon={Icon}>{children}</SettingsGroupContent>
 );
 
 const LOCAL_DATA_KEYS = [
@@ -329,8 +342,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   const isMasterDetail =
     platform === "desktop" || (platform === "tablet" && isLandscape);
+  const usesMobileLongForm = platform === "mobile" && !isMasterDetail;
   const isDesktopSettings = platform === "desktop";
-  const isMobileLongForm = platform === "mobile";
   const isNativeNotifications = isNativePlatform();
   const visibleSettingsMenuItems =
     platform === "desktop"
@@ -343,32 +356,27 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     data: `${tasks.length} việc · ${journalEntries.length} nhật ký`,
     security: pinCode ? "Đã bật mã PIN" : "Chưa bật mã PIN",
     shortcuts: platform === "desktop" ? "Ctrl + K và thao tác nhanh" : "Chỉ dùng trên desktop",
+    about: `SketchTask v${CURRENT_APP_VERSION}`,
   };
   const activeMobileSection =
     !isMasterDetail &&
+    !usesMobileLongForm &&
     visibleSettingsMenuItems.some((item) => item.key === settingsMobileSubView)
       ? settingsMobileSubView
       : null;
-  const previousMobileSectionRef = useRef<SettingsSectionKey | null>(null);
-  const [mobileTransitionDirection, setMobileTransitionDirection] = useState<"forward" | "back">("forward");
-
-  useEffect(() => {
-    if (isMasterDetail) return;
-
-    const previousSection = previousMobileSectionRef.current;
-    if (!previousSection && activeMobileSection) {
-      setMobileTransitionDirection("forward");
-    } else if (previousSection && !activeMobileSection) {
-      setMobileTransitionDirection("back");
-    }
-    previousMobileSectionRef.current = activeMobileSection;
-  }, [activeMobileSection, isMasterDetail]);
 
   useEffect(() => {
     if (platform !== "desktop" && settingsMobileSubView === "shortcuts") {
       setSettingsMobileSubView(null);
     }
   }, [platform, settingsMobileSubView, setSettingsMobileSubView]);
+
+  // === PHẦN 1: Mobile là một trang thiết lập liên tục, không có back lồng back ===
+  useEffect(() => {
+    if (usesMobileLongForm && settingsMobileSubView) {
+      setSettingsMobileSubView(null);
+    }
+  }, [settingsMobileSubView, setSettingsMobileSubView, usesMobileLongForm]);
 
   useEffect(() => {
     if (!isMasterDetail || !settingsMobileSubView) return;
@@ -886,12 +894,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
             {/* Vùng nguy hiểm */}
             <div className="pb-4 space-y-3.5">
-              <div className="flex items-center gap-2 pb-2.5">
-                <AlertTriangle size={14} strokeWidth={2.2} className="text-[var(--danger-text)]" />
-                <h3 className="text-xs font-bold uppercase font-mono tracking-wider text-[var(--danger-text)]">
-                  Vùng Nguy Hiểm (Danger Zone)
-                </h3>
-              </div>
+              {!usesMobileLongForm && (
+                <div className="flex items-center gap-2 pb-2.5">
+                  <AlertTriangle size={14} strokeWidth={2.2} className="text-[var(--danger-text)]" />
+                  <h3 className="text-xs font-bold uppercase font-mono tracking-wider text-[var(--danger-text)]">
+                    Vùng Nguy Hiểm (Danger Zone)
+                  </h3>
+                </div>
+              )}
               <div>
                 <SettingsRow
                   title="Xóa dữ liệu trên thiết bị"
@@ -995,6 +1005,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         );
 
+      case "about":
+        return (
+          <SettingsGroup title="Giới thiệu" icon={Info}>
+            <SettingsRow title="SketchTask" description={`Phiên bản ${CURRENT_APP_VERSION}`}>
+              <span className="text-xs font-semibold text-[var(--text-muted)]">v{CURRENT_APP_VERSION}</span>
+            </SettingsRow>
+          </SettingsGroup>
+        );
+
     }
   };
 
@@ -1040,6 +1059,42 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     </>
   );
 
+  const renderMobileLongForm = () => (
+    <SettingsMobileLongFormContext.Provider value={true}>
+      <div className="w-full space-y-6 pb-28 pt-1 select-none animate-in fade-in duration-150">
+        {/* === PHẦN 2: Mobile chỉ giữ dòng cài đặt, không lặp heading section === */}
+        {visibleSettingsMenuItems.map((item) => (
+          <section key={item.key} className="scroll-mt-20 px-1" aria-label={item.label}>
+            {renderDetailContent(item.key)}
+          </section>
+        ))}
+
+        <section className="px-1 pt-1">
+          {user.isSignedIn ? (
+            <button
+              type="button"
+              onClick={logout}
+              className="w-full min-h-12 px-4 py-3.5 text-left text-sm font-semibold text-[var(--danger-text)] transition-colors hover:bg-[var(--danger-surface)]"
+            >
+              <span className="inline-flex items-center gap-2"><LogOut size={16} strokeWidth={2.2} />Đăng xuất tài khoản</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (onOpenAuth) onOpenAuth();
+                else openAuthModal();
+              }}
+              className="w-full min-h-12 px-4 py-3.5 text-sm font-semibold text-[var(--text-on-accent)] bg-[var(--accent-blue)] hover:bg-[var(--accent-blue-hover)] transition-colors"
+            >
+              <span className="inline-flex items-center gap-2"><LogIn size={16} strokeWidth={2.2} />Đăng nhập / Đăng ký đồng bộ</span>
+            </button>
+          )}
+        </section>
+      </div>
+    </SettingsMobileLongFormContext.Provider>
+  );
+
   // =========================================================================
   // MOBILE + TABLET PORTRAIT: FLATTENED SINGLE COLUMN VIEW
   // =========================================================================
@@ -1066,59 +1121,53 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           </div>
         </div>
-      ) : (
-        <div
-          className={
-            isMobileLongForm
-              ? "w-full max-w-xl mx-auto pb-8 select-none animate-in fade-in duration-150"
-              : "w-full max-w-xl mx-auto space-y-4 pb-28 sm:pb-36 select-none animate-in fade-in duration-150"
-          }
-        >
-          <div
-            className={
-              isMobileLongForm
-              ? ""
-                : "space-y-4"
-            }
+      ) : usesMobileLongForm ? (
+        renderMobileLongForm()
+      ) : activeMobileSection ? (
+        <section className="w-full max-w-xl mx-auto pb-28 sm:pb-36 select-none animate-in fade-in duration-150">
+          <button
+            type="button"
+            onClick={() => setSettingsMobileSubView(null)}
+            className="mb-4 inline-flex min-h-10 items-center gap-2 px-2 text-sm font-bold text-[var(--text-main)] transition-colors hover:text-[var(--accent-blue)]"
+            aria-label="Quay lại danh sách cài đặt"
           >
-            {visibleSettingsMenuItems.map((item) => (
-              <section
-                key={item.key}
-                className={
-                  isMobileLongForm
-                    ? "py-7 first:pt-1 last:pb-0"
-                    : "rounded-3xl p-4 sm:p-5 bg-white dark:bg-[#1E222A] border border-black/[0.04] dark:border-white/[0.04] shadow-xs"
-                }
-              >
-                {renderDetailContent(item.key)}
-              </section>
-            ))}
+            <ArrowLeft size={18} strokeWidth={2.4} />
+            Cài đặt
+          </button>
+          <div className="rounded-2xl bg-[var(--bg-surface)] p-4 sm:p-5">
+            {renderDetailContent(activeMobileSection)}
           </div>
-
-          <div className={isMobileLongForm ? "pt-7" : "pt-2"}>
-            {user.isSignedIn ? (
-              <button
-                type="button"
-                onClick={logout}
-                className="w-full min-h-12 py-3.5 px-4 bg-[var(--danger-surface)] text-[var(--danger-text)] text-sm font-semibold rounded-2xl flex items-center justify-center gap-2 cursor-pointer transition-colors hover:brightness-95"
-              >
-                <LogOut size={16} strokeWidth={2.2} />
-                <span>Đăng xuất tài khoản</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  if (onOpenAuth) onOpenAuth();
-                  else openAuthModal();
-                }}
-                className="w-full min-h-12 py-3.5 px-4 bg-[var(--accent-blue)] hover:bg-[var(--accent-blue-hover)] text-white text-sm font-semibold rounded-2xl flex items-center justify-center gap-2 cursor-pointer transition-colors"
-              >
-                <LogIn size={16} strokeWidth={2.2} />
-                <span>Đăng nhập / Đăng ký đồng bộ</span>
-              </button>
-            )}
-          </div>
+        </section>
+      ) : (
+        <div className="w-full max-w-xl mx-auto space-y-4 pb-28 sm:pb-36 select-none animate-in fade-in duration-150">
+          <SettingsSectionNav
+            variant="list"
+            grouping="grouped"
+            platform={platform}
+            items={visibleSettingsMenuItems}
+            subtitles={settingsSubtitles}
+            onSelect={setSettingsMobileSubView}
+          />
+          {user.isSignedIn ? (
+            <button
+              type="button"
+              onClick={logout}
+              className="w-full min-h-12 px-4 py-3.5 text-sm font-semibold text-[var(--danger-text)] transition-colors hover:bg-[var(--danger-surface)]"
+            >
+              <span className="inline-flex items-center gap-2"><LogOut size={16} strokeWidth={2.2} />Đăng xuất tài khoản</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (onOpenAuth) onOpenAuth();
+                else openAuthModal();
+              }}
+              className="w-full min-h-12 px-4 py-3.5 text-sm font-semibold text-[var(--text-on-accent)] bg-[var(--accent-blue)] hover:bg-[var(--accent-blue-hover)] transition-colors"
+            >
+              <span className="inline-flex items-center gap-2"><LogIn size={16} strokeWidth={2.2} />Đăng nhập / Đăng ký đồng bộ</span>
+            </button>
+          )}
         </div>
       )}
       {renderSettingsOverlays()}

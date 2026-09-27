@@ -17,6 +17,8 @@ import {
   BookOpen,
 } from "lucide-react";
 
+const JOURNAL_DAYS_PER_PAGE = 12;
+
 export interface JournalBookProps {
   model: JournalScreenModel;
   initialDate?: string;
@@ -115,10 +117,32 @@ export const JournalBook: React.FC<JournalBookProps> = ({
     () => tasks.filter((task) => task.completed && getTaskEffectiveDate(task) === selectedDate),
     [selectedDate, tasks],
   );
-  const recentDates = useMemo(
-    () => Array.from(new Set(journalEntries.map((entry) => entry.date))).sort((a, b) => b.localeCompare(a)).slice(0, 3),
-    [journalEntries],
+  const journalDayIndex = useMemo(() => {
+    const entriesByDate = new Map<string, JournalEntryDto[]>();
+    journalEntries.forEach((entry) => {
+      const entries = entriesByDate.get(entry.date) || [];
+      entries.push(entry);
+      entriesByDate.set(entry.date, entries);
+    });
+
+    return [...entriesByDate.entries()]
+      .sort(([firstDate], [secondDate]) => secondDate.localeCompare(firstDate))
+      .map(([date, entries]) => ({
+        date,
+        entries: entries.sort((first, second) => first.time.localeCompare(second.time)),
+      }));
+  }, [journalEntries]);
+  const [journalIndexPage, setJournalIndexPage] = useState(0);
+  const journalIndexPageCount = Math.max(1, Math.ceil(journalDayIndex.length / JOURNAL_DAYS_PER_PAGE));
+  const safeJournalIndexPage = Math.min(journalIndexPage, journalIndexPageCount - 1);
+  const pagedJournalDays = journalDayIndex.slice(
+    safeJournalIndexPage * JOURNAL_DAYS_PER_PAGE,
+    (safeJournalIndexPage + 1) * JOURNAL_DAYS_PER_PAGE,
   );
+
+  useEffect(() => {
+    setJournalIndexPage((page) => Math.min(page, journalIndexPageCount - 1));
+  }, [journalIndexPageCount]);
 
   const handlePrevDay = useCallback(() => setSelectedDate((date) => getOffsetDateStr(date, -1)), []);
   const handleNextDay = useCallback(() => setSelectedDate((date) => getOffsetDateStr(date, 1)), []);
@@ -157,57 +181,90 @@ export const JournalBook: React.FC<JournalBookProps> = ({
 
   if (!isBookOpen) {
     return (
-      <div className="w-full min-w-0 space-y-4 pb-12 select-none">
-        <div className="flex items-center justify-between gap-2.5 pb-2">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">
-              <BookOpen size={15} strokeWidth={2.2} />
+      <div className="w-full min-w-0 pb-12 select-none">
+        {/* === PHẦN 1: Chỉ mục ngày phẳng, không dựng một hero card che nội dung === */}
+        <header className="flex flex-wrap items-end justify-between gap-3 pb-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--bg-surface-muted)] text-[var(--accent-blue)]">
+              <BookOpen size={18} strokeWidth={2.2} />
             </div>
-            <span className="text-sm sm:text-base font-bold text-[#1C1C1E] dark:text-[#F2F2F7]">Nhật ký</span>
-          </div>
-          <span className="font-mono text-xs text-[#8E8E93] dark:text-[#A1A1A6]">{journalEntries.length} mục</span>
-        </div>
-        <article className="mx-auto max-w-2xl rounded-3xl bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] p-6 sm:p-7 shadow-xs space-y-4">
-          <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wide text-[#8E8E93] dark:text-[#A1A1A6] font-mono">Nhật ký theo ngày</p>
-              <h2 className="mt-1.5 text-xl font-bold tracking-tight text-[#1C1C1E] dark:text-[#F2F2F7]">Nhật ký cá nhân</h2>
-              <p className="mt-1 text-xs sm:text-sm leading-relaxed text-[#8E8E93] dark:text-[#A1A1A6]">Lưu lại suy nghĩ, bài học và những sự kiện đáng nhớ theo từng ngày.</p>
-            </div>
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] shadow-xs">
-              <BookOpen size={24} strokeWidth={2.2} />
+              <h2 className="text-lg font-bold tracking-tight text-[var(--text-main)]">Nhật ký</h2>
+              <p className="mt-0.5 text-xs text-[var(--text-muted)]">
+                {journalEntries.length} dòng ghi chép trong {journalDayIndex.length} ngày
+              </p>
             </div>
           </div>
-          <div className="pt-4 flex flex-wrap items-center gap-2.5 text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7]">
-            <span className="bg-black/[0.04] dark:bg-white/[0.08] px-3 py-1 rounded-full">{journalEntries.length} ghi chép</span>
-            <span className="text-[#8E8E93] dark:text-[#A1A1A6]">{recentDates.length} ngày đã viết</span>
-            <button
-              type="button"
-              onClick={() => { setSelectedDate(todayStr); setIsJournalBookOpen(true); }}
-              className="ml-auto rounded-2xl bg-[var(--accent-blue)] hover:bg-[var(--accent-blue-hover)] px-3.5 py-1.5 text-xs font-semibold text-white shadow-2xs transition-all cursor-pointer flex items-center gap-1"
-            >
-              <span>Mở nhật ký</span>
-              <ChevronRight size={13} strokeWidth={2.4} />
-            </button>
+          <button
+            type="button"
+            onClick={() => { setSelectedDate(todayStr); setIsJournalBookOpen(true); }}
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-[var(--accent-blue)] px-3.5 text-xs font-semibold text-[var(--text-on-accent)] transition-colors hover:bg-[var(--accent-blue-hover)]"
+          >
+            <Plus size={15} strokeWidth={2.3} />
+            Viết hôm nay
+          </button>
+        </header>
+
+        {journalDayIndex.length === 0 ? (
+          <div className="py-20 text-center">
+            <BookOpen size={22} className="mx-auto text-[var(--text-muted)]" strokeWidth={1.8} />
+            <p className="mt-3 text-sm font-semibold text-[var(--text-main)]">Chưa có dòng nhật ký</p>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">Viết một dòng ngắn để bắt đầu lưu lại ngày hôm nay.</p>
           </div>
-          {recentDates.length > 0 && (
-            <div className="pt-2 flex flex-wrap gap-2">
-              {recentDates.map((date) => {
-                const info = formatVietnameseDate(date);
-                return (
-                  <button
-                    key={date}
-                    type="button"
-                    onClick={() => { setSelectedDate(date); setIsJournalBookOpen(true); }}
-                    className="rounded-xl bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] px-2.5 py-1 text-xs font-semibold text-[#1C1C1E] dark:text-[#F2F2F7] shadow-2xs transition-all cursor-pointer"
-                  >
-                    {info.shortDateStr}
-                  </button>
-                );
-              })}
+        ) : (
+          <section className="border-y border-[var(--border-ink-muted)]">
+            {pagedJournalDays.map(({ date, entries }) => {
+              const info = formatVietnameseDate(date);
+              const preview = entries[0]?.content.trim() || "Dòng nhật ký chưa có nội dung";
+              return (
+                <button
+                  key={date}
+                  type="button"
+                  onClick={() => { setSelectedDate(date); setIsJournalBookOpen(true); }}
+                  className="grid w-full grid-cols-[76px_minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--border-ink-muted)] py-3.5 text-left last:border-b-0 hover:bg-[var(--bg-interactive)]"
+                >
+                  <div className="pl-1">
+                    <p className="text-sm font-bold text-[var(--text-main)]">{info.shortDateStr}</p>
+                    <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">{date === todayStr ? "Hôm nay" : info.titleStr.split(",")[0]}</p>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[var(--text-main)]">{preview}</p>
+                    <p className="mt-0.5 text-xs text-[var(--text-muted)]">{entries.length} {entries.length === 1 ? "dòng" : "dòng ghi chép"}</p>
+                  </div>
+                  <ChevronRight size={17} className="mr-1 text-[var(--text-muted)]" strokeWidth={2.2} />
+                </button>
+              );
+            })}
+          </section>
+        )}
+
+        {journalIndexPageCount > 1 && (
+          <nav className="mt-4 flex items-center justify-between" aria-label="Phân trang ngày nhật ký">
+            <p className="text-xs text-[var(--text-muted)]">
+              {safeJournalIndexPage * JOURNAL_DAYS_PER_PAGE + 1}–{Math.min((safeJournalIndexPage + 1) * JOURNAL_DAYS_PER_PAGE, journalDayIndex.length)} / {journalDayIndex.length} ngày
+            </p>
+            <div className="inline-flex items-center gap-1 rounded-xl bg-[var(--bg-surface-muted)] p-1">
+              <button
+                type="button"
+                onClick={() => setJournalIndexPage((page) => Math.max(0, page - 1))}
+                disabled={safeJournalIndexPage === 0}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-main)] hover:bg-[var(--bg-surface)] disabled:cursor-not-allowed disabled:opacity-35"
+                aria-label="Các ngày nhật ký mới hơn"
+              >
+                <ChevronLeft size={15} strokeWidth={2.4} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setJournalIndexPage((page) => Math.min(journalIndexPageCount - 1, page + 1))}
+                disabled={safeJournalIndexPage >= journalIndexPageCount - 1}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-main)] hover:bg-[var(--bg-surface)] disabled:cursor-not-allowed disabled:opacity-35"
+                aria-label="Các ngày nhật ký cũ hơn"
+              >
+                <ChevronRight size={15} strokeWidth={2.4} />
+              </button>
             </div>
-          )}
-        </article>
+          </nav>
+        )}
       </div>
     );
   }

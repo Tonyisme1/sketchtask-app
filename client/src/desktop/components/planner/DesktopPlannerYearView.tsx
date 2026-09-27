@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { TaskDto } from "../../../types";
+import { getTaskItemType } from "../../../utils/taskSemantics";
 
 export interface DesktopPlannerYearViewProps {
   year: number;
@@ -45,7 +46,10 @@ export const DesktopPlannerYearView: React.FC<DesktopPlannerYearViewProps> = ({
               {Array.from({ length: totalDays }, (_, index) => {
                 const day = index + 1;
                 const dateStr = toDateString(year, month, day);
-                const taskCount = getTasksForDate(dateStr).length;
+                const dayItems = getTasksForDate(dateStr);
+                const eventCount = dayItems.filter((task) => getTaskItemType(task) === "event").length;
+                const taskCount = dayItems.length - eventCount;
+                const activityCount = dayItems.length;
                 const isToday = dateStr === todayStr;
                 const isSelected = dateStr === selectedDateStr;
                 return (
@@ -60,10 +64,15 @@ export const DesktopPlannerYearView: React.FC<DesktopPlannerYearViewProps> = ({
                           ? "bg-[var(--bg-surface-muted)] text-[var(--text-main)]"
                           : "text-[var(--text-main)] hover:bg-[var(--bg-surface-muted)]"
                     }`}
-                    aria-label={`${day}/${month + 1}/${year}${taskCount ? `, ${taskCount} việc` : ""}`}
+                    aria-label={`${day}/${month + 1}/${year}${activityCount ? `, ${eventCount} sự kiện và ${taskCount} công việc` : ""}`}
                   >
                     {day}
-                    {taskCount > 0 && !isToday && <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-[var(--accent-sky)]" />}
+                    {activityCount > 0 && !isToday && (
+                      <span className="absolute bottom-0.5 flex items-center gap-0.5" aria-hidden="true">
+                        {eventCount > 0 && <span className="h-1 w-1 rounded-full bg-[var(--accent-blue)]" />}
+                        {taskCount > 0 && <span className="h-1 w-1 rounded-full bg-[var(--accent-sky-strong)]" />}
+                      </span>
+                    )}
                   </button>
                 );
               })}

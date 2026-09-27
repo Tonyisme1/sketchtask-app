@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { NavigationTarget } from "../../types";
-import { DesktopDeadlinesPage } from "../tabs/DesktopDeadlinesPage";
 import { DesktopAllTasksView } from "../tabs/DesktopAllTasksView";
 import {
   TaskScreenModel,
@@ -21,7 +20,6 @@ export const DesktopTasksPage: React.FC<DesktopTasksPageProps> = ({
   const defaultModel = useTaskScreenModel();
   const model = propModel || defaultModel;
 
-  const { activeTaskSubTab } = model;
   const { openTaskDetail } = model.actions;
 
   useEffect(() => {
@@ -47,11 +45,7 @@ export const DesktopTasksPage: React.FC<DesktopTasksPageProps> = ({
 
   return (
     <div className="w-full min-w-0 select-none animate-in fade-in duration-150 pb-12">
-      {activeTaskSubTab === "deadlines" ? (
-        <DesktopDeadlinesPage />
-      ) : (
-        <DesktopAllTasksView model={model} />
-      )}
+      <DesktopAllTasksView model={model} />
     </div>
   );
 };

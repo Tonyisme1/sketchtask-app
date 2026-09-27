@@ -32,7 +32,6 @@ export const useSettingsScreenModel = (): SettingsScreenModel => {
     setPaperStyle: store.setPaperStyle,
     pinCode: store.pinCode,
     setPinCode: store.setPinCode,
-    loadSampleData: store.loadSampleData,
     tasks: store.tasks,
     stickyNotes: store.stickyNotes,
     journalEntries: store.journalEntries,

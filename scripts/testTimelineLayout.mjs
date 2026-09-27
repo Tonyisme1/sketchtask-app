@@ -2,12 +2,15 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 const normalizeTaskTimeType = (task) => {
+  if (task.itemType === 'event' && !task.timeType) return 'scheduled';
   if (task.timeType === 'scheduled' || task.timeType === 'event') return 'scheduled';
   if (task.timeType === 'deadline') return 'deadline';
   if (task.startTime) return 'scheduled';
   if (task.deadlineDate || task.deadlineTime) return 'deadline';
   return 'none';
 };
+
+const getTaskItemType = (task) => task.itemType || (task.timeType === 'event' ? 'event' : 'task');
 
 const getDueDateParts = (value) => {
   if (!value || typeof value !== 'string') return {};
@@ -84,6 +87,12 @@ const buildTimelineGridLayout = (tasks, dateStr, baseRowHeight = 64, minLaneHeig
     const start = hour * 60 + minute;
     const type = normalizeTaskTimeType(task);
 
+    if (type === 'scheduled' && getTaskItemType(task) === 'event' && !task.endTime) {
+      const end = Math.min(24 * 60, start + Math.round(minVisualMinutes));
+      deadlines.push({ task, start, end, collisionEnd: end, effectiveTime, kind: 'event' });
+      return;
+    }
+
     if (type === 'scheduled') {
       const range = getTaskTimelineRangeForDate(task, dateStr);
       if (!range) return;
@@ -101,7 +110,7 @@ const buildTimelineGridLayout = (tasks, dateStr, baseRowHeight = 64, minLaneHeig
 
     if (type === 'deadline' && getTaskEffectiveDate(task) === dateStr) {
       const end = Math.min(24 * 60, start + Math.round(minVisualMinutes));
-      deadlines.push({ task, start, end, collisionEnd: end, effectiveTime });
+      deadlines.push({ task, start, end, collisionEnd: end, effectiveTime, kind: 'deadline' });
     }
   });
 
@@ -142,9 +151,9 @@ const calculateDurationMinutes = (startTime, endTime) => {
   return 60;
 };
 
-test('1. Scheduled không có endTime -> tạo block 60 phút', () => {
+test('1. Scheduled legacy có endTime vẫn đọc thành block', () => {
   const layout = buildTimelineGridLayout([{
-    id: 'task-1', title: 'Họp nhóm', timeType: 'scheduled', dueDate: '2026-09-18', startTime: '09:00',
+    id: 'task-1', title: 'Họp nhóm', timeType: 'scheduled', dueDate: '2026-09-18', startTime: '09:00', endTime: '10:00',
   }], '2026-09-18');
   assert.equal(layout.scheduledBlocks.length, 1);
   assert.equal(layout.scheduledBlocks[0].height, 62);
@@ -152,12 +161,13 @@ test('1. Scheduled không có endTime -> tạo block 60 phút', () => {
   assert.equal(layout.scheduledBlocks[0].width, 100);
 });
 
-test('2. Event không có endTime -> vào lịch hẹn nhưng vẫn giữ loại event', () => {
-  const event = { id: 'event-1', title: 'Ăn trưa', timeType: 'event', dueDate: '2026-09-18', startTime: '12:00' };
+test('2. Event không có endTime -> hiển thị mốc nhỏ, không bịa block 60 phút', () => {
+  const event = { id: 'event-1', title: 'Ăn trưa', itemType: 'event', dueDate: '2026-09-18', startTime: '12:00' };
   const layout = buildTimelineGridLayout([event], '2026-09-18');
-  assert.equal(layout.scheduledBlocks.length, 1);
-  assert.equal(layout.scheduledBlocks[0].task.timeType, 'event');
-  assert.equal(layout.scheduledBlocks[0].height, 62);
+  assert.equal(layout.scheduledBlocks.length, 0);
+  assert.equal(layout.deadlineMarkers.length, 1);
+  assert.equal(layout.deadlineMarkers[0].task.itemType, 'event');
+  assert.equal(layout.deadlineMarkers[0].kind, 'event');
 });
 
 test('3. Deadline trùng giờ -> dùng các cột đều trong rail deadline riêng', () => {
@@ -175,8 +185,8 @@ test('3. Deadline trùng giờ -> dùng các cột đều trong rail deadline ri
   assert.equal(markers[1].width, 48.8);
 });
 
-test('4. Task qua đêm -> giữ phần đầu trong ngày bắt đầu', () => {
-  const task = { id: 'overnight', title: 'Ca đêm', timeType: 'scheduled', dueDate: '2026-09-18', startTime: '22:00', endTime: '02:00' };
+test('4. Event qua đêm -> giữ phần đầu trong ngày bắt đầu', () => {
+  const task = { id: 'overnight', title: 'Ca đêm', itemType: 'event', timeType: 'event', dueDate: '2026-09-18', startTime: '22:00', endTime: '02:00' };
   const block = buildTimelineGridLayout([task], '2026-09-18').scheduledBlocks[0];
   assert.equal(block.top, 22 * 64);
   assert.equal(block.height, 128 - 2);
@@ -188,18 +198,18 @@ test('5. Task chỉ có ngày -> không vào time-grid', () => {
   assert.equal(layout.deadlineMarkers.length, 0);
 });
 
-test('6. Task bắt đầu lúc 23:00 -> nằm trong biên 24 giờ', () => {
+test('6. Event bắt đầu lúc 23:00 -> nằm trong biên 24 giờ', () => {
   const block = buildTimelineGridLayout([{
-    id: 'late', title: 'Viết nhật ký', timeType: 'scheduled', dueDate: '2026-09-18', startTime: '23:00', endTime: '23:59',
+    id: 'late', title: 'Viết nhật ký', itemType: 'event', timeType: 'event', dueDate: '2026-09-18', startTime: '23:00', endTime: '23:59',
   }], '2026-09-18').scheduledBlocks[0];
   assert.equal(block.top, 23 * 64);
   assert.ok(block.top + block.height <= 24 * 64);
 });
 
-test('7. Hai task chồng nhau -> vẫn chia lane đều khi cụm còn nhỏ', () => {
+test('7. Hai Event chồng nhau -> vẫn chia lane đều khi cụm còn nhỏ', () => {
   const blocks = buildTimelineGridLayout([
-    { id: 'short-1', title: 'Việc 1', timeType: 'scheduled', dueDate: '2026-09-18', startTime: '10:00', endTime: '10:10' },
-    { id: 'short-2', title: 'Việc 2', timeType: 'scheduled', dueDate: '2026-09-18', startTime: '10:10', endTime: '10:20' },
+    { id: 'short-1', title: 'Event 1', itemType: 'event', timeType: 'event', dueDate: '2026-09-18', startTime: '10:00', endTime: '10:10' },
+    { id: 'short-2', title: 'Event 2', itemType: 'event', timeType: 'event', dueDate: '2026-09-18', startTime: '10:10', endTime: '10:20' },
   ], '2026-09-18').scheduledBlocks;
   assert.equal(blocks.length, 2);
   assert.equal(blocks[0].laneCount, 2);
@@ -208,11 +218,12 @@ test('7. Hai task chồng nhau -> vẫn chia lane đều khi cụm còn nhỏ', 
   assert.ok(blocks[1].left > blocks[0].left);
 });
 
-test('8. Cụm nhiều task cùng giờ -> chia đều theo số lane', () => {
+test('8. Cụm nhiều Event cùng giờ -> chia đều theo số lane', () => {
   const blocks = buildTimelineGridLayout(Array.from({ length: 14 }, (_, index) => ({
     id: `dense-${index}`,
-    title: `Việc ${index + 1}`,
-    timeType: 'scheduled',
+    title: `Event ${index + 1}`,
+    itemType: 'event',
+    timeType: 'event',
     dueDate: '2026-09-18',
     startTime: '02:00',
     endTime: '03:00',
@@ -225,9 +236,9 @@ test('8. Cụm nhiều task cùng giờ -> chia đều theo số lane', () => {
   assert.ok(blocks[13].left + blocks[13].width <= 100);
 });
 
-test('9. Scheduled và deadline cùng giờ không ép nhau vào cùng lane', () => {
+test('9. Event và deadline cùng giờ không ép nhau vào cùng lane', () => {
   const layout = buildTimelineGridLayout([
-    { id: 'scheduled', title: 'Lịch hẹn', timeType: 'scheduled', dueDate: '2026-09-15', startTime: '10:00', endTime: '11:00' },
+    { id: 'scheduled', title: 'Sự kiện', itemType: 'event', timeType: 'event', dueDate: '2026-09-15', startTime: '10:00', endTime: '11:00' },
     { id: 'deadline', title: 'Hạn', timeType: 'deadline', dueDate: '2026-09-15', deadlineTime: '10:00' },
   ], '2026-09-15');
   assert.equal(layout.scheduledBlocks[0].laneCount, 1);

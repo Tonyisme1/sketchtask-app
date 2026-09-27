@@ -3,7 +3,7 @@
 // ==========================================
 
 import React from "react";
-import { TabKey, TaskSubTab } from "../../types";
+import { TabKey } from "../../types";
 import { useAppStore } from "../../stores/appStore";
 import {
   Calendar as CalendarIcon,
@@ -23,7 +23,6 @@ import {
   getTaskItemType,
   getTaskTag,
 } from "../../utils/taskSemantics";
-import { loadNotesFromStorage } from "../../utils/noteStorage";
 
 export interface SidebarProps {
   activeTab: TabKey;
@@ -34,7 +33,6 @@ export interface SidebarProps {
   onOpenAIModal?: () => void;
   desktopPlannerSurface?: "calendar" | "list";
   onDesktopPlannerSurfaceChange?: (surface: "calendar" | "list") => void;
-  onDesktopTaskSubTabChange?: (subTab: TaskSubTab) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -46,17 +44,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenAIModal,
   desktopPlannerSurface = "calendar",
   onDesktopPlannerSurfaceChange,
-  onDesktopTaskSubTabChange,
 }) => {
   const {
     tasks,
     tags,
+    stickyNotes,
     addTag,
     deleteTag,
     updateTask,
     journalEntries,
-    activeTaskSubTab,
-    setActiveTaskSubTab,
     activeTaskListTags,
     setActiveTaskListTags,
     toggleActiveTaskListTag,
@@ -76,11 +72,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }))
     .sort((first, second) => first.name.localeCompare(second.name, "vi"));
 
-  const notes = loadNotesFromStorage();
-  const notesCount = notes.length;
+  const notesCount = stickyNotes.length;
 
   // Active state determinations
-  const isAllTasksActive = activeTab === "tasks" && activeTaskSubTab === "all";
+  const isAllTasksActive = activeTab === "tasks";
   const isEventWorkspace = activeTab === "events";
   const isTaskWorkspace = activeTab === "tasks";
   const isSecondaryWorkspace = activeTab === "notes" || activeTab === "journal";
@@ -93,11 +88,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // Handlers
   const handleSelectAllTasks = () => {
     setActiveTaskListTags([]);
-    if (onDesktopTaskSubTabChange) {
-      onDesktopTaskSubTabChange("all");
-      return;
-    }
-    setActiveTaskSubTab("all");
     onTabChange("tasks");
   };
 

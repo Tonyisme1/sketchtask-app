@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { TaskDto } from "../../types";
 import {
-  normalizeTaskTimeType,
   getTaskTags,
+  getTaskItemType,
 } from "../../utils";
 import {
   PlannerHeader,
@@ -11,7 +11,6 @@ import {
 import { PlannerCalendar } from "../../components/shared/planner/PlannerCalendar";
 import { PlannerWeekView } from "../../components/shared/planner/PlannerWeekView";
 import { PlannerTaskPreviewPopover } from "../../components/shared/planner/PlannerTaskPreviewPopover";
-import { TodayScheduleNotes } from "../../components/shared/today/TodayScheduleNotes";
 import { TaskList } from "../../components/shared/common/TaskList";
 import { FilterBar } from "../../components/shared/common/FilterBar";
 import { registerBackHandler } from "../../utils/backNavigation";
@@ -23,8 +22,6 @@ import {
   ArrowLeft,
   ListTodo,
   Lock,
-  Search,
-  X,
 } from "lucide-react";
 
 const DAY_NAMES = ["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "Chủ Nhật"];
@@ -40,8 +37,6 @@ export interface TabletPlannerPageProps {
   model?: PlannerScreenModel;
   targetDateStr?: string;
   targetTaskId?: string;
-  fromTab?: "deadlines" | "overview";
-  onBackToDeadlines?: () => void;
   onClearTarget?: () => void;
 }
 
@@ -49,15 +44,11 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
   model: propModel,
   targetDateStr,
   targetTaskId,
-  fromTab,
-  onBackToDeadlines,
   onClearTarget,
 }) => {
   const defaultModel = usePlannerScreenModel({
     targetDateStr,
     targetTaskId,
-    fromTab,
-    onBackToDeadlines,
     onClearTarget,
   });
   const model = propModel || defaultModel;
@@ -78,9 +69,7 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
   const [monthOffset, setMonthOffset] = useState<number>(0);
   const [selectedDateStr, setSelectedDateStr] = useState<string>(model.currentDayStr);
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
-  const [timeTypeFilter, setTimeTypeFilter] = useState<"all" | "scheduled" | "deadline">("all");
   const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all");
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
@@ -123,14 +112,10 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
   useEffect(() => {
     if (plannerScreen !== "day") return;
     return registerBackHandler(() => {
-      if (fromTab === "deadlines" && onBackToDeadlines) {
-        onBackToDeadlines();
-      } else {
-        setPlannerScreen("overview");
-      }
+      setPlannerScreen("overview");
       return true;
     });
-  }, [fromTab, onBackToDeadlines, plannerScreen]);
+  }, [plannerScreen]);
 
   const { weekDays, weekLabel } = useMemo(() => {
     const monday = new Date(model.todayDate);
@@ -242,14 +227,6 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
 
   const filteredTasks = useMemo(() => {
     return selectedDayTasks.filter((task) => {
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase().trim();
-        const matchesTitle = task.title.toLowerCase().includes(q);
-        const matchesTag = getTaskTags(task).some((t) => t.toLowerCase().includes(q));
-        const matchesNote = task.description?.toLowerCase().includes(q);
-        if (!matchesTitle && !matchesTag && !matchesNote) return false;
-      }
-
       if (hideCompletedTasks && statusFilter === "all" && task.completed)
         return false;
 
@@ -259,17 +236,6 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
           : statusFilter === "active"
           ? !task.completed
           : task.completed;
-
-      const normalizedTimeType = normalizeTaskTimeType(task);
-      const isScheduled = normalizedTimeType === "scheduled";
-      const isDeadline = normalizedTimeType === "deadline";
-
-      const matchTimeType =
-        timeTypeFilter === "all"
-          ? true
-          : timeTypeFilter === "scheduled"
-          ? isScheduled
-          : isDeadline;
 
       const matchPriority =
         priorityFilter === "all"
@@ -283,14 +249,12 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
           ? getTaskTags(task).length === 0
           : getTaskTags(task).includes(tagFilter);
 
-      return matchStatus && matchTimeType && matchPriority && matchTag;
+      return matchStatus && matchPriority && matchTag;
     });
   }, [
     selectedDayTasks,
-    searchQuery,
     hideCompletedTasks,
     statusFilter,
-    timeTypeFilter,
     priorityFilter,
     tagFilter,
   ]);
@@ -311,7 +275,6 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
   };
 
   const activeAdvancedFilterCount =
-    (timeTypeFilter !== "all" ? 1 : 0) +
     (priorityFilter !== "all" ? 1 : 0) +
     (tagFilter !== "all" ? 1 : 0);
 
@@ -384,24 +347,16 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
               <div className="flex min-w-0 items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (fromTab === "deadlines" && onBackToDeadlines) {
-                      onBackToDeadlines();
-                    } else {
-                      setPlannerScreen("overview");
-                    }
-                  }}
-                  aria-label={fromTab === "deadlines" ? "Quay lại Hạn định" : "Quay lại lịch"}
+                  onClick={() => setPlannerScreen("overview")}
+                  aria-label="Quay lại lịch"
                   className="mobile-back-button flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 py-1.5 bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] rounded-2xl shadow-2xs text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7] active:scale-95 transition-all cursor-pointer"
                 >
                   <ArrowLeft size={13} strokeWidth={2.4} />
                   <span className="hidden sm:inline">
-                    {fromTab === "deadlines"
-                      ? "Quay lại Hạn định"
-                      : `Quay lại ${viewMode === "agenda" ? "Lịch trình" : "Lịch tháng"}`}
+                    {`Quay lại ${viewMode === "agenda" ? "Lịch trình" : "Lịch tháng"}`}
                   </span>
                   <span className="sm:hidden">
-                    {fromTab === "deadlines" ? "Hạn" : viewMode === "agenda" ? "Lịch" : "Lịch tháng"}
+                    {viewMode === "agenda" ? "Lịch" : "Lịch tháng"}
                   </span>
                 </button>
 
@@ -426,34 +381,10 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
             </div>
           </div>
 
-          {/* Thanh tìm kiếm */}
-          <div className="flex min-w-0 items-center gap-2.5 rounded-2xl border-none bg-white dark:bg-[#1C1C20] px-3.5 shadow-xs">
-            <Search size={14} strokeWidth={2.4} className="shrink-0 text-[#78716C] dark:text-[#A1A1AA]" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Tìm việc trong ngày này..."
-              className="w-full bg-transparent py-2 pl-1 text-xs text-[#1C1917] dark:text-[#ECECF1] placeholder:text-[#A8A29E] dark:placeholder:text-[#71717A] focus:outline-none sm:text-sm"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="shrink-0 text-[#78716C] dark:text-[#A1A1AA] hover:text-[#1C1917] dark:hover:text-[#ECECF1] cursor-pointer"
-                title="Xóa tìm kiếm"
-              >
-                <X size={13} strokeWidth={2.4} />
-              </button>
-            )}
-          </div>
-
           {/* Bộ lọc 2 tầng */}
           <FilterBar
             statusFilter={statusFilter}
             onStatusChange={setStatusFilter}
-            timeTypeFilter={timeTypeFilter}
-            onTimeTypeChange={setTimeTypeFilter}
             priorityFilter={priorityFilter}
             onPriorityChange={setPriorityFilter}
             tagFilter={tagFilter}
@@ -463,7 +394,6 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
             onResetFilters={() => {
               setPriorityFilter("all");
               setTagFilter("all");
-              setTimeTypeFilter("all");
             }}
             activeFilterCount={activeAdvancedFilterCount}
           />
@@ -471,32 +401,7 @@ export const TabletPlannerPage: React.FC<TabletPlannerPageProps> = ({
           {/* Bố cục danh sách việc */}
           <div className="space-y-4 w-full">
             {(() => {
-              const scheduledDayTasks = filteredTasks.filter((t) => {
-                const normTime = normalizeTaskTimeType(t);
-                return normTime === "scheduled" || (Boolean(t.startTime) && normTime !== "deadline");
-              });
-
-              if (scheduledDayTasks.length === 0) return null;
-
-              return (
-                <TodayScheduleNotes
-                  scheduledTasks={scheduledDayTasks}
-                  onToggle={toggleTask}
-                  onEdit={(task) => openTaskDetail(task.id)}
-                  onDelete={deleteTask}
-                  onMoveTomorrow={moveTaskToNextDay}
-                  onClick={(task) => openTaskDetail(task.id)}
-                  activeTaskId={targetTaskId}
-                  title="Lịch hẹn"
-                />
-              );
-            })()}
-
-            {(() => {
-              const todoDayTasks = filteredTasks.filter((t) => {
-                const normTime = normalizeTaskTimeType(t);
-                return !(normTime === "scheduled" || (Boolean(t.startTime) && normTime !== "deadline"));
-              });
+              const todoDayTasks = filteredTasks.filter((t) => getTaskItemType(t) !== "event");
 
               return (
                 <div className="space-y-2">

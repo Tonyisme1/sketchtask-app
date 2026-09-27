@@ -1,6 +1,7 @@
 import { TaskDto } from "../../../types";
 import {
   getTaskEffectiveTime,
+  getTaskItemType,
   normalizeTaskTimeType,
   getTaskTimelineRangeForDate,
 } from "../../../utils/taskSemantics";
@@ -35,6 +36,8 @@ export interface PositionedDeadlineMarker {
   overflowCount?: number;
   hiddenTasks?: TaskDto[];
   zIndex: number;
+  /** A start-only event is a point, while a task deadline is a due marker. */
+  kind: "deadline" | "event";
 }
 
 export interface TimelineHourRow {
@@ -98,6 +101,7 @@ interface RawTimelineSegment {
   end: number;
   collisionEnd: number;
   effectiveTime: string;
+  markerKind?: PositionedDeadlineMarker["kind"];
   lane?: number;
   laneCount?: number;
   clusterId?: number;
@@ -180,14 +184,31 @@ export const buildTimelineGridLayout = (
 
   const minVisualMinutes = (minLaneHeight / baseRowHeight) * 60;
 
-  // Event và deadline cùng tham gia lane packing để chúng không chồng lên nhau.
-  // Deadline vẫn render như marker, nhưng dùng đúng phần chiều ngang của nó.
+  // Time blocks and point markers share lane packing so no item visually overlaps.
+  // Start-only events are markers: never invent a one-hour duration in the calendar.
   const rawTimelineSegments: RawTimelineSegment[] = tasks.flatMap<RawTimelineSegment>((task) => {
     const normType = normalizeTaskTimeType(task);
     const effectiveTime = getTaskEffectiveTime(task);
     if (!effectiveTime || !/^\d{2}:\d{2}$/.test(effectiveTime)) return [];
 
     if (normType === "scheduled") {
+      const isStartOnlyEvent =
+        getTaskItemType(task) === "event" && !task.endTime;
+      if (isStartOnlyEvent) {
+        const [hours, minutes] = effectiveTime.split(":").map(Number);
+        if (Number.isNaN(hours) || Number.isNaN(minutes)) return [];
+        const start = Math.max(0, Math.min(24 * 60 - 1, hours * 60 + minutes));
+        const end = Math.min(24 * 60, start + Math.round(minVisualMinutes));
+        return [{
+          task,
+          start,
+          end,
+          collisionEnd: end,
+          effectiveTime,
+          markerKind: "event",
+        }];
+      }
+
       const range = getTaskTimelineRangeForDate(task, dateStr);
       if (!range) return [];
       const start = Math.max(0, Math.min(range.start, 24 * 60 - 5));
@@ -215,6 +236,7 @@ export const buildTimelineGridLayout = (
         end,
         collisionEnd: end,
         effectiveTime,
+        markerKind: "deadline",
       }];
     }
 
@@ -223,10 +245,10 @@ export const buildTimelineGridLayout = (
 
   const positionedSegments = assignTimelineLanes(rawTimelineSegments);
   const positionedScheduled = positionedSegments.filter(
-    (segment) => normalizeTaskTimeType(segment.task) === "scheduled",
+    (segment) => normalizeTaskTimeType(segment.task) === "scheduled" && !segment.markerKind,
   );
-  const positionedDeadlines = positionedSegments.filter(
-    (segment) => normalizeTaskTimeType(segment.task) === "deadline",
+  const positionedMarkers = positionedSegments.filter(
+    (segment) => Boolean(segment.markerKind),
   );
 
   const scheduledBlocks: PositionedScheduledBlock[] = [];
@@ -260,7 +282,7 @@ export const buildTimelineGridLayout = (
     });
   });
 
-  positionedDeadlines.forEach((segment) => {
+  positionedMarkers.forEach((segment) => {
     const lane = segment.lane || 0;
     const laneCount = segment.laneCount || 1;
     const laneWidth = 100 / laneCount;
@@ -276,6 +298,7 @@ export const buildTimelineGridLayout = (
       time: segment.effectiveTime,
       formattedTime: formatTime(segment.start),
       zIndex: 20 + lane,
+      kind: segment.markerKind || "deadline",
     });
   });
 

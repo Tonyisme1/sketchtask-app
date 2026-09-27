@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { App as CapacitorApp } from "@capacitor/app";
-import { MobileEventSubTab, NavigationTarget, TabKey, TaskSubTab } from "./types";
+import { NavigationTarget, TabKey } from "./types";
 import { AppProvider, useAppStore } from "./stores";
 import { useResponsiveLayout } from "./hooks";
 
@@ -33,26 +33,31 @@ interface MainAppContentProps {
 
 interface AppLocation {
   tab: TabKey;
-  taskSubTab: TaskSubTab;
 }
 
 const getLocationKey = (location: AppLocation) =>
-  `${location.tab}:${location.taskSubTab}`;
+  location.tab;
 
-const getLocationTab = (location: AppLocation): TabKey =>
-  location.tab === "tasks"
-    ? location.taskSubTab === "all"
-      ? "tasks"
-      : location.taskSubTab
-    : location.tab;
+// Legacy tabs may still arrive from old links or callbacks. They are aliases,
+// never destinations in the application navigation state.
+const normalizeWorkspaceTab = (tab: TabKey | string): TabKey => {
+  if (tab === "today" || tab === "planner" || tab === "deadlines") return "tasks";
+  return tab as TabKey;
+};
+
+const getInitialWorkspaceTab = (): TabKey => {
+  if (typeof window === "undefined") return "tasks";
+  const requestedTab = new URLSearchParams(window.location.search).get("tab");
+  const normalizedTab = normalizeWorkspaceTab(requestedTab || "tasks");
+  return ["tasks", "events", "notes", "journal", "ai", "settings"].includes(normalizedTab)
+    ? normalizedTab
+    : "tasks";
+};
 
 function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
-  const [activeTab, setActiveTab] = useState<TabKey>("tasks");
-  const [activeMobileEventSubTab, setActiveMobileEventSubTab] = useState<MobileEventSubTab>("calendar");
+  const [activeTab, setActiveTab] = useState<TabKey>(getInitialWorkspaceTab);
   const [navigationTarget, setNavigationTarget] = useState<NavigationTarget | undefined>();
   const {
-    activeTaskSubTab,
-    setActiveTaskSubTab,
     activeDetailTaskId,
     closeTaskDetail,
     setIsMobileNoteDetailOpen,
@@ -61,12 +66,23 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     isJournalBookOpen,
     setSettingsMobileSubView,
     settingsMobileSubView,
+    openQuickTaskModal,
   } = useAppStore();
   const { isDesktop, isTablet } = useResponsiveLayout();
 
   const [previousTab, setPreviousTab] = useState<TabKey>("tasks");
   const [desktopPlannerSurface, setDesktopPlannerSurface] = useState<DesktopPlannerSurface>("calendar");
   const appNavigationStackRef = useRef<AppLocation[]>([]);
+  const handledPwaQuickCreateRef = useRef(false);
+
+  // PWA shortcut is an explicit create intent, never a hidden Today route.
+  useEffect(() => {
+    if (handledPwaQuickCreateRef.current) return;
+    if (new URLSearchParams(window.location.search).get("create") !== "1") return;
+    handledPwaQuickCreateRef.current = true;
+    openQuickTaskModal({ itemType: "task" });
+    window.history.replaceState(window.history.state, "", window.location.pathname);
+  }, [openQuickTaskModal]);
 
   const handleDesktopPlannerSurfaceChange = useCallback((surface: DesktopPlannerSurface) => {
     setDesktopPlannerSurface(surface);
@@ -75,40 +91,8 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
   const handleTabChange = useCallback((tab: TabKey | string, target?: NavigationTarget) => {
     const currentLocation: AppLocation = {
       tab: activeTab,
-      taskSubTab: activeTaskSubTab,
     };
-    let nextLocation: AppLocation;
-
-    // Sự kiện là workspace độc lập trên cả ba nền tảng.
-    if (tab === "events") {
-      nextLocation = { tab: "events", taskSubTab: activeTaskSubTab };
-    } else if (tab === "planner" && isDesktop) {
-      // Điều hướng desktop cũ vẫn gọi planner; chuẩn hóa về Sự kiện.
-      nextLocation = { tab: "events", taskSubTab: activeTaskSubTab };
-    } else if (tab === "today" || tab === "planner" || tab === "deadlines") {
-      nextLocation = {
-        tab: "tasks",
-        taskSubTab:
-          tab === "deadlines"
-            ? isDesktop
-              ? "all"
-              : "planner"
-            : tab === "today"
-            ? isDesktop
-              ? "all"
-              : isTablet
-                ? "today"
-                : "planner"
-            : tab,
-      };
-    } else if (tab === "tasks") {
-      nextLocation = {
-        tab: "tasks",
-        taskSubTab: isDesktop ? "all" : "planner",
-      };
-    } else {
-      nextLocation = { tab: tab as TabKey, taskSubTab: activeTaskSubTab };
-    }
+    const nextLocation: AppLocation = { tab: normalizeWorkspaceTab(tab) };
 
     // Mỗi workspace/sub-tab là một entry trong stack để Back luôn quay về
     // đúng nơi người dùng vừa đứng, không chỉ quay về một tab cố định.
@@ -118,7 +102,7 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
       if (!lastLocation || getLocationKey(lastLocation) !== getLocationKey(currentLocation)) {
         stack.push(currentLocation);
       }
-      setPreviousTab(getLocationTab(currentLocation));
+      setPreviousTab(currentLocation.tab);
     }
 
     // Đóng panel task detail & các mục con khi chuyển tab hoặc chuyển không gian
@@ -133,56 +117,8 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     }
 
     setNavigationTarget(target);
-    setActiveTaskSubTab(nextLocation.taskSubTab);
     setActiveTab(nextLocation.tab);
-  }, [activeTab, activeTaskSubTab, closeTaskDetail, isDesktop, isTablet, setActiveTaskSubTab, setIsJournalBookOpen, setIsMobileNoteDetailOpen, setSettingsMobileSubView]);
-
-  // Retired task destinations never remain visible after a shell change.
-  useEffect(() => {
-    if (
-      activeTab === "tasks" &&
-      (activeTaskSubTab === "deadlines" ||
-        (isDesktop &&
-          (activeTaskSubTab === "today" || activeTaskSubTab === "planner")))
-    ) {
-      setActiveTaskSubTab(isDesktop ? "all" : "planner");
-    }
-  }, [isDesktop, activeTab, activeTaskSubTab, setActiveTaskSubTab]);
-
-  useEffect(() => {
-    if (activeTab !== "deadlines") return;
-    setActiveTaskSubTab(isDesktop ? "all" : "planner");
-    setActiveTab("tasks");
-  }, [activeTab, isDesktop, setActiveTaskSubTab]);
-
-  // Desktop mở danh sách tổng; Mobile mở Công việc ở lịch Ngày, Tablet giữ lối tắt Hôm nay riêng.
-  const handleDesktopTaskSubTabChange = useCallback((subTab: TaskSubTab) => {
-    const currentLocation: AppLocation = {
-      tab: activeTab,
-      taskSubTab: activeTaskSubTab,
-    };
-    const nextLocation: AppLocation = {
-      tab: "tasks",
-      taskSubTab: subTab === "deadlines" ? "all" : subTab,
-    };
-
-    if (getLocationKey(currentLocation) !== getLocationKey(nextLocation)) {
-      const stack = appNavigationStackRef.current;
-      const lastLocation = stack[stack.length - 1];
-      if (!lastLocation || getLocationKey(lastLocation) !== getLocationKey(currentLocation)) {
-        stack.push(currentLocation);
-      }
-      setPreviousTab(getLocationTab(currentLocation));
-    }
-
-    closeTaskDetail();
-    setIsMobileNoteDetailOpen(false);
-    setIsJournalBookOpen(false);
-    setSettingsMobileSubView(null);
-    setNavigationTarget(undefined);
-    setActiveTaskSubTab(subTab);
-    setActiveTab("tasks");
-  }, [activeTab, activeTaskSubTab, closeTaskDetail, setActiveTaskSubTab, setIsJournalBookOpen, setIsMobileNoteDetailOpen, setSettingsMobileSubView]);
+  }, [activeTab, closeTaskDetail, setIsJournalBookOpen, setIsMobileNoteDetailOpen, setSettingsMobileSubView]);
 
   const handleClearNavigationTarget = () => {
     setNavigationTarget(undefined);
@@ -209,22 +145,13 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     if (previousLocation) {
       closeTaskDetail();
       setNavigationTarget(undefined);
-      setActiveTaskSubTab(previousLocation.taskSubTab);
       setActiveTab(previousLocation.tab);
-      setPreviousTab(getLocationTab(previousLocation));
-      return true;
-    }
-
-    const defaultTaskSubTab = isDesktop ? "all" : "planner";
-    if (activeTab === "tasks" && activeTaskSubTab !== defaultTaskSubTab) {
-      setNavigationTarget(undefined);
-      setActiveTaskSubTab(defaultTaskSubTab);
+      setPreviousTab(previousLocation.tab);
       return true;
     }
 
     if (activeTab !== "tasks") {
       setNavigationTarget(undefined);
-      setActiveTaskSubTab(defaultTaskSubTab);
       setActiveTab("tasks");
       return true;
     }
@@ -232,14 +159,11 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
     return false;
   }, [
     activeTab,
-    activeTaskSubTab,
     activeDetailTaskId,
     closeTaskDetail,
-    isDesktop,
     isJournalBookOpen,
     isMobileNoteDetailOpen,
     setActiveTab,
-    setActiveTaskSubTab,
     setIsJournalBookOpen,
     setIsMobileNoteDetailOpen,
     setSettingsMobileSubView,
@@ -261,7 +185,6 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
         previousTab={previousTab}
         desktopPlannerSurface={desktopPlannerSurface}
         onDesktopPlannerSurfaceChange={handleDesktopPlannerSurfaceChange}
-        onDesktopTaskSubTabChange={handleDesktopTaskSubTabChange}
       >
         <DesktopWorkspace
           activeTab={activeTab}
@@ -304,8 +227,6 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
       onTabChange={handleTabChange}
       onNavigateRoute={onNavigateRoute}
       previousTab={previousTab}
-      activeEventSubTab={activeMobileEventSubTab}
-      onEventSubTabChange={setActiveMobileEventSubTab}
     >
       <MobileWorkspace
         activeTab={activeTab}
@@ -314,8 +235,6 @@ function MainAppContent({ onNavigateRoute }: MainAppContentProps) {
         onNavigateTab={handleTabChange}
         onNavigateRoute={onNavigateRoute}
         previousTab={previousTab}
-        activeEventSubTab={activeMobileEventSubTab}
-        onEventSubTabChange={setActiveMobileEventSubTab}
       />
     </MobileShell>
   );

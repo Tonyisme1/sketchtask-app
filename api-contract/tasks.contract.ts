@@ -5,53 +5,67 @@
 export type TaskTag = "Công việc" | "Cá nhân" | "Ý tưởng" | "Học tập" | string;
 export type TaskPriority = "low" | "medium" | "high";
 export type TaskStatus = "todo" | "in_progress" | "completed" | "archived";
-export type TaskTimeType = "scheduled" | "deadline" | "task";
+export type TaskItemType = "task" | "event";
+export type TaskTimeType = "scheduled" | "deadline" | "event" | "task";
 
 export interface TaskDto {
   id: string;
   title: string;
-  description?: string | null;
+  description?: string;
   completed: boolean;
-  dueDate?: string | null; // Legacy field (ISO date string or HH:mm)
+  dueDate?: string; // Legacy field (ISO date string or HH:mm)
+  startDate?: string;
+  endDate?: string;
+  itemType?: TaskItemType;
   timeType?: TaskTimeType;
-  startTime?: string | null;
-  endTime?: string | null;
-  deadlineDate?: string | null;
-  deadlineTime?: string | null;
-  tag?: TaskTag | null;
-  priority?: TaskPriority | null;
+  startTime?: string;
+  endTime?: string;
+  deadlineDate?: string;
+  deadlineTime?: string;
+  tag?: TaskTag;
+  /** Legacy import field. New writes must use the scalar `tag`. */
+  tags?: TaskTag[];
+  priority?: TaskPriority;
   status: TaskStatus;
-  parentTaskId?: string | null;
+  parentTaskId?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateTaskRequest {
   title: string;
-  description?: string | null;
-  dueDate?: string | null; // Legacy field support
+  description?: string;
+  dueDate?: string; // Legacy field support
+  startDate?: string;
+  endDate?: string;
+  itemType?: TaskItemType;
   timeType?: TaskTimeType;
-  startTime?: string | null;
-  endTime?: string | null;
-  deadlineDate?: string | null;
-  deadlineTime?: string | null;
-  tag?: TaskTag | null;
-  priority?: TaskPriority | null;
-  parentTaskId?: string | null;
+  startTime?: string;
+  endTime?: string;
+  deadlineDate?: string;
+  deadlineTime?: string;
+  tag?: TaskTag;
+  tags?: TaskTag[];
+  priority?: TaskPriority;
+  parentTaskId?: string;
 }
 
 export interface UpdateTaskRequest {
   title?: string;
-  description?: string | null;
+  description?: string;
   completed?: boolean;
-  dueDate?: string | null; // Legacy field support
+  dueDate?: string; // Legacy field support
+  startDate?: string;
+  endDate?: string;
+  itemType?: TaskItemType;
   timeType?: TaskTimeType;
-  startTime?: string | null;
-  endTime?: string | null;
-  deadlineDate?: string | null;
-  deadlineTime?: string | null;
-  tag?: TaskTag | null;
-  priority?: TaskPriority | null;
+  startTime?: string;
+  endTime?: string;
+  deadlineDate?: string;
+  deadlineTime?: string;
+  tag?: TaskTag;
+  tags?: TaskTag[];
+  priority?: TaskPriority;
   status?: TaskStatus;
-  parentTaskId?: string | null;
+  parentTaskId?: string;
 }

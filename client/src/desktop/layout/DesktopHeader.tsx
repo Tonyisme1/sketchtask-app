@@ -1,13 +1,12 @@
 import React from "react";
 import { CalendarDays, CheckSquare, Menu, Sparkles } from "lucide-react";
-import { NavigationTarget, TabKey, TaskSubTab } from "../../types";
+import { NavigationTarget, TabKey } from "../../types";
 import { useAppStore } from "../../stores";
 import { BrandLogo } from "../../components/ui";
 import { AccountMenu } from "../../components/layout/AccountMenu";
 
 export interface DesktopHeaderProps {
   activeTab: TabKey;
-  activeTaskSubTab: TaskSubTab;
   onTabChange: (tab: TabKey, target?: NavigationTarget) => void;
   onNavigateRoute?: (path: string) => void;
   onOpenSettings?: () => void;

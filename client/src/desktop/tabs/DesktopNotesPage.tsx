@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Search, X, AlertTriangle } from "lucide-react";
+import { FileText, Search, X, AlertTriangle } from "lucide-react";
 import { NoteItem } from "../../components/shared/notes/NoteTypes";
 import { NoteMasterDetailView } from "../../components/shared/notes/NoteMasterDetailView";
 import { NavigationTarget, TabKey } from "../../types";
@@ -33,9 +33,18 @@ export const DesktopNotesPage: React.FC<DesktopNotesPageProps> = ({
     : model.filteredNotes;
 
   return (
-    <div className="w-full min-w-0 select-none space-y-3.5 pb-12 animate-in fade-in duration-150">
-      <div className="flex items-center gap-2.5 pb-2">
-        <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-2xl bg-white dark:bg-[#1C1C20] px-3.5 py-1.5 shadow-xs">
+    <div className="w-full min-w-0 select-none space-y-4 pb-8 animate-in fade-in duration-150">
+      <header className="flex flex-wrap items-center justify-between gap-3 px-1">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-blue)]/10 text-[var(--accent-blue)]">
+            <FileText size={17} strokeWidth={2.3} />
+          </span>
+          <div>
+            <h1 className="text-lg font-extrabold tracking-tight text-[var(--text-main)]">Ghi chú</h1>
+            <p className="text-xs text-[var(--text-muted)]">{displayNotes.length} trang ghi chú</p>
+          </div>
+        </div>
+        <div className="flex min-w-[min(100%,320px)] flex-1 items-center gap-2.5 rounded-xl bg-[var(--bg-surface-muted)] px-3.5 py-1.5 sm:max-w-sm">
           <Search size={14} strokeWidth={2.4} className="shrink-0 text-[#78716C] dark:text-[#A1A1AA]" />
           <input
             type="text"
@@ -55,10 +64,10 @@ export const DesktopNotesPage: React.FC<DesktopNotesPageProps> = ({
             </button>
           )}
         </div>
-      </div>
+      </header>
 
       {model.needsReviewCount > 0 && (
-        <div className="flex items-center justify-between gap-3 rounded-2xl bg-[#FAF8F3] dark:bg-[#202023] px-3.5 py-2.5 text-xs shadow-xs">
+        <div className="flex items-center justify-between gap-3 rounded-xl bg-[var(--bg-surface-muted)] px-3.5 py-2.5 text-xs">
           <div className="flex min-w-0 items-start gap-2 text-[#57534E] dark:text-[#A1A1AA]">
             <AlertTriangle size={15} className="mt-0.5 shrink-0 text-[#9F1239]" strokeWidth={2.2} />
             <p className="leading-relaxed">
@@ -68,7 +77,7 @@ export const DesktopNotesPage: React.FC<DesktopNotesPageProps> = ({
           <button
             type="button"
             onClick={() => setShowNeedsReviewOnly((current) => !current)}
-            className="shrink-0 rounded-xl bg-white dark:bg-[#2C2C2E] px-3 py-1.5 text-[11px] font-semibold text-[#1C1917] dark:text-white active:scale-95 shadow-xs transition-all cursor-pointer"
+            className="shrink-0 rounded-xl bg-[var(--bg-surface)] px-3 py-1.5 text-[11px] font-semibold text-[#1C1917] dark:text-white active:scale-95 transition-all cursor-pointer"
           >
             {showNeedsReviewOnly ? "Hiện tất cả" : "Xem note cần dọn"}
           </button>

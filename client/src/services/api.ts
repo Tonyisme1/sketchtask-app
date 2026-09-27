@@ -2,6 +2,9 @@
 // CLIENT API SERVICE (Hỗ trợ Vite Proxy, Localhost & Cloud Deployment)
 // ==========================================
 
+import type { AIQueryResult } from "./aiAgentService";
+import type { SyncPayload } from "../../../api-contract/index.js";
+
 const getApiBaseUrl = () => {
   // Dev luôn đi qua Vite Proxy để không vô tình gọi nhầm backend production.
   if (import.meta.env.DEV) return "/api/v1";
@@ -86,10 +89,10 @@ async function request<T>(
 
     const json = await res.json();
     return json;
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       success: false,
-      message: error.message || "Không thể kết nối tới máy chủ backend.",
+      message: error instanceof Error ? error.message : "Không thể kết nối tới máy chủ backend.",
     };
   }
 }
@@ -128,13 +131,23 @@ export const api = {
   },
 
   sync: {
-    pull: () => request<any>("/sync/pull"),
+    pull: () => request<SyncPayload>("/sync/pull"),
 
-    push: (payload: any) =>
-      request<any>("/sync/push", {
+    push: (payload: SyncPayload) =>
+      request<void>("/sync/push", {
         method: "POST",
         body: JSON.stringify(payload),
       }),
+  },
+
+  ai: {
+    chat: (data: {
+      query: string;
+      history: Array<{ sender: "ai" | "user"; text: string }>;
+    }) => request<AIQueryResult>("/ai/chat", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   },
 
 };

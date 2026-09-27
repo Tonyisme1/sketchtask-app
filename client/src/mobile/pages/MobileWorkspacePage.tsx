@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
-import { MobileEventSubTab, TabKey, NavigationTarget } from "../../types";
+import { TabKey, NavigationTarget } from "../../types";
 import { MobileTasksPage } from "./MobileTasksPage";
-import { MobileTodayView } from "../tabs/MobileTodayView";
 import { MobileNotesPage } from "../tabs/MobileNotesPage";
 import { MobileJournalPage } from "../tabs/MobileJournalPage";
 import { MobileAIAssistantPage } from "../tabs/MobileAIAssistantPage";
@@ -18,8 +17,6 @@ export interface MobileWorkspaceProps {
   onNavigateTab: (tab: TabKey | string, target?: NavigationTarget) => void;
   onNavigateRoute: (path: string) => void;
   previousTab?: TabKey;
-  activeEventSubTab: MobileEventSubTab;
-  onEventSubTabChange: (subTab: MobileEventSubTab) => void;
 }
 
 export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
@@ -29,14 +26,10 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
   onNavigateTab,
   onNavigateRoute,
   previousTab,
-  activeEventSubTab,
-  onEventSubTabChange,
 }) => {
   const {
     activeDetailTaskId,
     closeTaskDetail,
-    activeTaskSubTab,
-    setActiveTaskSubTab,
     tasks,
     isMobileNoteDetailOpen,
     isJournalBookOpen,
@@ -55,10 +48,8 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
       return;
     }
 
-    const taskDate = navigationTarget.date || getTaskEffectiveDate(task);
-    setActiveTaskSubTab("planner");
     onClearNavigationTarget?.();
-  }, [navigationTarget, tasks, setActiveTaskSubTab, onClearNavigationTarget]);
+  }, [navigationTarget, tasks, onClearNavigationTarget]);
 
   // Nếu đang mở trang chi tiết task thì hiển thị panel chi tiết
   if (activeDetailTaskId) {
@@ -73,13 +64,7 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
   }
 
   const renderActiveView = () => {
-    // 1. Hôm nay vẫn là điểm đến độc lập nếu app mở từ một route cũ.
-    if (activeTab === "today") {
-      return <MobileTodayView />;
-    }
-
-    // 2. Công việc (Danh sách, lịch công việc và hạn định)
-    if (activeTab === "tasks" || activeTab === "planner" || activeTab === "deadlines") {
+    if (activeTab === "tasks") {
       return (
         <MobileTasksPage
           navigationTarget={navigationTarget}
@@ -92,8 +77,6 @@ export const MobileWorkspace: React.FC<MobileWorkspaceProps> = ({
     if (activeTab === "events") {
       return (
         <MobileEventsPage
-          activeSubTab={activeEventSubTab}
-          onSubTabChange={onEventSubTabChange}
           navigationTarget={navigationTarget}
           onClearNavigationTarget={onClearNavigationTarget}
         />

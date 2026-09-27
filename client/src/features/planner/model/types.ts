@@ -58,7 +58,6 @@ export interface PlannerScreenModel {
   // View state
   viewMode: PlannerViewMode;
   searchQuery: string;
-  isOverdueBackVisible: boolean;
 
   // Helpers
   getTasksForDate: (dateStr: string) => TaskDto[];

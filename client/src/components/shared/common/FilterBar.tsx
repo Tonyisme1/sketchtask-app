@@ -6,8 +6,6 @@ import {
   ChevronDown,
   ChevronUp,
   X,
-  Clock,
-  Hourglass,
   Search,
 } from "lucide-react";
 
@@ -20,8 +18,6 @@ export interface FilterBarProps {
   onSearchChange?: (query: string) => void;
   statusFilter: "all" | "active" | "completed";
   onStatusChange: (status: "all" | "active" | "completed") => void;
-  timeTypeFilter?: "all" | "scheduled" | "deadline";
-  onTimeTypeChange?: (timeType: "all" | "scheduled" | "deadline") => void;
   priorityFilter: "all" | "high" | "medium" | "low";
   onPriorityChange: (priority: "all" | "high" | "medium" | "low") => void;
   tagFilter: string;
@@ -38,8 +34,6 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   onSearchChange,
   statusFilter,
   onStatusChange,
-  timeTypeFilter = "all",
-  onTimeTypeChange,
   priorityFilter,
   onPriorityChange,
   tagFilter,
@@ -169,39 +163,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       {/* Tầng 2: Bộ Lọc Nâng Cao (Drawer Mở Rộng) */}
       {isDrawerOpen && (
         <div className="p-4 bg-white dark:bg-[#1C1C1E] rounded-3xl shadow-xs space-y-3.5 animate-in slide-in-from-top-1 duration-150 text-xs">
-          {/* 1. Loại Thời Gian */}
-          {onTimeTypeChange && (
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <span className="text-xs font-semibold text-[#8E8E93] dark:text-[#A1A1A6] w-16 shrink-0">Thời gian:</span>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {[
-                  { key: "all", label: "Tất cả" },
-                  { key: "scheduled", label: "Lịch hẹn", icon: Clock },
-                  { key: "deadline", label: "Hạn chót", icon: Hourglass },
-                ].map((t) => {
-                  const isSelected = timeTypeFilter === t.key;
-                  const Icon = t.icon;
-                  return (
-                    <button
-                      key={t.key}
-                      type="button"
-                      onClick={() => onTimeTypeChange(t.key as any)}
-                      className={`h-8 px-3 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
-                        isSelected
-                          ? "bg-[#007AFF] text-white shadow-2xs"
-                          : "bg-black/[0.04] dark:bg-white/[0.06] text-[#8E8E93] dark:text-[#A1A1A6] hover:text-[#1C1C1E] dark:hover:text-[#F2F2F7]"
-                      }`}
-                    >
-                      {Icon && <Icon size={12} strokeWidth={2.2} />}
-                      <span>{t.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* 2. Mức Độ Ưu Tiên */}
+          {/* 1. Mức Độ Ưu Tiên */}
           <div className="flex items-center gap-2.5 flex-wrap">
             <span className="text-xs font-semibold text-[#8E8E93] dark:text-[#A1A1A6] w-16 shrink-0">Ưu tiên:</span>
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -231,7 +193,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             </div>
           </div>
 
-          {/* 3. Nhãn (#Tag) (Custom Dropdown) */}
+          {/* 2. Nhãn (#Tag) (Custom Dropdown) */}
           <div className="flex items-center gap-2.5 flex-wrap">
             <span className="text-xs font-semibold text-[#8E8E93] dark:text-[#A1A1A6] w-16 shrink-0">Nhãn:</span>
             <div className="min-w-[180px] flex-1 max-w-xs">

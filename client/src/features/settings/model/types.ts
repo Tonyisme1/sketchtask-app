@@ -27,7 +27,6 @@ export type SettingsScreenModel = Pick<
   | "setPaperStyle"
   | "pinCode"
   | "setPinCode"
-  | "loadSampleData"
   | "tasks"
   | "stickyNotes"
   | "journalEntries"

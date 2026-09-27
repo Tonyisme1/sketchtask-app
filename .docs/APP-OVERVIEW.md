@@ -4,15 +4,15 @@ Tài liệu tổng quan sản phẩm cho My_Task_App. Nội dung phải mô tả
 
 ## Mục đích
 
-SketchTask là app cá nhân để quản lý task, lịch hẹn, deadline, ghi chú và nhật ký. App ưu tiên xử lý công việc hôm nay, lập kế hoạch theo thời gian và ghi lại nội dung theo ngữ cảnh.
+SketchTask là app cá nhân để quản lý công việc, sự kiện, ghi chú và nhật ký. App tách rõ Task có checkbox/hạn tùy chọn với Event có thời gian, đồng thời giữ ghi chép theo ngữ cảnh.
 
 ## Phạm vi đang hoạt động
 
-1. **Task workspace:** Hôm nay, Kế hoạch và Hạn định.
-2. **Ghi chép:** Ghi chú và Nhật ký.
-3. **AI:** trợ lý AI theo platform.
-4. **Thông báo:** notification drawer/page và trạng thái permission.
-5. **Cài đặt:** tài khoản, giao diện, typography, thông báo, dữ liệu, bảo mật, shortcut và giới thiệu.
+1. **Công việc:** backlog, tag đơn, checkbox và hạn tùy chọn.
+2. **Sự kiện:** lịch ngày/tuần/tháng; Event một mốc hoặc có khoảng thời gian.
+3. **Ghi chép:** Ghi chú và Nhật ký.
+4. **AI:** trợ lý đề xuất theo platform, mọi mục mặc định chưa chọn.
+5. **Cài đặt:** tài khoản, giao diện, thông báo, dữ liệu, bảo mật, shortcut và giới thiệu.
 
 Notebook chỉ là dữ liệu phân loại trong task/note/journal. `Dashboard`, `Review/Tổng kết` và workspace `Sổ tay` riêng không phải navigation hiện hành.
 
@@ -20,18 +20,18 @@ Notebook chỉ là dữ liệu phân loại trong task/note/journal. `Dashboard`
 
 - Hành vi và dữ liệu ổn định trước thay đổi visual.
 - Desktop, tablet và mobile dùng chung semantics/token nhưng được phép có composition khác nhau.
-- Back từ child detail phải đóng child trước, pop stack sau và cuối cùng quay về `Hôm nay`.
+- Back từ child detail phải đóng child trước, pop stack sau và cuối cùng quay về `Công việc`.
 - Dữ liệu local cập nhật nhanh; sync lỗi phải báo trạng thái/retry, không âm thầm xóa dữ liệu.
 - Dữ liệu theo user phải được bảo vệ ở backend bằng JWT/user context, không tin `userId` từ client.
 - Mọi thay đổi feature phải cập nhật source, contract liên quan và tài liệu trong cùng một change.
 
 ## Mô hình thời gian
 
-- `scheduled`: lịch thực hiện/cuộc hẹn, có ngày và có thể có giờ.
-- `deadline`: hạn chót, có ngày và có thể có giờ.
+- `event`: sự kiện có giờ bắt đầu và giờ kết thúc tùy chọn; nếu chỉ có giờ bắt đầu, lịch hiển thị marker.
+- `deadline`: hạn chót tùy chọn của Task, có ngày và có thể có giờ.
 - `dueDate`: trường tương thích ngược với dữ liệu cũ.
 - `DatePickerPopover` và `TimePickerPopover` là picker custom dùng trong create/edit flow.
-- Scheduled không tự biến thành deadline overdue; trạng thái thời gian phải lấy từ logic task chung.
+- `scheduled` cũ không tự đổi type; người dùng phải phân loại lại khi sửa. Trạng thái thời gian luôn lấy từ logic Task chung.
 
 ## Kiến trúc chính
 

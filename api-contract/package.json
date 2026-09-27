@@ -1,0 +1,16 @@
+{
+  "name": "@sketchtask/api-contract",
+  "private": true,
+  "version": "1.6.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../node_modules/typescript/bin/tsc -p tsconfig.json",
+    "typecheck": "node ../node_modules/typescript/bin/tsc -p tsconfig.json --noEmit"
+  }
+}

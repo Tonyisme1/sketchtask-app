@@ -24,7 +24,7 @@
 
 ## 4. Điều hướng và back
 
-- Back là một contract của toàn app: đóng child surface trước, pop navigation stack sau, cuối cùng mới quay về `Hôm nay`.
+- Back là một contract của toàn app: đóng child surface trước, pop navigation stack sau, cuối cùng mới quay về `Công việc`.
 - Nút back trong header, browser back và native back phải gọi cùng semantics.
 - Back button trên mobile/tablet phải có vùng chạm dễ bấm, nhãn accessible và không bị đẩy lên vùng status bar.
 - Không dùng `history.back()` rải rác trong feature nếu có thể đăng ký handler chung của app.

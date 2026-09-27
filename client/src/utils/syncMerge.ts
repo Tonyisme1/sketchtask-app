@@ -1,4 +1,4 @@
-import { TaskDto, HabitDto, JournalEntryDto, DeletedEntityIds } from "../types";
+import { TaskDto, HabitDto, JournalEntryDto, DeletedEntityIds, SyncPayload } from "../types";
 import { StickyNoteItem } from "../stores/appStore";
 import { calculateConsecutiveStreak } from "./habitSemantics";
 import { normalizeTaskTagFields } from "./taskSemantics";
@@ -11,12 +11,107 @@ export interface RawSyncData {
   tasks: TaskDto[];
   stickyNotes: StickyNoteItem[];
   habits: HabitDto[];
-  journalEntries?: JournalEntryDto[];
+  journalEntries: JournalEntryDto[];
   dailyMoods: Record<string, string>;
   weeklyReflection: string;
   tags: string[];
   deleted?: Partial<DeletedEntityIds>;
 }
+
+const fallbackTimestamp = "1970-01-01T00:00:00.000Z";
+
+const normalizeTaskStatus = (status: unknown, completed: boolean): TaskDto["status"] =>
+  status === "in_progress" || status === "completed" || status === "archived" || status === "todo"
+    ? status
+    : completed
+      ? "completed"
+      : "todo";
+
+const normalizeTaskPriority = (priority: unknown): TaskDto["priority"] =>
+  priority === "high" || priority === "low" ? priority : "medium";
+
+const normalizeTaskTimeType = (timeType: unknown): TaskDto["timeType"] =>
+  timeType === "scheduled" || timeType === "deadline" || timeType === "event" || timeType === "task"
+    ? timeType
+    : undefined;
+
+const normalizeNoteColor = (color: string): StickyNoteItem["color"] => {
+  const validColors: StickyNoteItem["color"][] = [
+    "yellow", "coral", "mint", "sky", "lavender", "peach", "lime", "pink", "cyan", "stone",
+  ];
+  return validColors.includes(color as StickyNoteItem["color"])
+    ? color as StickyNoteItem["color"]
+    : "sky";
+};
+
+/** Convert a permissive transport response into the non-null state consumed by the UI. */
+export const normalizeSyncPayloadForMerge = (payload: SyncPayload): RawSyncData => ({
+  tasks: payload.tasks.map((task): TaskDto => {
+    const completed = Boolean(task.completed);
+    return normalizeTaskTagFields({
+      id: task.id,
+      title: task.title,
+      description: task.description ?? undefined,
+      completed,
+      dueDate: task.dueDate ?? undefined,
+      startDate: task.startDate ?? undefined,
+      endDate: task.endDate ?? undefined,
+      itemType: task.itemType === "event" ? "event" : "task",
+      timeType: normalizeTaskTimeType(task.timeType),
+      startTime: task.startTime ?? undefined,
+      endTime: task.endTime ?? undefined,
+      deadlineDate: task.deadlineDate ?? undefined,
+      deadlineTime: task.deadlineTime ?? undefined,
+      tag: task.tag ?? task.tags?.[0] ?? undefined,
+      tags: task.tags?.filter((tag): tag is string => typeof tag === "string"),
+      priority: normalizeTaskPriority(task.priority),
+      status: normalizeTaskStatus(task.status, completed),
+      parentTaskId: task.parentTaskId ?? undefined,
+      createdAt: task.createdAt || fallbackTimestamp,
+      updatedAt: task.updatedAt || task.createdAt || fallbackTimestamp,
+    });
+  }),
+  stickyNotes: payload.stickyNotes.map((note): StickyNoteItem => ({
+    id: note.id,
+    title: note.title,
+    content: note.content,
+    color: normalizeNoteColor(note.color),
+    tilt: note.tilt === "left" || note.tilt === "right" ? note.tilt : "none",
+    isPinned: Boolean(note.isPinned),
+    createdAt: note.createdAt || fallbackTimestamp,
+    updatedAt: note.updatedAt || note.createdAt || fallbackTimestamp,
+  })),
+  habits: payload.habits.map((habit): HabitDto => ({
+    id: habit.id,
+    name: habit.name,
+    frequency: habit.frequency === "weekly" ? "weekly" : "daily",
+    targetDaysPerWeek: habit.targetDaysPerWeek ?? undefined,
+    completedDates: habit.completedDates,
+    streak: habit.streak ?? calculateConsecutiveStreak(habit.completedDates),
+    createdAt: habit.createdAt || fallbackTimestamp,
+    updatedAt: habit.updatedAt || habit.createdAt || fallbackTimestamp,
+  })),
+  journalEntries: (payload.journalEntries || []).map((entry): JournalEntryDto => ({
+    id: entry.id,
+    date: entry.date,
+    time: entry.time || "00:00",
+    content: entry.content,
+    linkedTaskId: entry.linkedTaskId ?? undefined,
+    createdAt: entry.createdAt || fallbackTimestamp,
+    updatedAt: entry.updatedAt || entry.createdAt || fallbackTimestamp,
+  })),
+  dailyMoods: Object.fromEntries(
+    Object.entries(payload.dailyMoods).flatMap(([date, mood]) => {
+      const moodEmoji = typeof mood === "string" ? mood : mood.moodEmoji;
+      return moodEmoji ? [[date, moodEmoji]] : [];
+    }),
+  ),
+  weeklyReflection: typeof payload.weeklyReflection === "string"
+    ? payload.weeklyReflection
+    : payload.weeklyReflection.text,
+  tags: payload.tags,
+  deleted: payload.deleted,
+});
 
 const mergeDeletedEntityIds = (
   local: Partial<DeletedEntityIds> = {},

@@ -10,16 +10,22 @@ Tài liệu này mô tả feature đang có trong runtime. Ý tưởng chưa đ�
   Không còn destination `Hôm nay` hoặc planner riêng cho task.
 - Nội dung `Công việc` trên Desktop nhóm theo tag/danh sách. Dải tag đa chọn trong
   workspace cho phép lọc trực tiếp; mỗi task thuộc tối đa một tag và task không tag
-  thuộc nhóm `Chưa gắn tag`.
-- Lịch tuần/ngày/tháng trên Desktop là workspace `Sự kiện`; event có khoảng bắt đầu-kết thúc,
-  còn task chỉ có một điểm deadline.
+  thuộc nhóm `Chưa gắn tag`. Mỗi tag render thành một lane; các lane cuộn ngang, còn
+  task trong lane có mốc ngày và cuộn độc lập để danh sách lớn không trộn lẫn ngày.
+  Lane không có card nền bọc thêm quanh các task card.
+- Lịch tuần/ngày/tháng/năm trên Desktop nằm trong workspace `Sự kiện` nhưng là lịch
+  hoạt động chung: khi mở mặc định là `Tuần`, Event và Task dùng cùng grid. Task có checkbox, Event không có
+  checkbox; các mục trùng giờ được lane-pack cạnh nhau. Dòng hoạt động dùng cùng phạm
+  vi Ngày/Tuần/Tháng/Năm và sắp theo ngày, giờ. Ở luồng Event hoặc luồng gộp, tối đa
+  12 ngày có hoạt động được hiển thị mỗi trang để dữ liệu dài không thành endless scroll.
+  Card trong grid mở quick preview, còn card trong dòng hoạt động mở inspector phải.
 
-Ba mục trên dùng chung task store và được điều khiển bằng `activeTab = "tasks"` cùng `activeTaskSubTab`.
+Hai workspace dùng chung store nhưng được điều khiển bằng `activeTab = "tasks"` hoặc `activeTab = "events"`; không có `activeTaskSubTab`.
 
 ### Ghi chép
 
-- `Ghi chép`: một parent dùng tab con cho `Ghi chú` (index/list, note detail/editor,
-  notebook selector, delete) và `Nhật ký` (danh sách entry/ngày, `JournalBook`).
+- `Ghi chép`: một parent dùng tab con cho `Ghi chú` (index/list phẳng, note detail/editor
+  rộng, notebook selector, delete) và `Nhật ký` (chỉ mục ngày có preview, `JournalBook`).
 - Notebook là dữ liệu phân loại trong task/note/journal, không phải workspace top-level riêng.
 
 ### System areas
@@ -37,14 +43,14 @@ Không coi `Dashboard`, `Review/Tổng kết` hoặc màn hình `Sổ tay` riên
 App hỗ trợ:
 
 - Tạo, sửa, hoàn thành, xóa task.
-- Dời ngày và thay đổi scheduled/deadline.
+- Dời ngày và thay đổi hạn của Task hoặc thời gian Event.
 - Priority, tags, notebook, mô tả và quan hệ parent/child.
 - Task detail ở view/edit mode.
 - Lọc theo trạng thái và nhóm thời gian trong các context tương ứng.
 
 Quy tắc dữ liệu:
 
-- `scheduled` là thời điểm hẹn/lịch thực hiện; `deadline` là hạn chót. Hai field không thay thế nhau.
+- Task mới có `deadline` tùy chọn; Event mới có giờ bắt đầu và giờ kết thúc tùy chọn. `scheduled` chỉ là dữ liệu Task lịch cũ, không được tạo tự động và cần phân loại lại khi sửa.
 - `dueDate` có thể còn trong dữ liệu để tương thích, không tự dùng làm UI mới nếu field chuyên biệt đã có.
 - Task con dùng `parentTaskId`; UI phải thể hiện cấp thụt vào và có thể thu gọn theo component hiện tại.
 - Mỗi task chỉ có một `tag`. Mảng `tags` là dữ liệu legacy được thu về tag đầu tiên
@@ -63,7 +69,8 @@ Quy tắc dữ liệu:
 
 - Note tạo từ create sheet/action note, mở vào index/list rồi mới vào editor.
 - Editor autosave theo store hiện tại; action row không hiển thị status/control thừa nếu source không cần.
-- Journal tạo/mở entry theo ngày; book có date picker và chuyển ngày.
+- Journal tạo/mở entry theo ngày; index phân trang tối đa 12 ngày có ghi chép, book có
+  date picker và chuyển ngày.
 - Khi rời detail, back quay về index/list của feature trước khi quay về tab hoặc subtab cấp app.
 
 ## 5. Search, notification và auth
@@ -88,8 +95,9 @@ Quy tắc dữ liệu:
 - Desktop: sidebar trái, header đầy đủ, dialog/panel và multi-column khi cần.
 - Tablet: workspace trung tâm, dock dưới, contextual FAB và detail riêng.
 - Mobile: bottom dock gồm `Việc`, `Sự kiện`, nút `+`, `Ghi chép` và `Cá nhân`.
+  Cả `Việc` và `Sự kiện` mặc định mở lịch `Ngày`.
   `Ghi chép` gom Ghi chú/Nhật ký để không chồng với AI nổi. Settings là một trang
-  cuộn dài dùng khoảng cách phân nhịp, không phải chuỗi dashboard card hoặc divider.
+  section phẳng cuộn liên tục; không có dashboard card, detail riêng hay Back lồng nhau.
 - Cùng một feature có thể dùng khác composition, nhưng phải giữ cùng semantics, token, dữ liệu và back contract.
 
 ## 8. Versioning, PWA và update

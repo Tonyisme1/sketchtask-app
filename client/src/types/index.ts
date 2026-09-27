@@ -1,15 +1,26 @@
 // ==========================================
-// CLIENT TYPES (Self-contained & Đồng bộ api-contract)
+// CLIENT TYPES (Task/Event contract is shared with server)
 // ==========================================
 
-export type TaskTag = "Công việc" | "Cá nhân" | "Ý tưởng" | "Học tập" | string;
-export type TaskPriority = "low" | "medium" | "high";
-export type TaskStatus = "todo" | "in_progress" | "completed" | "archived";
-export type TaskItemType = "task" | "event";
-export type TaskTimeType = "scheduled" | "deadline" | "event" | "task";
-export type TaskSubTab = "all" | "today" | "planner" | "deadlines";
-export type MobileEventSubTab = "agenda" | "calendar";
+import type {
+  TaskTag,
+  TaskPriority,
+  TaskStatus,
+  TaskItemType,
+  TaskTimeType,
+  TaskDto,
+  SyncPayload,
+} from "../../../api-contract/index.js";
 
+export type {
+  TaskTag,
+  TaskPriority,
+  TaskStatus,
+  TaskItemType,
+  TaskTimeType,
+  TaskDto,
+  SyncPayload,
+};
 export interface TaskEditorInitialData {
   title?: string;
   description?: string;
@@ -27,30 +38,6 @@ export interface TaskEditorInitialData {
   tags?: string[];
   mode?: "view" | "edit";
   lockItemType?: boolean;
-}
-
-export interface TaskDto {
-  id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-  dueDate?: string;
-  startDate?: string;
-  endDate?: string;
-  itemType?: TaskItemType;
-  timeType?: TaskTimeType;
-  startTime?: string;
-  endTime?: string;
-  deadlineDate?: string;
-  deadlineTime?: string;
-  tag?: TaskTag;
-  /** Legacy import field. Runtime normalizes every task to the scalar `tag`. */
-  tags?: TaskTag[];
-  priority?: TaskPriority;
-  status: TaskStatus;
-  parentTaskId?: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface DeletedEntityIds {
@@ -74,9 +61,11 @@ export interface HabitDto {
 
 export interface StickyNoteDto {
   id: string;
+  title: string;
   content: string;
   color: string;
-  position: { x: number; y: number };
+  tilt: "left" | "right" | "none";
+  isPinned: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -100,9 +89,6 @@ export type TabKey =
   | "tasks"
   | "events"
   | "notes"
-  | "today"
-  | "planner"
-  | "deadlines"
   | "journal"
   | "ai"
   | "settings";
@@ -127,4 +113,5 @@ export type SettingsSectionKey =
   | "notifications"
   | "data"
   | "security"
-  | "shortcuts";
+  | "shortcuts"
+  | "about";

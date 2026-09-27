@@ -41,17 +41,10 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
 
   const renderMainTab = () => {
     switch (activeTab) {
-      case "today":
-        return (
-          <DesktopTasksPage
-            navigationTarget={navigationTarget}
-            onClearNavigationTarget={onClearNavigationTarget}
-          />
-        );
       case "events":
         return (
           <DesktopPlannerPage
-            workspaceKind="event"
+            workspaceKind="all"
             targetDateStr={navigationTarget?.date}
             targetTaskId={navigationTarget?.taskId}
             onClearTarget={onClearNavigationTarget}
@@ -152,6 +145,7 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
   }, []);
 
   const isPlannerView = activeTab === "events";
+  const usesWideWorkspace = activeTab === "tasks" || activeTab === "notes" || activeTab === "journal";
 
   return (
     <div className="relative w-full flex-1 flex min-h-0 overflow-hidden">
@@ -167,7 +161,9 @@ export const DesktopWorkspace: React.FC<DesktopWorkspaceProps> = ({
           className={`w-full min-w-0 ${
             isPlannerView
               ? "max-w-none h-full flex flex-col min-h-0 w-full bg-transparent shadow-none overflow-hidden"
-              : "max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px]"
+              : usesWideWorkspace
+                ? "max-w-none"
+                : "max-w-6xl xl:max-w-7xl 2xl:max-w-[1440px]"
           }`}
         >
           {renderMainTab()}

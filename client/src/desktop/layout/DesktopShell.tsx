@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { TabKey, NavigationTarget, TaskSubTab } from "../../types";
+import { TabKey, NavigationTarget } from "../../types";
 import { useAppStore } from "../../stores";
 import { DesktopHeader } from "./DesktopHeader";
 import { DesktopSidebar } from "./DesktopSidebar";
@@ -19,7 +19,6 @@ export interface DesktopShellProps {
   previousTab?: TabKey;
   desktopPlannerSurface: DesktopPlannerSurface;
   onDesktopPlannerSurfaceChange: (surface: DesktopPlannerSurface) => void;
-  onDesktopTaskSubTabChange: (subTab: TaskSubTab) => void;
   children: React.ReactNode;
 }
 
@@ -29,7 +28,6 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
   onNavigateRoute,
   desktopPlannerSurface,
   onDesktopPlannerSurfaceChange,
-  onDesktopTaskSubTabChange,
   children,
 }) => {
   const {
@@ -37,7 +35,6 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
     isPinLocked,
     unlockWithPin,
     toggleSidebar,
-    activeTaskSubTab,
     activeDetailTaskId,
     isAuthModalOpen,
     closeAuthModal,
@@ -56,7 +53,7 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
-  }, [activeTab, activeTaskSubTab, activeDetailTaskId]);
+  }, [activeTab, activeDetailTaskId]);
 
   // Desktop Global keyboard shortcuts: Ctrl+B (Sidebar), Ctrl+K (Search), N (New Task Modal)
   useEffect(() => {
@@ -125,7 +122,6 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
       {/* 1. Desktop luôn giữ topbar để editor không mất ngữ cảnh workspace. */}
       <DesktopHeader
         activeTab={activeTab}
-        activeTaskSubTab={activeTaskSubTab}
         onTabChange={handleTabChange}
         onNavigateRoute={onNavigateRoute}
         onOpenSettings={handleOpenDesktopSettings}
@@ -150,12 +146,11 @@ export const DesktopShell: React.FC<DesktopShellProps> = ({
           onOpenAIModal={() => setIsAIModalOpen((prev) => !prev)}
           desktopPlannerSurface={desktopPlannerSurface}
           onDesktopPlannerSurfaceChange={onDesktopPlannerSurfaceChange}
-          onDesktopTaskSubTabChange={onDesktopTaskSubTabChange}
         />
 
         {/* Main Content Area (Thoáng đãng & Tối đa hoá không gian làm việc) */}
         <main
-          key={`desktop-${activeTab}-${activeTaskSubTab}`}
+          key={`desktop-${activeTab}`}
           className="flex-1 min-w-0 flex flex-col w-full h-full min-h-0 overflow-hidden"
         >
           {children}

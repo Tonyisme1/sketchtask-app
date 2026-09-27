@@ -23,6 +23,7 @@ import {
 } from "../../features/planner/model/createPlannerScreenModel";
 
 const WEEKDAY_LABELS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+type DesktopPlannerScope = TaskItemType | "all";
 
 export interface DesktopPlannerPageProps {
   model?: PlannerScreenModel;
@@ -30,11 +31,22 @@ export interface DesktopPlannerPageProps {
   targetTaskId?: string;
   onClearTarget?: () => void;
   desktopSurface?: DesktopPlannerSurface;
-  workspaceKind?: TaskItemType;
+  /** `all` is the Desktop activity calendar: events and tasks share one time grid. */
+  workspaceKind?: DesktopPlannerScope;
 }
 
 const createDateString = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+const createPlannerDay = (date: Date, todayStr: string) => {
+  const dateStr = createDateString(date);
+  return {
+    dateStr,
+    dayName: WEEKDAY_LABELS[(date.getDay() + 6) % 7],
+    dayNum: date.getDate(),
+    isToday: dateStr === todayStr,
+  };
+};
 
 export const DesktopPlannerPage: React.FC<DesktopPlannerPageProps> = ({
   model: propModel,
@@ -50,7 +62,8 @@ export const DesktopPlannerPage: React.FC<DesktopPlannerPageProps> = ({
   const { activeTaskListTags } = useAppStore();
 
   const desktopSurface: DesktopPlannerSurface = controlledDesktopSurface || "calendar";
-  const [viewMode, setViewMode] = useState<PlannerViewMode>("day");
+  // Desktop needs the weekly grid first; a selected day still enters the day view explicitly.
+  const [viewMode, setViewMode] = useState<PlannerViewMode>("agenda");
   const [weekOffset, setWeekOffset] = useState(0);
   const [monthOffset, setMonthOffset] = useState(0);
   const [dayOffset, setDayOffset] = useState(0);
@@ -69,6 +82,7 @@ export const DesktopPlannerPage: React.FC<DesktopPlannerPageProps> = ({
 
   const isVisibleItem = useCallback(
     (task: TaskDto) => {
+      if (workspaceKind === "all") return true;
       if (getTaskItemType(task) !== workspaceKind) return false;
       if (workspaceKind !== "task" || activeTaskListTags.length === 0) return true;
       return getTaskTags(task).some((tag) => activeTaskListTags.includes(tag));
@@ -76,7 +90,7 @@ export const DesktopPlannerPage: React.FC<DesktopPlannerPageProps> = ({
     [workspaceKind, activeTaskListTags],
   );
 
-  // === PHẦN 1: Một nguồn lọc dữ liệu cho lịch Event và lịch Task ===
+  // === PHẦN 1: Một nguồn lọc cho lịch hoạt động, Event và Task ===
   const getVisibleTasksForDate = useCallback(
     (dateStr: string) => model.getTasksForDate(dateStr).filter(isVisibleItem),
     [model, isVisibleItem],
@@ -118,13 +132,7 @@ export const DesktopPlannerPage: React.FC<DesktopPlannerPageProps> = ({
     const days = Array.from({ length: 7 }, (_, index) => {
       const date = new Date(monday);
       date.setDate(monday.getDate() + index);
-      const dateStr = createDateString(date);
-      return {
-        dateStr,
-        dayName: WEEKDAY_LABELS[index],
-        dayNum: date.getDate(),
-        isToday: dateStr === model.todayStr,
-      };
+      return createPlannerDay(date, model.todayStr);
     });
 
     const end = new Date(monday);
@@ -168,12 +176,8 @@ export const DesktopPlannerPage: React.FC<DesktopPlannerPageProps> = ({
   const dayInfo = useMemo(() => {
     const date = new Date(model.todayDate);
     date.setDate(date.getDate() + dayOffset);
-    const dateStr = createDateString(date);
     return {
-      dateStr,
-      dayName: WEEKDAY_LABELS[(date.getDay() + 6) % 7],
-      dayNum: date.getDate(),
-      isToday: dateStr === model.todayStr,
+      ...createPlannerDay(date, model.todayStr),
       label: `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`,
     };
   }, [model.todayDate, model.todayStr, dayOffset]);
@@ -181,13 +185,35 @@ export const DesktopPlannerPage: React.FC<DesktopPlannerPageProps> = ({
   const yearLabel = `Năm ${model.todayDate.getFullYear() + yearOffset}`;
 
   const currentTitleLabel =
-    desktopSurface === "list" || viewMode === "agenda"
+    viewMode === "agenda"
       ? weekLabel
       : viewMode === "day"
         ? dayInfo.label
         : viewMode === "year"
           ? yearLabel
           : monthLabel;
+
+  // The activity stream shares the same range selector as the calendar instead
+  // of silently staying on a week when the header says month or year.
+  const streamDays = useMemo(() => {
+    if (viewMode === "day") return [dayInfo];
+    if (viewMode === "agenda") return weekDays;
+    if (viewMode === "month") {
+      return monthMatrix
+        .filter((item) => item.isCurrentMonth)
+        .map((item) => {
+          const [year, month, day] = item.dateStr.split("-").map(Number);
+          return createPlannerDay(new Date(year, month - 1, day), model.todayStr);
+        });
+    }
+
+    const targetYear = model.todayDate.getFullYear() + yearOffset;
+    const totalDays = new Date(targetYear, 2, 0).getDate() === 29 ? 366 : 365;
+    return Array.from({ length: totalDays }, (_, index) => {
+      const date = new Date(targetYear, 0, index + 1);
+      return createPlannerDay(date, model.todayStr);
+    });
+  }, [viewMode, dayInfo, weekDays, monthMatrix, model.todayDate, model.todayStr, yearOffset]);
 
   // === PHẦN 3: Điều hướng lịch, không còn màn hình chi tiết ngày ===
   const handleSelectDate = (dateStr: string) => {
@@ -207,7 +233,7 @@ export const DesktopPlannerPage: React.FC<DesktopPlannerPageProps> = ({
   };
 
   const handleResetToCurrent = () => {
-    if (desktopSurface === "list" || viewMode === "agenda") {
+    if (viewMode === "agenda") {
       setWeekOffset(0);
     } else if (viewMode === "day") {
       setDayOffset(0);
@@ -220,7 +246,7 @@ export const DesktopPlannerPage: React.FC<DesktopPlannerPageProps> = ({
   };
 
   const handlePrev = () => {
-    if (desktopSurface === "list" || viewMode === "agenda") {
+    if (viewMode === "agenda") {
       setWeekOffset((current) => current - 1);
     } else if (viewMode === "day") {
       setDayOffset((current) => current - 1);
@@ -232,7 +258,7 @@ export const DesktopPlannerPage: React.FC<DesktopPlannerPageProps> = ({
   };
 
   const handleNext = () => {
-    if (desktopSurface === "list" || viewMode === "agenda") {
+    if (viewMode === "agenda") {
       setWeekOffset((current) => current + 1);
     } else if (viewMode === "day") {
       setDayOffset((current) => current + 1);
@@ -253,7 +279,10 @@ export const DesktopPlannerPage: React.FC<DesktopPlannerPageProps> = ({
     setPreviewTaskState({ task, anchorRect });
   };
 
-  const itemLabel = workspaceKind === "event" ? "sự kiện" : "việc";
+  const itemLabel = workspaceKind === "all" ? "hoạt động" : workspaceKind === "event" ? "sự kiện" : "việc";
+  // The hybrid activity calendar creates Events from an empty time cell. Tasks
+  // remain creatable in their dedicated tag workspace, keeping creation intent clear.
+  const calendarItemType: TaskItemType = workspaceKind === "all" ? "event" : workspaceKind;
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col select-none animate-in fade-in duration-150">
@@ -269,12 +298,12 @@ export const DesktopPlannerPage: React.FC<DesktopPlannerPageProps> = ({
 
       {desktopSurface === "list" ? (
         <DesktopPlannerListView
-          weekDays={weekDays}
+          weekDays={streamDays}
+          period={viewMode === "agenda" ? "week" : viewMode}
           getTasksForDate={getVisibleTasksForDate}
           onToggleTask={toggleTask}
-          onDeleteTask={deleteTask}
-          onOpenTask={handleOpenTaskPreview}
-          itemType={workspaceKind}
+          onOpenTask={(task) => openTaskDetail(task.id)}
+          itemScope={workspaceKind}
         />
       ) : viewMode === "agenda" || viewMode === "day" ? (
         <PlannerWeekView
@@ -288,7 +317,7 @@ export const DesktopPlannerPage: React.FC<DesktopPlannerPageProps> = ({
           onDeleteTask={deleteTask}
           onUpdateTask={updateTask}
           onPreviewTask={handleOpenTaskPreview}
-          calendarItemType={workspaceKind}
+          calendarItemType={calendarItemType}
         />
       ) : viewMode === "year" ? (
         <DesktopPlannerYearView
@@ -307,6 +336,7 @@ export const DesktopPlannerPage: React.FC<DesktopPlannerPageProps> = ({
           getTasksForDate={getVisibleTasksForDate}
           getTaskSummaryForDate={getVisibleTaskSummaryForDate}
           onPreviewTask={handleOpenTaskPreview}
+          onToggleTask={toggleTask}
           itemLabel={itemLabel}
         />
       )}

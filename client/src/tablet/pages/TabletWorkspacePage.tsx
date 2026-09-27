@@ -6,7 +6,7 @@ import { TabletJournalPage } from "../tabs/TabletJournalPage";
 import { TabletAIAssistantPage } from "../tabs/TabletAIAssistantPage";
 import { TabletSettingsPage } from "../tabs/TabletSettingsPage";
 import { TabletTaskDetailPage } from "../details/TabletTaskDetailPage";
-import { MobileEventsPage } from "../../mobile/tabs/MobileEventsPage";
+import { EventsWorkspace } from "../../features/events/EventsWorkspace";
 import { useAppStore } from "../../stores";
 
 export interface TabletWorkspaceProps {
@@ -49,9 +49,7 @@ export const TabletWorkspace: React.FC<TabletWorkspaceProps> = ({
       );
     case "events":
       return (
-        <MobileEventsPage
-          activeSubTab="calendar"
-          onSubTabChange={() => undefined}
+        <EventsWorkspace
           navigationTarget={navigationTarget}
           onClearNavigationTarget={onClearNavigationTarget}
         />

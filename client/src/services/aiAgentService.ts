@@ -1,4 +1,4 @@
-import { TaskDto, TaskPriority, TaskTimeType } from "../types";
+import { TaskDto, TaskItemType, TaskPriority, TaskTimeType } from "../types";
 import {
   isTaskDueToday,
   getTaskTemporalState,
@@ -10,6 +10,7 @@ import {
 
 export interface ParsedTaskIntent {
   title: string;
+  itemType?: TaskItemType;
   dueDate?: string;
   timeType: TaskTimeType;
   startTime?: string;
@@ -114,7 +115,6 @@ export function generateDynamicPromptChips(
   const chips: DynamicPromptChip[] = [];
   const todayTasks = tasks.filter((t) => isTaskDueToday(t, now));
   const openToday = todayTasks.filter((t) => !t.completed);
-  const completedToday = todayTasks.filter((t) => t.completed);
 
   const overdue = tasks.filter((t) => {
     if (t.completed) return false;
@@ -142,29 +142,18 @@ export function generateDynamicPromptChips(
     });
   }
 
-  // 3. Tóm tắt hôm nay hoặc việc tiếp theo
+  // 3. AI gợi ý theo dữ liệu, không tạo thêm một destination "Hôm nay".
   if (openToday.length > 0) {
-    chips.push({
-      id: "today_summary",
-      label: `Hôm nay (${openToday.length} việc)`,
-      query: "Tóm tắt danh sách công việc cần làm hôm nay",
-    });
     chips.push({
       id: "next_task",
       label: "Việc nên làm tiếp theo",
-      query: "Dựa vào danh sách hôm nay, tôi nên làm việc gì tiếp theo?",
-    });
-  } else if (completedToday.length > 0 && todayTasks.length === completedToday.length) {
-    chips.push({
-      id: "completed_all",
-      label: "Tổng kết hôm nay",
-      query: "Đánh giá hiệu suất làm việc hôm nay của tôi",
+      query: "Dựa vào các công việc đang mở, việc nào nên ưu tiên làm tiếp theo?",
     });
   } else {
     chips.push({
-      id: "plan_today",
-      label: "Lên kế hoạch hôm nay",
-      query: "Gợi ý lịch trình làm việc hiệu quả cho hôm nay",
+      id: "open_tasks",
+      label: "Phân tích việc đang mở",
+      query: "Tóm tắt các công việc đang mở và nêu mục nào cần làm rõ trước.",
     });
   }
 

@@ -7,12 +7,11 @@ import {
   Plus,
   LucideIcon,
 } from "lucide-react";
-import { TabKey, TaskSubTab } from "../../types";
+import { TabKey } from "../../types";
 import { useAppStore } from "../../stores/appStore";
 
 export interface MobileNavProps {
   activeTab: TabKey;
-  activeTaskSubTab: TaskSubTab;
   onTabChange: (tab: TabKey) => void;
 }
 
@@ -30,15 +29,10 @@ const leftNavItems: NavTabItem[] = [
 
 const isNavItemActive = (
   activeTab: TabKey,
-  activeTaskSubTab: TaskSubTab,
   key: TabKey,
 ) => {
   if (key === "tasks") {
-    return (
-      (activeTab === "tasks" && activeTaskSubTab !== "deadlines") ||
-      activeTab === "today" ||
-      activeTab === "planner"
-    );
+    return activeTab === "tasks";
   }
   if (key === "events") return activeTab === "events";
   if (key === "notes") return activeTab === "notes" || activeTab === "journal";
@@ -48,7 +42,6 @@ const isNavItemActive = (
 
 export const MobileNav: React.FC<MobileNavProps> = ({
   activeTab,
-  activeTaskSubTab,
   onTabChange,
 }) => {
   const { openTaskDetail } = useAppStore();
@@ -153,7 +146,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
         <div className="grid grid-cols-5 gap-1 max-w-md mx-auto items-center">
           {/* Nút 1: Việc, Nút 2: Sự kiện */}
           {leftNavItems.map(({ key, label, shortLabel, icon: Icon }) => {
-            const isActive = isNavItemActive(activeTab, activeTaskSubTab, key);
+            const isActive = isNavItemActive(activeTab, key);
             return (
               <button
                 key={key}
@@ -198,7 +191,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             aria-label="Ghi chép"
             title="Ghi chép"
             className={`relative min-h-[52px] flex flex-col items-center justify-center gap-1 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
-              isNavItemActive(activeTab, activeTaskSubTab, "notes")
+              isNavItemActive(activeTab, "notes")
                 ? "text-[#1C1C1E] dark:text-white font-bold bg-black/[0.05] dark:bg-white/[0.08]"
                 : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
             } active:scale-95`}
@@ -206,7 +199,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             <FilePenLine
               size={21}
               strokeWidth={
-                isNavItemActive(activeTab, activeTaskSubTab, "notes")
+                isNavItemActive(activeTab, "notes")
                   ? 2.4
                   : 1.9
               }
@@ -223,7 +216,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             aria-label="Cá nhân"
             title="Cá nhân"
             className={`relative min-h-[52px] flex flex-col items-center justify-center gap-1 px-0.5 rounded-xl transition-all duration-150 cursor-pointer ${
-              isNavItemActive(activeTab, activeTaskSubTab, "settings")
+              isNavItemActive(activeTab, "settings")
                 ? "text-[#1C1C1E] dark:text-white font-bold bg-black/[0.05] dark:bg-white/[0.08]"
                 : "text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white"
             } active:scale-95`}
@@ -231,7 +224,7 @@ export const MobileNav: React.FC<MobileNavProps> = ({
             <UserRound
                 size={21}
               strokeWidth={
-                isNavItemActive(activeTab, activeTaskSubTab, "settings")
+                isNavItemActive(activeTab, "settings")
                   ? 2.4
                   : 1.9
               }

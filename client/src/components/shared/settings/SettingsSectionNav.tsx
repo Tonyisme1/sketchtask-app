@@ -17,7 +17,8 @@ export type SettingsSectionKey =
   | "notifications"
   | "data"
   | "security"
-  | "shortcuts";
+  | "shortcuts"
+  | "about";
 
 export interface SettingsMenuItem {
   key: SettingsSectionKey;
@@ -34,12 +35,13 @@ export const SETTINGS_MENU_ITEMS: SettingsMenuItem[] = [
   { key: "data", label: "Dữ liệu", compactLabel: "Dữ liệu", icon: Database, iconTone: "bg-[var(--bg-surface-muted)] text-[var(--text-main)]" },
   { key: "security", label: "Bảo mật", icon: Lock, iconTone: "bg-[var(--bg-surface-muted)] text-[var(--text-main)]" },
   { key: "shortcuts", label: "Phím tắt", compactLabel: "Phím tắt", icon: Keyboard, iconTone: "bg-[var(--bg-surface-muted)] text-[var(--text-main)]" },
+  { key: "about", label: "Giới thiệu", compactLabel: "Giới thiệu", icon: Info, iconTone: "bg-[var(--bg-surface-muted)] text-[var(--text-main)]" },
 ];
 
 const SETTINGS_GROUPS: Array<{ label: string; keys: SettingsSectionKey[] }> = [
   { label: "Cá nhân", keys: ["account", "general"] },
   { label: "Ứng dụng", keys: ["notifications", "data", "security"] },
-  { label: "Khác", keys: ["shortcuts"] },
+  { label: "Khác", keys: ["shortcuts", "about"] },
 ];
 
 interface SettingsSectionNavProps {

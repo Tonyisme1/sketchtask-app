@@ -49,7 +49,7 @@ export const TabletHeader: React.FC<TabletHeaderProps> = ({
                   : "Cài đặt";
 
   return (
-    <header className="sticky top-0 z-30 flex min-h-[58px] items-center justify-between bg-[#F2F2F7]/95 dark:bg-[#18181A]/95 backdrop-blur-xl px-4 pb-2.5 pt-[max(env(safe-area-inset-top),10px)] md:px-6 select-none">
+    <header className="sticky top-0 z-30 flex min-h-[58px] items-center justify-between bg-[var(--bg-canvas)] px-4 pb-2.5 pt-[max(env(safe-area-inset-top),10px)] md:px-6 select-none">
       <div className="flex min-w-0 shrink-0 items-center gap-3">
         {activeTab === "settings" ? (
           <div className="flex min-w-0 items-center gap-2.5">
@@ -59,7 +59,7 @@ export const TabletHeader: React.FC<TabletHeaderProps> = ({
                 if (settingsMobileSubView) setSettingsMobileSubView(null);
                 else onTabChange(previousTab || "tasks");
               }}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#F2F2F7] dark:bg-[#2C2C2E] hover:bg-[#E5E5EA] dark:hover:bg-[#3A3A3C] text-[#1C1C1E] dark:text-[#F2F2F7] transition-all active:scale-95 cursor-pointer shadow-2xs"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-[1.5px] border-[var(--border-ink-muted)] bg-[var(--bg-interactive)] text-[var(--text-main)] transition-colors hover:brightness-105 active:translate-x-[1.5px] active:translate-y-[1.5px] cursor-pointer"
               title="Quay lại"
               aria-label="Quay lại"
             >

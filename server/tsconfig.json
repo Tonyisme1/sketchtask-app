@@ -6,6 +6,10 @@
     "lib": ["ES2022"],
     "rootDir": "./src",
     "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "@sketchtask/api-contract": ["../api-contract/dist/index.d.ts"]
+    },
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

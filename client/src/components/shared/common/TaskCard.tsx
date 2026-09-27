@@ -230,7 +230,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
           marginLeft: indentPx > 0 ? `${indentPx}px` : undefined,
           width: indentPx > 0 ? `calc(100% - ${indentPx}px)` : undefined,
         }}
-        className={`group relative flex min-h-[64px] items-center gap-3 overflow-hidden rounded-2xl px-4 py-3 transition-colors duration-150 shadow-xs ${desktopTone} ${
+        className={`group relative flex min-h-[64px] items-center gap-3 overflow-hidden rounded-xl px-4 py-3 transition-colors duration-150 ${desktopTone} ${
           isSelected
             ? "ring-2 ring-[var(--accent-blue)]/35"
             : ""

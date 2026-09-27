@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { NoteItem } from "../../../components/shared/notes/NoteTypes";
-import { loadNotesFromStorage, saveNotesToStorage } from "../../../utils/noteStorage";
 import { useAppStore } from "../../../stores/appStore";
 import { useResponsiveLayout } from "../../../hooks";
 import { NotesScreenModel } from "./types";
@@ -25,27 +24,31 @@ export interface UseNotesScreenModelOptions {
 export const useNotesScreenModel = (
   options?: UseNotesScreenModelOptions
 ): NotesScreenModel => {
-  const { isMobileNoteDetailOpen, setIsMobileNoteDetailOpen } = useAppStore();
+  const {
+    stickyNotes,
+    addStickyNote,
+    updateStickyNote,
+    deleteStickyNote,
+    togglePinStickyNote,
+    isMobileNoteDetailOpen,
+    setIsMobileNoteDetailOpen,
+  } = useAppStore();
   const { isMobile } = useResponsiveLayout();
-  const [notes, setNotes] = useState<NoteItem[]>(() => loadNotesFromStorage());
   const [searchQuery, setSearchQuery] = useState("");
   const [activeNoteId, setActiveNoteId] = useState<string | undefined>(options?.initialNoteId);
   const [showNeedsReviewOnly, setShowNeedsReviewOnly] = useState(false);
 
-  useEffect(() => {
-    saveNotesToStorage(notes);
-  }, [notes]);
-
-  useEffect(() => {
-    const reloadNotes = () => {
-      const nextNotes = loadNotesFromStorage();
-      setNotes((currentNotes) =>
-        JSON.stringify(currentNotes) === JSON.stringify(nextNotes) ? currentNotes : nextNotes
-      );
-    };
-    window.addEventListener("sketchtask_notes_changed", reloadNotes);
-    return () => window.removeEventListener("sketchtask_notes_changed", reloadNotes);
-  }, []);
+  const notes = useMemo<NoteItem[]>(
+    () => stickyNotes.map((note) => ({
+      id: note.id,
+      title: note.title || "",
+      content: note.content,
+      isPinned: note.isPinned,
+      createdAt: note.createdAt,
+      updatedAt: note.updatedAt || note.createdAt,
+    })),
+    [stickyNotes],
+  );
 
   useEffect(() => {
     if (options?.initialNoteId) {
@@ -78,37 +81,29 @@ export const useNotesScreenModel = (
   }, [notes, activeNoteId]);
 
   const createNote = useCallback(() => {
-    const now = new Date();
-    const timestamp = `${now.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}, ${now.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}`;
-    const newId = `note-${Date.now()}`;
-    const newNote: NoteItem = {
-      id: newId,
-      title: "",
-      content: "",
-      createdAt: timestamp,
-      updatedAt: timestamp,
-      isPinned: false,
-    };
-    setNotes((prev) => [newNote, ...prev]);
-    setActiveNoteId(newId);
+    const newNote = addStickyNote("", "sky");
+    setActiveNoteId(newNote.id);
     setIsMobileNoteDetailOpen(true);
-    return newId;
-  }, [setIsMobileNoteDetailOpen]);
+    return newNote.id;
+  }, [addStickyNote, setIsMobileNoteDetailOpen]);
 
   const updateNote = useCallback((updatedNote: NoteItem) => {
-    setNotes((prev) => prev.map((n) => (n.id === updatedNote.id ? updatedNote : n)));
-  }, []);
+    updateStickyNote(updatedNote.id, {
+      title: updatedNote.title,
+      content: updatedNote.content,
+      isPinned: Boolean(updatedNote.isPinned),
+      updatedAt: updatedNote.updatedAt,
+    });
+  }, [updateStickyNote]);
 
   const deleteNote = useCallback((id: string) => {
-    setNotes((prev) => prev.filter((n) => n.id !== id));
+    deleteStickyNote(id);
     setActiveNoteId((prevId) => (prevId === id ? undefined : prevId));
-  }, []);
+  }, [deleteStickyNote]);
 
   const togglePinNote = useCallback((id: string) => {
-    setNotes((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isPinned: !n.isPinned } : n))
-    );
-  }, []);
+    togglePinStickyNote(id);
+  }, [togglePinStickyNote]);
 
   const selectNote = useCallback((id: string | undefined) => {
     setActiveNoteId(id);

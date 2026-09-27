@@ -6,13 +6,12 @@ import React, {
   useCallback,
   useRef,
 } from "react";
-import { TaskDto, HabitDto, TaskStatus, TaskPriority, TaskItemType, TaskTimeType, TaskSubTab, JournalEntryDto, SettingsSectionKey, DeletedEntityIds, TaskEditorInitialData } from "../types";
+import { TaskDto, HabitDto, TaskStatus, TaskPriority, TaskItemType, TaskTimeType, JournalEntryDto, SettingsSectionKey, DeletedEntityIds, TaskEditorInitialData, SyncPayload } from "../types";
 import { api, authStorage } from "../services/api";
 import { syncSocket } from "../services/syncSocket";
-import { smartMergeAppData } from "../utils/syncMerge";
+import { normalizeSyncPayloadForMerge, smartMergeAppData } from "../utils/syncMerge";
 import { notificationService } from "../services/notificationService";
 import { sounds } from "../utils/soundEffects";
-import { generateSample50Tasks } from "../data/sample50Tasks";
 import { getLocalTodayStr, getNextDayStr } from "../utils/date";
 import { dispatchToast } from "../utils/toast";
 import {
@@ -26,8 +25,12 @@ import {
   wouldCreateTaskCycle,
 } from "../utils/taskSemantics";
 import { calculateConsecutiveStreak } from "../utils/habitSemantics";
+import {
+  clearLegacyNotesAfterMigration,
+  loadLegacyNotesForMigration,
+} from "../utils/noteStorage";
 
-export type { TaskDto, TaskPriority, HabitDto, TaskStatus, TaskItemType, TaskTimeType, TaskSubTab, JournalEntryDto, SettingsSectionKey, DeletedEntityIds, TaskEditorInitialData };
+export type { TaskDto, TaskPriority, HabitDto, TaskStatus, TaskItemType, TaskTimeType, JournalEntryDto, SettingsSectionKey, DeletedEntityIds, TaskEditorInitialData, SyncPayload };
 
 // ==========================================
 // STORE: AppStore (Offline-First + Realtime WebSocket Sync Engine)
@@ -49,6 +52,7 @@ export type PaperStyle = "blank" | "lined" | "dots" | "grid";
 
 export interface StickyNoteItem {
   id: string;
+  title?: string;
   content: string;
   color:
     | "yellow"
@@ -66,6 +70,20 @@ export interface StickyNoteItem {
   createdAt: string;
   updatedAt?: string;
 }
+
+/** Local state has no nullable legacy fields; the sync boundary normalizes them first. */
+type LocalSyncPayload = Omit<
+  SyncPayload,
+  "tasks" | "stickyNotes" | "habits" | "journalEntries" | "dailyMoods" | "weeklyReflection" | "deleted"
+> & {
+  tasks: TaskDto[];
+  stickyNotes: StickyNoteItem[];
+  habits: HabitDto[];
+  journalEntries: JournalEntryDto[];
+  dailyMoods: Record<string, string>;
+  weeklyReflection: string;
+  deleted?: Partial<DeletedEntityIds>;
+};
 
 export type SyncStatus = "idle" | "syncing" | "synced" | "offline" | "error";
 
@@ -136,8 +154,6 @@ export interface AppContextType {
   unlockWithPin: (newPin?: string) => void;
   lockApp: () => void;
   triggerHaptic: () => void;
-  loadSampleData: () => void;
-  loadSample50Tasks: () => void;
   archiveOldTasks: (days?: number) => number;
 
   // Tasks
@@ -176,7 +192,8 @@ export interface AppContextType {
 
   // Sticky Notes (Brain Dump)
   stickyNotes: StickyNoteItem[];
-  addStickyNote: (content: string, color?: StickyNoteItem["color"]) => void;
+  addStickyNote: (content: string, color?: StickyNoteItem["color"], title?: string) => StickyNoteItem;
+  updateStickyNote: (id: string, updates: Partial<Pick<StickyNoteItem, "title" | "content" | "color" | "tilt" | "isPinned" | "updatedAt">>) => void;
   togglePinStickyNote: (id: string) => void;
   deleteStickyNote: (id: string) => void;
   convertNoteToTask: (id: string) => void;
@@ -212,11 +229,6 @@ export interface AppContextType {
   completedTaskPrompt: TaskDto | null;
   dismissCompletedTaskPrompt: () => void;
 
-  // Active Task SubTab (Tất cả | Hôm nay | Kế hoạch | Hạn định)
-  activeTaskSubTab: TaskSubTab;
-  setActiveTaskSubTab: (subTab: TaskSubTab) => void;
-  mobileDeadlineView: "upcoming" | "overdue";
-  setMobileDeadlineView: (view: "upcoming" | "overdue") => void;
   activeTaskListTags: string[];
   setActiveTaskListTags: (tags: string[]) => void;
   toggleActiveTaskListTag: (tag: string) => void;
@@ -238,6 +250,7 @@ export interface AppContextType {
     timeType?: TaskTimeType;
     startTime?: string;
     endTime?: string;
+    deadlineTime?: string;
     lockItemType?: boolean;
   } | null;
   openQuickTaskModal: (initialData?: {
@@ -247,6 +260,7 @@ export interface AppContextType {
     timeType?: TaskTimeType;
     startTime?: string;
     endTime?: string;
+    deadlineTime?: string;
     lockItemType?: boolean;
   }) => void;
   closeQuickTaskModal: () => void;
@@ -270,6 +284,18 @@ export interface AppContextType {
 
 export const APP_STORAGE_KEY = "sketchtask_local_storage_v2";
 const STORAGE_KEY = APP_STORAGE_KEY;
+const DEVELOPMENT_PREVIEW_SEED_KEY = `${STORAGE_KEY}_development_preview_seeded`;
+const EMPTY_DEFAULT_TAG = "Công việc";
+
+const canSeedDevelopmentPreview = () => {
+  if (!import.meta.env.DEV || authStorage.getToken()) return false;
+
+  try {
+    return localStorage.getItem(DEVELOPMENT_PREVIEW_SEED_KEY) !== "true";
+  } catch {
+    return false;
+  }
+};
 
 const createLocalEntityId = (prefix: string): string => {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -310,15 +336,6 @@ const serializeTasksForSync = (taskList: TaskDto[]) =>
     parentTaskId: task.parentTaskId || null,
   }));
 
-const INITIAL_TAGS: string[] = [
-  "Công việc",
-  "Cá nhân",
-  "Ý tưởng",
-  "Học tập",
-  "Dự án Web",
-  "Tài chính",
-];
-
 const INITIAL_USER: UserProfile = {
   name: "Khách",
   email: "",
@@ -326,125 +343,6 @@ const INITIAL_USER: UserProfile = {
   avatarBg: "#FEF08A",
   isSignedIn: false,
 };
-
-// Dữ liệu mẫu phong phú khi người dùng chủ động bấm nạp
-const now = new Date();
-const todayStr = now.toISOString().split("T")[0];
-const yesterday = new Date(now);
-yesterday.setDate(now.getDate() - 1);
-const yesterdayStr = yesterday.toISOString().split("T")[0];
-
-const INITIAL_STICKY_NOTES: StickyNoteItem[] = [
-  {
-    id: "sn-1",
-    content:
-      "Ý tưởng: Thêm hiệu ứng âm thanh lật trang giấy nhẹ nhàng khi chuyển tab",
-    color: "yellow",
-    tilt: "left",
-    isPinned: true,
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "sn-2",
-    content:
-      "Ghi chú nhanh: Tìm hiểu thêm về IndexedDB Dexie.js để lưu dữ liệu offline lâu dài",
-    color: "mint",
-    tilt: "right",
-    isPinned: false,
-    createdAt: new Date().toISOString(),
-  },
-];
-
-const INITIAL_HABITS: HabitDto[] = [
-  {
-    id: "h-1",
-    name: "Uống 2L nước mỗi ngày",
-    frequency: "daily",
-    completedDates: [yesterdayStr, todayStr],
-    streak: 4,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "h-2",
-    name: "Đọc 20 trang sách chuyên ngành",
-    frequency: "daily",
-    completedDates: [todayStr],
-    streak: 3,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
-
-const INITIAL_MOODS: Record<string, string> = {
-  [todayStr]: "lucide:SmilePlus",
-  [yesterdayStr]: "lucide:Smile",
-};
-
-const INITIAL_REFLECTION =
-  "Một tuần làm việc năng suất và trọn vẹn! Đã hoàn thiện toàn bộ hệ thống SVG Icons sắc nét và đồng bộ hóa đám mây Realtime.";
-
-const INITIAL_JOURNAL: JournalEntryDto[] = [
-  {
-    id: "jn-1",
-    date: todayStr,
-    time: "08:35",
-    content: "Bắt đầu ngày mới với việc hoàn thiện quy chuẩn viền mực 1.5px và hard offset shadow cho hệ thống.",
-    linkedTaskId: "task-1",
-    createdAt: new Date(now.getTime() - 4 * 3600 * 1000).toISOString(),
-    updatedAt: new Date(now.getTime() - 4 * 3600 * 1000).toISOString(),
-  },
-  {
-    id: "jn-2",
-    date: todayStr,
-    time: "10:20",
-    content: "Review lại hiệu năng tải component Sổ tay & Nhật ký, mọi thao tác cuộn và lật trang đều mượt mà 60fps.",
-    linkedTaskId: "task-2",
-    createdAt: new Date(now.getTime() - 2 * 3600 * 1000).toISOString(),
-    updatedAt: new Date(now.getTime() - 2 * 3600 * 1000).toISOString(),
-  },
-  {
-    id: "jn-3",
-    date: todayStr,
-    time: "14:15",
-    content: "Đã uống đủ nước và thư giãn 15 phút giữa giờ. Cảm thấy tràn đầy năng lượng để tiếp tục công việc buổi chiều!",
-    linkedTaskId: "task-3",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "jn-4",
-    date: todayStr,
-    time: "17:00",
-    content: "Ý tưởng: Đã thử nghiệm thành công bộ chọn Sổ tay trực tiếp trên từng dòng nhật ký.",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: "jn-5",
-    date: yesterdayStr,
-    time: "09:00",
-    content: "Khởi động tuần mới: Lập danh mục các mục tiêu quan trọng cần hoàn thành trong tháng.",
-    createdAt: new Date(yesterday.getTime() - 3 * 3600 * 1000).toISOString(),
-    updatedAt: new Date(yesterday.getTime() - 3 * 3600 * 1000).toISOString(),
-  },
-  {
-    id: "jn-6",
-    date: yesterdayStr,
-    time: "16:45",
-    content: "Đọc xong chương 3 về Tư duy thiết kế tương tác người dùng. Rút ra nhiều bài học giá trị về Visual Hierarchy.",
-    createdAt: new Date(yesterday.getTime() + 4 * 3600 * 1000).toISOString(),
-    updatedAt: new Date(yesterday.getTime() + 4 * 3600 * 1000).toISOString(),
-  },
-  {
-    id: "jn-7",
-    date: yesterdayStr,
-    time: "21:30",
-    content: "Tổng kết chi tiêu trong tuần và cân đối ngân sách cho các dự án sắp tới.",
-    createdAt: new Date(yesterday.getTime() + 9 * 3600 * 1000).toISOString(),
-    updatedAt: new Date(yesterday.getTime() + 9 * 3600 * 1000).toISOString(),
-  },
-];
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -619,23 +517,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.setItem(`${STORAGE_KEY}_sidebar_open`, JSON.stringify(open));
   };
 
-  // --- Active Task SubTab (Tất cả | Hôm nay | Kế hoạch | Hạn định) ---
-  const [activeTaskSubTab, setActiveTaskSubTabState] = useState<TaskSubTab>("planner");
-  const setActiveTaskSubTab = useCallback((subTab: TaskSubTab) => {
-    setActiveTaskSubTabState(subTab);
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-      document.documentElement.scrollTop = 0;
-      document.body.scrollTop = 0;
-    }
-  }, []);
-  const [mobileDeadlineView, setMobileDeadlineViewState] = useState<
-    "upcoming" | "overdue"
-  >("upcoming");
-  const setMobileDeadlineView = useCallback(
-    (view: "upcoming" | "overdue") => setMobileDeadlineViewState(view),
-    [],
-  );
   const [activeTaskListTags, setActiveTaskListTags] = useState<string[]>([]);
   const toggleActiveTaskListTag = useCallback((tag: string) => {
     setActiveTaskListTags((currentTags) =>
@@ -753,7 +634,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const triggerHaptic = () => {};
 
-  // --- Main Data States (bắt đầu trống nếu chưa có data) ---
+  // === PHẦN 1: Dữ liệu local và fixture kiểm thử chỉ dành cho môi trường phát triển ===
   const [tasks, setTasks] = useState<TaskDto[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_tasks`);
@@ -761,11 +642,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
           const seen = new Set<string>();
-          return parsed.filter((t) => {
+          const persistedTasks = parsed.filter((t) => {
             if (!t || !t.id || seen.has(t.id)) return false;
             seen.add(t.id);
             return true;
           }).map((task) => normalizeTaskTagFields(task as TaskDto));
+
+          return persistedTasks;
         }
       }
       return [];
@@ -779,16 +662,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [tags, setTags] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_tags`);
-      return saved ? JSON.parse(saved) : INITIAL_TAGS;
+      const parsedTags = saved ? JSON.parse(saved) : [];
+      const savedTags = Array.isArray(parsedTags)
+        ? parsedTags.filter((tag): tag is string => typeof tag === "string")
+        : [];
+
+      return savedTags;
     } catch {
-      return INITIAL_TAGS;
+      return [];
     }
   });
 
   const [stickyNotes, setStickyNotes] = useState<StickyNoteItem[]>(() => {
     try {
       const saved = localStorage.getItem(`${STORAGE_KEY}_notes`);
-      return saved ? JSON.parse(saved) : [];
+      if (saved) return JSON.parse(saved);
+
+      const legacyNotes = loadLegacyNotesForMigration();
+      if (!legacyNotes.length) return [];
+
+      const migratedNotes = legacyNotes.map((note): StickyNoteItem => ({
+        id: note.id,
+        title: note.title,
+        content: note.content,
+        color: "sky",
+        tilt: "none",
+        isPinned: Boolean(note.isPinned),
+        createdAt: note.createdAt,
+        updatedAt: note.updatedAt,
+      }));
+      clearLegacyNotesAfterMigration();
+      return migratedNotes;
     } catch {
       return [];
     }
@@ -828,9 +732,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
-      return INITIAL_JOURNAL;
+      return [];
     } catch {
-      return INITIAL_JOURNAL;
+      return [];
     }
   });
 
@@ -933,6 +837,55 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     safeSetItem(`${STORAGE_KEY}_tags`, JSON.stringify(tags));
   }, [tags]);
 
+  // === PHẦN 2: Seed lại sau HMR nếu state cũ vẫn là mảng rỗng ===
+  useEffect(() => {
+    if (!import.meta.env.DEV || tasks.length > 0 || !canSeedDevelopmentPreview()) return;
+
+    let cancelled = false;
+
+    void import("../fixtures/developmentPreviewData").then(({
+      createDevelopmentPreviewData,
+      DEVELOPMENT_PREVIEW_TAGS,
+    }) => {
+      if (cancelled) return;
+
+      setTasks((currentTasks) =>
+        currentTasks.length > 0 ? currentTasks : createDevelopmentPreviewData(),
+      );
+      setTags((currentTags) => [
+        ...new Set([...currentTags, ...DEVELOPMENT_PREVIEW_TAGS]),
+      ]);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [tasks.length]);
+
+  // === PHẦN 3: Dọn tag mặc định cũ khi không còn item nào sử dụng ===
+  useEffect(() => {
+    if (!tasks.some((task) => task.id.startsWith("preview-"))) return;
+
+    try {
+      localStorage.setItem(DEVELOPMENT_PREVIEW_SEED_KEY, "true");
+    } catch {
+      // Local preview remains usable even when storage is unavailable.
+    }
+  }, [tasks]);
+
+  useEffect(() => {
+    const hasTaskUsingDefaultTag = tasks.some(
+      (task) => getTaskTag(task) === EMPTY_DEFAULT_TAG,
+    );
+    if (hasTaskUsingDefaultTag) return;
+
+    setTags((currentTags) =>
+      currentTags.includes(EMPTY_DEFAULT_TAG)
+        ? currentTags.filter((tag) => tag !== EMPTY_DEFAULT_TAG)
+        : currentTags,
+    );
+  }, [tasks]);
+
   useEffect(() => {
     safeSetItem(`${STORAGE_KEY}_notes`, JSON.stringify(stickyNotes));
   }, [stickyNotes]);
@@ -1015,7 +968,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   // --- HÀM ĐỒNG BỘ ĐẨY DỮ LIỆU LÊN SERVER ---
-  const pushDataToServer = useCallback(async (overrideData?: any): Promise<boolean> => {
+  const pushDataToServer = useCallback(async (overrideData?: LocalSyncPayload): Promise<boolean> => {
     const token = authStorage.getToken();
     if (!signedInRef.current || !token) return false;
 
@@ -1078,7 +1031,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Kích hoạt Debounced Sync chỉ khi người dùng có thao tác cục bộ
   const triggerDebouncedPush = useCallback(
-    (partialData?: any) => {
+    (partialData?: Partial<LocalSyncPayload>) => {
       const token = authStorage.getToken();
       if (!signedInRef.current || !token) return;
 
@@ -1089,7 +1042,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       syncDebounceTimer.current = setTimeout(() => {
         const current = appDataRef.current;
         const fullPayload = {
-          tasks: serializeTasksForSync(partialData?.tasks ?? current.tasks),
+          tasks: partialData?.tasks ?? current.tasks,
           stickyNotes: partialData?.stickyNotes ?? current.stickyNotes,
           habits: partialData?.habits ?? current.habits,
           journalEntries: partialData?.journalEntries ?? current.journalEntries,
@@ -1139,7 +1092,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const res = await api.sync.pull();
       if (res.success && res.data) {
-        const serverData = res.data;
+        const serverData = normalizeSyncPayloadForMerge(res.data);
         isApplyingRemoteSync.current = true;
 
         // Hợp nhất thông minh dữ liệu Local đang có với dữ liệu trên Server
@@ -1445,35 +1398,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     });
   };
 
-  // Nạp bộ dữ liệu mẫu gồm task và event để kiểm tra đầy đủ các workspace.
-  const loadSampleData = () => {
-    const sampleTasks = generateSample50Tasks();
-
-    setTasks(sampleTasks);
-    setStickyNotes(INITIAL_STICKY_NOTES);
-    setHabits(INITIAL_HABITS);
-    setDailyMoods(INITIAL_MOODS);
-    setWeeklyReflection(INITIAL_REFLECTION);
-    setTags(INITIAL_TAGS);
-    setJournalEntries(INITIAL_JOURNAL);
-    setDeletedEntityIds(EMPTY_DELETED_ENTITY_IDS);
-
-    if (user.isSignedIn) {
-      pushDataToServer({
-        tasks: sampleTasks,
-        stickyNotes: INITIAL_STICKY_NOTES,
-        habits: INITIAL_HABITS,
-        dailyMoods: INITIAL_MOODS,
-        weeklyReflection: INITIAL_REFLECTION,
-        tags: INITIAL_TAGS,
-        journalEntries: INITIAL_JOURNAL,
-        deleted: EMPTY_DELETED_ENTITY_IDS,
-      });
-    }
-  };
-
-  const loadSample50Tasks = loadSampleData;
-
   // --- CÁC HÀM CRUD DATA (OFFLINE-FIRST + AUTO SYNC TRỰC TIẾP KHI USER THAO TÁC) ---
   const addTask = (taskData: {
     title: string;
@@ -1762,12 +1686,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const addStickyNote = (
     content: string,
     color: StickyNoteItem["color"] = "yellow",
+    title = "",
   ) => {
     const tilts: StickyNoteItem["tilt"][] = ["left", "right", "none"];
     const randomTilt = tilts[Math.floor(Math.random() * tilts.length)];
 
     const newNote: StickyNoteItem = {
       id: `note-${Date.now()}`,
+      title,
       content,
       color,
       tilt: randomTilt,
@@ -1785,6 +1711,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     if (isSoundEnabled) {
       sounds.playStickyNote(soundVolume);
     }
+
+    return newNote;
+  };
+
+  const updateStickyNote = (
+    id: string,
+    updates: Partial<Pick<StickyNoteItem, "title" | "content" | "color" | "tilt" | "isPinned" | "updatedAt">>,
+  ) => {
+    setStickyNotes((prev) => {
+      const now = new Date().toISOString();
+      const next = prev.map((note) =>
+        note.id === id
+          ? { ...note, ...updates, updatedAt: updates.updatedAt || now }
+          : note,
+      );
+      triggerDebouncedPush({ stickyNotes: next });
+      return next;
+    });
   };
 
   const togglePinStickyNote = (id: string) => {
@@ -1814,7 +1758,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
     addTask({
       title: note.content,
-      dueDate: todayStr,
+      dueDate: getLocalTodayStr(),
       tag: "Ý tưởng",
     });
     deleteStickyNote(id);
@@ -2009,6 +1953,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     timeType?: TaskTimeType;
     startTime?: string;
     endTime?: string;
+    deadlineTime?: string;
     lockItemType?: boolean;
   } | null>(null);
 
@@ -2020,6 +1965,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       timeType?: TaskTimeType;
       startTime?: string;
       endTime?: string;
+      deadlineTime?: string;
       lockItemType?: boolean;
     }) => {
       setQuickTaskInitialData(initialData || null);
@@ -2081,8 +2027,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         unlockWithPin,
         lockApp,
         triggerHaptic,
-        loadSampleData,
-        loadSample50Tasks,
         archiveOldTasks,
         tasks,
         addTask,
@@ -2097,6 +2041,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         deleteTag,
         stickyNotes,
         addStickyNote,
+        updateStickyNote,
         togglePinStickyNote,
         deleteStickyNote,
         convertNoteToTask,
@@ -2118,10 +2063,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         openJournalWithTask,
         completedTaskPrompt,
         dismissCompletedTaskPrompt,
-        activeTaskSubTab,
-        setActiveTaskSubTab,
-        mobileDeadlineView,
-        setMobileDeadlineView,
         activeTaskListTags,
         setActiveTaskListTags,
         toggleActiveTaskListTag,

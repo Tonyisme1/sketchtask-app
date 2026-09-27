@@ -11,7 +11,7 @@ export const DesktopTaskDetailPage: React.FC<DesktopTaskDetailPageProps> = (
 ) => {
   return (
     <div className="w-full h-full flex flex-col min-h-0 bg-white dark:bg-black select-none">
-      <TaskDetailPage {...props} allowItemTypeSwitch={false} />
+      <TaskDetailPage {...props} />
     </div>
   );
 };

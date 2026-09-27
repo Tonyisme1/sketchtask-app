@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { NavigationTarget } from "../../types";
-import { MobileDeadlinesPage } from "../tabs/MobileDeadlinesPage";
 import { MobilePlannerPage } from "../tabs/MobilePlannerPage";
 import { getTaskEffectiveDate } from "../../utils";
 import { TaskScreenModel, useTaskScreenModel } from "../../features/tasks/model/createTaskScreenModel";
-import { useAppStore } from "../../stores";
 
 export interface MobileTasksPageProps {
   model?: TaskScreenModel;
@@ -20,19 +18,9 @@ export const MobileTasksPage: React.FC<MobileTasksPageProps> = ({
   const defaultModel = useTaskScreenModel();
   const model = propModel || defaultModel;
 
-  const { activeTaskSubTab } = model;
-  const { setActiveTaskSubTab } = model.actions;
-  const { mobileDeadlineView, setMobileDeadlineView } = useAppStore();
-
   const [plannerTargetDateStr, setPlannerTargetDateStr] = useState<string | undefined>(undefined);
   const [plannerTargetTaskId, setPlannerTargetTaskId] = useState<string | undefined>(undefined);
 
-
-  useEffect(() => {
-    if (activeTaskSubTab === "all" || activeTaskSubTab === "today") {
-      setActiveTaskSubTab("planner");
-    }
-  }, [activeTaskSubTab, setActiveTaskSubTab]);
 
   useEffect(() => {
     if (!navigationTarget?.taskId) return;
@@ -46,28 +34,20 @@ export const MobileTasksPage: React.FC<MobileTasksPageProps> = ({
     const taskDate = navigationTarget.date || getTaskEffectiveDate(task);
     setPlannerTargetDateStr(taskDate);
     setPlannerTargetTaskId(task.id);
-    setActiveTaskSubTab("planner");
     onClearNavigationTarget?.();
-  }, [navigationTarget, model.tasks, setActiveTaskSubTab, onClearNavigationTarget]);
+  }, [navigationTarget, model.tasks, onClearNavigationTarget]);
 
   return (
     <div className="w-full min-w-0 select-none">
-      {/* Content */}
-      {activeTaskSubTab === "planner" || activeTaskSubTab === "today" || activeTaskSubTab === "all" ? (
-        <MobilePlannerPage
-          targetDateStr={plannerTargetDateStr}
-          targetTaskId={plannerTargetTaskId}
-          onClearTarget={() => {
-            setPlannerTargetDateStr(undefined);
-            setPlannerTargetTaskId(undefined);
-          }}
-        />
-      ) : (
-        <MobileDeadlinesPage
-          view={mobileDeadlineView}
-          onViewChange={setMobileDeadlineView}
-        />
-      )}
+      {/* Mobile has one task workspace; deadline is inline task metadata only. */}
+      <MobilePlannerPage
+        targetDateStr={plannerTargetDateStr}
+        targetTaskId={plannerTargetTaskId}
+        onClearTarget={() => {
+          setPlannerTargetDateStr(undefined);
+          setPlannerTargetTaskId(undefined);
+        }}
+      />
     </div>
   );
 };

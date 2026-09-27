@@ -22,7 +22,7 @@ Breakpoints dùng chung: mobile `<768px`, tablet `768-1023px`, desktop `>=1024px
 
 ## Điều hướng và back
 
-`App.tsx` giữ `activeTab`, `activeTaskSubTab` và navigation stack. Handler chung xử lý lần lượt task detail, settings subview, note detail, journal book, stack location, task today rồi mới cho browser/native back thoát app. Feature không được tự cài một history contract khác.
+`App.tsx` giữ `activeTab` và navigation stack duy nhất. Handler chung xử lý lần lượt task detail, settings subview, note detail, journal book, stack location rồi mới cho browser/native back thoát app. Feature không được tự cài một history contract khác.
 
 ## Backend
 
@@ -43,8 +43,11 @@ Breakpoints dùng chung: mobile `<768px`, tablet `768-1023px`, desktop `>=1024px
 
 ## Hợp đồng dữ liệu
 
+- `api-contract` là nguồn type buildable duy nhất cho `TaskDto` và `SyncPayload`; client và server không được tạo DTO transport trùng.
+- Payload sync chấp nhận `null` của dữ liệu legacy ở transport boundary. `normalizeSyncPayloadForMerge` chuyển một lần sang state client không-null trước khi merge hoặc render UI.
+- `server` build declaration của `api-contract`, generate Prisma client và compile TypeScript; migration chỉ chạy qua script Prisma migration riêng.
 - DTO thay đổi phải cập nhật `api-contract`, backend và client cùng lúc.
-- `scheduled`, `deadline`, `dueDate`, `parentTaskId` phải giữ đúng semantics trong mọi adapter.
+- `event`, `deadline`, `dueDate`, `parentTaskId` phải giữ đúng semantics trong mọi adapter. `scheduled` chỉ là compatibility input cho Task lịch cũ.
 - Notebook là quan hệ phân loại, không phải navigation entity.
 
 ## Quy tắc thay đổi

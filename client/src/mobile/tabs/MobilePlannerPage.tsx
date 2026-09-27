@@ -12,7 +12,6 @@ import {
 import { PlannerCalendar } from "../../components/shared/planner/PlannerCalendar";
 import { PlannerWeekView } from "../../components/shared/planner/PlannerWeekView";
 import { PlannerTaskPreviewPopover } from "../../components/shared/planner/PlannerTaskPreviewPopover";
-import { TodayScheduleNotes } from "../../components/shared/today/TodayScheduleNotes";
 import { TaskList } from "../../components/shared/common/TaskList";
 import { FilterBar } from "../../components/shared/common/FilterBar";
 import { registerBackHandler } from "../../utils/backNavigation";
@@ -37,8 +36,6 @@ export interface MobilePlannerPageProps {
   model?: PlannerScreenModel;
   targetDateStr?: string;
   targetTaskId?: string;
-  fromTab?: "deadlines" | "overview";
-  onBackToDeadlines?: () => void;
   onClearTarget?: () => void;
 }
 
@@ -46,15 +43,11 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
   model: propModel,
   targetDateStr,
   targetTaskId,
-  fromTab,
-  onBackToDeadlines,
   onClearTarget,
 }) => {
   const defaultModel = usePlannerScreenModel({
     targetDateStr,
     targetTaskId,
-    fromTab,
-    onBackToDeadlines,
     onClearTarget,
   });
   const model = propModel || defaultModel;
@@ -76,7 +69,6 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
   const [selectedDateStr, setSelectedDateStr] = useState<string>(model.currentDayStr);
 
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed">("all");
-  const [timeTypeFilter, setTimeTypeFilter] = useState<"all" | "scheduled" | "deadline">("all");
   const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all");
   const [tagFilter, setTagFilter] = useState<string>("all");
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
@@ -119,14 +111,10 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
   useEffect(() => {
     if (plannerScreen !== "day") return;
     return registerBackHandler(() => {
-      if (fromTab === "deadlines" && onBackToDeadlines) {
-        onBackToDeadlines();
-      } else {
-        setPlannerScreen("overview");
-      }
+      setPlannerScreen("overview");
       return true;
     });
-  }, [fromTab, onBackToDeadlines, plannerScreen]);
+  }, [plannerScreen]);
 
   const { weekDays, weekLabel } = useMemo(() => {
     const monday = new Date(model.todayDate);
@@ -268,17 +256,6 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
           ? !task.completed
           : task.completed;
 
-      const normalizedTimeType = normalizeTaskTimeType(task);
-      const isScheduled = normalizedTimeType === "scheduled";
-      const isDeadline = normalizedTimeType === "deadline";
-
-      const matchTimeType =
-        timeTypeFilter === "all"
-          ? true
-          : timeTypeFilter === "scheduled"
-          ? isScheduled
-          : isDeadline;
-
       const matchPriority =
         priorityFilter === "all"
           ? true
@@ -291,13 +268,12 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
           ? getTaskTags(task).length === 0
           : getTaskTags(task).includes(tagFilter);
 
-      return matchStatus && matchTimeType && matchPriority && matchTag;
+      return matchStatus && matchPriority && matchTag;
     });
   }, [
     selectedDayTasks,
     hideCompletedTasks,
     statusFilter,
-    timeTypeFilter,
     priorityFilter,
     tagFilter,
   ]);
@@ -317,7 +293,6 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
       : monthLabel;
 
   const activeAdvancedFilterCount =
-    (timeTypeFilter !== "all" ? 1 : 0) +
     (priorityFilter !== "all" ? 1 : 0) +
     (tagFilter !== "all" ? 1 : 0);
 
@@ -392,24 +367,16 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
               <div className="flex min-w-0 items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (fromTab === "deadlines" && onBackToDeadlines) {
-                      onBackToDeadlines();
-                    } else {
-                      setPlannerScreen("overview");
-                    }
-                  }}
-                  aria-label={fromTab === "deadlines" ? "Quay lại Hạn định" : "Quay lại lịch"}
+                  onClick={() => setPlannerScreen("overview")}
+                  aria-label="Quay lại lịch"
                   className="mobile-back-button flex shrink-0 items-center gap-1.5 whitespace-nowrap px-3 py-1.5 bg-black/[0.04] dark:bg-white/[0.08] hover:bg-black/[0.08] dark:hover:bg-white/[0.12] rounded-2xl shadow-2xs text-xs font-bold text-[#1C1C1E] dark:text-[#F2F2F7] active:scale-95 transition-all cursor-pointer"
                 >
                   <ArrowLeft size={13} strokeWidth={2.4} />
                   <span className="hidden sm:inline">
-                    {fromTab === "deadlines"
-                      ? "Quay lại Hạn định"
-                      : `Quay lại ${viewMode === "day" ? "Ngày" : viewMode === "agenda" ? "Lịch trình" : "Lịch tháng"}`}
+                    {`Quay lại ${viewMode === "day" ? "Ngày" : viewMode === "agenda" ? "Lịch trình" : "Lịch tháng"}`}
                   </span>
                   <span className="sm:hidden">
-                    {fromTab === "deadlines" ? "Hạn" : viewMode === "day" ? "Ngày" : viewMode === "agenda" ? "Lịch" : "Lịch tháng"}
+                    {viewMode === "day" ? "Ngày" : viewMode === "agenda" ? "Lịch" : "Lịch tháng"}
                   </span>
                 </button>
 
@@ -438,8 +405,6 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
           <FilterBar
             statusFilter={statusFilter}
             onStatusChange={setStatusFilter}
-            timeTypeFilter={timeTypeFilter}
-            onTimeTypeChange={setTimeTypeFilter}
             priorityFilter={priorityFilter}
             onPriorityChange={setPriorityFilter}
             tagFilter={tagFilter}
@@ -449,7 +414,6 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
             onResetFilters={() => {
               setPriorityFilter("all");
               setTagFilter("all");
-              setTimeTypeFilter("all");
             }}
             activeFilterCount={activeAdvancedFilterCount}
           />
@@ -457,32 +421,7 @@ export const MobilePlannerPage: React.FC<MobilePlannerPageProps> = ({
           {/* Bố cục danh sách việc */}
           <div className="space-y-4 w-full">
             {(() => {
-              const scheduledDayTasks = filteredTasks.filter((t) => {
-                const normTime = normalizeTaskTimeType(t);
-                return normTime === "scheduled" || (Boolean(t.startTime) && normTime !== "deadline");
-              });
-
-              if (scheduledDayTasks.length === 0) return null;
-
-              return (
-                <TodayScheduleNotes
-                  scheduledTasks={scheduledDayTasks}
-                  onToggle={toggleTask}
-                  onEdit={(task) => openTaskDetail(task.id)}
-                  onDelete={deleteTask}
-                  onMoveTomorrow={moveTaskToNextDay}
-                  onClick={(task) => openTaskDetail(task.id)}
-                  activeTaskId={targetTaskId}
-                  title="Lịch hẹn"
-                />
-              );
-            })()}
-
-            {(() => {
-              const todoDayTasks = filteredTasks.filter((t) => {
-                const normTime = normalizeTaskTimeType(t);
-                return !(normTime === "scheduled" || (Boolean(t.startTime) && normTime !== "deadline"));
-              });
+              const todoDayTasks = filteredTasks.filter((t) => getTaskItemType(t) !== "event");
 
               return (
                 <div className="space-y-2">

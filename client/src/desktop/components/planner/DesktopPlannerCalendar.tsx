@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Clock, Hourglass, X } from "lucide-react";
+import { Check, Clock, Hourglass, X } from "lucide-react";
 import { TaskDto } from "../../../types";
 import { useAppStore } from "../../../stores/appStore";
 import { formatShortDayMonth } from "../../../utils/date";
@@ -26,7 +26,8 @@ export interface DesktopPlannerCalendarProps {
     scheduled: number;
   };
   onPreviewTask?: (task: TaskDto, anchorRect?: DOMRect | null) => void;
-  itemLabel?: "việc" | "sự kiện";
+  onToggleTask: (taskId: string) => void;
+  itemLabel?: string;
 }
 
 const WEEKDAYS = [
@@ -47,6 +48,7 @@ export const DesktopPlannerCalendar: React.FC<DesktopPlannerCalendarProps> = ({
   getTasksForDate,
   getTaskSummaryForDate,
   onPreviewTask,
+  onToggleTask,
   itemLabel = "việc",
 }) => {
   const { openTaskDetail } = useAppStore();
@@ -193,32 +195,62 @@ export const DesktopPlannerCalendar: React.FC<DesktopPlannerCalendarProps> = ({
                 )}
               </div>
 
-              {/* Danh sách Task Chips (Độc lập, click mở TaskDetailPage) */}
+              {/* Danh sách card: Task có checkbox, Event giữ card không checkbox. */}
               {isCurrentMonth && taskCount > 0 && (
                 <div className="mt-1.5 space-y-1 flex-1 flex flex-col justify-start">
                   {visibleTasks.map((task) => {
                     const time = getTaskEffectiveTime(task);
                     const normType = normalizeTaskTimeType(task);
+                    const isEvent = getTaskItemType(task) === "event";
                     const isPastEvent =
-                      getTaskItemType(task) === "event" && item.dateStr < todayStr;
+                      isEvent && item.dateStr < todayStr;
 
                     return (
-                      <button
+                      <div
                         key={task.id}
-                        type="button"
+                        role="button"
+                        tabIndex={0}
                         onClick={(e) => {
                           e.stopPropagation();
-                          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                          const rect = e.currentTarget.getBoundingClientRect();
                           if (onPreviewTask) {
                             onPreviewTask(task, rect);
                           } else {
                             openTaskDetail(task.id);
                           }
                         }}
+                        onKeyDown={(event) => {
+                          if (event.key !== "Enter" && event.key !== " ") return;
+                          event.preventDefault();
+                          const rect = event.currentTarget.getBoundingClientRect();
+                          if (onPreviewTask) onPreviewTask(task, rect);
+                          else openTaskDetail(task.id);
+                        }}
                         title={`${task.title}${time ? ` (${time})` : ""}`}
                         style={getTaskCardVisualStyle(task)}
                         className={`planner-calendar-card flex w-full min-w-0 items-center gap-1 rounded-xl px-2 py-0.5 text-left text-[10.5px] font-bold transition-all active:scale-[0.98] cursor-pointer shadow-2xs ${task.completed ? "line-through opacity-60" : isPastEvent ? "opacity-60" : "hover:brightness-95 dark:hover:brightness-110"}`}
                       >
+                        {!isEvent && (
+                          <span
+                            role="checkbox"
+                            tabIndex={0}
+                            aria-checked={task.completed}
+                            aria-label={task.completed ? "Đánh dấu chưa hoàn thành" : "Đánh dấu đã hoàn thành"}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onToggleTask(task.id);
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key !== "Enter" && event.key !== " ") return;
+                              event.preventDefault();
+                              event.stopPropagation();
+                              onToggleTask(task.id);
+                            }}
+                            className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border border-current/70 ${task.completed ? "bg-current" : "bg-transparent"}`}
+                          >
+                            {task.completed && <Check size={9} className="text-[var(--bg-surface)]" strokeWidth={3} />}
+                          </span>
+                        )}
                         {normType === "deadline" ? (
                           <Hourglass size={9.5} className="shrink-0 text-current" />
                         ) : normType === "scheduled" ? (
@@ -234,7 +266,7 @@ export const DesktopPlannerCalendar: React.FC<DesktopPlannerCalendarProps> = ({
                         <span className="truncate flex-1 min-w-0">
                           {task.title}
                         </span>
-                      </button>
+                      </div>
                     );
                   })}
 
@@ -285,7 +317,7 @@ export const DesktopPlannerCalendar: React.FC<DesktopPlannerCalendarProps> = ({
           <div
             role="dialog"
             aria-label={`Tóm tắt ${formatShortDayMonth(previewDateStr)}`}
-            className="fixed z-40 flex max-h-[min(360px,calc(100vh-24px))] w-[min(360px,calc(100vw-24px))] flex-col rounded-3xl bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] p-3 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+            className="fixed z-40 flex max-h-[min(360px,calc(100vh-24px))] w-[min(360px,calc(100vw-24px))] flex-col rounded-3xl bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] p-3 animate-in fade-in zoom-in-95 duration-150"
             style={{ left, top }}
             onClick={(e) => e.stopPropagation()}
           >

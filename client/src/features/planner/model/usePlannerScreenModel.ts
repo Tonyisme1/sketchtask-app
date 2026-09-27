@@ -23,8 +23,6 @@ const SHORT_DAY_NAMES = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 export interface UsePlannerScreenModelOptions {
   targetDateStr?: string;
   targetTaskId?: string;
-  fromTab?: "deadlines" | "overview";
-  onBackToDeadlines?: () => void;
   onClearTarget?: () => void;
 }
 
@@ -138,11 +136,11 @@ export const usePlannerScreenModel = (
       const dayAllTasks = tasks.filter(
         (t) => isTaskForSpecificDate(t, dStr) || isTaskOccurringOnDate(t, dStr)
       );
-      const scheduledTasks = dayAllTasks.filter(
-        (t) => !t.completed && normalizeTaskTimeType(t) === "scheduled" && getTaskItemType(t) !== "event"
-      );
+      // Scheduled Task is legacy data. New task UI has one list; only Event
+      // owns a time range in its separate workspace.
+      const scheduledTasks: TaskDto[] = [];
       const regularTasks = dayAllTasks.filter(
-        (t) => !t.completed && normalizeTaskTimeType(t) !== "scheduled" && getTaskItemType(t) !== "event"
+        (t) => !t.completed && getTaskItemType(t) !== "event"
       );
       const completedTasks = dayAllTasks.filter(
         (t) => t.completed && getTaskItemType(t) !== "event"
@@ -254,15 +252,11 @@ export const usePlannerScreenModel = (
     });
   }, [rawDayTasks, searchQuery]);
 
-  const dayScheduledTasks = useMemo(() => {
-    return filteredDayTasks.filter(
-      (t) => !t.completed && normalizeTaskTimeType(t) === "scheduled" && getTaskItemType(t) !== "event"
-    );
-  }, [filteredDayTasks]);
+  const dayScheduledTasks = useMemo<TaskDto[]>(() => [], []);
 
   const dayRegularTasks = useMemo(() => {
     return filteredDayTasks.filter(
-      (t) => !t.completed && normalizeTaskTimeType(t) !== "scheduled" && getTaskItemType(t) !== "event"
+      (t) => !t.completed && getTaskItemType(t) !== "event"
     );
   }, [filteredDayTasks]);
 
@@ -297,8 +291,6 @@ export const usePlannerScreenModel = (
     dayEventTasks,
     viewMode,
     searchQuery,
-    isOverdueBackVisible: options?.fromTab === "deadlines",
-
     getTasksForDate,
     getTaskSummaryForDate,
 

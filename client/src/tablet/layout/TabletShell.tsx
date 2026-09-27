@@ -31,7 +31,6 @@ export const TabletShell: React.FC<TabletShellProps> = ({
     isPinLocked,
     unlockWithPin,
     paperStyle,
-    activeTaskSubTab,
     isAuthModalOpen,
     logout,
     closeAuthModal,
@@ -47,7 +46,7 @@ export const TabletShell: React.FC<TabletShellProps> = ({
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
-  }, [activeTab, activeTaskSubTab, activeDetailTaskId, isMobileNoteDetailOpen, isJournalBookOpen]);
+  }, [activeTab, activeDetailTaskId, isMobileNoteDetailOpen, isJournalBookOpen]);
 
   const isDetailOpen =
     Boolean(activeDetailTaskId) ||
@@ -64,35 +63,22 @@ export const TabletShell: React.FC<TabletShellProps> = ({
     settings: 4,
   };
 
-  const SUBTAB_POSITION_MAP: Record<string, number> = {
-    today: 0,
-    planner: 1,
-  };
-
   const previousTabRef = React.useRef<TabKey>(activeTab);
-  const previousSubTabRef = React.useRef<string>(activeTaskSubTab);
   const [tabSlideClass, setTabSlideClass] = useState<string>("mobile-tab-slide-left");
 
-  if (activeTab !== previousTabRef.current || activeTaskSubTab !== previousSubTabRef.current) {
+  if (activeTab !== previousTabRef.current) {
     const prevPos = TAB_POSITION_MAP[previousTabRef.current] ?? 0;
     const currentPos = TAB_POSITION_MAP[activeTab] ?? 0;
 
     let nextClass = tabSlideClass;
     if (currentPos !== prevPos) {
       nextClass = currentPos > prevPos ? "mobile-tab-slide-left" : "mobile-tab-slide-right";
-    } else if (activeTab === "tasks") {
-      const prevSubPos = SUBTAB_POSITION_MAP[previousSubTabRef.current] ?? 0;
-      const currentSubPos = SUBTAB_POSITION_MAP[activeTaskSubTab] ?? 0;
-      if (currentSubPos !== prevSubPos) {
-        nextClass = currentSubPos > prevSubPos ? "mobile-tab-slide-left" : "mobile-tab-slide-right";
-      }
     }
 
     if (nextClass !== tabSlideClass) {
       setTabSlideClass(nextClass);
     }
     previousTabRef.current = activeTab;
-    previousSubTabRef.current = activeTaskSubTab;
   }
 
   return (
@@ -120,7 +106,7 @@ export const TabletShell: React.FC<TabletShellProps> = ({
 
       {/* 2. Main Workspace Layout (Một cột tập trung) */}
       <main
-        key={`tablet-${activeTab}-${activeTaskSubTab}-${isDetailOpen ? "detail" : "main"}`}
+        key={`tablet-${activeTab}-${isDetailOpen ? "detail" : "main"}`}
         className={`flex-1 min-w-0 w-full overflow-x-hidden ${
           isDetailOpen
             ? "p-0 pb-6"
@@ -167,10 +153,9 @@ export const TabletShell: React.FC<TabletShellProps> = ({
 
       {/* Tablet Floating Action Button (Hidden when viewing task detail) */}
       {!isDetailOpen && !isSettingsView && (
-        <ContextAwareFab
-          activeTab={activeTab}
-          activeTaskSubTab={activeTaskSubTab}
-          onCreateTask={openQuickTaskModal}
+          <ContextAwareFab
+            activeTab={activeTab}
+            onCreateTask={openQuickTaskModal}
           onCreateEvent={() => openQuickTaskModal({ itemType: "event", lockItemType: true })}
           showOnTablet
         />
@@ -180,7 +165,6 @@ export const TabletShell: React.FC<TabletShellProps> = ({
       {!isDetailOpen && !isSettingsView && (
         <TabletNav
           activeTab={activeTab}
-          activeTaskSubTab={activeTaskSubTab}
           onTabChange={onTabChange}
         />
       )}

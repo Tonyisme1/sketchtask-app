@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Search, ArrowLeft, X, CheckSquare, FileText, BookOpen, Clock, Calendar, ArrowRight } from "lucide-react";
 import { useAppStore } from "../../../stores/appStore";
 import { NavigationTarget, TaskDto, TabKey } from "../../../types";
-import { loadNotesFromStorage } from "../../../utils/noteStorage";
 import { getTaskEffectiveDate, getTaskEffectiveTime, getTaskItemType } from "../../../utils/taskSemantics";
 import { matchesQuery, stripHtmlText } from "../../../utils/search";
 import { useScrollLock } from "../../../hooks/useScrollLock";
@@ -23,7 +22,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
   onNavigateTab,
   onSelectTask,
 }) => {
-  const { tasks, journalEntries, toggleTask } = useAppStore();
+  const { tasks, stickyNotes, journalEntries, toggleTask } = useAppStore();
   const [query, setQuery] = useState("");
   const [filterType, setFilterType] = useState<SearchFilterType>("all");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -64,11 +63,14 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
     return () => window.clearTimeout(exitTimer);
   }, [isOpen, isVisible]);
 
-  // Load regular notes
-  const notes = useMemo(() => {
-    if (!isOpen) return [];
-    return loadNotesFromStorage();
-  }, [isOpen, query]);
+  const notes = useMemo(
+    () => stickyNotes.map((note) => ({
+      id: note.id,
+      title: note.title || "",
+      content: note.content,
+    })),
+    [stickyNotes],
+  );
 
   // Search Results
   const searchResults = useMemo(() => {
@@ -160,27 +162,28 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({
         </div>
 
         {/* Filter Badges */}
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 shrink-0">
+        <div className="grid grid-cols-3 gap-1.5 py-0.5 sm:flex sm:items-center sm:overflow-x-auto sm:no-scrollbar shrink-0">
           {(
             [
-              { key: "all", label: "Tất cả" },
-              { key: "tasks", label: `Việc (${searchResults.tasks.length})` },
-              { key: "events", label: `Sự kiện (${searchResults.events.length})` },
-              { key: "notes", label: `Ghi chú (${searchResults.notes.length})` },
-              { key: "journal", label: `Nhật ký (${searchResults.journal.length})` },
+              { key: "all", label: "Tất cả", compactLabel: "Tất cả" },
+              { key: "tasks", label: `Việc (${searchResults.tasks.length})`, compactLabel: "Việc" },
+              { key: "events", label: `Sự kiện (${searchResults.events.length})`, compactLabel: "Sự kiện" },
+              { key: "notes", label: `Ghi chú (${searchResults.notes.length})`, compactLabel: "Ghi chú" },
+              { key: "journal", label: `Nhật ký (${searchResults.journal.length})`, compactLabel: "Nhật ký" },
             ] as const
           ).map((item) => (
             <button
               key={item.key}
               type="button"
               onClick={() => setFilterType(item.key)}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer shrink-0 ${
+              className={`min-w-0 px-2 py-2 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-bold transition-all cursor-pointer sm:shrink-0 ${
                 filterType === item.key
                   ? "bg-[#1C1917] dark:bg-white text-white dark:text-[#1C1917] shadow-xs"
                   : "bg-white dark:bg-[#2C2C2E] text-[#78716C] dark:text-[#A1A1AA] hover:bg-black/5 dark:hover:bg-white/10"
               }`}
             >
-              {item.label}
+              <span className="truncate sm:hidden">{item.compactLabel}</span>
+              <span className="hidden sm:inline">{item.label}</span>
             </button>
           ))}
         </div>

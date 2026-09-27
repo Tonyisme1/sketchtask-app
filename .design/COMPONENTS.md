@@ -37,7 +37,7 @@ Danh sách này mô tả component đang được mount hoặc được dùng ch
 ### `Sidebar`, `TabletNav`, `MobileNav`
 
 - Chỉ hiển thị destination đang được App mount.
-- Task navigation dùng `activeTaskSubTab` legacy; không tạo tab mới cho từng biến thể filter.
+- Task navigation chỉ có workspace `Công việc`; filter là state cục bộ, không tạo route/subtab mới.
 - `MobileNav` giữ nút `+` ở giữa, cùng các destination `Việc`, `Sự kiện`, `Ghi chép`
   và `Cá nhân`. `Ghi chép` mở `Ghi chú` hoặc `Nhật ký` từ Header.
 - `TabletNav` hiển thị trực tiếp `Việc`, `Sự kiện`, `Ghi chép` và `AI`.
@@ -62,13 +62,13 @@ Danh sách này mô tả component đang được mount hoặc được dùng ch
 ### `TaskDetailPage`
 
 - Có view mode và edit mode cho cùng một task.
-- Hỗ trợ tạo mới, sửa, hoàn thành, xóa, dời lịch, parent/child, scheduled/deadline và metadata theo source.
+- Hỗ trợ tạo mới, sửa, hoàn thành, xóa, dời ngày, parent/child và metadata. Task mới chỉ có hạn; Event mới có giờ bắt đầu-kết thúc hoặc một mốc bắt đầu.
 - Back khi edit task cũ quay về view; back khi task mới hủy flow tạo theo callback.
 
 ### `QuickTaskModal`
 
 - Là flow tạo task nhanh dùng chung cho desktop/tablet/mobile theo cách mở của từng shell.
-- Ngày, giờ scheduled và giờ deadline là các lựa chọn riêng; không dùng native browser picker.
+- Task có ngày/giờ hạn tùy chọn; Event có ngày/giờ bắt đầu và giờ kết thúc tùy chọn. Không dùng native browser picker.
 - Khi đóng/hủy phải dọn state tạm và không tạo bản ghi rỗng.
 
 ## 4. Planner và time surfaces
@@ -77,8 +77,22 @@ Danh sách này mô tả component đang được mount hoặc được dùng ch
 
 - `PlannerTab` điều phối overview, day detail và các view planner đang được render.
 - Desktop có thể dùng weekly time chart; tablet/mobile ưu tiên danh sách ngày và day detail.
-- Timeline phải có vùng cuộn nội bộ, giữ mốc giờ dễ đọc và không để task đè ngoài container.
+- Timeline phải có vùng cuộn nội bộ, giữ mốc giờ dễ đọc và không để Event đè ngoài container. Event một mốc là marker nhỏ, không tự có block 60 phút.
 - Calendar grid là core UI: thẳng, không xoay, không bị parent cắt.
+- Desktop activity calendar nhận cả Task và Event. Task có checkbox tại card; Event
+  không có checkbox. Các item trùng thời điểm phải chia lane bằng layout engine chung.
+- `DesktopPlannerListView` là dòng hoạt động theo ngày/tuần và card của nó mở right
+  inspector. Khi xem Event hoặc luồng gộp ở phạm vi lớn, danh sách phân trang tối đa
+  12 ngày có hoạt động; quick preview chỉ dành cho card nằm trong calendar grid.
+
+### `DesktopTagTaskRail`
+
+- Chỉ dùng tại workspace `Công việc` Desktop.
+- Một tag là một lane có chiều rộng cố định; container cha cuộn ngang để chuyển giữa
+  các tag. Bên trong lane cuộn dọc và có mốc ngày chứa các `TaskCard`; lane chỉ dùng
+  đường ngăn mảnh, không dựng surface/card bao quanh card nhiệm vụ.
+- Các `TaskCard` hoàn thành nằm trong dropdown thu gọn cố định ở đáy cột.
+- Không dùng rail này cho Event hoặc ở tablet/mobile. Bấm card luôn mở right inspector.
 
 ### `DatePickerPopover`, `TimePickerPopover`
 
@@ -102,7 +116,8 @@ Danh sách này mô tả component đang được mount hoặc được dùng ch
 
 ### `JournalTab`, `JournalBook`, `JournalEntryCard`
 
-- Journal list và book detail là hai state của cùng feature.
+- Journal index và book detail là hai state của cùng feature. Index là các dòng ngày
+  phẳng có preview và phân trang tối đa 12 ngày, không dùng hero card bao ngoài.
 - Chọn ngày, chuyển ngày và back phải quay đúng từ book về journal list trước khi pop navigation ngoài.
 
 ## 6. Overlay và system components
@@ -111,8 +126,8 @@ Danh sách này mô tả component đang được mount hoặc được dùng ch
 
 - Search là overlay/system surface dùng chung cho desktop, tablet và mobile. Không có notification drawer/page nội bộ hoặc destination deadline thứ hai.
 - Settings: desktop dùng dialog/master-detail theo nhóm; tablet tùy orientation có
-  master-detail hoặc danh sách nhóm; mobile giữ một trang cuộn dài, liên tục, không
-  bọc mỗi mục trong card lớn, divider hoặc chuyển sang fullscreen detail.
+  master-detail hoặc danh sách nhóm; mobile hiển thị toàn bộ section theo một trang cuộn
+  liên tục. Mobile không có detail/back lồng nhau hoặc dashboard card.
 - AI: desktop/tablet có thể là workspace/panel; mobile có standalone detail với back rõ ràng.
 - AuthModal có login/register state và phải phù hợp viewport, không dùng kích thước desktop cho mobile.
 

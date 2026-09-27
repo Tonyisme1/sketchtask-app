@@ -3,6 +3,7 @@ import { Tags, X } from "lucide-react";
 import { TaskScreenModel } from "../../features/tasks/model/createTaskScreenModel";
 import { getTaskItemType, getTaskTag } from "../../utils/taskSemantics";
 import { DesktopTaskGroup } from "../components/tasks/DesktopTaskGroup";
+import { DesktopTagTaskRail } from "../components/tasks/DesktopTagTaskRail";
 import { useAppStore } from "../../stores/appStore";
 
 export interface DesktopAllTasksViewProps {
@@ -82,7 +83,7 @@ export const DesktopAllTasksView: React.FC<DesktopAllTasksViewProps> = ({ model,
   };
 
   return (
-    <div className="w-full min-w-0 pb-16 select-none animate-in fade-in duration-150">
+    <div className="w-full min-w-0 pb-8 select-none animate-in fade-in duration-150">
       {/* === PHẦN 1: Lọc tag đa chọn tại chính workspace Desktop === */}
       {taskTags.length > 0 && (
         <section className="mb-5 flex flex-wrap items-center gap-2.5" aria-label="Lọc công việc theo tag">
@@ -140,7 +141,7 @@ export const DesktopAllTasksView: React.FC<DesktopAllTasksViewProps> = ({ model,
         </section>
       )}
 
-      {/* === PHẦN 2: Nhóm tag thành các khối công việc có nhịp điệu === */}
+      {/* === PHẦN 2: Các tag là cột cuộn ngang; ngày chỉ tổ chức nội dung trong cột === */}
       {tagGroups.length === 0 ? (
         <DesktopTaskGroup
           title="Công việc"
@@ -156,23 +157,20 @@ export const DesktopAllTasksView: React.FC<DesktopAllTasksViewProps> = ({ model,
           visualStyle="tag"
         />
       ) : (
-        <div className="space-y-5">
-          {tagGroups.map((group, index) => (
-            <DesktopTaskGroup
-              key={group.key}
-              title={group.title}
-              tasks={group.tasks}
-              subtitle={`${group.tasks.filter((task) => task.completed).length}/${group.tasks.length} việc đã xong`}
-              variant="planner"
-              activeTaskId={targetTaskId}
-              onToggle={toggleTask}
-              onOpenTask={(task) => openTaskDetail(task.id)}
-              onDelete={deleteTask}
-              onMoveTomorrow={moveTaskToTomorrow}
-              visualStyle="tag"
-              accentIndex={index}
-            />
-          ))}
+        <div className="overflow-x-auto pb-3 [scrollbar-color:var(--border-ink-muted)_transparent]" aria-label="Danh sách công việc theo tag">
+          <div className="flex min-w-max items-start gap-6 pr-4">
+            {tagGroups.map((group, index) => (
+              <DesktopTagTaskRail
+                key={group.key}
+                title={group.title}
+                tasks={group.tasks}
+                activeTaskId={targetTaskId}
+                onToggle={toggleTask}
+                onOpenTask={(task) => openTaskDetail(task.id)}
+                accentIndex={index}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>

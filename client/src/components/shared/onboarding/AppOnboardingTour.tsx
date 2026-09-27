@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useResponsiveLayout } from "../../../hooks";
 
-const STORAGE_KEY = "sketchtask_onboarding_completed_v1";
+const STORAGE_KEY = "sketchtask_onboarding_completed_v2";
 
 type TourStep = {
   selector: string;
@@ -10,22 +10,21 @@ type TourStep = {
 };
 
 const MOBILE_STEPS: TourStep[] = [
-  { selector: '[data-onboarding="mobile-tasks"]', title: "Công việc", description: "Theo dõi các việc cần làm theo ngày, tuần hoặc tháng." },
-  { selector: '[data-onboarding="mobile-events"]', title: "Sự kiện", description: "Lịch hẹn có giờ bắt đầu và kết thúc được quản lý riêng ở đây." },
+  { selector: '[data-onboarding="mobile-tasks"]', title: "Công việc", description: "Theo dõi việc theo ngày; mỗi việc có checkbox, hạn tùy chọn và một nhãn." },
+  { selector: '[data-onboarding="mobile-events"]', title: "Sự kiện", description: "Sự kiện được xem riêng theo thời gian; một mốc bắt đầu không tự có thời lượng." },
   { selector: '[data-onboarding="mobile-create"]', title: "Tạo mới", description: "Tạo nhanh công việc hoặc sự kiện phù hợp với tab đang mở." },
-  { selector: '[data-onboarding="mobile-deadlines"]', title: "Sắp đến", description: "Xem việc sắp đến hạn trước, rồi đến các việc quá hạn." },
+  { selector: '[data-onboarding="mobile-notes"]', title: "Ghi chép", description: "Mở ghi chú và nhật ký từ cùng một điểm vào." },
 ];
 
 const TABLET_STEPS: TourStep[] = [
-  { selector: '[data-onboarding="tablet-tasks"]', title: "Không gian công việc", description: "Chuyển nhanh giữa hôm nay, công việc và ghi chép." },
+  { selector: '[data-onboarding="tablet-tasks"]', title: "Công việc", description: "Xem việc, hoàn thành bằng checkbox và lọc theo nhãn." },
   { selector: '[data-onboarding="tablet-search"]', title: "Tìm kiếm", description: "Tìm cả công việc lẫn sự kiện từ một nơi." },
-  { selector: '[data-onboarding="tablet-deadlines"]', title: "Hạn định", description: "Chỉ hiện những task có deadline rõ ràng." },
+  { selector: '[data-onboarding="tablet-create"]', title: "Tạo mới", description: "Tạo task hoặc sự kiện theo workspace hiện tại." },
 ];
 
 const DESKTOP_STEPS: TourStep[] = [
   { selector: '[data-onboarding="desktop-create"]', title: "Tạo nhanh", description: "Tạo đúng loại mục theo workspace bạn đang mở." },
   { selector: '[data-onboarding="desktop-tasks"]', title: "Công việc", description: "Xem backlog, lọc theo danh sách và mở chi tiết trực tiếp từ card." },
-  { selector: '[data-onboarding="desktop-deadlines"]', title: "Hạn định", description: "Tập trung vào các task sắp đến hạn và quá hạn, không lẫn với event." },
 ];
 
 const readCompleted = () => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { MobileEventSubTab, NavigationTarget, TabKey } from "../../types";
+import { NavigationTarget, TabKey } from "../../types";
 import { useAppStore } from "../../stores";
 import { DynamicIcon } from "../../components/ui";
 import { isNativePlatform } from "../../services";
@@ -12,16 +12,6 @@ import {
   Settings,
 } from "lucide-react";
 
-const SETTINGS_SECTION_TITLES: Record<string, string> = {
-  account: "Tài khoản",
-  general: "Giao diện",
-  notifications: "Thông báo",
-  data: "Dữ liệu",
-  security: "Bảo mật",
-  shortcuts: "Phím tắt",
-  about: "Giới thiệu",
-};
-
 export interface MobileHeaderProps {
   activeTab: TabKey;
   onTabChange: (tab: TabKey, target?: NavigationTarget) => void;
@@ -30,8 +20,6 @@ export interface MobileHeaderProps {
   onOpenLogin: () => void;
   onLogout: () => void;
   previousTab?: TabKey;
-  activeEventSubTab: MobileEventSubTab;
-  onEventSubTabChange: (subTab: MobileEventSubTab) => void;
 }
 
 // === PHAN 1: HEADER CHI HIEN THI CAC WORKSPACE CO THE MO ===
@@ -44,7 +32,7 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
   onLogout,
   previousTab,
 }) => {
-  const { user, settingsMobileSubView, setSettingsMobileSubView } = useAppStore();
+  const { user } = useAppStore();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isNotesMenuOpen, setIsNotesMenuOpen] = useState(false);
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
@@ -87,10 +75,8 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
   }, []);
 
   const isSettings = activeTab === "settings";
-  const settingsTitle = settingsMobileSubView
-    ? SETTINGS_SECTION_TITLES[settingsMobileSubView] || "Cài đặt"
-    : "Cá nhân";
-  const isTaskWorkspace = activeTab === "tasks" || activeTab === "today" || activeTab === "planner";
+  const settingsTitle = "Cá nhân";
+  const isTaskWorkspace = activeTab === "tasks";
 
   const renderWorkspaceTitle = () => {
     if (isTaskWorkspace) {
@@ -167,20 +153,6 @@ export const MobileHeader: React.FC<MobileHeaderProps> = ({
     >
       <div className="relative flex min-h-[40px] w-full items-center justify-between">
         <div className="z-10 flex min-w-0 items-center gap-2">
-          {isSettings && (
-            <button
-              type="button"
-              onClick={() => {
-                if (settingsMobileSubView) setSettingsMobileSubView(null);
-                else onTabChange(previousTab || "tasks");
-              }}
-              className="mobile-back-button flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-2xl bg-[var(--bg-surface-muted)] text-[var(--text-main)] transition-all active:scale-95"
-              title="Quay lại"
-              aria-label="Quay lại"
-            >
-              <ArrowLeft size={18} strokeWidth={2.4} />
-            </button>
-          )}
           {activeTab === "ai" && (
             <button
               type="button"

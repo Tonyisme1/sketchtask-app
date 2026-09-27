@@ -399,6 +399,7 @@ const DeadlineMarkerCard: React.FC<{
 }) => {
   const { task } = marker;
   const isEvent = getTaskItemType(task) === "event";
+  const isStartOnlyEvent = marker.kind === "event";
   const isCompleted = !isEvent && task.completed;
   const suppressClickRef = useRef(false);
   const pointerStartRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
@@ -407,6 +408,7 @@ const DeadlineMarkerCard: React.FC<{
 
   const visualStyle = getTaskCardVisualStyle(task);
   const tone = `border-none shadow-xs rounded-xl hover:brightness-105 ${isCompleted ? "opacity-55" : ""}`;
+  const markerHeight = isStartOnlyEvent ? 18 : 25;
 
   if (isGhost) {
     return (
@@ -416,7 +418,7 @@ const DeadlineMarkerCard: React.FC<{
           top: marker.top,
           left: `calc(${marker.left}% + 1px)`,
           width: `calc(${marker.width}% - 2px)`,
-          height: 25,
+          height: markerHeight,
           zIndex: 10,
         }}
         className={`group absolute flex items-center overflow-hidden ${tone} px-2 select-none pointer-events-none opacity-30`}
@@ -436,7 +438,7 @@ const DeadlineMarkerCard: React.FC<{
         top: marker.top,
         left: isActive ? "0%" : hasMultipleLanes ? `calc(${marker.left}% + 1px)` : "0%",
         width: isActive ? "100%" : hasMultipleLanes ? `calc(${marker.width}% - 2px)` : "100%",
-        height: 25,
+        height: markerHeight,
         zIndex: isActive ? 70 : (marker.zIndex ?? 10),
       }}
       onClick={(e) => {
@@ -500,7 +502,7 @@ const DeadlineMarkerCard: React.FC<{
         suppressClickRef.current = true;
         onOpenPopover(task, getPreviewAnchorRect(event.currentTarget as HTMLElement));
       }}
-      title={`Hạn chót: ${marker.time} · ${task.title}${marker.overflowCount ? ` (+${marker.overflowCount} việc khác)` : ""}`}
+      title={`${isStartOnlyEvent ? "Mốc sự kiện" : "Hạn chót"}: ${marker.time} · ${task.title}${marker.overflowCount ? ` (+${marker.overflowCount} mục khác)` : ""}`}
       className={`group absolute flex items-center overflow-hidden ${tone} px-2 shadow-sm transition-all select-none cursor-grab active:cursor-grabbing ${
         isActive ? "ring-2 ring-[var(--accent-blue)] shadow-md !z-40" : ""
       }`}
@@ -599,7 +601,7 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
     anchorRect: DOMRect;
   } | null>(null);
 
-  // Trạng thái tạo việc 60 phút trực tiếp trên lưới kết hợp thẻ Popover nổi
+  // === PHẦN TẠO TRÊN TIMELINE: chỉ Event dùng khoảng thời gian ===
   const [draftTask, setDraftTask] = useState<{
     dateStr: string;
     hour: number;
@@ -642,9 +644,10 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
       title: trimmedTitle,
       dueDate: draftTask.dateStr,
       itemType: draftTask.itemType,
-      timeType: draftTask.itemType === "event" ? "event" : "scheduled",
-      startTime: formatTime(draftTask.startMinutes),
-      endTime: formatTime(draftTask.endMinutes),
+      timeType: draftTask.itemType === "event" ? "event" : "deadline",
+      startTime: draftTask.itemType === "event" ? formatTime(draftTask.startMinutes) : undefined,
+      endTime: draftTask.itemType === "event" ? formatTime(draftTask.endMinutes) : undefined,
+      deadlineTime: draftTask.itemType === "task" ? formatTime(draftTask.startMinutes) : undefined,
       status: "todo",
       completed: false,
     });
@@ -657,9 +660,10 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
       title: draftTask.title,
       dueDate: draftTask.dateStr,
       itemType: draftTask.itemType,
-      timeType: draftTask.itemType === "event" ? "event" : "scheduled",
-      startTime: formatTime(draftTask.startMinutes),
-      endTime: formatTime(draftTask.endMinutes),
+      timeType: draftTask.itemType === "event" ? "event" : "deadline",
+      startTime: draftTask.itemType === "event" ? formatTime(draftTask.startMinutes) : undefined,
+      endTime: draftTask.itemType === "event" ? formatTime(draftTask.endMinutes) : undefined,
+      deadlineTime: draftTask.itemType === "task" ? formatTime(draftTask.startMinutes) : undefined,
     });
     setDraftTask(null);
   }, [draftTask, openTaskDetail]);
@@ -894,16 +898,17 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
     });
   }, []);
 
-  // Mở modal tạo việc nhanh theo đúng ô 15 phút người dùng đã chọn.
+  // Task tạo từ timeline trở thành hạn tại mốc đã chọn, không thành event ngầm.
   const handleCellClick = (dateStr: string, startMinutes: number) => {
     const startStr = formatTime(startMinutes);
     const endMinutes = Math.min(24 * 60, startMinutes + 15);
     const endStr = endMinutes >= 24 * 60 ? "23:59" : formatTime(endMinutes);
     openQuickTaskModal({
       dueDate: dateStr,
-      timeType: "scheduled",
-      startTime: startStr,
-      endTime: endStr,
+      timeType: calendarItemType === "event" ? "event" : "deadline",
+      startTime: calendarItemType === "event" ? startStr : undefined,
+      endTime: calendarItemType === "event" ? endStr : undefined,
+      deadlineTime: calendarItemType === "task" ? startStr : undefined,
       itemType: calendarItemType,
       lockItemType: true,
     });
@@ -1002,22 +1007,31 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
                   {visibleTasks.map((task) => {
                     const isPastEvent =
                       getTaskItemType(task) === "event" && day.dateStr < getLocalTodayStr();
+                    const isEvent = getTaskItemType(task) === "event";
 
                     return (
-                      <button
+                      <div
                         key={task.id}
-                        type="button"
+                        role="button"
+                        tabIndex={0}
                         onClick={(e) => {
                           e.stopPropagation();
-                          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                          const rect = e.currentTarget.getBoundingClientRect();
                           if (onPreviewTask) {
                             onPreviewTask(task, rect);
                           } else {
                             openTaskDetail(task.id);
                           }
                         }}
+                        onKeyDown={(event) => {
+                          if (event.key !== "Enter" && event.key !== " ") return;
+                          event.preventDefault();
+                          const rect = event.currentTarget.getBoundingClientRect();
+                          if (onPreviewTask) onPreviewTask(task, rect);
+                          else openTaskDetail(task.id);
+                        }}
                         style={getTaskCardVisualStyle(task)}
-                        className={`planner-calendar-card truncate rounded-xl px-2 py-1 text-[11px] font-semibold shadow-2xs transition-all active:scale-[0.98] text-left cursor-pointer ${
+                        className={`planner-calendar-card flex min-w-0 items-center gap-1 rounded-xl px-2 py-1 text-[11px] font-semibold shadow-2xs transition-all active:scale-[0.98] text-left cursor-pointer ${
                           task.completed
                             ? "line-through opacity-60"
                             : isPastEvent
@@ -1026,8 +1040,29 @@ export const PlannerTimeline: React.FC<PlannerTimelineProps> = ({
                         }`}
                         title={task.title}
                       >
-                        {task.title}
-                      </button>
+                        {!isEvent && (
+                          <span
+                            role="checkbox"
+                            tabIndex={0}
+                            aria-checked={task.completed}
+                            aria-label={task.completed ? "Đánh dấu chưa hoàn thành" : "Đánh dấu đã hoàn thành"}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              onToggleTask(task.id);
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key !== "Enter" && event.key !== " ") return;
+                              event.preventDefault();
+                              event.stopPropagation();
+                              onToggleTask(task.id);
+                            }}
+                            className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-[3px] border border-current/70 ${task.completed ? "bg-current" : "bg-transparent"}`}
+                          >
+                            {task.completed && <Check size={9} className="text-[var(--bg-surface)]" strokeWidth={3} />}
+                          </span>
+                        )}
+                        <span className="min-w-0 truncate">{task.title}</span>
+                      </div>
                     );
                   })}
 

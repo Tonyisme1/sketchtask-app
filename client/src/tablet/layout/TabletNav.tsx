@@ -6,11 +6,10 @@ import {
   LucideIcon,
   Sparkles,
 } from "lucide-react";
-import { TabKey, TaskSubTab } from "../../types";
+import { TabKey } from "../../types";
 
 export interface TabletNavProps {
   activeTab: TabKey;
-  activeTaskSubTab: TaskSubTab;
   onTabChange: (tab: TabKey) => void;
 }
 
@@ -28,7 +27,6 @@ const navItems: Array<{
 
 const isNavItemActive = (
   activeTab: TabKey,
-  activeTaskSubTab: TabletNavProps["activeTaskSubTab"],
   key: TabKey,
 ) => {
   if (key === "tasks") {
@@ -40,7 +38,6 @@ const isNavItemActive = (
 
 export const TabletNav: React.FC<TabletNavProps> = ({
   activeTab,
-  activeTaskSubTab,
   onTabChange,
 }) => {
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
@@ -115,9 +112,9 @@ export const TabletNav: React.FC<TabletNavProps> = ({
       }`}
       aria-label="Điều hướng chính Tablet"
     >
-      <div className="pointer-events-auto bg-[#F2F2F7]/95 dark:bg-[#18181A]/95 backdrop-blur-2xl border-none rounded-full p-1.5 shadow-2xl flex items-center gap-1">
+      <div className="pointer-events-auto flex items-center gap-1 rounded-2xl border-[1.5px] border-[var(--border-ink-muted)] bg-[var(--bg-surface)] p-1.5">
         {navItems.map(({ key, label, shortLabel, icon: Icon }) => {
-          const isActive = isNavItemActive(activeTab, activeTaskSubTab, key);
+          const isActive = isNavItemActive(activeTab, key);
           return (
             <button
               key={key}
@@ -126,11 +123,11 @@ export const TabletNav: React.FC<TabletNavProps> = ({
               onClick={() => onTabChange(key)}
               aria-label={label}
               title={label}
-              className={`relative min-h-[44px] flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-150 cursor-pointer ${
+              className={`relative flex min-h-[44px] items-center gap-2 rounded-xl border-[1.5px] border-transparent px-4 py-2 transition-all duration-150 cursor-pointer ${
                 isActive
-                  ? "bg-[#1C1C1E] dark:bg-white text-white dark:text-[#1C1C1E] shadow-sm font-bold"
-                  : "bg-transparent text-[#8E8E93] hover:text-[#1C1C1E] dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/10 font-semibold"
-              } active:scale-95`}
+                  ? "border-[var(--accent-blue)] bg-[var(--accent-blue)] text-[var(--text-on-accent)] font-bold"
+                  : "bg-transparent text-[var(--text-muted)] hover:bg-[var(--bg-interactive)] hover:text-[var(--text-main)] font-semibold"
+              } active:translate-x-[1.5px] active:translate-y-[1.5px]`}
             >
               <Icon size={18} strokeWidth={isActive ? 2.4 : 2} />
               <span className="text-xs leading-tight whitespace-nowrap">

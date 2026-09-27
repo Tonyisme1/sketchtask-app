@@ -1,75 +1,9 @@
 import { prisma } from "../db.js";
 import { wsService } from "./websocket.service.js";
 import { calculateConsecutiveStreak } from "./habit.service.js";
+import type { SyncPayload as SharedSyncPayload } from "@sketchtask/api-contract";
 
-export interface SyncPayload {
-  updatedAt?: string;
-  clientTimestamp?: string;
-  tasks: Array<{
-    id: string;
-    title: string;
-    description?: string | null;
-    completed: boolean;
-    dueDate?: string | null;
-    startDate?: string | null;
-    endDate?: string | null;
-    itemType?: string | null;
-    timeType?: string | null;
-    startTime?: string | null;
-    endTime?: string | null;
-    deadlineDate?: string | null;
-    deadlineTime?: string | null;
-    tag?: string | null;
-    tags?: string[] | null;
-    priority?: string | null;
-    status?: string;
-    parentTaskId?: string | null;
-    createdAt?: string;
-    updatedAt?: string;
-  }>;
-  stickyNotes: Array<{
-    id: string;
-    content: string;
-    color: string;
-    tilt?: string;
-    isPinned: boolean;
-    createdAt?: string;
-    updatedAt?: string;
-  }>;
-  habits: Array<{
-    id: string;
-    name: string;
-    frequency?: string;
-    targetDaysPerWeek?: number | null;
-    completedDates: string[];
-    streak?: number;
-    createdAt?: string;
-    updatedAt?: string;
-  }>;
-  journalEntries?: Array<{
-    id: string;
-    date: string;
-    time?: string;
-    content: string;
-    linkedTaskId?: string | null;
-    createdAt?: string;
-    updatedAt?: string;
-  }>;
-  dailyMoods: Record<string, string | { moodEmoji: string; updatedAt?: string }>; // dateStr -> moodEmoji or object
-  weeklyReflection: string | { text: string; updatedAt?: string };
-  tags: string[];
-  _metadata?: {
-    dailyMoodsUpdatedAt?: Record<string, string>;
-    weeklyReflectionUpdatedAt?: string;
-  };
-  deleted?: {
-    tasks?: string[];
-    stickyNotes?: string[];
-    habits?: string[];
-    journalEntries?: string[];
-    tags?: string[];
-  };
-}
+export type SyncPayload = SharedSyncPayload;
 
 type DeletedEntityType =
   | "tasks"
@@ -130,6 +64,7 @@ export class SyncService {
       }
       return {
         ...task,
+        tag: task.tag || parsedTags[0] || null,
         tags: parsedTags,
       };
     });
@@ -190,12 +125,12 @@ export class SyncService {
                 itemType: t.itemType || (t.timeType === "event" ? "event" : "task"),
                 startDate: t.startDate || null,
                 endDate: t.endDate || null,
-                timeType: t.timeType || "deadline",
+                timeType: t.timeType || (t.itemType === "event" ? "event" : "task"),
                 startTime: t.startTime || null,
                 endTime: t.endTime || null,
                 deadlineDate: t.deadlineDate || null,
                 deadlineTime: t.deadlineTime || null,
-                tag: t.tag || null,
+                tag: t.tag || (Array.isArray(t.tags) ? t.tags.find((tag): tag is string => typeof tag === "string") || null : null),
                 tags: Array.isArray(t.tags) ? JSON.stringify(t.tags) : null,
                 priority: t.priority || "medium",
                 status: t.status || (t.completed ? "completed" : "todo"),
@@ -220,7 +155,11 @@ export class SyncService {
                 endTime: t.endTime !== undefined ? t.endTime : existing.endTime,
                 deadlineDate: t.deadlineDate !== undefined ? t.deadlineDate : existing.deadlineDate,
                 deadlineTime: t.deadlineTime !== undefined ? t.deadlineTime : existing.deadlineTime,
-                tag: t.tag !== undefined ? t.tag : existing.tag,
+                tag: t.tag !== undefined
+                  ? t.tag
+                  : Array.isArray(t.tags)
+                    ? t.tags.find((tag): tag is string => typeof tag === "string") || existing.tag
+                    : existing.tag,
                 tags: t.tags !== undefined ? JSON.stringify(t.tags || []) : existing.tags,
                 priority: t.priority !== undefined ? t.priority : existing.priority,
                 status:
@@ -254,6 +193,7 @@ export class SyncService {
               data: {
                 id: sn.id,
                 userId,
+                title: sn.title || "",
                 content: sn.content,
                 color: sn.color || "yellow",
                 tilt: sn.tilt || "none",
@@ -266,6 +206,7 @@ export class SyncService {
             await tx.stickyNote.update({
               where: { id: sn.id },
               data: {
+                title: sn.title !== undefined ? sn.title : existing.title,
                 content: sn.content,
                 color: sn.color || existing.color,
                 tilt: sn.tilt !== undefined ? sn.tilt : existing.tilt,

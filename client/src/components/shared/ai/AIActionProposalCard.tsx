@@ -14,7 +14,6 @@ import {
   AIProposalAction,
   ParsedTaskIntent,
 } from "../../../services/aiAgentService";
-import { loadNotesFromStorage, saveNotesToStorage } from "../../../utils/noteStorage";
 import { getTaskItemType } from "../../../utils/taskSemantics";
 
 const APPLIED_ITEMS_KEY = "sketchtask_ai_applied_proposal_items_v1";
@@ -37,17 +36,6 @@ const writeAppliedItemIds = (itemIds: string[]) => {
   }
 };
 
-const createLocalId = (prefix: string) => {
-  try {
-    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-      return `${prefix}-${crypto.randomUUID()}`;
-    }
-  } catch {
-    // Fall back for older WebViews.
-  }
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-};
-
 const escapeHtml = (value: string) =>
   value
     .replaceAll("&", "&amp;")
@@ -61,6 +49,7 @@ type ProposalItem = {
   action: AIProposalAction;
   label: string;
   task?: ParsedTaskIntent;
+  kind: "goal" | "task" | "mutation";
 };
 
 const getActionItems = (
@@ -75,20 +64,30 @@ const getActionItems = (
       action,
       task,
       label: task.title,
+      kind: "task",
     }));
   }
   if (action.type === "breakdown_goal") {
-    return action.plan.subtasks.map((task, taskIndex) => ({
+    const goalItem = action.plan.targetTaskId
+      ? []
+      : [{
+          id: `${prefix}:goal`,
+          action,
+          label: `Mục tiêu: ${action.plan.goalTitle}`,
+          kind: "goal" as const,
+        }];
+    return [...goalItem, ...action.plan.subtasks.map((task, taskIndex) => ({
       id: `${prefix}:step:${taskIndex}`,
       action,
       task,
       label: task.title,
-    }));
+      kind: "task" as const,
+    }))];
   }
-  if (action.type === "complete_task") return [{ id: `${prefix}:complete`, action, label: "Đánh dấu hoàn thành" }];
-  if (action.type === "delete_task") return [{ id: `${prefix}:delete`, action, label: "Xóa công việc" }];
-  if (action.type === "create_journal_entry") return [{ id: `${prefix}:journal`, action, label: "Thêm mục nhật ký" }];
-  return [{ id: `${prefix}:note`, action, label: `Tạo ghi chú “${action.title || "Không tiêu đề"}”` }];
+  if (action.type === "complete_task") return [{ id: `${prefix}:complete`, action, label: "Đánh dấu hoàn thành", kind: "mutation" }];
+  if (action.type === "delete_task") return [{ id: `${prefix}:delete`, action, label: "Xóa công việc", kind: "mutation" }];
+  if (action.type === "create_journal_entry") return [{ id: `${prefix}:journal`, action, label: "Thêm mục nhật ký", kind: "mutation" }];
+  return [{ id: `${prefix}:note`, action, label: `Tạo ghi chú “${action.title || "Không tiêu đề"}”`, kind: "mutation" }];
 };
 
 const getItemIcon = (item: ProposalItem) => {
@@ -113,7 +112,7 @@ export interface AIActionProposalCardProps {
 
 /** AI can only suggest changes here; the person selects every mutation explicitly. */
 export const AIActionProposalCard: React.FC<AIActionProposalCardProps> = ({ proposal }) => {
-  const { tasks, addTask, toggleTask, deleteTask, addJournalEntry } = useAppStore();
+  const { tasks, addTask, addStickyNote, toggleTask, deleteTask, addJournalEntry } = useAppStore();
   const [isApplying, setIsApplying] = useState(false);
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(() => new Set());
   const [appliedItemIds, setAppliedItemIds] = useState<Set<string>>(
@@ -166,12 +165,20 @@ export const AIActionProposalCard: React.FC<AIActionProposalCardProps> = ({ prop
           return;
         }
         if (action.type === "breakdown_goal") {
-          const parentId = action.plan.targetTaskId || addTask({
-            title: action.plan.goalTitle,
-            priority: "medium",
-            description: "Mục tiêu được tạo từ đề xuất AI đã được chọn.",
-          }).id;
-          actionItems.forEach((item) => item.task && addTask({ ...item.task, parentTaskId: parentId }));
+          const createGoal = actionItems.some((item) => item.kind === "goal");
+          const parentId = action.plan.targetTaskId || (createGoal
+            ? addTask({
+                title: action.plan.goalTitle,
+                priority: "medium",
+                description: "Mục tiêu được tạo từ đề xuất AI đã được chọn.",
+              }).id
+            : undefined);
+          actionItems
+            .filter((item) => item.kind === "task")
+            .forEach((item) => item.task && addTask({
+              ...item.task,
+              parentTaskId: parentId,
+            }));
           return;
         }
         if (action.type === "complete_task") {
@@ -193,27 +200,10 @@ export const AIActionProposalCard: React.FC<AIActionProposalCardProps> = ({ prop
           return;
         }
 
-        const timestamp = new Date().toLocaleString("vi-VN", {
-          hour: "2-digit",
-          minute: "2-digit",
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        });
         const noteContent = action.content
           ? `<p>${escapeHtml(action.content).replaceAll("\n", "<br />")}</p>`
           : "";
-        saveNotesToStorage([
-          {
-            id: createLocalId("note"),
-            title: action.title || "Ghi chú không tiêu đề",
-            content: noteContent,
-            createdAt: timestamp,
-            updatedAt: timestamp,
-            isPinned: false,
-          },
-          ...loadNotesFromStorage(),
-        ]);
+        addStickyNote(noteContent, "sky", action.title || "Ghi chú không tiêu đề");
       });
 
       const appliedIds = selectedItems.map((item) => item.id);

@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { NavigationTarget } from "../../types";
-import { TabletTodayView } from "../tabs/TabletTodayView";
-import { TabletDeadlinesPage } from "../tabs/TabletDeadlinesPage";
 import { TabletPlannerPage } from "../tabs/TabletPlannerPage";
 import { getTaskEffectiveDate } from "../../utils";
 import { TaskScreenModel, useTaskScreenModel } from "../../features/tasks/model/createTaskScreenModel";
@@ -20,8 +18,6 @@ export const TabletTasksPage: React.FC<TabletTasksPageProps> = ({
   const defaultModel = useTaskScreenModel();
   const model = propModel || defaultModel;
 
-  const { activeTaskSubTab } = model;
-  const { setActiveTaskSubTab } = model.actions;
 
   const [plannerTargetDateStr, setPlannerTargetDateStr] = useState<string | undefined>(undefined);
   const [plannerTargetTaskId, setPlannerTargetTaskId] = useState<string | undefined>(undefined);
@@ -37,27 +33,19 @@ export const TabletTasksPage: React.FC<TabletTasksPageProps> = ({
     const taskDate = navigationTarget.date || getTaskEffectiveDate(task);
     setPlannerTargetDateStr(taskDate);
     setPlannerTargetTaskId(task.id);
-    setActiveTaskSubTab("planner");
     onClearNavigationTarget?.();
-  }, [navigationTarget, model.tasks, setActiveTaskSubTab, onClearNavigationTarget]);
+  }, [navigationTarget, model.tasks, onClearNavigationTarget]);
 
   return (
     <div className="w-full min-w-0 select-none pb-12">
-      {/* Content */}
-      {activeTaskSubTab === "today" ? (
-        <TabletTodayView />
-      ) : activeTaskSubTab === "planner" ? (
-        <TabletPlannerPage
-          targetDateStr={plannerTargetDateStr}
-          targetTaskId={plannerTargetTaskId}
-          onClearTarget={() => {
-            setPlannerTargetDateStr(undefined);
-            setPlannerTargetTaskId(undefined);
-          }}
-        />
-      ) : (
-        <TabletDeadlinesPage />
-      )}
+      <TabletPlannerPage
+        targetDateStr={plannerTargetDateStr}
+        targetTaskId={plannerTargetTaskId}
+        onClearTarget={() => {
+          setPlannerTargetDateStr(undefined);
+          setPlannerTargetTaskId(undefined);
+        }}
+      />
     </div>
   );
 };

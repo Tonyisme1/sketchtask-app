@@ -42,6 +42,18 @@ const stripHtml = (html: string) => {
   return (tmp.textContent || tmp.innerText || "").trim();
 };
 
+const formatNoteTimestamp = (value: string) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
 export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   notes,
   newlyCreatedId,
@@ -153,23 +165,11 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
       saveTimeoutRef.current = null;
     }
 
-    const nowStr =
-      new Date().toLocaleTimeString("vi-VN", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }) +
-      ", " +
-      new Date().toLocaleDateString("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
-
     const updated: NoteItem = {
       ...selectedNote,
       title: currentTitle.trim(),
       content: currentContentHtml,
-      updatedAt: nowStr,
+      updatedAt: new Date().toISOString(),
     };
 
     onUpdateNote(updated);
@@ -246,7 +246,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
       <div className={`w-full min-w-0 space-y-3 select-none ${
         mobileNoteTransition === "back" ? "mobile-panel-back-enter" : "mobile-tab-enter"
       }`}>
-        <div className="space-y-2.5">
+        <div className="space-y-1.5">
           {notes.map((note, index) => {
             const plainContent = stripHtml(note.content || "").replace(/\s+/g, " ").trim();
             const isPreviewExpanded = expandedNoteIds.has(note.id);
@@ -255,13 +255,13 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
             return (
               <article
                 key={note.id}
-                className={`w-full rounded-3xl shadow-xs transition-colors border border-black/[0.04] dark:border-white/[0.04] ${
+                className={`w-full rounded-xl transition-colors ${
                   note.isPinned
                     ? "bg-[var(--accent-sky)]/30 dark:bg-[var(--accent-sky)]/15"
-                    : "bg-white dark:bg-[#1E222A]"
+                    : "hover:bg-[var(--bg-surface-muted)]"
                 }`}
               >
-                <div className="flex items-start gap-3 p-4">
+                <div className="flex items-start gap-3 px-3 py-3.5 sm:px-4">
                   <span className="pt-0.5 text-[11px] text-[#78716C] dark:text-[#8E8E93] shrink-0 font-mono">
                     #{index + 1}
                   </span>
@@ -286,7 +286,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
                         aria-pressed={Boolean(note.isPinned)}
                         aria-label={note.isPinned ? "Bỏ ghim" : "Ghim"}
                         title={note.isPinned ? "Bỏ ghim" : "Ghim"}
-                        className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl shadow-xs active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none cursor-pointer transition-colors ${
+                    className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl active:translate-x-[0.5px] active:translate-y-[0.5px] cursor-pointer transition-colors ${
                           note.isPinned
                             ? "bg-[#FEF08A] dark:bg-amber-400 text-[#1C1917]"
                             : "bg-white dark:bg-[#2C2C2E] text-[#78716C] dark:text-[#8E8E93] hover:bg-[#FAF8F3]"
@@ -305,7 +305,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
                     </div>
 
                     <span className="text-[10px] sm:text-[11px] font-mono text-[#8E8E93] dark:text-[#8E8E93] pt-2 text-right whitespace-nowrap">
-                      {note.updatedAt || note.createdAt}
+                      {formatNoteTimestamp(note.updatedAt || note.createdAt)}
                     </span>
                   </div>
                 </div>
@@ -320,7 +320,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
                         return next;
                       });
                     }}
-                    className="w-full px-3 py-2 text-left text-[11px] font-semibold text-[#57534E] dark:text-[#8E8E93] hover:bg-[#FAF8F3] dark:hover:bg-[#2C2C2E] hover:text-[#1C1917] dark:hover:text-[#F2F2F7] cursor-pointer rounded-b-3xl"
+                    className="w-full px-3 py-2 text-left text-[11px] font-semibold text-[#57534E] dark:text-[#8E8E93] hover:bg-[var(--bg-surface-muted)] hover:text-[#1C1917] dark:hover:text-[#F2F2F7] cursor-pointer rounded-xl"
                   >
                     {isPreviewExpanded ? "Thu gọn" : "Xem thêm"}
                   </button>
@@ -339,8 +339,8 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
   if (!selectedNote || notes.length === 0) {
     return (
       <div className="w-full min-w-0 select-none">
-        <div className="bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] rounded-3xl p-8 sm:p-12 text-center space-y-3 shadow-xs">
-          <div className="w-12 h-12 rounded-2xl bg-[var(--accent-sky)] dark:bg-[var(--accent-sky)]/20 flex items-center justify-center mx-auto shadow-xs">
+        <div className="p-8 sm:p-12 text-center space-y-3">
+          <div className="w-12 h-12 rounded-2xl bg-[var(--accent-sky)] dark:bg-[var(--accent-sky)]/20 flex items-center justify-center mx-auto">
             <FileText size={22} className="text-[var(--text-on-soft-accent)] dark:text-[var(--accent-sky-strong)]" />
           </div>
           <div className="space-y-1">
@@ -378,7 +378,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
                 ? "pt-11 pb-2.5"
                 : "pt-[max(env(safe-area-inset-top),10px)] pb-2.5"
             }`
-          : "rounded-3xl bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] p-2.5 shadow-xs sm:p-3"
+          : "rounded-xl bg-[var(--bg-surface-muted)] p-2.5 sm:p-3"
       }`}>
         <button
           type="button"
@@ -386,7 +386,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
           className={`inline-flex min-w-0 items-center gap-1.5 text-xs font-bold text-[#1C1917] dark:text-[#F2F2F7] transition-all cursor-pointer ${
             isMobile
               ? "mobile-back-button h-9 px-2.5 rounded-2xl bg-white dark:bg-[#1E222A] shadow-xs active:translate-y-[0.5px]"
-              : "h-9 flex-1 rounded-2xl bg-white dark:bg-[#262C36] px-3 shadow-xs hover:bg-[#FAF8F3] dark:hover:bg-[#2D3542] active:scale-95"
+              : "h-9 flex-1 rounded-xl bg-[var(--bg-surface)] px-3 hover:bg-[var(--bg-interactive)] active:scale-95"
           }`}
           aria-label="Quay lại danh sách ghi chú"
           title="Quay lại danh sách ghi chú"
@@ -437,7 +437,7 @@ export const NoteMasterDetailView: React.FC<NoteMasterDetailViewProps> = ({
         className={`flex flex-col overflow-hidden ${
           isMobile
             ? "min-h-[calc(100dvh-70px)] bg-white dark:bg-[#1E222A] px-4 py-4 sm:px-6 sm:py-5 pb-28"
-            : "h-[calc(100dvh-8.5rem)] min-h-[420px] max-h-[760px] rounded-3xl bg-white dark:bg-[#1E222A] border border-black/[0.06] dark:border-white/[0.08] p-4 shadow-xs sm:p-6 md:h-[calc(100dvh-12rem)] md:min-h-[520px] md:max-h-[820px] md:p-8"
+            : "h-[calc(100dvh-7.5rem)] min-h-[520px] bg-[var(--bg-surface)] px-5 py-5 sm:px-7 sm:py-6 md:h-[calc(100dvh-9rem)] md:min-h-[620px] md:px-10 md:py-8"
         }`}
       >
         {/* Tiêu đề ghi chú */}

@@ -70,6 +70,7 @@ model StickyNote {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String   @default("")
   content   String
   color     String   @default("yellow")
   tilt      String   @default("none")

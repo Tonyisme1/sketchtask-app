@@ -2,6 +2,7 @@ import { TaskDto } from "../../../types";
 import {
   getTaskEffectiveDate,
   getTaskEffectiveTime,
+  getTaskItemType,
   getTaskTimelineRangeForDate,
   moveTaskToDate,
   normalizeTaskTimeType,
@@ -53,6 +54,20 @@ export const getTimelineDropUpdates = (
   const type = normalizeTaskTimeType(task);
   const targetTime = formatTime(Math.max(0, Math.min(MINUTES_PER_DAY - 15, targetStartMinutes)));
 
+  // A start-only event stays a point when moved. Only an explicit resize adds
+  // an end time, so the timeline never creates duration the user did not set.
+  if (getTaskItemType(task) === "event" && !task.endTime) {
+    return {
+      ...moveTaskToDate(task, targetDate),
+      dueDate: `${targetDate} ${targetTime}`,
+      timeType: "event",
+      startTime: targetTime,
+      endTime: undefined,
+      deadlineDate: undefined,
+      deadlineTime: undefined,
+    };
+  }
+
   if (type === "scheduled") {
     const sourceDate = getTaskEffectiveDate(task) || targetDate;
     const sourceRange = getTaskTimelineRangeForDate(task, sourceDate);
@@ -86,23 +101,20 @@ export const getTimelineDropUpdates = (
     };
   }
 
-  // All-day or unscheduled tasks dragged to timeline become scheduled with default 60min
-  const startMinutes = Math.min(
-    Math.max(0, targetStartMinutes),
-    MINUTES_PER_DAY - 60,
-  );
-  const endMinutes = startMinutes + 60;
-
+  // A task dropped on a time grid gets a deadline at that point. It never
+  // acquires an invented 60-minute duration; duration belongs to Event only.
   return {
     ...moveTaskToDate(task, targetDate),
-    dueDate: `${targetDate} ${formatTime(startMinutes)}`,
-    timeType: "scheduled",
-    startTime: formatTime(startMinutes),
-    endTime: endMinutes >= MINUTES_PER_DAY ? "23:59" : formatTime(endMinutes),
+    dueDate: `${targetDate} ${targetTime}`,
+    timeType: "deadline",
+    startTime: undefined,
+    endTime: undefined,
+    deadlineDate: targetDate,
+    deadlineTime: targetTime,
   };
 };
 
-/** Build updates for resizing a scheduled task block (adjusting top/startTime or bottom/endTime). */
+/** Build updates for resizing an Event block. Legacy scheduled tasks remain untouched. */
 export const getTimelineResizeUpdates = (
   task: TaskDto,
   targetDate: string,
@@ -132,11 +144,16 @@ export const getTimelineResizeUpdates = (
 
   const startStr = formatTime(startMinutes);
   const endStr = endMinutes >= MINUTES_PER_DAY ? "23:59" : formatTime(endMinutes);
+  const isEvent = getTaskItemType(task) === "event";
+
+  if (!isEvent) {
+    return {};
+  }
 
   return {
     ...moveTaskToDate(task, targetDate),
     dueDate: `${targetDate} ${startStr}`,
-    timeType: "scheduled",
+    timeType: "event",
     startTime: startStr,
     endTime: endStr,
     deadlineTime: undefined,

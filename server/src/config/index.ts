@@ -40,6 +40,7 @@ export const config = {
   databaseUrl,
   directDatabaseUrl,
   jwtSecret: rawJwtSecret || defaultSecret,
+  geminiApiKey: (process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY || "").trim(),
   isProduction,
   corsOrigins: (process.env.CORS_ORIGINS || "https://sketchtask-app.vercel.app,capacitor://localhost,http://localhost")
     .split(",")

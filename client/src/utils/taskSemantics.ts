@@ -6,7 +6,7 @@ export const getTaskItemType = (
   task: Pick<TaskDto, "itemType" | "timeType">,
 ): TaskItemType => task.itemType || (task.timeType === "event" ? "event" : "task");
 
-/** Give both calendar items a predictable one-hour slot when only a start is entered. */
+/** Keep legacy scheduled records readable without inventing an end time for new events. */
 export const getDefaultEndTime = (startTime?: string): string | undefined => {
   if (!startTime || !/^\d{2}:\d{2}$/.test(startTime)) return undefined;
   const [hours, minutes] = startTime.split(":").map(Number);
@@ -196,13 +196,23 @@ export const getTaskEffectiveTime = (task: TaskDto): string | undefined => {
   return dueDateTime;
 };
 
-/** Prevent invalid zero-length scheduled cards from displaying an equal start/end time. */
+/**
+ * Return an end label only when it belongs to an event range or a legacy
+ * scheduled task. A start-only event is intentionally a point on the timeline.
+ */
 export const getTaskEffectiveEndTime = (task: TaskDto): string | undefined => {
   const startTime = getTaskEffectiveTime(task);
-  if (!startTime || getTaskItemType(task) === "event") return undefined;
-  return task.endTime && task.endTime > startTime
-    ? task.endTime
-    : getDefaultEndTime(startTime);
+  if (!startTime) return undefined;
+
+  if (getTaskItemType(task) === "event") {
+    return task.endTime && task.endTime > startTime ? task.endTime : undefined;
+  }
+
+  return normalizeTaskTimeType(task) === "scheduled"
+    ? task.endTime && task.endTime > startTime
+      ? task.endTime
+      : getDefaultEndTime(startTime)
+    : undefined;
 };
 
 export const getTaskDateTime = (task: TaskDto): TaskDateTime => ({
@@ -272,73 +282,6 @@ export const getTaskTemporalState = (task: TaskDto, now: Date = new Date()): Tas
   }
 
   return currentMinutes > targetMinutes ? "overdue" : "upcoming";
-};
-
-/** Keep every entry point pointed at the same deadline-only task set. */
-export const isTaskDeadline = (task: TaskDto): boolean =>
-  getTaskItemType(task) !== "event" && normalizeTaskTimeType(task) === "deadline";
-
-export interface DeadlineAttentionSummary {
-  overdue: number;
-  upcoming: number;
-}
-
-export interface DeadlineTaskBuckets {
-  overdue: TaskDto[];
-  upcoming: TaskDto[];
-}
-
-/**
- * Deadline work is deliberately separate from calendar events and ordinary tasks.
- * Every entry point uses this helper so the two deadline views cannot drift apart.
- */
-export const getDeadlineTaskBuckets = (
-  tasks: TaskDto[],
-  now: Date = new Date(),
-  daysAhead = 7,
-): DeadlineTaskBuckets => {
-  const todayStr = getLocalTodayStr(now);
-  const limitDate = new Date(now);
-  limitDate.setDate(limitDate.getDate() + Math.max(0, daysAhead - 1));
-  const limitStr = getLocalTodayStr(limitDate);
-
-  return tasks.reduce<DeadlineTaskBuckets>(
-    (buckets, task) => {
-      if (task.completed || !isTaskDeadline(task)) return buckets;
-
-      if (getTaskTemporalState(task, now) === "overdue") {
-        buckets.overdue.push(task);
-        return buckets;
-      }
-
-      const deadlineDate = getTaskDeadlineDate(task) || getTaskEffectiveDate(task);
-      if (deadlineDate && deadlineDate >= todayStr && deadlineDate <= limitStr) {
-        buckets.upcoming.push(task);
-      }
-      return buckets;
-    },
-    { overdue: [], upcoming: [] },
-  );
-};
-
-/** Keep every deadline entry point on the same overdue/upcoming split. */
-export const getDeadlineAttentionSummary = (
-  tasks: TaskDto[],
-  now: Date = new Date(),
-  daysAhead = 7,
-): DeadlineAttentionSummary => {
-  const buckets = getDeadlineTaskBuckets(tasks, now, daysAhead);
-  return { overdue: buckets.overdue.length, upcoming: buckets.upcoming.length };
-};
-
-/** Count overdue work plus deadline work due within the current seven-day window. */
-export const getDeadlineAttentionCount = (
-  tasks: TaskDto[],
-  now: Date = new Date(),
-  daysAhead = 7,
-): number => {
-  const summary = getDeadlineAttentionSummary(tasks, now, daysAhead);
-  return summary.overdue + summary.upcoming;
 };
 
 /** Kiểm tra task có thuộc đúng một ngày cụ thể (YYYY-MM-DD) hay không */
@@ -554,11 +497,12 @@ export const getInheritedParentSchedule = (parentTask: TaskDto): Partial<TaskDto
   if (type === "scheduled") {
     return {
       dueDate: date ? `${date}${time ? ` ${time}` : ""}` : undefined,
-      timeType: "scheduled",
-      startTime: time,
-      endTime: parentTask.endTime,
-      deadlineDate: undefined,
-      deadlineTime: undefined,
+      // Legacy scheduled parents must not create new scheduled task children.
+      timeType: date && time ? "deadline" : "task",
+      startTime: undefined,
+      endTime: undefined,
+      deadlineDate: date,
+      deadlineTime: time,
     };
   }
 
@@ -592,6 +536,9 @@ export const getTaskParentCandidates = (
   options: { taskId?: string; date?: string } = {},
 ): TaskDto[] => {
   return tasks.filter((candidate) => {
+    // Parent/child is a task-only relation; events never own subtasks.
+    if (getTaskItemType(candidate) === "event") return false;
+
     // Không thể chọn chính mình hoặc tạo chu trình vòng lặp
     if (!canAssignTaskParent(options.taskId, candidate.id, tasks)) {
       return false;
@@ -608,7 +555,7 @@ export const getTaskParentCandidates = (
 /**
  * Xây dựng danh sách SelectOption công việc cha đầy đủ, thông minh và trực quan:
  * - Đầy đủ tất cả các task trong ngày/sổ tay có thể làm cha
- * - Phân nhóm theo: Lịch hẹn, Hạn chót, Việc cần làm
+ * - Phân nhóm theo mức độ có hạn và việc cần làm
  * - Hiển thị nhãn kèm mốc giờ và số lượng việc con
  */
 export const buildParentSelectOptions = (
@@ -620,12 +567,14 @@ export const buildParentSelectOptions = (
   let taskList = [...candidates];
   if (selectedParentId && !taskList.some((t) => t.id === selectedParentId)) {
     const selectedTask = allTasks.find((t) => t.id === selectedParentId);
-    if (selectedTask) taskList.unshift(selectedTask);
+    // Do not resurrect an invalid legacy event relation in the Task parent picker.
+    if (selectedTask && getTaskItemType(selectedTask) !== "event") {
+      taskList.unshift(selectedTask);
+    }
   }
 
   // 2. Sắp xếp danh sách candidates:
-  // - Lịch hẹn trước (theo startTime)
-  // - Hạn chót (theo deadlineTime)
+  // - Việc có giờ hạn trước (theo deadlineTime)
   // - Việc cần làm thông thường
   // - Việc chưa hoàn thành lên trước việc đã hoàn thành
   taskList.sort((a, b) => {
@@ -633,15 +582,11 @@ export const buildParentSelectOptions = (
     const normA = normalizeTaskTimeType(a);
     const normB = normalizeTaskTimeType(b);
 
-    if (normA === "scheduled" && normB !== "scheduled") return -1;
-    if (normA !== "scheduled" && normB === "scheduled") return 1;
-    if (normA === "deadline" && normB === "none") return -1;
-    if (normA === "none" && normB === "deadline") return 1;
-
-    if (normA === "scheduled" && normB === "scheduled") {
-      return (getTaskEffectiveTime(a) || "").localeCompare(getTaskEffectiveTime(b) || "");
-    }
-    if (normA === "deadline" && normB === "deadline") {
+    const hasTimedDueA = normA === "deadline" || normA === "scheduled";
+    const hasTimedDueB = normB === "deadline" || normB === "scheduled";
+    if (hasTimedDueA && !hasTimedDueB) return -1;
+    if (!hasTimedDueA && hasTimedDueB) return 1;
+    if (hasTimedDueA && hasTimedDueB) {
       return (getTaskEffectiveTime(a) || "").localeCompare(getTaskEffectiveTime(b) || "");
     }
     return (a.title || "").localeCompare(b.title || "");
@@ -660,10 +605,7 @@ export const buildParentSelectOptions = (
     let formattedLabel = t.title;
 
     const effectiveTime = getTaskEffectiveTime(t);
-    if (norm === "scheduled" && effectiveTime) {
-      groupTitle = "Khung giờ hẹn";
-      formattedLabel = `[${effectiveTime}${t.endTime ? ` - ${t.endTime}` : ""}] ${t.title}`;
-    } else if (norm === "deadline" && effectiveTime) {
+    if ((norm === "scheduled" || norm === "deadline") && effectiveTime) {
       groupTitle = "Có hạn chót";
       formattedLabel = `[Hạn ${effectiveTime}] ${t.title}`;
     }
