@@ -151,7 +151,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({
               <button
                 key={key}
                 type="button"
-                data-onboarding={key === "tasks" ? "mobile-tasks" : "mobile-events"}
                 onClick={() => onTabChange(key)}
                 aria-label={label}
                 title={label}
@@ -173,7 +172,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({
           <div className="flex items-center justify-center">
             <button
               type="button"
-              data-onboarding="mobile-create"
               onClick={handleCreateCurrentItem}
               aria-label={activeTab === "events" ? "Tạo sự kiện mới" : "Tạo công việc mới"}
               title="Tạo mới"
@@ -186,7 +184,6 @@ export const MobileNav: React.FC<MobileNavProps> = ({
           {/* Nút 4: Ghi chép gom Ghi chú và Nhật ký để không chồng vào AI nổi. */}
           <button
             type="button"
-            data-onboarding="mobile-notes"
             onClick={() => onTabChange("notes")}
             aria-label="Ghi chép"
             title="Ghi chép"

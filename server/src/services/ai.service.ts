@@ -47,7 +47,12 @@ type ParsedProposal = {
 };
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta";
-const GEMINI_MODEL = "gemini-3-flash-preview";
+const GEMINI_MODELS = [
+  "gemini-2.5-flash",
+  "gemini-2.0-flash",
+  "gemini-1.5-flash",
+  "gemini-3-flash-preview",
+];
 const MAX_QUERY_LENGTH = 4_000;
 const MAX_HISTORY_ITEMS = 8;
 
@@ -211,17 +216,30 @@ export class AiService {
     if (!normalizedQuery) throw new Error("Nội dung gửi AI đang trống.");
     if (!config.geminiApiKey) throw new Error("AI chưa được cấu hình ở máy chủ.");
 
-    const tasks = await prisma.task.findMany({
-      where: { userId },
-      orderBy: { updatedAt: "desc" },
-      take: 400,
-      select: {
-        id: true, title: true, description: true, completed: true, itemType: true,
-        timeType: true, dueDate: true, startDate: true, endDate: true,
-        startTime: true, endTime: true, deadlineDate: true, deadlineTime: true,
-        priority: true, tag: true, parentTaskId: true,
-      },
-    });
+    type CatalogTask = {
+      id: string; title: string; description: string | null; completed: boolean; itemType: string | null;
+      timeType: string | null; dueDate: string | null; startDate: string | null; endDate: string | null;
+      startTime: string | null; endTime: string | null; deadlineDate: string | null; deadlineTime: string | null;
+      priority: string | null; tag: string | null; parentTaskId: string | null;
+    };
+    let tasks: CatalogTask[] = [];
+
+    try {
+      tasks = await prisma.task.findMany({
+        where: { userId },
+        orderBy: { updatedAt: "desc" },
+        take: 400,
+        select: {
+          id: true, title: true, description: true, completed: true, itemType: true,
+          timeType: true, dueDate: true, startDate: true, endDate: true,
+          startTime: true, endTime: true, deadlineDate: true, deadlineTime: true,
+          priority: true, tag: true, parentTaskId: true,
+        },
+      });
+    } catch (dbErr) {
+      console.warn("[AiService] Không thể tải danh mục tasks từ database:", dbErr);
+    }
+
     const allowedTaskIds = new Map(tasks.map((task) => [task.id, task.itemType === "event" ? "event" as const : "task" as const]));
     const catalog = tasks.map((task) => ({ ...task, description: task.description?.slice(0, 400) }));
     const systemInstruction = `Bạn là trợ lý của SketchTask. Trả lời tiếng Việt, ngắn gọn, trung thực. Danh mục dưới đây là dữ liệu duy nhất của người dùng này: ${JSON.stringify(catalog)}.
@@ -233,16 +251,42 @@ Không tự áp dụng thay đổi; từng mục chỉ là đề xuất. Với c
     }));
     contents.push({ role: "user", parts: [{ text: normalizedQuery }] });
 
-    const response = await fetch(`${GEMINI_API_URL}/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(config.geminiApiKey)}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ system_instruction: { parts: [{ text: systemInstruction }] }, contents, generationConfig: { temperature: 0.15, maxOutputTokens: 4000 } }),
-    });
-    if (!response.ok) throw new Error("Dịch vụ AI hiện chưa phản hồi. Vui lòng thử lại sau.");
+    let raw: string | undefined;
+    let lastError: string = "Không nhận được phản hồi từ AI";
 
-    const body = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
-    const raw = body.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!raw?.trim()) throw new Error("AI không trả về nội dung hợp lệ.");
+    for (const model of GEMINI_MODELS) {
+      try {
+        const response = await fetch(`${GEMINI_API_URL}/models/${model}:generateContent?key=${encodeURIComponent(config.geminiApiKey)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: systemInstruction }] },
+            contents,
+            generationConfig: { temperature: 0.2, maxOutputTokens: 4000 }
+          }),
+        });
+
+        if (!response.ok) {
+          const errText = await response.text().catch(() => "");
+          console.warn(`[AiService] Model ${model} trả về lỗi HTTP ${response.status}:`, errText);
+          lastError = `Model ${model} (${response.status}): ${errText.slice(0, 150)}`;
+          continue;
+        }
+
+        const body = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
+        raw = body.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (raw?.trim()) {
+          break;
+        }
+      } catch (networkErr) {
+        console.warn(`[AiService] Lỗi kết nối tới model ${model}:`, networkErr);
+        lastError = networkErr instanceof Error ? networkErr.message : "Lỗi kết nối mạng";
+      }
+    }
+
+    if (!raw?.trim()) {
+      throw new Error(`Dịch vụ AI hiện chưa phản hồi. Chi tiết: ${lastError}`);
+    }
 
     const parsedResponse = extractResponse(raw);
     const parsedProposal = parsedResponse.payload

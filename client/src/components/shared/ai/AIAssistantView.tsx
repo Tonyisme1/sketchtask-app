@@ -136,14 +136,18 @@ export const AIAssistantView: React.FC<AIAssistantViewProps> = ({
           queryResult: result,
         },
       ]);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("AI processing error:", err);
+      const errorMessage =
+        err instanceof Error && err.message
+          ? err.message
+          : "Mình chưa xử lý được yêu cầu này. Bạn thử nói rõ việc cần làm, thời gian hoặc mục tiêu nhé.";
       setMessages((prev) => [
         ...prev,
         {
           id: `ai-error-${Date.now()}`,
           sender: "ai",
-          text: "Mình chưa xử lý được yêu cầu này. Bạn thử nói rõ việc cần làm, thời gian hoặc mục tiêu nhé.",
+          text: errorMessage,
           time: getTimeLabel(),
         },
       ]);

@@ -15,7 +15,6 @@ import { MobileShell, MobileWorkspace } from "./mobile";
 import { AuthPage } from "./components/shared/auth/AuthPage";
 import { ToastViewport } from "./components/ui/feedback/ToastViewport";
 import { UpdateModal } from "./components/ui/overlays/UpdateModal";
-import { AppOnboardingTour } from "./components/shared/onboarding/AppOnboardingTour";
 import { checkForAppUpdates, type UpdateInfo } from "./services/updateService";
 import {
   consumeSkippedPopState,
@@ -400,7 +399,6 @@ export default function App() {
   return (
     <AppProvider>
       <AppRouter />
-      <AppOnboardingTour />
       <ToastViewport />
     </AppProvider>
   );

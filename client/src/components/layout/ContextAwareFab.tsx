@@ -65,7 +65,6 @@ export const ContextAwareFab: React.FC<ContextAwareFabProps> = ({
   return (
     <button
       type="button"
-      data-onboarding={showOnDesktop ? "desktop-create" : showOnTablet ? "tablet-create" : "mobile-create"}
       onClick={handleClick}
       aria-label={action.label}
       title={action.label}

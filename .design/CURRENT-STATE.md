@@ -152,9 +152,8 @@ Browser back, Android/Capacitor back và nút back trong UI phải đi qua cùng
 - Note, journal và task có thể dùng notebook để phân loại; notebook không được biến thành navigation surface riêng.
 - Mọi async surface cần có loading, empty, error và success phù hợp. Error phải có hành động khắc phục hoặc retry.
 
-## 9. First-run onboarding và AI
+## 9. AI Assistant
 
-- Lần đầu vào app, `AppOnboardingTour` dùng coach mark theo platform để trỏ vào điều hướng và thao tác cốt lõi, không tự mở AI. Có thể bỏ qua, và khi hoàn thành sẽ không tự hiện lại.
 - AI chỉ sinh proposal. Mỗi task, bước chia nhỏ hoặc thao tác dữ liệu là một lựa chọn riêng, mặc định chưa được chọn; không có lệnh áp dụng hàng loạt mặc định.
 - AI không tự chia nhỏ mục tiêu nếu người dùng chưa yêu cầu, không tự mặc định số bước, không tự gán ngày khi thiếu dữ kiện và phải hỏi lại một câu khi mục tiêu chưa đủ rõ.
 

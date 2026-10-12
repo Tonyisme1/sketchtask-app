@@ -119,7 +119,6 @@ export const TabletNav: React.FC<TabletNavProps> = ({
             <button
               key={key}
               type="button"
-              data-onboarding={key === "tasks" ? "tablet-tasks" : undefined}
               onClick={() => onTabChange(key)}
               aria-label={label}
               title={label}

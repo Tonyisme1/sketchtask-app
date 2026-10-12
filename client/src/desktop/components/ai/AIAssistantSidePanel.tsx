@@ -147,8 +147,21 @@ export const AIAssistantSidePanel: React.FC<AIAssistantSidePanelProps> = ({
           queryResult: result,
         },
       ]);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("AI processing error:", err);
+      const errorMessage =
+        err instanceof Error && err.message
+          ? err.message
+          : "Mình chưa xử lý được yêu cầu này. Vui lòng thử lại sau.";
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `ai-error-${Date.now()}`,
+          sender: "ai",
+          text: errorMessage,
+          time: getTimeLabel(),
+        },
+      ]);
     } finally {
       setIsTyping(false);
     }

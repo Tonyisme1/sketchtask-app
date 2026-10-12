@@ -151,7 +151,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {createHandler && (
             <button
               type="button"
-              data-onboarding="desktop-create"
               onClick={createHandler}
               title={isEventWorkspace ? "Tạo sự kiện" : "Tạo công việc mới (N)"}
               aria-label={isEventWorkspace ? "Tạo sự kiện" : "Tạo công việc mới"}
@@ -197,7 +196,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <>
             <button
               type="button"
-              data-onboarding="desktop-tasks"
               onClick={handleSelectAllTasks}
               title="Công việc"
               className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all cursor-pointer ${
@@ -280,7 +278,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* === PHẦN 1: WORKSPACE CÔNG VIỆC DUY NHẤT === */}
           <button
             type="button"
-            data-onboarding="desktop-tasks"
             onClick={handleSelectAllTasks}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl text-xs font-semibold transition-all cursor-pointer ${
               isAllTasksActive

@@ -70,7 +70,6 @@ export const TabletHeader: React.FC<TabletHeaderProps> = ({
         ) : (
           <button
             type="button"
-            data-onboarding="tablet-search"
             onClick={() => onTabChange("tasks")}
             className="flex cursor-pointer items-center gap-2 transition-opacity hover:opacity-90"
             aria-label="Về Công việc"

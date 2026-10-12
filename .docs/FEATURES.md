@@ -80,7 +80,6 @@ Quy tắc dữ liệu:
 - Notification service chỉ quản lý quyền và lịch nhắc của hệ điều hành/trình duyệt
   theo platform. Hạn và quá hạn được đọc trên từng task, không được render thành
   một feed ứng dụng thứ hai.
-- Lần đầu mở app có coach mark ngắn theo platform. Đây là hướng dẫn tương tác, không phải một trang hướng dẫn cố định.
 - AI chỉ đưa ra đề xuất. Người dùng chọn từng mục trước khi áp dụng; không có thao tác thêm toàn bộ task AI đề xuất.
 - Auth có login/register state; form phải responsive và giữ action đăng ký/đăng nhập trong viewport mobile.
 
