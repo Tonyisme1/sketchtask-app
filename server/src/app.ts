@@ -47,6 +47,7 @@ app.get("/health", (_req, res) => {
     app: "SketchTask API",
     version: "1.6.0",
     realtime: "WebSocket Ready",
+    aiConfigured: Boolean(config.geminiApiKey),
     timestamp: new Date().toISOString(),
   });
 });

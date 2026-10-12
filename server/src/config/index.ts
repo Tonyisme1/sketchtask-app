@@ -35,19 +35,31 @@ if (isProduction) {
   }
 }
 
-export const config = {
-  port: Number(process.env.PORT) || 5000,
-  databaseUrl,
-  directDatabaseUrl,
-  jwtSecret: rawJwtSecret || defaultSecret,
-  geminiApiKey: (
+const resolveGeminiApiKey = () => {
+  const direct =
     process.env.GEMINI_API_KEY ||
     process.env.GOOGLE_GEMINI_API_KEY ||
     process.env.GOOGLE_API_KEY ||
     process.env.VITE_GEMINI_API_KEY ||
     process.env.GEMINI_KEY ||
-    ""
-  ).trim(),
+    process.env.GOOGLE_AI_KEY;
+  if (direct && direct.trim()) return direct.trim();
+
+  for (const [key, value] of Object.entries(process.env)) {
+    if (typeof value === "string" && key.toUpperCase().includes("GEMINI")) {
+      const trimmed = value.trim();
+      if (trimmed) return trimmed;
+    }
+  }
+  return "";
+};
+
+export const config = {
+  port: Number(process.env.PORT) || 5000,
+  databaseUrl,
+  directDatabaseUrl,
+  jwtSecret: rawJwtSecret || defaultSecret,
+  geminiApiKey: resolveGeminiApiKey(),
   isProduction,
   corsOrigins: (process.env.CORS_ORIGINS || "https://sketchtask-app.vercel.app,capacitor://localhost,http://localhost")
     .split(",")
