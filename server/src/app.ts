@@ -42,12 +42,17 @@ app.get("/", (_req, res) => {
 });
 
 app.get("/health", (_req, res) => {
+  const customEnvKeys = Object.keys(process.env).filter(
+    (k) => !["DATABASE_URL", "DIRECT_URL", "JWT_SECRET", "PATH", "SYSTEMROOT", "PWD", "HOME", "SHLVL", "_"].includes(k)
+  );
+
   res.json({
     status: "ok",
     app: "SketchTask API",
     version: "1.6.0",
     realtime: "WebSocket Ready",
     aiConfigured: Boolean(config.geminiApiKey),
+    envKeysFound: customEnvKeys,
     timestamp: new Date().toISOString(),
   });
 });

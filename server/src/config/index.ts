@@ -42,15 +42,27 @@ const resolveGeminiApiKey = () => {
     process.env.GOOGLE_API_KEY ||
     process.env.VITE_GEMINI_API_KEY ||
     process.env.GEMINI_KEY ||
-    process.env.GOOGLE_AI_KEY;
+    process.env.GOOGLE_AI_KEY ||
+    process.env.AI_API_KEY ||
+    process.env.AI_KEY;
   if (direct && direct.trim()) return direct.trim();
 
   for (const [key, value] of Object.entries(process.env)) {
-    if (typeof value === "string" && key.toUpperCase().includes("GEMINI")) {
-      const trimmed = value.trim();
-      if (trimmed) return trimmed;
+    if (typeof value === "string") {
+      const upper = key.toUpperCase();
+      if (upper.includes("GEMINI") || upper === "AI_KEY" || upper === "API_KEY") {
+        const trimmed = value.trim();
+        if (trimmed) return trimmed;
+      }
     }
   }
+
+  for (const [, value] of Object.entries(process.env)) {
+    if (typeof value === "string" && value.trim().startsWith("AIzaSy")) {
+      return value.trim();
+    }
+  }
+
   return "";
 };
 
